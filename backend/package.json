@@ -6,16 +6,17 @@
   "description": "StudyOps AI — main API (modular monolith)",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "test": "node --test tests/health.test.js"
+    "start": "node --env-file=.env src/server.js",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "node --test tests/health.test.js tests/unit/env.test.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.6.0"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
-  },
-  "devDependencies": {}
+    "express": "^4.21.2",
+    "zod": "^4.4.3"
+  }
 }

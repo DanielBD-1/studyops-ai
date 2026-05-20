@@ -2,7 +2,9 @@
 
 Web app that turns study material into tasks, flashcards, Trello cards, and focus sessions.
 
-**Phase 1A (current):** Project scaffold only — health checks, no auth or features yet.
+**Phase 1B (current):** Supabase & environment setup — Zod-validated env, Supabase client factories (no schema, no auth UI yet).
+
+**Phase 1A (done):** Project scaffold — health checks.
 
 ## Repository layout
 
@@ -15,7 +17,7 @@ docs/               # PRD, ADRs, workflows
 
 ## Prerequisites
 
-- Node.js 18+
+- **Node.js 20.6 or newer** (required — backend and document-service scripts use `node --env-file=.env`, which needs Node 20.6.0+)
 - npm 9+
 
 ## Setup (after dependencies installed)
@@ -28,7 +30,7 @@ cd ../document-service && npm install
 cd ../frontend && npm install
 ```
 
-Copy environment templates:
+Copy environment templates (placeholders only — use your real Supabase project values locally):
 
 ```bash
 cp backend/.env.example backend/.env
@@ -36,7 +38,23 @@ cp document-service/.env.example document-service/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Fill in placeholder values only for local dev; never commit `.env`.
+Never commit `.env`. **Do not put the service role key in `frontend/.env`** — only `VITE_SUPABASE_ANON_KEY`.
+
+### Required variables (Phase 1B)
+
+| Package | Variables |
+|---------|-----------|
+| **backend** | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, optional `SUPABASE_ANON_KEY`, `DOCUMENT_SERVICE_URL`, `PORT` |
+| **frontend** | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
+| **document-service** | `PORT` only (`GEMINI_API_KEY` optional, commented in example) |
+
+Env is validated with **Zod** at startup (backend, document-service) or app load (frontend). Invalid config fails fast with field errors (values are not logged).
+
+### Loading `.env` locally
+
+Backend and document-service `npm run dev` / `npm start` use `node --env-file=.env` (Node 20.6+). Copy each package’s `.env.example` to `.env` before starting.
+
+Alternatively, export variables in your shell if you run Node without `--env-file`.
 
 ## Run locally (Phase 1A)
 

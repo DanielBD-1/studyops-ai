@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Context engineering layer created. No application code yet.
+**Status:** Phase 1A scaffold + Phase 1B env/Supabase prep complete. Node.js 20.6+ required. Auth/schema/features not started.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Phase 1 per `docs/workflows/phase-1-foundation-workflow.md` after human reviews context files.
+**Next implementation:** Foundation Step 3b (schema, after approval) and Step 4+ (auth) per `docs/workflows/phase-1-foundation-workflow.md` — only when human approves. Skip Step 2 (scaffold done in 1A).
 
 **Known constraints:**
 
@@ -88,3 +88,32 @@
 **Reviews:** Supervisor — Approved with notes (I1/I2 doc updates accepted by human). Security — Approved with notes (no critical/high). No blocking issues.
 **Summary:** Scaffold closed. `frontend/`, `backend/`, `document-service/` with health checks, lockfiles, tests passing. Foundation **not started** per human instruction.
 **Next:** When ready, human approves Phase 1 Foundation; Orchestrator skips Foundation Step 2 (scaffold), starts at Step 3 (Supabase & env). Track SEC-I1 (CORS), SEC-I2 (frontend npm audit), commit hygiene for dist/node_modules.
+
+### 2026-05-20 — Phase 1B Supabase & environment setup
+
+**Workflow:** phase-1-foundation Step 3 (scoped as Phase 1B by human)
+**ADR refs:** 001 (config layout), 003 (Zod env validation)
+**Summary:** Added Zod `parseEnv`/`getEnv` in backend, document-service, frontend. Backend `getSupabaseAdmin()` (service role); frontend `getSupabaseBrowser()` (anon). Updated `.env.example` placeholders. Unit tests use mock env only. No schema, auth UI, courses, Gemini, Trello.
+**Packages added:** backend: zod, @supabase/supabase-js; document-service: zod; frontend: zod, @supabase/supabase-js
+**APIs affected:** none (startup validation only)
+**Follow-up:** Schema/migrations need approval; Phase 1C auth routes + UI; copy `.env` from examples locally.
+
+### 2026-05-20 — Node.js 20.6+ standardized
+
+**Workflow:** Documentation/metadata (post–Phase 1B review)
+**Summary:** PRD §6 Runtime, README, and all package `engines` require Node.js >=20.6.0 for `node --env-file=.env` on backend and document-service.
+**Follow-up:** Refresh package-lock `engines` metadata on next approved npm install if needed.
+
+### 2026-05-20 — Phase 1B complete (G4)
+
+**Workflow:** Phase 1B (Foundation Step 3 env slice)
+**Human gates:** G1 npm install (zod, @supabase/supabase-js per package), G4 Phase 1B complete — satisfied
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.
+**Summary:** Env validation (Zod) and Supabase client factories in place. No schema, migrations, auth UI/routes, courses, Gemini, or Trello. Foundation/auth **not started** until next human approval.
+**Tracked follow-ups (do not `npm audit fix --force`):**
+- Frontend Vite/esbuild **2 moderate** audit (GHSA-67mh-4wv8-2f99, dev-only) — plan upgrade with approval
+- **RLS required** before any Supabase data access from frontend (anon key will be public in bundle)
+- **`getSupabaseAdmin()`** server-side only — never import in frontend or expose service role via `VITE_*`
+- **CORS allowlist** — configure in Foundation/Auth phase (current `cors()` is permissive from 1A)
+- Foundation Step 3 split: **3a env done**; **3b schema/migrations** pending human approval
+**Next:** Human approval for schema and/or `approved — begin Phase 1C: Auth` (or full Foundation Step 4+).

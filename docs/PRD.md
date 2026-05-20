@@ -228,6 +228,10 @@ The Document Processing Microservice is separated because Gemini processing has 
 
 ## 6. Tech Stack
 
+### Runtime
+
+- **Node.js 20.6 or newer** (required for `node --env-file` in backend and document-service npm scripts; built-in test runner)
+
 ### Frontend
 
 - React
@@ -235,12 +239,12 @@ The Document Processing Microservice is separated because Gemini processing has 
 
 ### Backend
 
-- Node.js
+- Node.js 20.6+
 - Express
 
 ### Document Processing Microservice
 
-- Node.js
+- Node.js 20.6+
 - Express
 - Gemini API
 
