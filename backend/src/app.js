@@ -1,13 +1,39 @@
 import cors from 'cors';
 import express from 'express';
+import { getEnv } from './config/env.js';
+import authRoutes from './modules/auth/auth.routes.js';
+import { ApiError } from './shared/errors/ApiError.js';
+import { sendError } from './shared/utils/response.js';
 
 const app = express();
+const env = getEnv();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'backend' });
+});
+
+app.use('/api/auth', authRoutes);
+
+app.use((err, _req, res, next) => {
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+
+  if (err instanceof ApiError) {
+    sendError(res, err.code, err.message, err.status, err.details);
+    return;
+  }
+
+  sendError(res, 'SERVER_ERROR', 'An unexpected error occurred', 500);
 });
 
 export default app;

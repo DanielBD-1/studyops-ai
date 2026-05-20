@@ -5,7 +5,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  SUPABASE_ANON_KEY: z.string().min(1),
+  FRONTEND_URL: z.string().url(),
   DOCUMENT_SERVICE_URL: z.string().url().default('http://localhost:3002'),
 });
 

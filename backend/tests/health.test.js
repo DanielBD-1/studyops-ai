@@ -1,7 +1,11 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import app from '../src/app.js';
+import { applyTestEnv } from './helpers/testEnv.js';
+
+applyTestEnv();
+
+const { default: app } = await import('../src/app.js');
 
 function listen(server) {
   return new Promise((resolve) => {
