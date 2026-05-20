@@ -117,3 +117,14 @@
 - **CORS allowlist** — configure in Foundation/Auth phase (current `cors()` is permissive from 1A)
 - Foundation Step 3 split: **3a env done**; **3b schema/migrations** pending human approval
 **Next:** Human approval for schema and/or `approved — begin Phase 1C: Auth` (or full Foundation Step 4+).
+
+### 2026-05-20 — Phase 1C migration draft complete (G4)
+
+**Workflow:** Phase 1C / Foundation Step 3b
+**Human gates:** `approved — create profiles migration`; `approved — Phase 1C migration draft complete`
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.
+**Artifacts:** `docs/database/001-profiles-schema-and-rls.md`, `supabase/migrations/001_profiles.sql` (draft, **not applied**)
+**PRD:** §9 profiles updated — `id` = `auth.users.id`; no `user_id` on profiles; future tables use `user_id = auth.uid()`
+**Summary:** RLS SELECT own only; no client INSERT/UPDATE/DELETE; `handle_new_user` trigger (role `student`); admin promotion manual/service role only.
+**Apply status:** Do **not** run migration on Supabase without separate **`approved — apply profiles migration`**
+**Next:** Phase 1D Auth (routes + UI) or apply migration first — per human order

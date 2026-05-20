@@ -1002,10 +1002,11 @@ All API responses follow this structure:
 ### profiles
 
 - id
-- user_id
 - email
 - role: student | admin
 - created_at
+
+**Note:** In the profiles table, `id` is the Supabase Auth user id (`auth.users.id`). The `profiles` table does not include a separate `user_id` column. Future user-owned tables will use `user_id = auth.uid()`.
 
 ### courses
 
