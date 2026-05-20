@@ -1,0 +1,20 @@
+{
+  "name": "studyops-document-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "StudyOps AI — document processing microservice",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/health.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {}
+}

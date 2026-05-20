@@ -63,3 +63,28 @@
 **Tests:** none
 **Pitfalls:** Do not scaffold frontend/backend/document-service until Phase 1 workflow is approved.
 **Follow-up:** Human review of context files before Phase 1 implementation.
+
+### 2026-05-20 — Phase 1A project scaffold
+
+**Workflow:** phase-1a-scaffold-workflow.md
+**ADR refs:** 001 (backend module stubs), 002 (separate document-service shell)
+**Summary:** Created frontend/, backend/, document-service/ with package.json, .env.example, Express health routes, Vite+React shell. React Router v6 listed in frontend deps; routes not configured. No auth, Supabase, Gemini, Trello, or feature APIs.
+**APIs affected:** GET /health on backend (3001) and document-service (3002) only
+**Tests:** Node built-in test runner health tests in backend/tests and document-service/tests (require npm install)
+**Pitfalls:** Do not re-run Phase 1A; Foundation workflow skips Step 2, starts at Step 3. npm install pending G1 approval.
+**Follow-up:** Human G1 for npm install; verify health; G4 before Phase 1 Foundation.
+
+### 2026-05-20 — Phase 1A G1 npm install verified
+
+**Workflow:** phase-1a-scaffold-workflow.md (Step 6–7)
+**Summary:** `npm install` completed in backend, document-service, frontend. Backend and document-service `npm test` pass (Node built-in runner). Frontend `npm run build` succeeds. Live smoke: GET /health on :3001 and :3002 OK.
+**Pitfalls:** Frontend npm audit reports 2 moderate issues in dev deps (vite chain)—no action in 1A unless human requests.
+**Follow-up:** Await G4 (`approved — Phase 1A complete`) before Phase 1 Foundation Step 3+.
+
+### 2026-05-20 — Phase 1A complete (G4)
+
+**Workflow:** phase-1a-scaffold-workflow.md
+**Human gates:** G0 begin 1A, G1 npm install, G4 Phase 1A complete — all satisfied
+**Reviews:** Supervisor — Approved with notes (I1/I2 doc updates accepted by human). Security — Approved with notes (no critical/high). No blocking issues.
+**Summary:** Scaffold closed. `frontend/`, `backend/`, `document-service/` with health checks, lockfiles, tests passing. Foundation **not started** per human instruction.
+**Next:** When ready, human approves Phase 1 Foundation; Orchestrator skips Foundation Step 2 (scaffold), starts at Step 3 (Supabase & env). Track SEC-I1 (CORS), SEC-I2 (frontend npm audit), commit hygiene for dist/node_modules.

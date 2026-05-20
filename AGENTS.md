@@ -172,7 +172,8 @@ A feature or phase item is **done** only when **all** apply:
 
 | Workflow | When to use |
 |----------|-------------|
-| `docs/workflows/phase-1-foundation-workflow.md` | Repo setup, auth, courses |
+| `docs/workflows/phase-1a-scaffold-workflow.md` | Shells + health only (first code step) |
+| `docs/workflows/phase-1-foundation-workflow.md` | Auth, courses (skip scaffold Step 2 if 1A done) |
 | `docs/workflows/document-processing-workflow.md` | Gemini microservice + generation |
 | `docs/workflows/trello-sync-workflow.md` | Trello integration |
 | `docs/workflows/security-review-workflow.md` | Before merging security-sensitive PRs |
