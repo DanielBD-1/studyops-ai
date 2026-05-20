@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A scaffold + Phase 1B env/Supabase prep complete. Node.js 20.6+ required. Auth/schema/features not started.
+**Status:** Phase 1A scaffold + Phase 1B env complete + Phase 1C `public.profiles` applied/verified on Supabase. Node.js 20.6+ required. Auth and other tables not started.
 
 **Architecture locked by ADRs:**
 
@@ -126,5 +126,23 @@
 **Artifacts:** `docs/database/001-profiles-schema-and-rls.md`, `supabase/migrations/001_profiles.sql` (draft, **not applied**)
 **PRD:** §9 profiles updated — `id` = `auth.users.id`; no `user_id` on profiles; future tables use `user_id = auth.uid()`
 **Summary:** RLS SELECT own only; no client INSERT/UPDATE/DELETE; `handle_new_user` trigger (role `student`); admin promotion manual/service role only.
-**Apply status:** Do **not** run migration on Supabase without separate **`approved — apply profiles migration`**
+**Apply status:** Superseded — migration applied 2026-05-20 (see entry below).
 **Next:** Phase 1D Auth (routes + UI) or apply migration first — per human order
+
+### 2026-05-20 — Phase 1C profiles migration applied and verified
+
+**Workflow:** `approved — apply profiles migration`
+**Apply method:** Supabase SQL Editor (not CLI)
+**Migration:** `supabase/migrations/001_profiles.sql` — applied to real Supabase project
+**Human verification (passed):**
+- `public.profiles` table exists
+- RLS is enabled on `public.profiles`
+- `profiles_select_own` is the only client policy
+- No INSERT, UPDATE, or DELETE client policies exist
+- Signup creates one profile row per auth user
+- `profiles.id` = `auth.users.id`
+- Default role is `student`
+- `on_auth_user_created` trigger exists and is enabled
+**Apply status:** **Applied and verified** on Supabase project
+**Not started:** Phase 1D Auth (routes + UI) — per human instruction
+**Follow-up:** Re-check client write denial with user JWT in Auth phase if needed; admin promotion remains manual/service role only
