@@ -129,20 +129,20 @@
 **Apply status:** Superseded — migration applied 2026-05-20 (see entry below).
 **Next:** Phase 1D Auth (routes + UI) or apply migration first — per human order
 
-### 2026-05-20 — Phase 1C profiles migration applied and verified
+### 2026-05-20 — Phase 1C profiles migration applied and fully verified
 
 **Workflow:** `approved — apply profiles migration`
 **Apply method:** Supabase SQL Editor (not CLI)
 **Migration:** `supabase/migrations/001_profiles.sql` — applied to real Supabase project
-**Human verification (passed):**
-- `public.profiles` table exists
+**Apply status:** **Applied and fully verified** on Supabase project
+**Full verification checklist (all passed):**
+- `public.profiles` exists
 - RLS is enabled on `public.profiles`
 - `profiles_select_own` is the only client policy
 - No INSERT, UPDATE, or DELETE client policies exist
-- Signup creates one profile row per auth user
-- `profiles.id` = `auth.users.id`
-- Default role is `student`
 - `on_auth_user_created` trigger exists and is enabled
-**Apply status:** **Applied and verified** on Supabase project
+- Signup creates one profile row automatically
+- `profile_id` equals `auth.users.id` (`profiles.id` = `auth.users.id`)
+- Default role is `student`
 **Not started:** Phase 1D Auth (routes + UI) — per human instruction
-**Follow-up:** Re-check client write denial with user JWT in Auth phase if needed; admin promotion remains manual/service role only
+**Follow-up:** Admin promotion remains manual/service role only; optional JWT-level write tests in Auth phase
