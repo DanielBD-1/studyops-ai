@@ -1,0 +1,130 @@
+import {
+  createStudyMaterialBodySchema,
+  updateStudyMaterialBodySchema,
+  courseIdParamSchema,
+  materialIdParamSchema,
+} from '../../shared/validation/schemas.js';
+import { sendSuccess, sendValidationError } from '../../shared/utils/response.js';
+import {
+  listMaterials,
+  createMaterial,
+  getMaterialById,
+  updateMaterial,
+  deleteMaterial,
+} from './study-materials.service.js';
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function listByCourse(req, res, next) {
+  const parsed = courseIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const materials = await listMaterials(req.user.id, parsed.data.id);
+    sendSuccess(res, { materials });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function createForCourse(req, res, next) {
+  const paramsParsed = courseIdParamSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = createStudyMaterialBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const material = await createMaterial(req.user.id, paramsParsed.data.id, bodyParsed.data);
+    sendSuccess(res, { material }, 201);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function getById(req, res, next) {
+  const parsed = materialIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const material = await getMaterialById(req.user.id, parsed.data.materialId);
+    sendSuccess(res, { material });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function update(req, res, next) {
+  const paramsParsed = materialIdParamSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = updateStudyMaterialBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const material = await updateMaterial(
+      req.user.id,
+      paramsParsed.data.materialId,
+      bodyParsed.data
+    );
+    sendSuccess(res, { material });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function remove(req, res, next) {
+  const parsed = materialIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    await deleteMaterial(req.user.id, parsed.data.materialId);
+    sendSuccess(res, { deleted: true });
+  } catch (err) {
+    next(err);
+  }
+}

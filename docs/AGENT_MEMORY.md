@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 1C `public.profiles`, Phase 1E `public.courses`, and Phase 2A `public.study_materials` **applied and verified** on Supabase. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API **complete** (Supervisor + Security approved). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Study Materials API/UI requires separate human approval. Gemini generation, tasks, flashcards, Trello, dashboard, and admin require separate approval. Do not restart Phase 1D, 1F, 1G, or re-apply 003.
+**Next implementation:** Study Materials **frontend UI** requires separate human approval. Gemini generation, tasks, flashcards, Trello, dashboard, and admin require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, or re-apply 003.
 
 **Known constraints:**
 
@@ -382,3 +382,27 @@
 - Do not log full material `content`
 - Behavioral RLS tests with real authenticated student JWT can be done in API/manual QA phase
 - Gemini generation (`summary`, `key_topics`, `difficulty` columns) remains a later phase
+
+### 2026-05-22 — Phase 2B Study Materials Backend API complete
+
+**Workflow:** `approved — implement Phase 2B Study Materials Backend API`; Supervisor fixes applied; `approved — Phase 2B complete`  
+**Human gates:** Planning (`approved — begin Phase 2B` planning), implementation, Supervisor review (passed with notes — fixes applied), Security review (passed) — satisfied  
+**Reviews:** Supervisor — Approved with notes (23514 mapping, null-data guards — fixed). Security — Approved (including Supervisor fixes). No blocking issues.  
+**Artifacts:** `backend/src/modules/study-materials/` (`study-materials.service.js`, `study-materials.controller.js`, `study-materials.routes.js`); `courses.routes.js` extended; `shared/validation/schemas.js` material schemas; tests (`study-materials.validation.test.js`, `study-materials.service.test.js`, `study-materials.test.js`, `mockSupabaseStudyMaterials.js`)  
+**APIs added (all `requireAuth`):**
+- `GET /api/courses/:id/materials` — list `MaterialSummary` (no `content`)
+- `POST /api/courses/:id/materials` — create `MaterialDetail` (201)
+- `GET /api/study-materials/:materialId` — detail with `content`
+- `PATCH /api/study-materials/:materialId` — update (no `course_id` move)
+- `DELETE /api/study-materials/:materialId` — `{ deleted: true }`  
+**Response shapes:** `MaterialSummary` = `id`, `courseId`, `title`, `sourceType`, `createdAt`, `updatedAt`; `MaterialDetail` adds `content`. CamelCase API only; no snake_case or nested `courses` in responses.  
+**Ownership:** `study_materials.course_id` → `courses.id` → `courses.user_id = req.user.id`. List/create: `assertCourseOwned` before scoped `study_materials` queries. Get/patch/delete: `getOwnedMaterialOrThrow` via `courses!inner` + `.eq('courses.user_id', userId)` — no unfiltered `study_materials` lookup by `materialId` alone. PATCH/DELETE also filter by resolved owned `course_id`. Wrong/missing course or material → **404** (not 403).  
+**Validation:** Strict Zod bodies; `sourceType` optional `manual`|`paste`, default `manual`; rejects `course_id`, `courseId`, `user_id`, `userId`, `input_text`, `studyText`, `summary`, `key_topics`, `difficulty`, etc.  
+**Error hardening:** Postgres `23514` mapped by constraint name (`study_materials_title_length`, `study_materials_content_length`, `study_materials_source_type_allowed`) or neutral `"Invalid study material data"`; null `data` without error → 404 via `assertRowPresent`.  
+**Tests:** Backend `npm test` — **76/76** passed (mock Supabase only).  
+**Not added:** Frontend, schema/migrations, packages, Gemini, Trello, tasks, flashcards, dashboard, admin, generate route.  
+**Pitfalls:** Do not log full material `content`. Any future service-role `study_materials` query must prove parent course ownership.  
+**Tracked follow-ups:**
+- Study Materials frontend UI requires separate approval (e.g. `approved — begin Phase 2C Study Materials UI`)
+- Gemini generation remains a later phase
+- Behavioral RLS tests with real authenticated JWT optional in UI/manual QA phase

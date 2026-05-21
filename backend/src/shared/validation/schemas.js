@@ -49,3 +49,42 @@ export const courseIdParamSchema = z
     id: z.string().uuid('Invalid course id'),
   })
   .strict();
+
+const materialTitleSchema = z
+  .string()
+  .trim()
+  .min(3, 'Material title must be between 3 and 150 characters')
+  .max(150, 'Material title must be between 3 and 150 characters');
+
+const materialContentSchema = z
+  .string()
+  .trim()
+  .min(100, 'Study material must be between 100 and 50,000 characters')
+  .max(50000, 'Study material must be between 100 and 50,000 characters');
+
+const sourceTypeSchema = z.enum(['manual', 'paste']);
+
+export const createStudyMaterialBodySchema = z
+  .object({
+    title: materialTitleSchema,
+    content: materialContentSchema,
+    sourceType: sourceTypeSchema.optional(),
+  })
+  .strict();
+
+export const updateStudyMaterialBodySchema = z
+  .object({
+    title: materialTitleSchema.optional(),
+    content: materialContentSchema.optional(),
+    sourceType: sourceTypeSchema.optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field is required',
+  });
+
+export const materialIdParamSchema = z
+  .object({
+    materialId: z.string().uuid('Invalid study material id'),
+  })
+  .strict();
