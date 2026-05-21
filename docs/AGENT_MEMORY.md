@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 2A `public.study_materials` schema/RLS **draft complete** (migration **not applied**). GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 1C `public.profiles`, Phase 1E `public.courses`, and Phase 2A `public.study_materials` **applied and verified** on Supabase. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Apply `003_study_materials.sql` only after `approved — apply study materials migration`. Study Materials API/UI, Gemini generation, tasks, flashcards, Trello, dashboard, and admin require separate approval. Do not restart Phase 1D, 1F, or 1G.
+**Next implementation:** Study Materials API/UI requires separate human approval. Gemini generation, tasks, flashcards, Trello, dashboard, and admin require separate approval. Do not restart Phase 1D, 1F, 1G, or re-apply 003.
 
 **Known constraints:**
 
@@ -354,3 +354,31 @@
 - After apply: verify cross-user INSERT/SELECT/UPDATE/DELETE; verify UPDATE cannot move `course_id` to another user’s course
 - Future Study Materials API: every service-role query must prove parent course `user_id = req.user.id`; do not log full `content`
 - Gemini generation / `summary`, `key_topics`, `difficulty` columns remain a later phase
+
+### 2026-05-21 — Phase 2A study materials migration applied and fully verified
+
+**Workflow:** `approved — apply study materials migration`  
+**Apply method:** Supabase SQL Editor (not CLI)  
+**Migration:** `supabase/migrations/003_study_materials.sql` — applied to real Supabase project  
+**Human gates:** `approved — study materials migration applied and verified` — satisfied  
+**Grant file alignment:** Migration grants section updated in repo to match verified DB state — explicit `REVOKE ALL` from `anon`, `authenticated`, `service_role`, then grant only `SELECT`, `INSERT`, `UPDATE`, `DELETE` to `authenticated` and `service_role` (no REFERENCES, TRIGGER, TRUNCATE, or GRANT ALL). Extra privileges removed during human verification.  
+**Apply status:** **Applied and fully verified** on Supabase project  
+**Full verification checklist (all passed):**
+- `public.study_materials` exists
+- RLS enabled on `public.study_materials`
+- Policies: `study_materials_select_own_course`, `study_materials_insert_own_course`, `study_materials_update_own_course`, `study_materials_delete_own_course`
+- `anon`: no table grants on `public.study_materials`
+- `authenticated`: only `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+- `service_role`: only `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+- CHECK constraints: `study_materials_title_length`, `study_materials_content_length`, `study_materials_source_type_allowed`
+- Indexes: `study_materials_course_id_idx`, `study_materials_course_id_created_at_idx`
+- Trigger `study_materials_set_updated_at` exists and is enabled
+- Function `set_study_materials_updated_at` uses `search_path=public`
+- Public tables: `profiles`, `courses`, `study_materials` only (no extra MVP tables)
+**Ownership:** Course-chain only — `study_materials.course_id` → `courses.user_id = auth.uid()`; no `user_id` on materials; `content` = PRD `input_text` / `studyText`  
+**Not started:** Study Materials API/UI, Gemini, Trello, tasks, flashcards, dashboard, admin  
+**Tracked follow-ups:**
+- Future Study Materials API: every service-role `study_materials` query must prove parent course `user_id = req.user.id`
+- Do not log full material `content`
+- Behavioral RLS tests with real authenticated student JWT can be done in API/manual QA phase
+- Gemini generation (`summary`, `key_topics`, `difficulty` columns) remains a later phase

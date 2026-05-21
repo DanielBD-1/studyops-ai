@@ -143,9 +143,13 @@ create policy study_materials_delete_own_course
 -- =============================================================================
 -- Data API grants (required when "Automatically expose new tables" is OFF)
 -- GRANT = role may access table via PostgREST; RLS = which rows are allowed.
+-- Revoke all from each role first, then grant only SELECT/INSERT/UPDATE/DELETE
+-- (no REFERENCES, TRIGGER, TRUNCATE, or GRANT ALL).
 -- =============================================================================
 
 revoke all on table public.study_materials from anon;
+revoke all on table public.study_materials from authenticated;
+revoke all on table public.study_materials from service_role;
 
 grant select, insert, update, delete
   on table public.study_materials
