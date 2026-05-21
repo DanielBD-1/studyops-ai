@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C (local backend :3001, frontend :5173). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -431,3 +431,26 @@
 - Tasks and flashcards remain later separate phases
 - Full styling pass requires separate approval (e.g. `approved — apply DESIGN styling pass`)
 - Optional later polish: separate read-only view mode on material detail
+
+### 2026-05-23 — Phase 2C manual smoke test passed
+
+**Workflow:** `approved — manual smoke test passed`  
+**Human gate:** Manual end-to-end verification after Phase 2C — satisfied  
+**Environment:**
+- Backend ran locally on port **3001**
+- Frontend ran locally on port **5173**
+- Real Supabase project (authenticated JWT), not mock tests  
+**Local fixes during smoke (not app code in repo unless docs-only):**
+- Frontend `.env` placeholder values corrected so Vite/client config loads
+- `public.profiles` grants fixed in Supabase: `authenticated` and `service_role` have **SELECT**; **`anon` has no access**  
+**Verified flows:**
+- Login succeeded
+- **Courses:** list, create, open detail, edit, delete
+- **Study materials:** list materials, create material, open detail, edit material, delete material  
+**Not tested / not started:** Gemini, generate route, Trello, tasks, flashcards, dashboard, admin  
+**Application code:** No repo application code changed during smoke test (this entry is docs-only)  
+**Tracked follow-ups:**
+- Align `supabase/migrations/001_profiles.sql` and `docs/database/001-profiles-schema-and-rls.md` with verified `public.profiles` grants (SELECT for `authenticated`/`service_role`, no `anon` access)
+- Continue to keep **service_role** backend-only; frontend uses anon key + session Bearer only
+- Future UI polish / Stitch / `DESIGN.md` styling pass remains later (separate approval)
+- Gemini generation remains a later separate phase
