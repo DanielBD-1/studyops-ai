@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 1F Courses Backend API complete. Node.js 20.6+ required. Courses frontend UI not started.
+**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 1F Courses Backend API and Phase 1G Courses Frontend UI complete. Node.js 20.6+ required. `DESIGN.md` exists as lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Courses frontend UI only after separate human approval. Do not start tasks, flashcards, Gemini, Trello, dashboard, or admin. Auth and Phase 1F backend are complete; do not restart Phase 1D or 1F.
+**Next implementation:** Requires separate human approval per PRD/workflow (e.g. study plan generation, tasks, document-service). Do not start tasks, flashcards, Gemini, Trello, dashboard stats, admin, or a full DESIGN styling pass without explicit approval. Do not restart Phase 1D, 1F, or 1G.
 
 **Known constraints:**
 
@@ -238,3 +238,31 @@
 **Tests:** none — documentation only  
 **Pitfalls:** DESIGN.md must not be used to justify scope creep. Do not add Gemini, Trello, tasks, flashcards, dashboard analytics, admin UI, or new UI libraries because of DESIGN.md. Do not run a full styling pass until functionality works and a human explicitly approves a styling pass.  
 **Follow-up:** Use DESIGN.md as lightweight guidance during Phase 1G Courses Frontend UI. Full visual polish requires separate approval: `approved — apply DESIGN styling pass`.
+
+### 2026-05-20 — Phase 1G Courses Frontend UI complete (G4)
+
+**Workflow:** Phase 1G / Foundation courses UI slice  
+**Human gates:** `approved — begin Phase 1G`; `approved — Phase 1G complete` — satisfied  
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.  
+**Summary:** Implemented protected courses UI: list, create, detail, edit title, and delete against existing `/api/courses` endpoints. Dashboard links to My courses. Minimal functional styling per DESIGN.md; no full styling pass.  
+**Frontend routes added:**
+- `/courses` — course list + create
+- `/courses/:id` — course detail + edit + delete  
+**Security / API contract (frontend):**
+- Bearer token via existing Supabase `getSession()` + `apiFetch` (no manual token storage)
+- Request bodies: `{ title }` only — never `user_id` / `userId`
+- Course model/display: `{ id, title, createdAt, updatedAt }` only
+- `course.title` rendered as plain React text (no `dangerouslySetInnerHTML`)
+- `GET /api/courses/:id` stats stub not shown as real metrics
+- 404 UI: neutral copy (“Course not found”; “This course may have been deleted.”)  
+**APIs consumed:** GET/POST `/api/courses`; GET/PATCH/DELETE `/api/courses/:id` (backend unchanged in this phase)  
+**Tests:** Frontend unit tests passed (courses validation + service mocks; 17 total with existing)  
+**Build:** Frontend `npm run build` passed  
+**Not added:** Backend changes, schema/migrations, new packages, Gemini, Trello, tasks, flashcards, admin, dashboard stats  
+**Tracked follow-ups:**
+- Full visual styling pass: `approved — apply DESIGN styling pass`
+- Task/flashcard/Gemini/Trello features: separate phases with human approval
+- Future UI polish may reference DESIGN.md (does not expand scope)
+- Frontend Vite/esbuild **2 moderate** audit unchanged (dev-only)
+- Optional human manual smoke: login → courses CRUD against live backend  
+**Next:** Await human approval for next PRD phase; do not self-start generate, tasks, or styling pass

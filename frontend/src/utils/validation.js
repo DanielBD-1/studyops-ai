@@ -25,3 +25,23 @@ export const loginFormSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, 'Password is required'),
 });
+
+const COURSE_TITLE_MESSAGE = 'Course title must be between 3 and 100 characters';
+
+export const courseTitleSchema = z
+  .string()
+  .trim()
+  .min(3, COURSE_TITLE_MESSAGE)
+  .max(100, COURSE_TITLE_MESSAGE);
+
+export const createCourseFormSchema = z
+  .object({
+    title: courseTitleSchema,
+  })
+  .strict();
+
+export const updateCourseFormSchema = z
+  .object({
+    title: courseTitleSchema,
+  })
+  .strict();

@@ -3,6 +3,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import Landing from './pages/Landing.jsx';
 import RegisterPage from './pages/Register.jsx';
 import DashboardStub from './pages/DashboardStub.jsx';
+import CoursesList from './pages/CoursesList.jsx';
+import CourseDetail from './pages/CourseDetail.jsx';
 
 export default function App() {
   return (
@@ -15,6 +17,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DashboardStub />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses"
+          element={
+            <ProtectedRoute>
+              <CoursesList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses/:id"
+          element={
+            <ProtectedRoute>
+              <CourseDetail />
             </ProtectedRoute>
           }
         />

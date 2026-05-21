@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function DashboardStub() {
@@ -13,7 +13,7 @@ export default function DashboardStub() {
   return (
     <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 640, margin: '0 auto' }}>
       <h1>Dashboard</h1>
-      <p style={{ color: '#555' }}>Phase 1D — authenticated area (stub only)</p>
+      <p style={{ color: '#555' }}>Authenticated area — courses are available.</p>
       {user && (
         <section style={{ marginTop: '1rem' }}>
           <p>
@@ -21,6 +21,9 @@ export default function DashboardStub() {
           </p>
         </section>
       )}
+      <p style={{ marginTop: '1.5rem' }}>
+        <Link to="/courses">My courses</Link>
+      </p>
       <button type="button" onClick={handleLogout} style={{ marginTop: '1rem' }}>
         Log out
       </button>
