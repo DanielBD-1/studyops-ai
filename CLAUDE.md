@@ -11,6 +11,13 @@ Instructions for Claude (and Claude Code) in this repository. **AGENTS.md** and 
 3. Complete **ADR Understanding Gate** (cite ADRs 001–005 that apply).
 4. Open the **explicit workflow** for the phase—do not self-delegate to sub-agents dynamically.
 5. Check `docs/AGENT_MEMORY.md` for prior decisions and pitfalls.
+6. Read `DESIGN.md` only when implementing an **approved frontend UI** phase—not for backend, DB, or security work.
+
+---
+
+## DESIGN.md (UI phases only)
+
+`DESIGN.md` is guidance for **approved UI phases only**. It does **not** override PRD, `AGENTS.md`, ADRs, or workflow scope. Do not perform full styling passes or add scope without explicit human approval (`approved — apply DESIGN styling pass` for polish; separate approval for new features).
 
 ---
 

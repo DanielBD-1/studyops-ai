@@ -228,3 +228,13 @@
 - Rate limiting on course CRUD deferred to production hardening
 - Frontend Vite/esbuild **2 moderate** audit unchanged (dev-only) — upgrade with approval; no `npm audit fix --force`
 **Next:** Human approval before Courses frontend UI; optional manual smoke JWT + CRUD against live Supabase
+
+### 2026-05-20 — DESIGN.md created as Phase 1G UI guidance
+
+**Workflow:** Phase 1G preparation / UI context engineering  
+**ADR refs:** none  
+**Summary:** Added DESIGN.md as lightweight UI/UX guidance for the upcoming Courses Frontend UI phase. DESIGN.md defines product feeling, layout principles, screen guidance, reusable component expectations, accessibility basics, responsive behavior, and course UI rules. It does not change PRD scope, APIs, backend behavior, database schema, or feature priorities.  
+**APIs affected:** none  
+**Tests:** none — documentation only  
+**Pitfalls:** DESIGN.md must not be used to justify scope creep. Do not add Gemini, Trello, tasks, flashcards, dashboard analytics, admin UI, or new UI libraries because of DESIGN.md. Do not run a full styling pass until functionality works and a human explicitly approves a styling pass.  
+**Follow-up:** Use DESIGN.md as lightweight guidance during Phase 1G Courses Frontend UI. Full visual polish requires separate approval: `approved — apply DESIGN styling pass`.

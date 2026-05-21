@@ -10,7 +10,7 @@ StudyOps AI helps students turn pasted study text into summaries, tasks, flashca
 
 **Architecture (MVP):** React frontend → Express modular monolith → HTTP → Document Processing microservice → Gemini API. Supabase Auth + PostgreSQL.
 
-**Read first:** `docs/PRD.md`, relevant `docs/adrs/*.md`, and the workflow file for your current phase.
+**Read first:** `docs/PRD.md`, relevant `docs/adrs/*.md`, the workflow file for your current phase, and `DESIGN.md` only when doing approved frontend UI work.
 
 ---
 
@@ -74,6 +74,17 @@ Before implementing any feature that touches architecture, validation, Trello, o
 - Full microservices for every module, GDPR/data retention tooling
 - Docker/production deployment strategy, load testing/APM
 - Redux, WebSockets, optimistic dashboard updates, credential persistence
+
+---
+
+## DESIGN.md usage rule
+
+`DESIGN.md` is **UI/UX guidance only**. `docs/PRD.md` remains the source of truth for product scope and APIs.
+
+- Agents **may** use `DESIGN.md` during **approved frontend UI phases** for layout, loading/error/empty states, copy direction, accessibility, and visual consistency.
+- Agents **must not** use `DESIGN.md` to add new features, pages, npm UI libraries, dashboards, admin UI, Gemini UI, Trello UI, tasks, or flashcards.
+- A **full styling / design polish pass** requires separate human approval **after** the functional flow works (e.g. `approved — apply DESIGN styling pass`).
+- During **backend, database, security, or migration** phases, `DESIGN.md` must **not** drive implementation.
 
 ---
 
@@ -199,5 +210,6 @@ Do not scaffold application code until the assigned workflow step and human appr
 - **Skills index:** `SKILLS.md`
 - **Claude-specific rules:** `CLAUDE.md`
 - **Session memory:** `docs/AGENT_MEMORY.md`
+- **UI/UX guidance (UI phases only):** `DESIGN.md`
 - **Supervisor prompt:** `.claude/agents/supervisor-agent.md`
 - **Security prompt:** `.claude/agents/security-review-agent.md`
