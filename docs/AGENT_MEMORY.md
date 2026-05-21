@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 1F Courses Backend API and Phase 1G Courses Frontend UI complete. Node.js 20.6+ required. `DESIGN.md` exists as lightweight UI guidance only.
+**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 1F Courses Backend API and Phase 1G Courses Frontend UI complete. GitHub Actions CI is configured and verified green on GitHub using Node.js 22. Node.js 20.6+ required locally. `DESIGN.md` exists as lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -266,3 +266,29 @@
 - Frontend Vite/esbuild **2 moderate** audit unchanged (dev-only)
 - Optional human manual smoke: login → courses CRUD against live backend  
 **Next:** Await human approval for next PRD phase; do not self-start generate, tasks, or styling pass
+
+### 2026-05-21 — GitHub Actions CI workflow complete
+
+**Workflow:** CI / repository automation  
+**Human gates:** `approved — CI workflow complete` — satisfied  
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.  
+**Artifact:** `.github/workflows/ci.yml`  
+**Summary:** Added GitHub Actions CI that runs on `push` and `pull_request` with `permissions: contents: read` on `ubuntu-latest`.  
+**CI steps:**
+- **Backend:** `npm ci` + `npm test`
+- **Document service:** `npm ci` + `npm test`
+- **Frontend:** `npm ci` + `npm test` + `npm run build`  
+**Runtime:** Node.js **22** (`actions/setup-node@v4`); installs use **`npm ci`** (lockfile-pinned), not `npm install`  
+**Security (workflow):** No GitHub secrets; no `SUPABASE_SERVICE_ROLE_KEY` or real Supabase credentials; no `.env` files created in CI; no env printing; no deployment; no Supabase migrations; tests rely on existing mocks only  
+**Verification:** CI run **green on GitHub Actions** on branch `phase-1g-courses-frontend-ui`  
+**Not changed:** Application code, `package.json` dependencies, workflow file after approval gate (this entry is documentation only)
+
+### 2026-05-21 — GitHub Actions CI added and verified
+
+**Workflow:** CI / GitHub Actions  
+**ADR refs:** none  
+**Summary:** Added `.github/workflows/ci.yml` for automated CI on `push` and `pull_request`. The workflow uses Node.js 22 and runs backend tests, document-service tests, frontend tests, and frontend build using `npm ci`. The workflow was verified green on GitHub Actions on branch `phase-1g-courses-frontend-ui`.  
+**APIs affected:** none  
+**Tests:** GitHub Actions CI passed: backend `npm test`, document-service `npm test`, frontend `npm test`, and frontend `npm run build`.  
+**Pitfalls:** CI must not use Supabase secrets, `SUPABASE_SERVICE_ROLE_KEY`, real Supabase credentials, `.env` files, migrations, deployments, or `npm audit fix`.  
+**Follow-up:** Re-review the workflow if future changes add secrets, deployment, Supabase CLI, live integration tests, or `pull_request_target`.
