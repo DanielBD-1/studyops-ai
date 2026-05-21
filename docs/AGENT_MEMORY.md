@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API **complete** (Supervisor + Security approved). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Study Materials **frontend UI** requires separate human approval. Gemini generation, tasks, flashcards, Trello, dashboard, and admin require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, or re-apply 003.
+**Next implementation:** Gemini generation requires separate human approval. Tasks, flashcards, Trello, dashboard, and admin require separate approval. Full DESIGN styling pass requires separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, or re-apply 003.
 
 **Known constraints:**
 
@@ -403,6 +403,31 @@
 **Not added:** Frontend, schema/migrations, packages, Gemini, Trello, tasks, flashcards, dashboard, admin, generate route.  
 **Pitfalls:** Do not log full material `content`. Any future service-role `study_materials` query must prove parent course ownership.  
 **Tracked follow-ups:**
-- Study Materials frontend UI requires separate approval (e.g. `approved — begin Phase 2C Study Materials UI`)
 - Gemini generation remains a later phase
 - Behavioral RLS tests with real authenticated JWT optional in UI/manual QA phase
+
+### 2026-05-22 — Phase 2C Study Materials Frontend UI complete
+
+**Workflow:** `approved — implement Phase 2C Study Materials Frontend UI`; `approved — Phase 2C complete`  
+**Human gates:** Planning (`approved — begin Phase 2C` planning), implementation, Supervisor review (passed with notes), Security review (passed with notes) — satisfied  
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.  
+**Artifacts:** `frontend/src/services/study-materials.service.js`; `frontend/src/pages/StudyMaterialDetail.jsx`; `frontend/src/pages/CourseDetail.jsx` (materials section); `frontend/src/components/materials/MaterialCard.jsx`; `frontend/src/components/ui/Textarea.jsx`; `frontend/src/utils/validation.js` (material schemas); `frontend/src/App.jsx` (route); tests (`study-materials.service.test.js`, `study-materials.validation.test.js`)  
+**Routes (all `ProtectedRoute`):**
+- `/courses/:id` — existing course edit/delete + **study materials list** + **create material** (course id from route only)
+- `/study-materials/:materialId` — **view/edit/delete** material (content on detail only)  
+**UI/API rules:**
+- Bearer token via existing `apiFetch` + Supabase session (no service role, no manual token storage)
+- List uses `MaterialSummary` only — **no `content` or content preview** in list/`MaterialCard`
+- Detail displays full `content` as plain React text in controlled `Input`/`Textarea` — **no `dangerouslySetInnerHTML`**
+- Create body: `{ title, content, sourceType? }` only; update body: `{ title?, content?, sourceType? }` only
+- Never sends `course_id`, `courseId`, `user_id`, `userId` in request bodies
+- 404: “Course not found” / “Study material not found”; 401: existing logout + redirect
+- Delete uses `window.confirm`  
+**Tests:** Frontend `npm test` — **32/32** passed; `npm run build` passed (mock API only)  
+**Not added:** Backend, schema/migrations, packages, Gemini, generate route, Trello, tasks, flashcards, dashboard, admin, full styling pass  
+**Pitfalls:** Do not log full material `content`; continue rendering content as plain text only  
+**Tracked follow-ups:**
+- Gemini generation remains a later separate phase
+- Tasks and flashcards remain later separate phases
+- Full styling pass requires separate approval (e.g. `approved — apply DESIGN styling pass`)
+- Optional later polish: separate read-only view mode on material detail

@@ -45,3 +45,40 @@ export const updateCourseFormSchema = z
     title: courseTitleSchema,
   })
   .strict();
+
+const MATERIAL_TITLE_MESSAGE = 'Material title must be between 3 and 150 characters';
+const MATERIAL_CONTENT_MESSAGE =
+  'Study material must be between 100 and 50,000 characters';
+
+export const materialTitleSchema = z
+  .string()
+  .trim()
+  .min(3, MATERIAL_TITLE_MESSAGE)
+  .max(150, MATERIAL_TITLE_MESSAGE);
+
+export const materialContentSchema = z
+  .string()
+  .trim()
+  .min(100, MATERIAL_CONTENT_MESSAGE)
+  .max(50000, MATERIAL_CONTENT_MESSAGE);
+
+export const sourceTypeSchema = z.enum(['manual', 'paste']);
+
+export const createStudyMaterialFormSchema = z
+  .object({
+    title: materialTitleSchema,
+    content: materialContentSchema,
+    sourceType: sourceTypeSchema.optional(),
+  })
+  .strict();
+
+export const updateStudyMaterialFormSchema = z
+  .object({
+    title: materialTitleSchema.optional(),
+    content: materialContentSchema.optional(),
+    sourceType: sourceTypeSchema.optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field is required',
+  });

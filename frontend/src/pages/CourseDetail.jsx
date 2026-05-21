@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import MaterialCard from '../components/materials/MaterialCard.jsx';
 import Button from '../components/ui/Button.jsx';
+import EmptyState from '../components/ui/EmptyState.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
 import Input from '../components/ui/Input.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import Textarea from '../components/ui/Textarea.jsx';
 import {
   ApiRequestError,
   getCourse,
   updateCourse,
   deleteCourse,
 } from '../services/courses.service.js';
-import { updateCourseFormSchema } from '../utils/validation.js';
+import { createMaterial, listMaterials } from '../services/study-materials.service.js';
+import { createStudyMaterialFormSchema, updateCourseFormSchema } from '../utils/validation.js';
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -31,6 +35,20 @@ export default function CourseDetail() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(/** @type {string | null} */ (null));
 
+  const [materials, setMaterials] = useState(
+    /** @type {import('../services/study-materials.service.js').MaterialSummary[]} */ ([])
+  );
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+  const [materialsError, setMaterialsError] = useState(/** @type {string | null} */ (null));
+  const [showCreateMaterial, setShowCreateMaterial] = useState(false);
+  const [materialTitle, setMaterialTitle] = useState('');
+  const [materialContent, setMaterialContent] = useState('');
+  const [materialSourceType, setMaterialSourceType] = useState(
+    /** @type {'manual' | 'paste'} */ ('manual')
+  );
+  const [createMaterialError, setCreateMaterialError] = useState(/** @type {string | null} */ (null));
+  const [creatingMaterial, setCreatingMaterial] = useState(false);
+
   const handleAuthError = useCallback(
     async (err) => {
       if (err instanceof ApiRequestError && err.code === 'AUTH_REQUIRED') {
@@ -42,6 +60,29 @@ export default function CourseDetail() {
     },
     [logout, navigate]
   );
+
+  const loadMaterials = useCallback(async () => {
+    if (!id) return;
+
+    setMaterialsLoading(true);
+    setMaterialsError(null);
+
+    try {
+      const data = await listMaterials(id);
+      setMaterials(data.materials);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+        setNotFound(true);
+        return;
+      }
+      setMaterialsError(
+        err instanceof Error ? err.message : 'Failed to load study materials'
+      );
+    } finally {
+      setMaterialsLoading(false);
+    }
+  }, [id, handleAuthError]);
 
   const loadCourse = useCallback(async () => {
     if (!id) {
@@ -58,6 +99,7 @@ export default function CourseDetail() {
       const data = await getCourse(id);
       setCourse(data.course);
       setTitle(data.course.title);
+      await loadMaterials();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -68,7 +110,7 @@ export default function CourseDetail() {
     } finally {
       setLoading(false);
     }
-  }, [id, handleAuthError]);
+  }, [id, handleAuthError, loadMaterials]);
 
   useEffect(() => {
     loadCourse();
@@ -121,6 +163,43 @@ export default function CourseDetail() {
       setDeleteError(err instanceof Error ? err.message : 'Failed to delete course');
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleCreateMaterial(event) {
+    event.preventDefault();
+    if (!id) return;
+    setCreateMaterialError(null);
+
+    const parsed = createStudyMaterialFormSchema.safeParse({
+      title: materialTitle,
+      content: materialContent,
+      sourceType: materialSourceType,
+    });
+    if (!parsed.success) {
+      setCreateMaterialError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      return;
+    }
+
+    setCreatingMaterial(true);
+    try {
+      const data = await createMaterial(id, parsed.data);
+      setMaterialTitle('');
+      setMaterialContent('');
+      setMaterialSourceType('manual');
+      setShowCreateMaterial(false);
+      navigate(`/study-materials/${data.material.id}`);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+        setNotFound(true);
+        return;
+      }
+      setCreateMaterialError(
+        err instanceof Error ? err.message : 'Failed to create study material'
+      );
+    } finally {
+      setCreatingMaterial(false);
     }
   }
 
@@ -179,6 +258,108 @@ export default function CourseDetail() {
           </Button>
         </form>
       </FormCard>
+
+      <section style={{ marginTop: '2rem' }}>
+        <h2 style={{ fontSize: '1.25rem', margin: '0 0 1rem' }}>Study materials</h2>
+
+        {materialsLoading && <LoadingState message="Loading study materials…" />}
+
+        {!materialsLoading && materialsError && (
+          <>
+            <ErrorMessage message={materialsError} />
+            <Button variant="secondary" onClick={loadMaterials}>
+              Try again
+            </Button>
+          </>
+        )}
+
+        {!materialsLoading && !materialsError && materials.length === 0 && !showCreateMaterial && (
+          <EmptyState
+            headline="No study materials yet"
+            description="Add pasted notes or text for this course."
+            actionLabel="Add study material"
+            onAction={() => setShowCreateMaterial(true)}
+          />
+        )}
+
+        {!materialsLoading && !materialsError && materials.length > 0 && (
+          <div style={{ marginBottom: '1rem' }}>
+            {materials.map((material) => (
+              <MaterialCard key={material.id} material={material} />
+            ))}
+          </div>
+        )}
+
+        {!showCreateMaterial && (materials.length > 0 || materialsError) && (
+          <Button variant="primary" onClick={() => setShowCreateMaterial(true)}>
+            Add study material
+          </Button>
+        )}
+
+        {showCreateMaterial && (
+          <div style={{ marginTop: '1rem' }}>
+            <FormCard title="Add study material">
+              <form
+                onSubmit={handleCreateMaterial}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+              >
+                <Input
+                  id="material-title-create"
+                  label="Title"
+                  value={materialTitle}
+                  onChange={setMaterialTitle}
+                  required
+                />
+                <label htmlFor="material-source-type-create" style={{ display: 'block' }}>
+                  Source type
+                  <select
+                    id="material-source-type-create"
+                    value={materialSourceType}
+                    onChange={(e) =>
+                      setMaterialSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
+                    }
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      marginTop: '0.25rem',
+                      padding: '0.5rem',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="manual">Manual entry</option>
+                    <option value="paste">Pasted text</option>
+                  </select>
+                </label>
+                <Textarea
+                  id="material-content-create"
+                  label="Study material"
+                  value={materialContent}
+                  onChange={setMaterialContent}
+                  rows={10}
+                  required
+                />
+                {createMaterialError && <ErrorMessage message={createMaterialError} />}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <Button type="submit" variant="primary" disabled={creatingMaterial}>
+                    {creatingMaterial ? 'Creating…' : 'Create study material'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={creatingMaterial}
+                    onClick={() => {
+                      setShowCreateMaterial(false);
+                      setCreateMaterialError(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </FormCard>
+          </div>
+        )}
+      </section>
 
       <section style={{ marginTop: '1.5rem' }}>
         <h2 style={{ fontSize: '1rem', margin: '0 0 0.5rem' }}>Danger zone</h2>

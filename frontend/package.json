@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/unit/env.test.js tests/unit/validation.test.js tests/unit/courses.validation.test.js tests/unit/courses.service.test.js"
+    "test": "node --test tests/unit/env.test.js tests/unit/validation.test.js tests/unit/courses.validation.test.js tests/unit/courses.service.test.js tests/unit/study-materials.validation.test.js tests/unit/study-materials.service.test.js"
   },
   "engines": {
     "node": ">=20.6.0"

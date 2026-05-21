@@ -5,6 +5,7 @@ import RegisterPage from './pages/Register.jsx';
 import DashboardStub from './pages/DashboardStub.jsx';
 import CoursesList from './pages/CoursesList.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
+import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 
 export default function App() {
   return (
@@ -33,6 +34,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <CourseDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/study-materials/:materialId"
+          element={
+            <ProtectedRoute>
+              <StudyMaterialDetail />
             </ProtectedRoute>
           }
         />
