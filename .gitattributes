@@ -1,0 +1,35 @@
+# Normalize text line endings to LF in the repository
+* text=auto eol=lf
+
+# Explicit text
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.sql text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.ps1 text eol=lf
+*.sh text eol=lf
+*.env.example text eol=lf
+
+# Binary — do not treat as text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.gz binary

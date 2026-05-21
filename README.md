@@ -1,10 +1,10 @@
 # StudyOps AI
 
+[![CI](https://github.com/DanielBD-1/studyops-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielBD-1/studyops-ai/actions/workflows/ci.yml)
+
 Web app that turns study material into tasks, flashcards, Trello cards, and focus sessions.
 
-**Phase 1B (current):** Supabase & environment setup — Zod-validated env, Supabase client factories (no schema, no auth UI yet).
-
-**Phase 1A (done):** Project scaffold — health checks.
+**Current status:** Phases **1A–1G** complete — scaffold, env/Supabase clients, profiles & courses migrations (applied), auth (1D), courses API (1F), courses UI (1G). **GitHub Actions CI** is verified green. Future phases (study plan generation, tasks, Trello, etc.) require explicit human approval — see `CONTRIBUTING.md` and `docs/AGENT_MEMORY.md`.
 
 ## Repository layout
 
@@ -76,6 +76,9 @@ cd frontend && npm run dev
 
 ## Documentation
 
+- Contributing: `CONTRIBUTING.md`
+- Security: `SECURITY.md`
 - Product: `docs/PRD.md`
 - Agents: `AGENTS.md`, `CLAUDE.md`, `SKILLS.md`
+- Session memory: `docs/AGENT_MEMORY.md`
 - Phase 1A workflow: `docs/workflows/phase-1a-scaffold-workflow.md`

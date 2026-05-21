@@ -302,3 +302,30 @@
 **Tests:** none — documentation/config templates only. Supervisor Review and Security Review passed with notes; no blockers.  
 **Pitfalls:** Templates must not be used to bypass human approval gates. Do not ask users to paste secrets, `.env` contents, API keys, tokens, service role keys, or credentials into issues or PRs.  
 **Follow-up:** After push, verify in GitHub UI that Pull Request and Issue templates appear correctly. Optional: create repository labels `bug`, `enhancement`, and `security`.
+
+### 2026-05-21 — Contributing docs and CI badge
+
+**Workflow:** Repository documentation  
+**ADR refs:** none  
+**Summary:** Added `CONTRIBUTING.md` (branch workflow, PR/issue templates, local tests, Supervisor/Security/human gates, secrets hygiene, DESIGN.md scope limit, migration approval). Added GitHub Actions CI badge and Contributing link in `README.md`. Documented manual GitHub Branch Protection / Ruleset setup (require PR, require CI, block force push).  
+**APIs affected:** none  
+**Tests:** none — documentation only  
+**Pitfalls:** CONTRIBUTING does not replace human approval in `AGENTS.md`; branch protection must be configured in GitHub UI by a maintainer.  
+**Follow-up:** Maintainer configures rulesets on `main`; verify CI badge URL matches `DanielBD-1/studyops-ai`. Superseded/extended by developer workflow QoL entry below for full artifact list.
+
+### 2026-05-21 — Developer workflow QoL (full set)
+
+**Workflow:** Repository documentation / developer QoL  
+**ADR refs:** none  
+**Summary:** Completed developer workflow quality-of-life documentation and config (documentation-only). Artifacts:
+- `README.md` — GitHub Actions CI badge, doc links (including `CONTRIBUTING.md`, `SECURITY.md`)
+- `CONTRIBUTING.md` — branch/PR workflow, local tests, templates, review gates, branch protection notes
+- `SECURITY.md` — secrets hygiene, service role backend-only, Security Review triggers
+- `.editorconfig` — UTF-8, LF, spacing conventions
+- `.gitattributes` — LF normalization; binary file protection
+- `scripts/check-all.ps1` — Windows script for backend/document-service/frontend tests + frontend build  
+**APIs affected:** none  
+**Tests:** `.\scripts\check-all.ps1` run locally and **passed** — backend **36/36**, document-service **4/4**, frontend **17/17**, frontend **build succeeded**  
+**Not changed:** Application source code, `package.json` dependencies, migrations, `.github/workflows/ci.yml`, secrets, deploy automation  
+**Pitfalls:** `check-all.ps1` does not run `npm ci`; install dependencies first. Script does not create `.env`, run migrations, or deploy.  
+**Follow-up:** Optional README phase-detail refresh beyond status line; link `check-all.ps1` usage in CONTRIBUTING (done in doc follow-up)
