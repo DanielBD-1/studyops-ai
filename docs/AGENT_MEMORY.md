@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 1F Courses Backend API and Phase 1G Courses Frontend UI complete. GitHub Actions CI is configured and verified green on GitHub using Node.js 22. Node.js 20.6+ required locally. `DESIGN.md` exists as lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 2A `public.study_materials` schema/RLS **draft complete** (migration **not applied**). GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Requires separate human approval per PRD/workflow (e.g. study plan generation, tasks, document-service). Do not start tasks, flashcards, Gemini, Trello, dashboard stats, admin, or a full DESIGN styling pass without explicit approval. Do not restart Phase 1D, 1F, or 1G.
+**Next implementation:** Apply `003_study_materials.sql` only after `approved — apply study materials migration`. Study Materials API/UI, Gemini generation, tasks, flashcards, Trello, dashboard, and admin require separate approval. Do not restart Phase 1D, 1F, or 1G.
 
 **Known constraints:**
 
@@ -329,3 +329,28 @@
 **Not changed:** Application source code, `package.json` dependencies, migrations, `.github/workflows/ci.yml`, secrets, deploy automation  
 **Pitfalls:** `check-all.ps1` does not run `npm ci`; install dependencies first. Script does not create `.env`, run migrations, or deploy.  
 **Follow-up:** Optional README phase-detail refresh beyond status line; link `check-all.ps1` usage in CONTRIBUTING (done in doc follow-up)
+
+### 2026-05-21 — Phase 2A Study Materials schema/RLS draft complete (G4)
+
+**Workflow:** Phase 2A / study materials migration draft  
+**Human gates:** `approved — begin Phase 2A`; `approved — create study materials migration draft`; `approved — Phase 2A study materials migration draft complete` — satisfied  
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.  
+**Artifacts:** `docs/database/003-study-materials-schema-and-rls.md`, `supabase/migrations/003_study_materials.sql` (draft, **not applied**)  
+**Summary:** Planned `public.study_materials` with course-chain ownership (no `user_id` on materials). PRD refinement documented: `content` maps to PRD `input_text` / API `studyText`; Gemini output columns deferred.  
+**Schema (planned):**
+- Columns: `id`, `course_id`, `title`, `content`, `source_type`, `created_at`, `updated_at`
+- Ownership: `study_materials.course_id` → `courses.id` → `courses.user_id = auth.uid()`
+- `source_type` only `manual` and `paste`
+- CHECK: title 3–150 trim; content 100–50,000 trim  
+**Security (planned):**
+- RLS enabled; policies use `EXISTS` on `public.courses`
+- `anon`: no access
+- `authenticated` / `service_role`: `SELECT`, `INSERT`, `UPDATE`, `DELETE` only (no `GRANT ALL`)
+- No admin select-all policies  
+**Apply status:** **Draft only** — not applied to Supabase  
+**Not started:** Study Materials backend API, frontend UI, Gemini, Trello, tasks, flashcards, dashboard, admin  
+**Tracked follow-ups:**
+- Apply migration requires separate approval: `approved — apply study materials migration`
+- After apply: verify cross-user INSERT/SELECT/UPDATE/DELETE; verify UPDATE cannot move `course_id` to another user’s course
+- Future Study Materials API: every service-role query must prove parent course `user_id = req.user.id`; do not log full `content`
+- Gemini generation / `summary`, `key_topics`, `difficulty` columns remain a later phase
