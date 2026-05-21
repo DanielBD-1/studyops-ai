@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` applied/verified. Phase 1E `public.courses` migration **draft only** (not applied). Node.js 20.6+ required. Courses API/UI not started.
+**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Node.js 20.6+ required. Courses API/UI not started.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** approved — apply courses migration. After courses migration apply + verification, begin Phase 1F Courses Backend API with separate human approval. Auth is complete; do not restart Phase 1D.
+**Next implementation:** Begin Phase 1F Courses Backend API with separate human approval (`approved — begin Phase 1F` or equivalent). Courses migration apply + verification complete. Auth is complete; do not restart Phase 1D.
 
 **Known constraints:**
 
@@ -177,4 +177,24 @@
 **Workflow:** Documentation/metadata  
 **Summary:** Phase 1D Auth was completed **before** Phase 1E Courses migration draft. The Phase 1D memory entry appears **after** the Phase 1E entry because `AGENT_MEMORY.md` is append-only and 1D was logged later. Do **not** interpret physical entry order as execution order.  
 **Execution order (phases):** 1D Auth complete → 1E courses migration draft complete.  
-**Current state:** Phase 1D complete; Phase 1E draft complete (not applied); next step is `approved — apply courses migration` then verify, then Phase 1F Courses Backend API with separate approval.
+**Current state (at time of entry):** Phase 1D complete; Phase 1E draft complete (not applied). Superseded by later apply entry.
+
+### 2026-05-20 — Phase 1E courses migration applied and fully verified
+
+**Workflow:** `approved — apply courses migration`  
+**Apply method:** Supabase SQL Editor (not CLI)  
+**Migration:** `supabase/migrations/002_courses.sql` — applied to real Supabase project  
+**Apply status:** **Applied and fully verified** on Supabase project  
+**Grant file check:** `002_courses.sql` confirmed — `SELECT`/`INSERT`/`UPDATE`/`DELETE` to `authenticated` and `service_role` only; `REVOKE ALL` from `anon`; no `GRANT ALL`  
+**Full verification checklist (all passed):**
+- `public.courses` exists
+- RLS is enabled on `public.courses`
+- Policies: `courses_select_own`, `courses_insert_own`, `courses_update_own`, `courses_delete_own` (no admin policies)
+- `anon` has no table grants on `public.courses`
+- `authenticated` has only `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+- `service_role` has only `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+- Trigger `courses_set_updated_at` exists and is enabled
+- Function `set_courses_updated_at` exists
+- Constraint `courses_title_length` exists
+**Not started:** Courses API/UI — per human instruction; requires separate approval (Phase 1F)  
+**Follow-up (Courses API phase):** Service-role queries must `.eq('user_id', req.user.id)`; trim `title` on insert/update
