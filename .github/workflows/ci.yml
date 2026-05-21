@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            document-service/package-lock.json
+            frontend/package-lock.json
+
+      - name: Backend — install and test
+        working-directory: backend
+        run: |
+          npm ci
+          npm test
+
+      - name: Document service — install and test
+        working-directory: document-service
+        run: |
+          npm ci
+          npm test
+
+      - name: Frontend — install, test, and build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test
+          npm run build
