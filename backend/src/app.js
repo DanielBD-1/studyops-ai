@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { getEnv } from './config/env.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import coursesRoutes from './modules/courses/courses.routes.js';
 import { ApiError } from './shared/errors/ApiError.js';
 import { sendError } from './shared/utils/response.js';
 
@@ -21,6 +22,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/courses', coursesRoutes);
 
 app.use((err, _req, res, next) => {
   if (res.headersSent) {

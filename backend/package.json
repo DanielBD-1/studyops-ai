@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node --env-file=.env src/server.js",
     "dev": "node --env-file=.env --watch src/server.js",
-    "test": "node --test tests/health.test.js tests/integration/auth.test.js tests/unit/env.test.js tests/unit/auth.validation.test.js tests/unit/auth.service.test.js tests/unit/auth.profile-retry.test.js tests/unit/response.test.js tests/unit/response.error-details.test.js"
+    "test": "node --test tests/health.test.js tests/integration/auth.test.js tests/integration/courses.test.js tests/unit/env.test.js tests/unit/auth.validation.test.js tests/unit/auth.service.test.js tests/unit/auth.profile-retry.test.js tests/unit/courses.validation.test.js tests/unit/courses.service.test.js tests/unit/response.test.js tests/unit/response.error-details.test.js"
   },
   "engines": {
     "node": ">=20.6.0"

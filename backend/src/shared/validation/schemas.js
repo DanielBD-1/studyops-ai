@@ -25,3 +25,27 @@ export const loginBodySchema = z
     password: z.string().min(1, 'Password is required'),
   })
   .strict();
+
+const courseTitleSchema = z
+  .string()
+  .trim()
+  .min(3, 'Course title must be between 3 and 100 characters')
+  .max(100, 'Course title must be between 3 and 100 characters');
+
+export const createCourseBodySchema = z
+  .object({
+    title: courseTitleSchema,
+  })
+  .strict();
+
+export const updateCourseBodySchema = z
+  .object({
+    title: courseTitleSchema,
+  })
+  .strict();
+
+export const courseIdParamSchema = z
+  .object({
+    id: z.string().uuid('Invalid course id'),
+  })
+  .strict();
