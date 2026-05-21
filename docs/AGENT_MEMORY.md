@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Node.js 20.6+ required. Courses API/UI not started.
+**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` and Phase 1E `public.courses` **applied and verified** on Supabase. Phase 1F Courses Backend API complete. Node.js 20.6+ required. Courses frontend UI not started.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Begin Phase 1F Courses Backend API with separate human approval (`approved — begin Phase 1F` or equivalent). Courses migration apply + verification complete. Auth is complete; do not restart Phase 1D.
+**Next implementation:** Courses frontend UI only after separate human approval. Do not start tasks, flashcards, Gemini, Trello, dashboard, or admin. Auth and Phase 1F backend are complete; do not restart Phase 1D or 1F.
 
 **Known constraints:**
 
@@ -198,3 +198,33 @@
 - Constraint `courses_title_length` exists
 **Not started:** Courses API/UI — per human instruction; requires separate approval (Phase 1F)  
 **Follow-up (Courses API phase):** Service-role queries must `.eq('user_id', req.user.id)`; trim `title` on insert/update
+
+### 2026-05-20 — Phase 1F Courses Backend API complete (G4)
+
+**Workflow:** Phase 1F / Foundation Step 5 (courses API slice)  
+**Human gates:** `approved — begin Phase 1F`; `approved — Phase 1F complete` — satisfied  
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.  
+**Summary:** Implemented courses CRUD backend module with JWT auth, server-side ownership, and service-role Supabase queries filtered by `req.user.id`. No frontend, schema, tasks, flashcards, Gemini, Trello, dashboard, or admin.  
+**APIs affected:**
+- GET /api/courses — list own courses
+- POST /api/courses — create course (201, `{ course }`)
+- GET /api/courses/:id — `{ course, stats }` (stats zero-value stub)
+- PATCH /api/courses/:id — update title only
+- DELETE /api/courses/:id — `{ deleted: true }`  
+**Security contract:**
+- All routes use `requireAuth`
+- All service-role `courses` queries filter `.eq('user_id', req.user.id)`; by-id routes also `.eq('id', courseId)`
+- POST sets `user_id` server-side from `req.user.id` (never from body)
+- PATCH updates `{ title }` only — cannot change `user_id`
+- DELETE filters by `id` and `user_id`
+- Wrong-owner or missing course → **404** `NOT_FOUND` (not 403)
+- Course API responses: camelCase `{ id, title, createdAt, updatedAt }` — no `user_id` or `userId`  
+**Tests:** Backend courses validation, service, and integration tests passed (mock Supabase; no live project)  
+**Pitfalls:** Any future `from('courses')` call must filter by `user_id = req.user.id`. Do not expose service role to frontend. Courses UI must not send `user_id`/`userId` in request bodies.  
+**Not started:** Courses frontend UI — per human instruction  
+**Tracked follow-ups:**
+- Add PATCH/DELETE integration tests later or before frontend if desired
+- Courses UI must safely render `title` (escape/display; API does not HTML-sanitize)
+- Rate limiting on course CRUD deferred to production hardening
+- Frontend Vite/esbuild **2 moderate** audit unchanged (dev-only) — upgrade with approval; no `npm audit fix --force`
+**Next:** Human approval before Courses frontend UI; optional manual smoke JWT + CRUD against live Supabase
