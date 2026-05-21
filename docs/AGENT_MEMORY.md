@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A scaffold + Phase 1B env complete + Phase 1C `public.profiles` applied/verified on Supabase. Node.js 20.6+ required. Auth and other tables not started.
+**Status:** Phase 1A–1D complete. Phase 1C `public.profiles` applied/verified. Phase 1E `public.courses` migration **draft only** (not applied). Node.js 20.6+ required. Courses API/UI not started.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Foundation Step 3b (schema, after approval) and Step 4+ (auth) per `docs/workflows/phase-1-foundation-workflow.md` — only when human approves. Skip Step 2 (scaffold done in 1A).
+**Next implementation:** approved — apply courses migration. After courses migration apply + verification, begin Phase 1F Courses Backend API with separate human approval. Auth is complete; do not restart Phase 1D.
 
 **Known constraints:**
 
@@ -52,7 +52,7 @@
 
 ## Memory Log
 
-<!-- Append entries below this line -->
+<!-- Append entries below this line. Physical order may differ from execution order when entries are backfilled (see ordering clarification entries). -->
 
 ### 2026-05-20 — Context engineering layer
 
@@ -146,3 +146,35 @@
 - Default role is `student`
 **Not started:** Phase 1D Auth (routes + UI) — per human instruction
 **Follow-up:** Admin promotion remains manual/service role only; optional JWT-level write tests in Auth phase
+
+### 2026-05-20 — Phase 1E courses migration draft complete (G4)
+
+**Workflow:** Phase 1E / Foundation Step 3b (courses schema slice)
+**Human gates:** `approved — create courses migration draft`; `approved — Phase 1E courses migration draft complete`
+**Reviews:** Supervisor — Approved with notes. Security — Approved with notes. No blocking issues.
+**Artifacts:** `docs/database/002-courses-schema-and-rls.md`, `supabase/migrations/002_courses.sql` (draft, **not applied**)
+**Prerequisite:** `001_profiles.sql` applied and verified
+**Summary:** `public.courses` with `user_id` → `auth.users(id)`; RLS SELECT/INSERT/UPDATE/DELETE own rows (`auth.uid() = user_id`); explicit `GRANT` to `authenticated` and `service_role` (auto-expose disabled); `REVOKE ALL` from `anon`; title CHECK 3–100 chars after trim; `updated_at` trigger with `search_path = public`.
+**Apply status:** **Draft only** — do **not** apply without separate `approved — apply courses migration`.
+**Tracked follow-ups:**
+- Courses API (later): always filter service-role queries `.eq('user_id', req.user.id)`; trim `title` before insert/update
+- After apply: verify grants, RLS enabled, CRUD ownership (checklist in `002-courses-schema-and-rls.md`)
+- Do **not** start Courses API/UI until human approval
+**Next:** Human `approved — apply courses migration` when ready; then Courses API/UI phase (Foundation Step 5) as separate approval
+
+### 2026-05-20 — Phase 1D Auth complete
+
+**Workflow:** Phase 1D / Foundation Step 4  
+**ADR refs:** 001, 003  
+**Summary:** Implemented Supabase Auth flow: backend auth endpoints, requireAuth middleware, frontend AuthContext, login/register pages, ProtectedRoute, dashboard stub, logout flow, CORS allowlist with FRONTEND_URL, and PRD response envelope. Supabase session handling uses setSession/getSession only; no manual token storage.  
+**APIs affected:** POST /api/auth/register, POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me  
+**Tests:** Backend auth/validation/response/profile retry tests passed; frontend validation tests and build passed. Security fixes #19, #20, and #17 were applied and re-reviewed.  
+**Pitfalls:** Do not add admin routes/pages in Auth phase. Do not store tokens manually. /api/auth/me must always read only the current user's own profile. Service-role profile reads must stay filtered by id = req.user.id.  
+**Follow-up:** NODE_ENV=production required in production deploy. Track Vite/esbuild audit, rate limiting, and auth error normalization.
+
+### 2026-05-20 — Memory ordering clarification
+
+**Workflow:** Documentation/metadata  
+**Summary:** Phase 1D Auth was completed **before** Phase 1E Courses migration draft. The Phase 1D memory entry appears **after** the Phase 1E entry because `AGENT_MEMORY.md` is append-only and 1D was logged later. Do **not** interpret physical entry order as execution order.  
+**Execution order (phases):** 1D Auth complete → 1E courses migration draft complete.  
+**Current state:** Phase 1D complete; Phase 1E draft complete (not applied); next step is `approved — apply courses migration` then verify, then Phase 1F Courses Backend API with separate approval.
