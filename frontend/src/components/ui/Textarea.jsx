@@ -7,6 +7,7 @@
  *   error?: string | null,
  *   required?: boolean,
  *   rows?: number,
+ *   reading?: boolean,
  * }} props
  */
 export default function Textarea({
@@ -17,9 +18,12 @@ export default function Textarea({
   error = null,
   required = false,
   rows = 8,
+  reading = false,
 }) {
+  const textareaClass = reading ? 'field__textarea field__textarea--reading' : 'field__textarea';
+
   return (
-    <label htmlFor={id} style={{ display: 'block' }}>
+    <label htmlFor={id} className="field">
       {label}
       <textarea
         id={id}
@@ -29,17 +33,10 @@ export default function Textarea({
         rows={rows}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        style={{
-          display: 'block',
-          width: '100%',
-          marginTop: '0.25rem',
-          padding: '0.5rem',
-          boxSizing: 'border-box',
-          fontFamily: 'inherit',
-        }}
+        className={textareaClass}
       />
       {error && (
-        <span id={`${id}-error`} role="alert" style={{ color: '#b00020', fontSize: '0.875rem' }}>
+        <span id={`${id}-error`} role="alert" className="field__error">
           {error}
         </span>
       )}

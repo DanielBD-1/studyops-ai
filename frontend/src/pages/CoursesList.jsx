@@ -82,16 +82,16 @@ export default function CoursesList() {
   }
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>My courses</h1>
-        <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
+    <main className="page page--workspace">
+      <header className="page-header">
+        <h1>My courses</h1>
+        <nav className="page-header__nav" aria-label="Secondary">
           <Link to="/dashboard">Dashboard</Link>
         </nav>
       </header>
 
       {!showCreateForm && (
-        <p style={{ marginBottom: '1rem' }}>
+        <p className="section__actions">
           <Button variant="primary" onClick={() => setShowCreateForm(true)}>
             New course
           </Button>
@@ -100,7 +100,7 @@ export default function CoursesList() {
 
       {showCreateForm && (
         <FormCard title="Create course">
-          <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <form onSubmit={handleCreate} className="form-stack">
             <Input
               id="course-title-create"
               label="Course title"
@@ -109,7 +109,7 @@ export default function CoursesList() {
               error={createError}
               required
             />
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="form-row">
               <Button type="submit" variant="primary" disabled={creating}>
                 {creating ? 'Creating…' : 'Create course'}
               </Button>
@@ -150,7 +150,7 @@ export default function CoursesList() {
       )}
 
       {!loading && !error && courses.length > 0 && (
-        <section aria-label="Course list">
+        <section className="card-list" aria-label="Course list">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}

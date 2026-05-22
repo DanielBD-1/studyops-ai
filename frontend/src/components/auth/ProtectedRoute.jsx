@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p style={{ padding: '2rem' }}>Loading…</p>;
+    return <p className="protected-loading">Loading…</p>;
   }
 
   if (!user) {

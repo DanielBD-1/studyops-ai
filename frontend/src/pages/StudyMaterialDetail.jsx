@@ -186,7 +186,7 @@ export default function StudyMaterialDetail() {
 
   if (loading) {
     return (
-      <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
+      <main className="page page--reading">
         <LoadingState message="Loading study material…" />
       </main>
     );
@@ -194,9 +194,9 @@ export default function StudyMaterialDetail() {
 
   if (notFound) {
     return (
-      <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
-        <h1 style={{ marginTop: 0 }}>Study material not found</h1>
-        <p style={{ color: '#555' }}>This study material may have been deleted.</p>
+      <main className="page page--reading">
+        <h1 className="page__title--tight">Study material not found</h1>
+        <p className="not-found__text">This study material may have been deleted.</p>
         <Link to="/courses">Back to courses</Link>
       </main>
     );
@@ -204,12 +204,12 @@ export default function StudyMaterialDetail() {
 
   if (error || !material) {
     return (
-      <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
+      <main className="page page--reading">
         <ErrorMessage message={error ?? 'Failed to load study material'} />
         <Button variant="secondary" onClick={loadMaterial}>
           Try again
         </Button>
-        <p style={{ marginTop: '1rem' }}>
+        <p className="section__actions">
           <Link to="/courses">Back to courses</Link>
         </p>
       </main>
@@ -217,15 +217,15 @@ export default function StudyMaterialDetail() {
   }
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
-      <p style={{ margin: '0 0 1rem' }}>
+    <main className="page page--reading">
+      <p className="back-link">
         <Link to={`/courses/${material.courseId}`}>← Back to course</Link>
       </p>
 
-      <h1 style={{ margin: '0 0 1.5rem' }}>{material.title}</h1>
+      <h1 className="page__title--tight">{material.title}</h1>
 
       <FormCard title="Edit study material">
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <form onSubmit={handleSave} className="form-stack">
           <Input
             id="material-title-edit"
             label="Title"
@@ -233,7 +233,7 @@ export default function StudyMaterialDetail() {
             onChange={setTitle}
             required
           />
-          <label htmlFor="material-source-type" style={{ display: 'block' }}>
+          <label htmlFor="material-source-type" className="field">
             Source type
             <select
               id="material-source-type"
@@ -241,13 +241,7 @@ export default function StudyMaterialDetail() {
               onChange={(e) =>
                 setSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
               }
-              style={{
-                display: 'block',
-                width: '100%',
-                marginTop: '0.25rem',
-                padding: '0.5rem',
-                boxSizing: 'border-box',
-              }}
+              className="field__select"
             >
               <option value="manual">Manual entry</option>
               <option value="paste">Pasted text</option>
@@ -259,6 +253,7 @@ export default function StudyMaterialDetail() {
             value={content}
             onChange={setContent}
             rows={12}
+            reading
             required
           />
           {saveError && <ErrorMessage message={saveError} />}
@@ -268,30 +263,28 @@ export default function StudyMaterialDetail() {
         </form>
       </FormCard>
 
-      <section style={{ marginTop: '1.5rem' }}>
-        <h2 style={{ fontSize: '1rem', margin: '0 0 0.75rem' }}>Generate study plan</h2>
+      <section className="ai-panel" aria-labelledby="generate-heading">
+        <h2 id="generate-heading" className="section__title--sm">
+          Generate study plan
+        </h2>
         {hasUnsavedChanges && (
-          <p style={{ color: '#555', margin: '0 0 0.75rem' }}>
+          <p className="ai-panel__hint">
             Save changes before generating — generation uses your last saved material.
           </p>
         )}
         {generateError && <ErrorMessage message={generateError} />}
-        <Button
-          variant="primary"
-          disabled={generateDisabled}
-          onClick={handleGenerate}
-        >
+        <Button variant="primary" disabled={generateDisabled} onClick={handleGenerate}>
           {generating ? 'Processing with AI…' : 'Generate study plan'}
         </Button>
         {generating && (
-          <div style={{ marginTop: '0.75rem' }}>
+          <div className="ai-panel__loading">
             <LoadingState message="Processing with AI…" />
           </div>
         )}
       </section>
 
       {plan && (
-        <section style={{ marginTop: '1.5rem' }}>
+        <section className="section--compact">
           <GeneratedPlanSection
             plan={plan}
             onClear={handleClearPlan}
@@ -300,8 +293,8 @@ export default function StudyMaterialDetail() {
         </section>
       )}
 
-      <section style={{ marginTop: '1.5rem' }}>
-        <h2 style={{ fontSize: '1rem', margin: '0 0 0.5rem' }}>Danger zone</h2>
+      <section className="danger-zone">
+        <h2 className="danger-zone__title">Danger zone</h2>
         {deleteError && <ErrorMessage message={deleteError} />}
         <Button variant="danger" disabled={saving || deleting || generating} onClick={handleDelete}>
           {deleting ? 'Deleting…' : 'Delete study material'}

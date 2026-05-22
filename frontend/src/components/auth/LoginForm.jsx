@@ -33,8 +33,8 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <label>
+    <form onSubmit={handleSubmit} className="form-stack">
+      <label className="field">
         Email
         <input
           type="email"
@@ -42,10 +42,10 @@ export default function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          className="field__input"
         />
       </label>
-      <label>
+      <label className="field">
         Password
         <input
           type="password"
@@ -53,14 +53,18 @@ export default function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           required
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          className="field__input"
         />
       </label>
-      {error && <p role="alert" style={{ color: '#b00020', margin: 0 }}>{error}</p>}
-      <button type="submit" disabled={submitting}>
+      {error && (
+        <p role="alert" className="alert alert--error">
+          {error}
+        </p>
+      )}
+      <button type="submit" disabled={submitting} className="btn btn--primary">
         {submitting ? 'Signing in…' : 'Sign in'}
       </button>
-      <p style={{ margin: 0, fontSize: '0.9rem' }}>
+      <p className="auth-footer">
         No account? <Link to="/register">Register</Link>
       </p>
     </form>

@@ -40,8 +40,8 @@ export default function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <label>
+    <form onSubmit={handleSubmit} className="form-stack">
+      <label className="field">
         Email
         <input
           type="email"
@@ -49,10 +49,10 @@ export default function RegisterForm() {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          className="field__input"
         />
       </label>
-      <label>
+      <label className="field">
         Password
         <input
           type="password"
@@ -60,10 +60,10 @@ export default function RegisterForm() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           required
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          className="field__input"
         />
       </label>
-      <label>
+      <label className="field">
         Confirm password
         <input
           type="password"
@@ -71,19 +71,23 @@ export default function RegisterForm() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
           required
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          className="field__input"
         />
       </label>
       {authNotice && (
-        <p role="status" style={{ color: '#0d5c2e', margin: 0 }}>
+        <p role="status" className="alert alert--success">
           {authNotice}
         </p>
       )}
-      {error && <p role="alert" style={{ color: '#b00020', margin: 0 }}>{error}</p>}
-      <button type="submit" disabled={submitting}>
+      {error && (
+        <p role="alert" className="alert alert--error">
+          {error}
+        </p>
+      )}
+      <button type="submit" disabled={submitting} className="btn btn--primary">
         {submitting ? 'Creating account…' : 'Create account'}
       </button>
-      <p style={{ margin: 0, fontSize: '0.9rem' }}>
+      <p className="auth-footer">
         Already have an account? <Link to="/">Sign in</Link>
       </p>
     </form>

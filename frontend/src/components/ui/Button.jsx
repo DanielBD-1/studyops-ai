@@ -1,29 +1,3 @@
-const baseStyle = {
-  padding: '0.5rem 1rem',
-  fontSize: '1rem',
-  cursor: 'pointer',
-  borderRadius: '4px',
-  border: '1px solid transparent',
-};
-
-const variants = {
-  primary: {
-    backgroundColor: '#1a56db',
-    color: '#fff',
-    borderColor: '#1a56db',
-  },
-  secondary: {
-    backgroundColor: '#fff',
-    color: '#333',
-    borderColor: '#ccc',
-  },
-  danger: {
-    backgroundColor: '#b00020',
-    color: '#fff',
-    borderColor: '#b00020',
-  },
-};
-
 /**
  * @param {{
  *   children: import('react').ReactNode,
@@ -31,6 +5,7 @@ const variants = {
  *   variant?: 'primary' | 'secondary' | 'danger',
  *   disabled?: boolean,
  *   onClick?: () => void,
+ *   className?: string,
  * }} props
  */
 export default function Button({
@@ -39,18 +14,17 @@ export default function Button({
   variant = 'primary',
   disabled = false,
   onClick,
+  className = '',
 }) {
+  const variantClass =
+    variant === 'danger' ? 'btn--danger' : variant === 'secondary' ? 'btn--secondary' : 'btn--primary';
+
   return (
     <button
       type={type}
       disabled={disabled}
       onClick={onClick}
-      style={{
-        ...baseStyle,
-        ...variants[variant],
-        opacity: disabled ? 0.6 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-      }}
+      className={`btn ${variantClass} ${className}`.trim()}
     >
       {children}
     </button>

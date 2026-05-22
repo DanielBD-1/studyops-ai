@@ -1,4 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
+import Button from '../components/ui/Button.jsx';
+import FormCard from '../components/ui/FormCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function DashboardStub() {
@@ -11,22 +13,24 @@ export default function DashboardStub() {
   }
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 640, margin: '0 auto' }}>
+    <main className="page page--workspace">
       <h1>Dashboard</h1>
-      <p style={{ color: '#555' }}>Authenticated area — courses are available.</p>
-      {user && (
-        <section style={{ marginTop: '1rem' }}>
-          <p>
-            Signed in as <strong>{user.email}</strong> ({user.role})
-          </p>
-        </section>
-      )}
-      <p style={{ marginTop: '1.5rem' }}>
-        <Link to="/courses">My courses</Link>
-      </p>
-      <button type="button" onClick={handleLogout} style={{ marginTop: '1rem' }}>
-        Log out
-      </button>
+      <p className="page__lead">Authenticated area — courses are available.</p>
+      <FormCard>
+        {user && (
+          <section className="dashboard-identity">
+            <p>
+              Signed in as <strong>{user.email}</strong> ({user.role})
+            </p>
+          </section>
+        )}
+        <p className="dashboard-actions">
+          <Link to="/courses">My courses</Link>
+        </p>
+        <Button variant="secondary" onClick={handleLogout}>
+          Log out
+        </Button>
+      </FormCard>
     </main>
   );
 }

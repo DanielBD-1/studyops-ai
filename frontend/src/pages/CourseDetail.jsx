@@ -205,7 +205,7 @@ export default function CourseDetail() {
 
   if (loading) {
     return (
-      <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
+      <main className="page page--workspace">
         <LoadingState message="Loading course…" />
       </main>
     );
@@ -213,9 +213,9 @@ export default function CourseDetail() {
 
   if (notFound) {
     return (
-      <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
-        <h1 style={{ marginTop: 0 }}>Course not found</h1>
-        <p style={{ color: '#555' }}>This course may have been deleted.</p>
+      <main className="page page--workspace">
+        <h1 className="page__title--tight">Course not found</h1>
+        <p className="not-found__text">This course may have been deleted.</p>
         <Link to="/courses">Back to courses</Link>
       </main>
     );
@@ -223,12 +223,12 @@ export default function CourseDetail() {
 
   if (error || !course) {
     return (
-      <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
+      <main className="page page--workspace">
         <ErrorMessage message={error ?? 'Failed to load course'} />
         <Button variant="secondary" onClick={loadCourse}>
           Try again
         </Button>
-        <p style={{ marginTop: '1rem' }}>
+        <p className="section__actions">
           <Link to="/courses">Back to courses</Link>
         </p>
       </main>
@@ -236,15 +236,15 @@ export default function CourseDetail() {
   }
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
-      <p style={{ margin: '0 0 1rem' }}>
+    <main className="page page--workspace">
+      <p className="back-link">
         <Link to="/courses">← Back to courses</Link>
       </p>
 
-      <h1 style={{ margin: '0 0 1.5rem' }}>{course.title}</h1>
+      <h1 className="page__title--tight">{course.title}</h1>
 
       <FormCard title="Edit course">
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <form onSubmit={handleSave} className="form-stack">
           <Input
             id="course-title-edit"
             label="Course title"
@@ -259,8 +259,8 @@ export default function CourseDetail() {
         </form>
       </FormCard>
 
-      <section style={{ marginTop: '2rem' }}>
-        <h2 style={{ fontSize: '1.25rem', margin: '0 0 1rem' }}>Study materials</h2>
+      <section className="section">
+        <h2 className="section__title">Study materials</h2>
 
         {materialsLoading && <LoadingState message="Loading study materials…" />}
 
@@ -283,7 +283,7 @@ export default function CourseDetail() {
         )}
 
         {!materialsLoading && !materialsError && materials.length > 0 && (
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="card-list">
             {materials.map((material) => (
               <MaterialCard key={material.id} material={material} />
             ))}
@@ -291,18 +291,17 @@ export default function CourseDetail() {
         )}
 
         {!showCreateMaterial && (materials.length > 0 || materialsError) && (
-          <Button variant="primary" onClick={() => setShowCreateMaterial(true)}>
-            Add study material
-          </Button>
+          <p className="section__actions">
+            <Button variant="primary" onClick={() => setShowCreateMaterial(true)}>
+              Add study material
+            </Button>
+          </p>
         )}
 
         {showCreateMaterial && (
-          <div style={{ marginTop: '1rem' }}>
+          <div className="section--compact">
             <FormCard title="Add study material">
-              <form
-                onSubmit={handleCreateMaterial}
-                style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-              >
+              <form onSubmit={handleCreateMaterial} className="form-stack">
                 <Input
                   id="material-title-create"
                   label="Title"
@@ -310,7 +309,7 @@ export default function CourseDetail() {
                   onChange={setMaterialTitle}
                   required
                 />
-                <label htmlFor="material-source-type-create" style={{ display: 'block' }}>
+                <label htmlFor="material-source-type-create" className="field">
                   Source type
                   <select
                     id="material-source-type-create"
@@ -318,13 +317,7 @@ export default function CourseDetail() {
                     onChange={(e) =>
                       setMaterialSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
                     }
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      marginTop: '0.25rem',
-                      padding: '0.5rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="field__select"
                   >
                     <option value="manual">Manual entry</option>
                     <option value="paste">Pasted text</option>
@@ -336,10 +329,11 @@ export default function CourseDetail() {
                   value={materialContent}
                   onChange={setMaterialContent}
                   rows={10}
+                  reading
                   required
                 />
                 {createMaterialError && <ErrorMessage message={createMaterialError} />}
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div className="form-row">
                   <Button type="submit" variant="primary" disabled={creatingMaterial}>
                     {creatingMaterial ? 'Creating…' : 'Create study material'}
                   </Button>
@@ -361,8 +355,8 @@ export default function CourseDetail() {
         )}
       </section>
 
-      <section style={{ marginTop: '1.5rem' }}>
-        <h2 style={{ fontSize: '1rem', margin: '0 0 0.5rem' }}>Danger zone</h2>
+      <section className="danger-zone">
+        <h2 className="danger-zone__title">Danger zone</h2>
         {deleteError && <ErrorMessage message={deleteError} />}
         <Button variant="danger" disabled={saving || deleting} onClick={handleDelete}>
           {deleting ? 'Deleting…' : 'Delete course'}

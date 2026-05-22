@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`). Phase 2I-c **`DESIGN.md` v2** **complete** (Supervisor + Security approved; NotebookLM-inspired presentation spec only — **not** product scope). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. **UI spec:** `DESIGN.md` v2 (2026-05-22). **Frontend styling pass not started** — requires `approved — apply DESIGN styling pass` on a separate branch.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`). Phase 2I-c **`DESIGN.md` v2** **complete** (Supervisor + Security approved; NotebookLM-inspired presentation spec only — **not** product scope). Phase 2J **Frontend Styling Pass** **complete** (Supervisor + Security approved; DESIGN.md v2 applied via plain CSS — presentation only, no behavior changes). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. **UI spec:** `DESIGN.md` v2 (2026-05-22); **styled in code** via `frontend/src/styles/**`.
 
 **Architecture locked by ADRs:**
 
@@ -713,8 +713,64 @@
 **APIs affected:** none  
 **Tests:** none — documentation only  
 **Pitfalls:** Do not treat DESIGN.md v2 as PRD scope. Styling pass must not add persistence, upload UI, Stitch paste-in, or new routes. Do not add interactive task checkboxes on generated plan display.  
-**Tracked follow-ups:**
+**Tracked follow-ups (historical — styling pass completed in Phase 2J):**
 - Optional: capture `11-generated-plan-visible.png` and `15-processing-with-ai.png` when live Generate/processing UI available
-- **Styling pass:** separate branch + `approved — apply DESIGN styling pass` — tokens/CSS only per DESIGN.md §5 and §17; lint/test/build required
-- Re-run **Security Review** if plan/content rendering or auth surfaces change materially during styling
+- Persistence, tasks/flashcard management UI, Trello, dashboard/admin, deployment — separate future phases
+
+### 2026-05-22 — Phase 2J Frontend Styling Pass complete
+
+**Workflow:** `approved — begin Phase 2J Frontend Styling Pass planning only`; `approved — implement Phase 2J Frontend Styling Pass`; Supervisor Review + Security Review + manual smoke; `approved — Phase 2J complete`  
+**Human gates:** Supervisor Review + Security Review + manual smoke — satisfied (no blocking issues)  
+**Summary:** Applied **`DESIGN.md` v2** to the existing frontend using **plain CSS**, design tokens, and **className-based** styling. Presentation-only pass on implemented screens and components; **no app behavior changed**.  
+**CSS architecture added:**
+- `frontend/src/styles/tokens.css` — DESIGN.md v2 design tokens (colors, typography, spacing, radii, shadows, content max widths)
+- `frontend/src/styles/base.css` — reset, body typography, links, global `:focus-visible`, `prefers-reduced-motion`
+- `frontend/src/styles/layout.css` — page shells, workspace/reading widths, stacks, auth centering, not-found
+- `frontend/src/styles/components.css` — buttons, fields, cards, AI-tinted form cards, plan blocks, source cards, loading/empty/error, responsive polish  
+**Frontend wiring:**
+- `frontend/src/main.jsx` — imports tokens → base → layout → components, then minimal `index.css`
+- `frontend/src/index.css` — comment-only pointer to styles layer  
+**Restyled (existing only):**
+- UI primitives: `Button`, `Input`, `Textarea`, `FormCard` (+ `ai` prop for generate zones), `ErrorMessage`, `LoadingState`, `EmptyState`
+- Cards: `CourseCard`, `MaterialCard`
+- Generate: `GeneratedPlanSection` (read-only; “AI-generated — not saved” disclaimer)
+- Auth: `LoginForm`, `RegisterForm`, `ProtectedRoute`
+- Pages: `Landing`, `Register`, `DashboardStub`, `CoursesList`, `CourseDetail`, `StudyMaterialDetail`  
+**Approved visual direction (implemented in CSS):**
+- NotebookLM-inspired academic study workspace — **not** a clone
+- Warm off-white canvas; white cards; soft borders; subtle shadows; rounded corners
+- Calm blue / muted indigo accent; AI/generate zones use soft blue/lavender tint
+- Source-first document-card feeling; professional, pleasant, modern, **non-clinical** UI
+- Excellent readability for long-form study material; Generate area helpful and grounded, not flashy  
+**Polish (CSS-only):** hover lift on cards; button press feedback; `:focus-visible` rings; short transitions; `prefers-reduced-motion` guard (global + plan fade-in)  
+**Unchanged (explicit):**
+- No app behavior, routes, APIs, auth, generate logic, or persistence
+- No backend, document-service, Supabase/database/migration changes
+- No `package.json` / `package-lock.json`, CI, or `.env` changes
+- No Tailwind, Google Fonts, Material Icons, UI libraries, or Stitch HTML/React code
+- No AppShell; `window.confirm` retained for delete flows  
+**Security notes (verified in review):**
+- Generated plan remains **session-only**, **read-only**, plain React text, **untrusted**, **not persisted**
+- No `dangerouslySetInnerHTML`
+- Frontend still does **not** send `studyText` / `content` / `courseId` / `userId` to generate; `generateMaterial` still `POST /api/study-materials/:materialId/generate` with body `{}`
+- Frontend still does **not** call document-service directly
+- No `service_role`, Gemini key, API keys, tokens, session values, or env values exposed in UI
+- 401 logout/redirect and neutral not-found behavior unchanged
+- Delete confirmations still use existing `window.confirm` behavior  
+**Scope boundary:**
+- No `backend/`, `document-service/`, `supabase/`, `.github/`, `package.json`, `package-lock.json`, CI, `.env` changes
+- No new routes, AppShell, custom confirm dialogs, persistence UI, tasks/Trello/admin UI, source upload, audio overview, citations, NotebookLM clone features  
+**APIs affected:** none  
+**Verification:**
+- `cd frontend && npm run lint` — passed (0 errors; pre-existing `AuthContext` react-refresh warning)
+- `cd frontend && npm test` — **34/34** passed
+- `cd frontend && npm run build` — passed
+- `.\scripts\check-all.ps1` — passed
+- Manual smoke — passed  
+**Pitfalls:** Do not treat styling as authorization for new features or persistence. Do not add `dangerouslySetInnerHTML` for plan/content. Do not send material body on generate. Re-run Security Review if plan/content rendering or auth surfaces change materially.  
+**Tracked follow-ups:**
+- Optional: capture `11-generated-plan-visible.png` after live Generate output works
+- Optional: capture `15-processing-with-ai.png` when processing UI can be reliably captured
+- Optional: future accessibility polish may replace `window.confirm` with a custom dialog — **not** in 2J
+- Any future changes to plan/content rendering or auth surfaces require **Security Review**
 - Persistence, tasks/flashcard management UI, Trello, dashboard/admin, deployment — separate future phases
