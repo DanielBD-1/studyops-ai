@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`). Phase 2I-c **`DESIGN.md` v2** **complete** (Supervisor + Security approved; NotebookLM-inspired presentation spec only — **not** product scope). Phase 2J **Frontend Styling Pass** **complete** (Supervisor + Security approved; DESIGN.md v2 applied via plain CSS — presentation only, no behavior changes). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. **UI spec:** `DESIGN.md` v2 (2026-05-22); **styled in code** via `frontend/src/styles/**`.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`). Phase 2I-c **`DESIGN.md` v2** **complete** (Supervisor + Security approved; NotebookLM-inspired presentation spec only — **not** product scope). Phase 2J **Frontend Styling Pass** **complete** (Supervisor + Security approved; DESIGN.md v2 applied via plain CSS — presentation only, no behavior changes). Phase 2K-a **Generate live smoke** **attempted** — pipeline verified through UI/backend; **blocked by Gemini HTTP 429** (no plan captured; **no code bug suspected**). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. **UI spec:** `DESIGN.md` v2 (2026-05-22); **styled in code** via `frontend/src/styles/**`.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** and **Security Review** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (implemented generate: material-scoped, body `{}`). Task/flashcard management UI, Trello, dashboard, admin, deployment require separate approval. **Design pipeline (2I):** 2I-a brief + 2I-b screenshots + **2I-c `DESIGN.md` v2** complete. **Next:** frontend styling pass only after `approved — apply DESIGN styling pass` (tokens/CSS; no persistence/upload/Stitch paste-in/new scope). Optional: capture pending PNGs `11-generated-plan-visible.png`, `15-processing-with-ai.png` when Generate works — **do not fabricate**. Re-run **Security Review** if styling pass changes plan/content rendering or auth surfaces materially. **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
+**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** and **Security Review** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (implemented generate: material-scoped, body `{}`). Task/flashcard management UI, Trello, dashboard, admin, deployment require separate approval. **Design pipeline (2I):** 2I-a brief + 2I-b screenshots + **2I-c `DESIGN.md` v2** complete. **2J styling pass complete.** **2K-a live Generate smoke:** attempted (retries 1–3); blocked by **Gemini 429** — retry only after quota cooldown or quota/model adjustment; **single** Generate click per attempt. Pending PNGs `11-generated-plan-visible.png`, `15-processing-with-ai.png` — **do not fabricate** (`15-` processing UI observed as capturable when timing allows). Re-run **Security Review** if styling pass changes plan/content rendering or auth surfaces materially. **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
 
 **Known constraints:**
 
@@ -768,9 +768,46 @@
 - `.\scripts\check-all.ps1` — passed
 - Manual smoke — passed  
 **Pitfalls:** Do not treat styling as authorization for new features or persistence. Do not add `dangerouslySetInnerHTML` for plan/content. Do not send material body on generate. Re-run Security Review if plan/content rendering or auth surfaces change materially.  
-**Tracked follow-ups:**
-- Optional: capture `11-generated-plan-visible.png` after live Generate output works
+**Tracked follow-ups (historical — see Phase 2K-a for live Generate smoke status):**
+- Optional: capture `11-generated-plan-visible.png` after live Generate succeeds (blocked as of 2K-a)
 - Optional: capture `15-processing-with-ai.png` when processing UI can be reliably captured
 - Optional: future accessibility polish may replace `window.confirm` with a custom dialog — **not** in 2J
 - Any future changes to plan/content rendering or auth surfaces require **Security Review**
+- Persistence, tasks/flashcard management UI, Trello, dashboard/admin, deployment — separate future phases
+
+### 2026-05-22 — Phase 2K-a Generate live smoke (blocked by Gemini rate limit)
+
+**Workflow:** `approved — begin Phase 2K Generate live smoke / missing screenshots planning only`; `approved — run Phase 2K Generate live smoke`; `approved — run Phase 2K Generate live smoke retry`; `approved — run Phase 2K Generate live smoke retry 3`; `approved — record Phase 2K-a Generate live smoke blocked by Gemini rate limit`  
+**Summary:** **Live smoke only** — multiple attempts to verify end-to-end Generate locally. **No repository changes** during smoke (no code, screenshots, packages, CI, env files, or other docs). Infrastructure and UI guards **passed**; **Generate did not complete** because **Gemini returned HTTP 429** (rate limit). **No code bug suspected.**  
+**Smoke scope:** Manual verification of document-service → backend orchestration → frontend Generate on material detail; optional pending design screenshots **not** captured or fabricated.  
+**What passed (retries 2–3, representative):**
+- `GET http://localhost:3002/health` — document-service **ok**
+- `GET http://localhost:3001/health` — backend **ok**
+- Frontend **http://localhost:5173/** — loaded
+- Demo user login — **ok** (`demo.student@example.test` fake account)
+- Fake course/material flow — **ok** (e.g. **Operating Systems**, material **Chapter 4 — Sorting Algorithms (smoke test)** with placeholder content ≥100 characters, saved)
+- Generate invoked from `/study-materials/:materialId` — **one click per retry 3** (no spam)
+- Request contract (private check, no tokens logged): `POST /api/study-materials/:materialId/generate` with body **`{}`** strict; frontend did **not** send `studyText`, `content`, `courseId`, or `userId`
+- Processing UI — **appeared** (“Processing with AI…” button + loading copy)
+- Unsaved-changes guard — **ok** (Generate disabled + save-before-generate warning)
+- Neutral not-found — **ok** for valid non-existent UUID (e.g. `ffffffff-ffff-4fff-bfff-ffffffffffff`)  
+**What failed:**
+- **Generate completion** — no read-only plan rendered in session
+- **Root cause:** **Gemini / external API** — HTTP **429** rate limit; user-visible paraphrase: *“Service temporarily unavailable, please wait 1 minute”* (and on first retry, *“Processing service unavailable, please try later”*)
+- Retry 1 additionally blocked by missing `GEMINI_API_KEY` in document-service env and unconfirmed demo login before human env/auth setup  
+**Security / contract (unchanged, observed):**
+- Generated plan would remain session-only, read-only, plain React text, untrusted, not persisted — **not observed** because plan never returned
+- No `dangerouslySetInnerHTML`; frontend does not call document-service directly  
+**Scope boundary (smoke session):**
+- No `frontend/`, `backend/`, `document-service/`, `supabase/`, `.github/`, `package.json`, `package-lock.json`, CI, `.env`, `DESIGN.md`, or screenshot file changes
+- No persistence, new routes, or generate behavior changes  
+**APIs affected:** none (smoke only)  
+**Tests / lint / build:** not run for 2K-a smoke (live manual only)  
+**Pitfalls:** Do not fabricate `11-generated-plan-visible.png` or `15-processing-with-ai.png`. Do not spam Generate while 429 persists. Do not treat rate limit as a code defect without evidence.  
+**Human ops note:** **Supabase Confirm email** should be restored to **ON** after the smoke session (may have been disabled to allow demo login).  
+**Tracked follow-ups:**
+- Retry live Generate smoke only after **Gemini quota cooldown** or **quota/model adjustment** — use **single** Generate click per attempt (`approved — run Phase 2K Generate live smoke retry` or equivalent)
+- `11-generated-plan-visible.png` — **pending** until successful live plan display
+- `15-processing-with-ai.png` — **pending** but **appears capturable** (processing UI observed); do not fabricate
+- After successful smoke + human PNG safety check: `approved — capture Phase 2K pending screenshots` then `approved — Phase 2K complete` for memory alignment
 - Persistence, tasks/flashcard management UI, Trello, dashboard/admin, deployment — separate future phases
