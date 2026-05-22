@@ -3,6 +3,7 @@ import {
   updateStudyMaterialBodySchema,
   courseIdParamSchema,
   materialIdParamSchema,
+  generateStudyMaterialBodySchema,
 } from '../../shared/validation/schemas.js';
 import { sendSuccess, sendValidationError } from '../../shared/utils/response.js';
 import {
@@ -11,6 +12,7 @@ import {
   getMaterialById,
   updateMaterial,
   deleteMaterial,
+  generateFromMaterial,
 } from './study-materials.service.js';
 
 /**
@@ -104,6 +106,40 @@ export async function update(req, res, next) {
       bodyParsed.data
     );
     sendSuccess(res, { material });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function generate(req, res, next) {
+  const paramsParsed = materialIdParamSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = generateStudyMaterialBodySchema.safeParse(req.body ?? {});
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const result = await generateFromMaterial(
+      req.user.id,
+      paramsParsed.data.materialId
+    );
+    sendSuccess(res, result);
   } catch (err) {
     next(err);
   }

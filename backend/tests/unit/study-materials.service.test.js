@@ -24,6 +24,7 @@ import {
   getMaterialById,
   updateMaterial,
   deleteMaterial,
+  generateFromMaterial,
 } from '../../src/modules/study-materials/study-materials.service.js';
 import { getSupabaseAdmin } from '../../src/config/supabase.js';
 
@@ -278,6 +279,30 @@ describe('study-materials.service ownership', () => {
     } finally {
       resetStudyMaterialsMockOverrides();
     }
+  });
+
+  it('generateFromMaterial returns ephemeral plan without persisting', async () => {
+    const { MOCK_GEMINI_PLAN } = await import('../helpers/mockDocumentService.js');
+    const result = await generateFromMaterial(TEST_USER_ID, OWN_MATERIAL_ID, {
+      processStudyTextFn: async () => MOCK_GEMINI_PLAN,
+    });
+    assert.equal(result.materialId, OWN_MATERIAL_ID);
+    assert.equal(result.courseId, OWN_COURSE_ID);
+    assert.equal(result.plan.difficulty, 'medium');
+  });
+
+  it('generateFromMaterial rejects short content before document-service', async () => {
+    setStudyMaterialsMockOverrides({ ownMaterialGenerateContent: 'x'.repeat(99) });
+    await assert.rejects(
+      () =>
+        generateFromMaterial(TEST_USER_ID, OWN_MATERIAL_ID, {
+          processStudyTextFn: async () => {
+            throw new Error('document-service must not be called');
+          },
+        }),
+      (err) => err instanceof ApiError && err.code === 'VALIDATION_ERROR'
+    );
+    resetStudyMaterialsMockOverrides();
   });
 
   it('deleteMaterial removes owned material', async () => {

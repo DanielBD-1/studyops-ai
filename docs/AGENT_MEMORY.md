@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; `POST /api/study-materials/:materialId/generate`, backend tests 99/99 mocked). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Backend generate orchestration (`POST /api/courses/:courseId/generate` calling document-service), persistence of Gemini output, and frontend Generate UI each require **separate human approval** — not started. Tasks, flashcards tables, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, or re-apply 003.
+**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) and frontend Generate UI each require **separate human approval** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (Phase 2E uses material-scoped generate instead). Tasks, flashcards tables, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, or re-apply 003.
 
 **Known constraints:**
 
@@ -477,4 +477,32 @@
 - Persistence of Gemini output requires separate DB/API phase
 - Frontend Generate UI requires separate approval
 - Continue mocking Gemini in CI (no real secrets)
-- Re-review security if `/process` exposure, auth, or shared-secret strategy changes
+- Re-review security if `/process` exposure, auth, or shared-secret strategy changes (backend invoke satisfied in Phase 2E — see entry below; infra log hygiene remains)
+
+### 2026-05-22 — Phase 2E Backend Generate Orchestration complete
+
+**Workflow:** `approved — implement Phase 2E backend generate orchestration`; `approved — Phase 2E complete`  
+**Human gates:** Phase 2E planning + implementation + Supervisor Review + Security Review — satisfied (no blocking issues)  
+**ADR refs:** 002 (document processing in separate service; backend uses `DOCUMENT_SERVICE_URL` only)  
+**Summary:** Backend-only orchestration: load owned study material content from DB, call document-service `POST /process`, return ephemeral AI plan without persistence. No `GEMINI_API_KEY` on backend; no direct Gemini calls.  
+**APIs added (backend, all `requireAuth`):**
+- `POST /api/study-materials/:materialId/generate` — strict empty body `{}`; response `{ materialId, courseId, plan }` (ephemeral; **no DB write**)  
+**PRD refinement:** Phase 2E uses **material-scoped** `POST /api/study-materials/:materialId/generate` instead of PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText`. **Reason:** smallest safe slice — backend loads `content` from an already-owned saved material instead of trusting `studyText` from the client body. Course-level paste/generate route remains **deferred**.  
+**Request body:** `generateStudyMaterialBodySchema` = `z.object({}).strict()` — rejects `studyText`, `courseId`, `course_id`, `userId`, `user_id`, and ownership fields.  
+**Ownership (before content use):** `study_materials.course_id` → `courses.id` → `courses.user_id = req.user.id`. Reuses `getOwnedMaterialOrThrow(userId, materialId)`. Wrong-owner or missing material → neutral **404** `"Study material not found"`. Full material `content` loaded only after ownership passes.  
+**Document-service call:** `processStudyText` → `POST {DOCUMENT_SERVICE_URL}/process` with body `{ studyText: material.content.trim() }` (length 100–50,000 enforced before call). Backend env: `DOCUMENT_SERVICE_URL` only — **not** `GEMINI_API_KEY`. `GEMINI_API_KEY` remains **document-service only**.  
+**Error mapping (client-safe):** `VALIDATION_ERROR`, `NOT_FOUND`, `GEMINI_TIMEOUT`, `GEMINI_RATE_LIMIT`, `GEMINI_API_ERROR`, `GEMINI_INVALID_RESPONSE`, `SERVER_ERROR` / service unavailable — mapped messages only; raw document-service errors/bodies not leaked.  
+**Logging:** Redacted metadata only (`contentLength`, `durationMs`, `httpStatus`, `documentServiceErrorCode`, etc.) — no full material `content`, `studyText`, document-service request/response bodies, URLs, tokens, `Authorization`, service role, or secrets.  
+**Artifacts:** `backend/src/clients/document-service.client.js`; `generateFromMaterial` in `study-materials.service.js`; controller/route/schema updates; tests (`study-materials-generate.test.js`, `document-service.client.test.js`, service/validation tests).  
+**Tests:** Backend `npm test` — **99/99** passed; mocked `fetch` / document-service only; no real Gemini or real document-service calls.  
+**Packages:** None added.  
+**Scope boundary:** **Backend only** — no frontend, document-service, supabase, `.github`, or root changes. No generated output persisted. No `study_tasks` / `flashcards` tables. No frontend Generate UI. No Trello, dashboard, admin, styling, or deployment.  
+**Security Review (Phase 2E):** Approved with notes — closes Phase 2D follow-up “re-review when backend invokes `/process`”. Treat `plan` as untrusted AI output until a future persistence phase re-validates before any DB write. Keep document-service on private/internal network; avoid logging request bodies/URLs at infra/proxy layer.  
+**Pitfalls:** Do not persist `plan` without separate approval and Security Review. Do not add `GEMINI_API_KEY` to backend. Do not log `content` or `studyText`. Do not expose `DOCUMENT_SERVICE_URL` to frontend.  
+**Tracked follow-ups:**
+- Frontend Generate UI requires separate approval
+- Persistence of summary/tasks/flashcards requires separate DB/API phase and Security Review
+- Re-validate AI output before any future DB write
+- Trello / tasks / flashcards / dashboard / admin remain separate future phases
+- Keep document-service private/internal; avoid logging request bodies/URLs in infra logs
+- Optional: PRD course-level paste/generate route when explicitly approved

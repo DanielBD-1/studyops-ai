@@ -34,6 +34,7 @@ let nextMaterialNumericId = 1;
  *   materialUpdateNullSuccess?: boolean,
  *   materialDeleteNullSuccess?: boolean,
  *   materialInsertError?: { code: string, message?: string, details?: string } | null,
+ *   ownMaterialGenerateContent?: string,
  * }} */
 let mockTestOverrides = {};
 
@@ -187,14 +188,19 @@ function resolveMaterialsSelect(state) {
       return { data: null, error: { code: 'PGRST116', message: 'not found' } };
     }
     const row = rows[0];
+    const content =
+      row.id === OWN_MATERIAL_ID && mockTestOverrides.ownMaterialGenerateContent !== undefined
+        ? mockTestOverrides.ownMaterialGenerateContent
+        : row.content;
+    const materialRow = { ...row, content };
     if (state.innerJoinCourses) {
       const course = courses.find((c) => c.id === row.course_id);
       return {
-        data: { ...row, courses: { id: course?.id } },
+        data: { ...materialRow, courses: { id: course?.id } },
         error: null,
       };
     }
-    return { data: row, error: null };
+    return { data: materialRow, error: null };
   }
 
   return { data: rows, error: null };

@@ -4,6 +4,7 @@ import {
   createStudyMaterialBodySchema,
   updateStudyMaterialBodySchema,
   materialIdParamSchema,
+  generateStudyMaterialBodySchema,
 } from '../../src/shared/validation/schemas.js';
 import { VALID_STUDY_CONTENT } from '../helpers/mockSupabaseStudyMaterials.js';
 
@@ -86,6 +87,25 @@ describe('study materials validation schemas', () => {
 
   it('materialIdParamSchema rejects invalid id', () => {
     const result = materialIdParamSchema.safeParse({ materialId: 'not-a-uuid' });
+    assert.equal(result.success, false);
+  });
+
+  it('generateStudyMaterialBodySchema accepts empty object', () => {
+    const result = generateStudyMaterialBodySchema.safeParse({});
+    assert.equal(result.success, true);
+  });
+
+  it('generateStudyMaterialBodySchema rejects studyText in body', () => {
+    const result = generateStudyMaterialBodySchema.safeParse({
+      studyText: VALID_STUDY_CONTENT,
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('generateStudyMaterialBodySchema rejects courseId in body', () => {
+    const result = generateStudyMaterialBodySchema.safeParse({
+      courseId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     assert.equal(result.success, false);
   });
 });

@@ -1,5 +1,13 @@
+import { z } from 'zod';
+import { processStudyText } from '../../clients/document-service.client.js';
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
+
+const studyTextLengthSchema = z
+  .string()
+  .trim()
+  .min(100, 'Study material must be between 100 and 50,000 characters')
+  .max(50000, 'Study material must be between 100 and 50,000 characters');
 
 const LIST_COLUMNS = 'id, course_id, title, source_type, created_at, updated_at';
 const DETAIL_COLUMNS = 'id, course_id, title, content, source_type, created_at, updated_at';
@@ -260,4 +268,37 @@ export async function deleteMaterial(userId, materialId) {
   assertRowPresent(data, 'material');
 
   return { deleted: true, id: /** @type {{ id: string }} */ (data).id };
+}
+
+/**
+ * @param {string} studyText
+ */
+function assertStudyTextLength(studyText) {
+  const parsed = studyTextLengthSchema.safeParse(studyText);
+  if (!parsed.success) {
+    const message =
+      parsed.error.issues[0]?.message ??
+      'Study material must be between 100 and 50,000 characters';
+    throw new ApiError('VALIDATION_ERROR', message, 400);
+  }
+}
+
+/**
+ * @param {string} userId
+ * @param {string} materialId
+ * @param {{ processStudyTextFn?: typeof processStudyText }} [options]
+ */
+export async function generateFromMaterial(userId, materialId, options = {}) {
+  const processFn = options.processStudyTextFn ?? processStudyText;
+  const row = await getOwnedMaterialOrThrow(userId, materialId);
+  const studyText = row.content.trim();
+  assertStudyTextLength(studyText);
+
+  const plan = await processFn(studyText);
+
+  return {
+    materialId: row.id,
+    courseId: row.course_id,
+    plan,
+  };
 }

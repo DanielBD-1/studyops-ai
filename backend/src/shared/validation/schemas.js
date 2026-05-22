@@ -88,3 +88,6 @@ export const materialIdParamSchema = z
     materialId: z.string().uuid('Invalid study material id'),
   })
   .strict();
+
+/** POST /api/study-materials/:materialId/generate — no client body fields */
+export const generateStudyMaterialBodySchema = z.object({}).strict();
