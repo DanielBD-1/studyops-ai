@@ -10,37 +10,53 @@ StudyOps AI helps students turn pasted study text into summaries, tasks, flashca
 
 **Architecture (MVP):** React frontend → Express modular monolith → HTTP → Document Processing microservice → Gemini API. Supabase Auth + PostgreSQL.
 
-**Read first:** `docs/PRD.md`, relevant `docs/adrs/*.md`, the workflow file for your current phase, and `DESIGN.md` only when doing approved frontend UI work.
+**Read first:** `docs/IMPLEMENTATION_STATUS.md` (what is built today), `docs/AGENT_MEMORY.md` (phase history), `docs/PRD.md` (MVP intent and future scope), relevant `docs/adrs/*.md`, the workflow for your phase, and `DESIGN.md` only for approved frontend UI work.
+
+**Built today (summary):** Auth, courses, study materials, document-service `POST /process`, `POST /api/study-materials/:materialId/generate` (ephemeral plan), frontend Generate UI, ESLint in CI. See `docs/IMPLEMENTATION_STATUS.md` — not course-level paste-generate or DB persistence of AI output yet.
 
 ---
 
 ## Agent Roles (Explicit Only)
 
-Do **not** invent autonomous multi-agent delegation. Follow the workflow named in your task.
+Do **not** invent autonomous multi-agent delegation. Use the roles below. **Process Supervisor** means the **Supervisor Review Agent** (same role).
 
-| Role | Definition |
-|------|------------|
-| **Orchestrator** | Selects workflow, lists steps, requests human approval before implementation. See `.claude/agents/orchestrator.md` |
-| **Implementation Agent** | Writes application code per approved workflow and PRD |
-| **Testing Agent** | Writes/updates tests only; see `.claude/agents/testing-agent.md` |
-| **Supervisor Agent** | Reviews diffs before merge; see `.claude/agents/supervisor-agent.md` |
-| **Security Review Agent** | Reviews security-sensitive changes; see `.claude/agents/security-review-agent.md` |
-| **Documentation Agent** | Updates docs/memory after approved changes; see `.claude/agents/documentation-agent.md` |
+| Role | When | May do | Must not |
+|------|------|--------|----------|
+| **Orchestrator** | Phase start, workflow selection | Plan steps, cite ADRs, request human approvals | Write app code without approval |
+| **Planning Agent** | Human: `approved — begin Phase X planning only` | Planning report only | Implement, modify files (except pure docs phase when approved) |
+| **Implementation Agent** | Human: `approved — implement Phase X` | Code or docs per approved scope | Expand scope, skip reviews |
+| **Testing Agent** | Test tasks in workflow | Add/update tests | Change production code |
+| **Supervisor Review Agent** | Before merge / after implementation | Diff review (scope, PRD/plan, tests) | Change code |
+| **Security Review Agent** | Security-sensitive diffs (see SECURITY.md) | Security review report | Change code |
+| **Documentation Agent** | Human: `approved — Phase X complete` | `AGENT_MEMORY`, aligned docs | App code |
+| **Design Agent** (later) | Approved UI + `DESIGN.md` | UI within approved scope | Add product scope via DESIGN alone |
+
+**Agent definitions:** `.claude/agents/orchestrator.md`, `testing-agent.md`, `supervisor-agent.md`, `security-review-agent.md`, `documentation-agent.md`
+
+**Phase approval phrases:**
+
+| Phrase | Effect |
+|--------|--------|
+| `approved — begin Phase X planning only` | Planning Agent only — stop after plan |
+| `approved — implement Phase X` | Implementation allowed per plan |
+| `approved — Phase X complete` | Documentation Agent may update `AGENT_MEMORY.md` |
 
 **Standard pipeline:**
 
 ```
 Human goal
-→ Orchestrator picks workflow (human approves)
-→ Implementation Agent (code)
-→ Testing Agent (tests)
-→ Pre-commit: lint / tests / secrets
-→ Supervisor Agent (diff review)
-→ Security Review Agent (if security-relevant)
+→ Orchestrator or Planning Agent (plan + human approval)
+→ Implementation Agent (if code/docs phase)
+→ Testing Agent (when tests are in scope)
+→ npm run lint + npm test (+ frontend build if frontend changed)
+→ Supervisor Review Agent (diff review)
+→ Security Review Agent (if required)
 → Human final judgment
 → CI (GitHub Actions)
-→ Documentation Agent updates AGENT_MEMORY if needed
+→ Documentation Agent updates AGENT_MEMORY after approved — Phase X complete
 ```
+
+Pre-commit hooks for lint/secrets are **not** installed yet; run lint locally and rely on CI.
 
 ---
 
@@ -135,7 +151,7 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 ## Security Anti-Patterns (Forbidden)
 
 - Hardcoded API keys or tokens
-- No direct frontend calls to external Gemini or Trello APIs. The frontend may call backend endpoints such as `POST /api/courses/:id/generate` and `POST /api/trello/sync`, but external API calls must go through the backend or document-service.
+- No direct frontend calls to external Gemini or Trello APIs. The frontend calls backend REST endpoints only (e.g. `POST /api/study-materials/:materialId/generate` with body `{}` for generate today; future `POST /api/trello/sync`). Gemini runs in document-service only; `/process` is internal.
 - Supabase **service role** key in frontend
 - Admin routes without `role === 'admin'` check
 - Resource access without `user_id = req.user.id`
@@ -151,7 +167,7 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 ## Implementation Rules
 
 1. **Modular monolith:** Backend modules under `backend/src/modules/` — no separate deployable services except `document-service`.
-2. **Gemini:** Only `document-service` calls Gemini; main backend calls `POST /process` on document-service.
+2. **Gemini:** Only `document-service` calls Gemini (`GEMINI_API_KEY` there only); backend uses `DOCUMENT_SERVICE_URL` and `POST /process`; frontend calls `POST /api/study-materials/:materialId/generate` (empty body, ephemeral plan — no DB save yet).
 3. **Zod:** Validate env, request bodies, and Gemini output per ADR 003.
 4. **API format:** `{ success, data|error, meta }` per PRD Section 8.5.
 5. **Ownership:** Every query filters by authenticated user; admin is explicit exception for logs/stats.
@@ -166,7 +182,7 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 
 A feature or phase item is **done** only when **all** apply:
 
-- [ ] Matches PRD MVP scope (no scope creep)
+- [ ] Matches approved phase scope and `docs/IMPLEMENTATION_STATUS.md` (no scope creep)
 - [ ] Complies with applicable ADRs (gate documented)
 - [ ] Does not violate this file or `CLAUDE.md`
 - [ ] Code + tests implemented; required PRD tests covered
@@ -210,6 +226,7 @@ Do not scaffold application code until the assigned workflow step and human appr
 
 - **Skills index:** `SKILLS.md`
 - **Claude-specific rules:** `CLAUDE.md`
+- **Built state:** `docs/IMPLEMENTATION_STATUS.md`
 - **Session memory:** `docs/AGENT_MEMORY.md`
 - **UI/UX guidance (UI phases only):** `DESIGN.md`
 - **Supervisor prompt:** `.claude/agents/supervisor-agent.md`

@@ -1,95 +1,125 @@
 # Workflow: Document Processing & Study Plan Generation
 
 **Owner:** Orchestrator  
-**Prerequisite:** Phase 1 complete (auth, courses, DB)  
-**ADR gate:** 002, 003 (mandatory)
+**Prerequisite:** Phase 1 complete (auth, courses); study materials schema applied (Phase 2A)  
+**ADR gate:** 002, 003 (mandatory)  
+**Status:** **Partially complete** — implemented in slices **2D–2F**; persistence and PRD course-level generate **deferred**
+
+See **`docs/IMPLEMENTATION_STATUS.md`** for the authoritative built-state summary.
 
 ---
 
-## Goal
+## Original goal (PRD-oriented)
 
-Implement `document-service` Gemini integration with Zod validation, backend `POST /api/courses/:courseId/generate`, persistence of materials/tasks/flashcards, and frontend generate UI.
+End-to-end: document-service Gemini + Zod, backend generate, **persist** materials/tasks/flashcards, frontend generate UI on course paste route.
 
 ---
 
-## Human Approval Checkpoints
+## Implemented (do not re-implement)
+
+| Slice | What was delivered |
+|-------|-------------------|
+| **2D** | `document-service` `POST /process` — `{ studyText }`, `GEMINI_API_KEY`, Zod `GeminiOutputSchema`, mocked tests |
+| **2E** | Backend `POST /api/study-materials/:materialId/generate` — body `{}`, ownership, `DOCUMENT_SERVICE_URL` → `/process`, ephemeral `{ materialId, courseId, plan }` |
+| **2F** | Frontend Generate on `/study-materials/:materialId` — ephemeral plan display |
+| **2G** | ESLint in all packages + CI |
+
+**Implemented generate contract (current):**
+
+- Route: `POST /api/study-materials/:materialId/generate` (not `POST /api/courses/:courseId/generate`)
+- Body: `{}` only — backend reads saved `study_materials.content` after ownership
+- **No** DB persistence of `plan`, tasks, or flashcards yet
+
+---
+
+## Deferred (requires separate approval)
+
+- [ ] `POST /api/courses/:courseId/generate` with client `{ studyText }` (PRD §9)
+- [ ] DB tables: `study_tasks`, `flashcards` (beyond `study_materials`)
+- [ ] Persist validated Gemini output after generate
+- [ ] Task/flashcard management UI, Trello, dashboard, admin
+- [ ] Course page `/courses/:id/generate` route (PRD §6.5)
+
+**Persistence Security Review:** Required before any phase writes AI output to the database.
+
+---
+
+## Human approval checkpoints (for remaining work)
 
 | Step | Requires approval? |
 |------|-------------------|
-| Start this workflow | Yes |
-| Add `zod`, `@google/generative-ai` (or chosen SDK) | Yes |
-| DB tables: study_materials, study_tasks, flashcards | Yes |
-| Gemini API key in document-service env | Yes (human provides key locally) |
+| Persistence schema + API | Yes |
+| Course-level paste generate | Yes |
+| New npm packages | Yes |
+| Gemini API key in document-service env | Yes (human provides locally) |
 
 ---
 
-## Steps (Execute in Order)
+## Reference steps (historical plan)
+
+The steps below describe the **original monolithic workflow**. Completed items are marked; use **IMPLEMENTATION_STATUS** before starting new work.
 
 ### 1. Orchestrator — Plan
 
-- [ ] ADR 002: Gemini only in document-service
-- [ ] ADR 003: `GeminiOutputSchema` per PRD Section 8
-- [ ] Request human approval to start
+- [x] ADR 002: Gemini only in document-service
+- [x] ADR 003: `GeminiOutputSchema` per PRD Section 8
+- [x] Delivered via phased approvals (2D–2F)
 
 ### 2. Implementation Agent — Document service
 
-- [ ] `POST /process` — accepts `{ studyText }`, validates length 100–50,000
-- [ ] `gemini.service.js` — 30s timeout, no retry on timeout
-- [ ] `gemini.schema.js` — Zod schema matching PRD
-- [ ] Parse → validate → return or `GEMINI_INVALID_RESPONSE`
-- [ ] Logger redacts full prompts in production logs
+- [x] `POST /process` — accepts `{ studyText }`, validates length 100–50,000
+- [x] `gemini.service.js` — 30s timeout, no retry on timeout
+- [x] `gemini.schema.js` — Zod schema matching PRD
+- [x] Parse → validate → return or `GEMINI_INVALID_RESPONSE`
+- [x] Logger redacts full prompts
 
 ### 3. Implementation Agent — Backend orchestration
 
-- [ ] `POST /api/courses/:courseId/generate` with `{ studyText }`
-- [ ] Verify course ownership
-- [ ] HTTP call to document-service
-- [ ] Save study_materials, study_tasks, flashcards only after validation
-- [ ] Standard API envelope; error codes: `GEMINI_*`, `VALIDATION_ERROR`
+- [x] Material-scoped generate (2E) — **not** course `{ studyText }` route
+- [x] Verify ownership via `study_materials` → `courses.user_id`
+- [x] HTTP call to document-service
+- [ ] Save study_tasks, flashcards — **deferred**
+- [x] Standard API envelope; error codes: `GEMINI_*`, `VALIDATION_ERROR`
 
 ### 4. Implementation Agent — Frontend
 
-- [ ] StudyMaterialInput on `/courses/:id/generate`
-- [ ] Character count 100–50,000
-- [ ] Loading: "Processing with AI..."
-- [ ] GeneratedPlan: summary, key topics, tasks, flashcards
-- [ ] Error messages per PRD 11.5
+- [x] Generate on `/study-materials/:materialId` (2F) — **not** `/courses/:id/generate` paste page
+- [x] Loading: "Processing with AI…"
+- [x] Read-only plan: summary, key topics, tasks, flashcards (ephemeral)
+- [x] Error messages from backend envelope
 
 ### 5. Testing Agent
 
-- [ ] Zod passes valid fixture; fails invalid fixture
-- [ ] Mocked Gemini success creates DB records
-- [ ] Mocked timeout → `GEMINI_TIMEOUT` / 504
-- [ ] Mocked invalid JSON → validation error
-- [ ] **No live Gemini in CI**
+- [x] Mocked Gemini/document-service in CI (no live keys)
+- [ ] Mocked persistence tests — **when persistence phase starts**
 
-### 6. Supervisor Agent — Diff review
+### 6. Supervisor Review Agent — Diff review
 
 ### 7. Security Review Agent
 
-Required (Gemini key, new endpoints, logging).
+Required for Gemini, generate, logging, and any future persistence.
 
 ### 8. Human — Final judgment
 
-- [ ] Paste sample text → see tasks and flashcards
+- [x] Generate flow with saved material (manual smoke when env configured)
+- [ ] Persisted tasks/flashcards — **deferred**
 
 ### 9. Documentation Agent
 
-- [ ] AGENT_MEMORY: document-service URL env var, schema version
+- [x] AGENT_MEMORY entries for 2D–2G
+- [x] `docs/IMPLEMENTATION_STATUS.md` (Phase 2H)
 
 ---
 
-## Definition of Done
+## Definition of Done (remaining monolithic goal)
 
-- [ ] End-to-end generate flow works with mocked tests in CI
-- [ ] Unvalidated AI output never saved
-- [ ] ADR 002/003 cited in PR description
-- [ ] Security + Supervisor reviews passed
+Not complete until persistence and PRD-aligned features are explicitly approved and delivered. Current slices are **done** per their own phase gates.
 
 ---
 
 ## Forbidden
 
-- No direct frontend calls to external Gemini or Trello APIs. The frontend may call the backend endpoints such as `POST /api/courses/:courseId/generate`, but external API calls must go through the backend or document-service.
-- Saving raw model string without Zod
+- Direct frontend calls to Gemini or `/process`
+- Saving raw model JSON without Zod (when persistence is added)
 - Retry on Zod failure or timeout
+- Sending `studyText` in material-scoped generate body from frontend

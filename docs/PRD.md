@@ -5,6 +5,35 @@
 
 ---
 
+## Implementation Status (as of Phase 2H — drift note)
+
+This section records **what the repository implements today**. It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/AGENT_MEMORY.md`**.
+
+### Built (phases 1A–1G, 2A–2G)
+
+- Auth, profiles, courses API/UI, study materials API/UI (`study_materials` table applied)
+- **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
+- **Backend generate:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; ownership via course chain; returns ephemeral `{ materialId, courseId, plan }` — **no DB persistence**
+- **Frontend:** `/study-materials/:materialId` with **Generate study plan** (ephemeral in-page plan; plain text rendering)
+- **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
+
+### Approved refinement vs §9 / §6.5 below
+
+| PRD (target MVP) | Implemented today |
+|------------------|-------------------|
+| `POST /api/courses/:courseId/generate` with `{ studyText }` | **Deferred** |
+| `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content` |
+| Persist tasks/flashcards after generate | **Deferred** — plan is untrusted display-only until a future phase validates storage (**Security Review** required) |
+| Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
+| Tables `study_tasks`, `flashcards` | **Not created** |
+
+### Architecture and env (unchanged intent)
+
+- Frontend → Backend → document-service → Gemini (ADR 002)
+- `DOCUMENT_SERVICE_URL` — backend only; `GEMINI_API_KEY` — document-service only; frontend — `VITE_API_URL` + Supabase anon key only; service role — backend only
+
+---
+
 ## 1. Product Overview
 
 ### Product Name

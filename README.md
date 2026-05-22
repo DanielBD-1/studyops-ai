@@ -2,27 +2,49 @@
 
 [![CI](https://github.com/DanielBD-1/studyops-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielBD-1/studyops-ai/actions/workflows/ci.yml)
 
-Web app that turns study material into tasks, flashcards, Trello cards, and focus sessions.
+Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G** complete — scaffold, env/Supabase clients, profiles & courses migrations (applied), auth (1D), courses API (1F), courses UI (1G). **GitHub Actions CI** is verified green. Future phases (study plan generation, tasks, Trello, etc.) require explicit human approval — see `CONTRIBUTING.md` and `docs/AGENT_MEMORY.md`.
+**Current status:** Phases **1A–1G** and **2A–2G** are implemented — auth, courses, study materials, Gemini document-service, backend generate orchestration, frontend Generate UI, and ESLint in CI. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for what works today vs deferred. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (persistence, tasks UI, Trello, dashboard, deployment, styling pass) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
+## What works today
+
+- **Auth** — register, login, protected routes
+- **Courses** — CRUD API + UI
+- **Study materials** — CRUD API + UI (`/study-materials/:materialId`)
+- **AI generate (ephemeral)** — save material → **Generate study plan** on material detail → read-only plan in the browser (not saved to DB)
+- **document-service** — `POST /process` (internal; Gemini key server-side only)
+- **CI** — lint, tests, frontend build on Node.js 22
+
+## Architecture
+
+```
+frontend (React + Vite)
+    → backend (Express, :3001)
+        → document-service POST /process (:3002)
+            → Gemini
+    → Supabase (Auth + Postgres)
+```
+
+Details: [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) · ADRs in [docs/adrs/](docs/adrs/)
 
 ## Repository layout
 
 ```
 frontend/           # React + Vite
 backend/            # Express modular monolith
-document-service/   # Document processing (Gemini in later phases)
-docs/               # PRD, ADRs, workflows
+document-service/   # Gemini + Zod (POST /process)
+docs/               # PRD, IMPLEMENTATION_STATUS, ADRs, workflows, AGENT_MEMORY
+supabase/           # Migrations (human apply only)
 ```
 
 ## Prerequisites
 
-- **Node.js 20.6 or newer** (required — backend and document-service scripts use `node --env-file=.env`, which needs Node 20.6.0+)
+- **Node.js 20.6+** (backend/document-service use `node --env-file=.env`)
 - npm 9+
 
-## Setup (after dependencies installed)
+## Setup
 
-Install per package (requires human approval per workflow):
+Install per package (new packages require human approval per workflow):
 
 ```bash
 cd backend && npm install
@@ -30,7 +52,7 @@ cd ../document-service && npm install
 cd ../frontend && npm install
 ```
 
-Copy environment templates (placeholders only — use your real Supabase project values locally):
+Copy environment templates (placeholders only — never commit `.env`):
 
 ```bash
 cp backend/.env.example backend/.env
@@ -38,31 +60,27 @@ cp document-service/.env.example document-service/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Never commit `.env`. **Do not put the service role key in `frontend/.env`** — only `VITE_SUPABASE_ANON_KEY`.
+**Never put the Supabase service role key in `frontend/.env`.** Frontend uses `VITE_SUPABASE_ANON_KEY` only.
 
-### Required variables (Phase 1B)
+### Environment variables
 
-| Package | Variables |
-|---------|-----------|
-| **backend** | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, optional `SUPABASE_ANON_KEY`, `DOCUMENT_SERVICE_URL`, `PORT` |
-| **frontend** | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
-| **document-service** | `PORT` only (`GEMINI_API_KEY` optional, commented in example) |
+| Package | Variables | Security |
+|---------|-----------|----------|
+| **backend** | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DOCUMENT_SERVICE_URL`, `FRONTEND_URL`, `PORT` | Service role **backend only** |
+| **document-service** | `GEMINI_API_KEY`, `PORT` | Gemini key **never** in frontend or backend |
+| **frontend** | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Calls backend API only |
 
-Env is validated with **Zod** at startup (backend, document-service) or app load (frontend). Invalid config fails fast with field errors (values are not logged).
+Zod validates env at startup (backend, document-service) or app load (frontend). Invalid config fails fast without logging secret values.
 
-### Loading `.env` locally
+`GEMINI_API_KEY` is required in document-service for real `POST /process` / generate smoke tests (use a local key; never commit it).
 
-Backend and document-service `npm run dev` / `npm start` use `node --env-file=.env` (Node 20.6+). Copy each package’s `.env.example` to `.env` before starting.
-
-Alternatively, export variables in your shell if you run Node without `--env-file`.
-
-## Run locally (Phase 1A)
+## Run locally
 
 ```bash
-# Terminal 1 — backend (default PORT 3001)
+# Terminal 1 — backend (default :3001)
 cd backend && npm run dev
 
-# Terminal 2 — document-service (default PORT 3002)
+# Terminal 2 — document-service (default :3002)
 cd document-service && npm run dev
 
 # Terminal 3 — frontend (default http://localhost:5173)
@@ -74,11 +92,30 @@ cd frontend && npm run dev
 - Backend: `GET http://localhost:3001/health`
 - Document service: `GET http://localhost:3002/health`
 
+## Quality checks (before PR)
+
+```bash
+cd backend && npm ci && npm run lint && npm test
+cd ../document-service && npm ci && npm run lint && npm test
+cd ../frontend && npm ci && npm run lint && npm test && npm run build
+```
+
+**Windows** (after `npm ci` in each package):
+
+```powershell
+.\scripts\check-all.ps1
+```
+
+GitHub Actions runs the same lint → test → build steps on **Node.js 22**.
+
 ## Documentation
 
-- Contributing: `CONTRIBUTING.md`
-- Security: `SECURITY.md`
-- Product: `docs/PRD.md`
-- Agents: `AGENTS.md`, `CLAUDE.md`, `SKILLS.md`
-- Session memory: `docs/AGENT_MEMORY.md`
-- Phase 1A workflow: `docs/workflows/phase-1a-scaffold-workflow.md`
+| Doc | Use for |
+|-----|---------|
+| [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) | **What is built now** (routes, APIs, env, deferred work) |
+| [docs/PRD.md](docs/PRD.md) | MVP product spec (includes future scope) |
+| [docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md) | Completed phases and pitfalls |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | PR workflow, reviews, lint |
+| [SECURITY.md](SECURITY.md) | Secrets, keys, Security Review triggers |
+| [AGENTS.md](AGENTS.md) · [CLAUDE.md](CLAUDE.md) · [SKILLS.md](SKILLS.md) | Agent roles and rules |
+| [DESIGN.md](DESIGN.md) | UI guidance for approved frontend phases only (styling pass not started) |

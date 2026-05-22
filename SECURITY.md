@@ -28,6 +28,28 @@ Use redacted error messages and placeholders in bug reports.
 
 The frontend must call the **Express API** with a Bearer JWT for data operations—not direct service-role access to user tables.
 
+## Environment and service boundaries
+
+| Secret / config | Allowed location |
+|-----------------|------------------|
+| `GEMINI_API_KEY` | **document-service only** — never frontend, never backend `VITE_*` |
+| `DOCUMENT_SERVICE_URL` | **backend only** — frontend must not call document-service |
+| `SUPABASE_SERVICE_ROLE_KEY` | **backend only** |
+| `VITE_SUPABASE_ANON_KEY` | **frontend only** (public anon key by design) |
+
+- **`POST /process`** on document-service is **internal-only** (backend orchestration). Browsers must not call it directly.
+- **Generate (implemented):** `POST /api/study-materials/:materialId/generate` with strict empty body `{}`. Backend loads saved material `content` only after ownership checks. Frontend must not send `studyText`, `content`, `courseId`, or `userId` in the generate body.
+
+## AI output (current)
+
+- Generated `plan` is shown in the UI as **ephemeral** React state only — **not** persisted to the database.
+- Treat model output as **untrusted** until validated. **Persisting** summary/tasks/flashcards to the database requires a separate approved phase and **Security Review** before any write path is merged.
+
+## Logging
+
+- Do not log full study material `content`, generated `plan`, Gemini prompts, API keys, or `Authorization` headers.
+- Backend/document-service structured logs should remain redacted per phase conventions (see `docs/AGENT_MEMORY.md`).
+
 ## Service-role queries (backend)
 
 When the backend uses `getSupabaseAdmin()`:
@@ -46,7 +68,9 @@ Request **Security Review** (see `AGENTS.md` and PR template) before merge when 
 - **Service-role data access** — any new `from('…')` using admin client
 - **CI / GitHub Actions** — secrets, permissions, `pull_request_target`, deploy steps
 - **Admin routes** or role checks
-- **Trello / Gemini** — credentials, logging, external API boundaries
+- **Trello / Gemini** — credentials, logging, external API boundaries, `POST /process`, generate orchestration
+- **AI output persistence** (future) — any phase that writes Gemini output to the database
+- **Governance / security docs** — when changing CI permissions, env documentation, or trust boundaries
 - **Frontend security** — token storage, XSS (`dangerouslySetInnerHTML`), exposing ownership fields
 
 Supervisor Review and human approval gates still apply per `CONTRIBUTING.md`.
@@ -62,4 +86,5 @@ Supervisor Review and human approval gates still apply per `CONTRIBUTING.md`.
 
 - `CONTRIBUTING.md` — branch workflow and reviews
 - `AGENTS.md` — security anti-patterns
-- `docs/PRD.md` — permissions and API contract
+- `docs/IMPLEMENTATION_STATUS.md` — built APIs, env boundaries, deferred work
+- `docs/PRD.md` — permissions and API contract (MVP + future)

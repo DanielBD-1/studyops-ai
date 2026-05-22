@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only (Stitch/styling pass not started).
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (Phases 2E–2F use material-scoped generate instead). Task/flashcard management UI, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. **Lint is required** before PRs: `npm run lint` in `backend/`, `document-service/`, and `frontend/` (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
+**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** and **Security Review** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (implemented generate: material-scoped, body `{}`). Task/flashcard management UI, Trello, dashboard, admin, deployment, and Stitch/DESIGN styling pass require separate approval. **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
 
 **Known constraints:**
 
@@ -577,3 +577,36 @@
 - Optional: stricter logging lint rules if desired
 - Do not use `npm audit fix --force` without explicit human approval
 - Adding new ESLint plugins or changing rule severity requires human approval (per `AGENTS.md`)
+
+### 2026-05-22 — Phase 2H Docs / Agent Workflow complete
+
+**Workflow:** `approved — begin Phase 2H Docs / Agent Workflow planning only`; `approved — implement Phase 2H Docs / Agent Workflow`; `approved — Phase 2H complete`  
+**Human gates:** Phase 2H planning + implementation + Supervisor Review + Security Review — satisfied (no blocking issues)  
+**Summary:** Docs-only alignment so README, governance files, security guide, PRD drift note, and workflows match the system built through Phase 2G. No application, package, CI, env, or `DESIGN.md` changes.  
+**Artifacts (docs only):**
+- **New:** `docs/IMPLEMENTATION_STATUS.md` — readable **current-state hub** (architecture, env boundaries, implemented APIs/routes, deferred work, agent summary)
+- **Updated:** `README.md` — status through 2G, what works today, env table, lint/test/build commands
+- **Updated:** `AGENTS.md`, `CLAUDE.md` — formal **agent-role workflow** and phase approval phrases
+- **Updated:** `CONTRIBUTING.md` — agent-assisted workflow; docs-only PR expectations
+- **Updated:** `SECURITY.md` — environment/service boundaries and AI output rules
+- **Updated:** `docs/PRD.md` — **Implementation Status / drift note only** (no MVP rewrite)
+- **Updated:** `docs/workflows/document-processing-workflow.md` — implemented (2D–2F) vs deferred (persistence, course-level generate)  
+**Documented implemented generate (current):**
+- `POST /api/study-materials/:materialId/generate` — body **`{}`**; backend loads saved owned `content` after ownership; ephemeral `{ materialId, courseId, plan }` — **no DB persistence**
+- Course-level `POST /api/courses/:courseId/generate` with client `{ studyText }` — **deferred** (PRD target)  
+**Documented env / security boundaries:**
+- `GEMINI_API_KEY` — **document-service only**
+- `DOCUMENT_SERVICE_URL` — **backend only**
+- Frontend — `VITE_API_URL` + `VITE_SUPABASE_*` anon key only
+- `SUPABASE_SERVICE_ROLE_KEY` — **backend only** (never frontend / `VITE_*`)
+- `POST /process` — **internal-only** (not browser-facing)  
+**Agent roles formalized:** Orchestrator; **Planning Agent**; Implementation Agent; Testing Agent; **Supervisor Review Agent** (Process Supervisor); **Security Review Agent**; **Documentation Agent**; **Design Agent** (later, `DESIGN.md` UI guidance only)  
+**Phase gates documented:** `approved — begin Phase X planning only` | `approved — implement Phase X` | `approved — Phase X complete`  
+**AI output (docs):** Generated `plan` is **ephemeral** UI state only; **untrusted** until validated; **persisting** to DB requires future phase + **Security Review**  
+**Not started (unchanged):** Persistence of AI output; `study_tasks` / `flashcards` tables; task/flashcard management UI; Trello; dashboard/admin; deployment; Stitch / full DESIGN styling pass  
+**Security Review (Phase 2H) notes:** Docs use placeholders only (no real secrets); `/process` remains internal-only; docs do **not** instruct frontend to send `studyText`/`content`; ownership/RLS boundaries not weakened; docs-only lint/test exemption applies only when **no app files** change; **code phases** still require lint/tests/build and Security Review when triggers apply  
+**Pitfalls:** For **what is built**, use `docs/IMPLEMENTATION_STATUS.md` before assuming PRD §9 course-level generate or persistence. PRD body below appendix still describes future MVP — appendix + memory are authoritative for current behavior.  
+**Tracked follow-ups:**
+- Optional: `eslint-plugin-react`; secret scanning in CI; PRD §9 cross-link to Implementation Status appendix
+- Persistence phase + Security Review before any AI DB writes
+- Course-level paste/generate, tasks UI, Trello, dashboard, admin, deployment, styling pass — separate approvals

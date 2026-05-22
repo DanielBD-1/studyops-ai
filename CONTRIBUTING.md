@@ -5,13 +5,35 @@ Thank you for contributing. This project uses a **branch-based workflow**, expli
 ## Branch workflow
 
 1. **Create a branch** for each phase or focused change (e.g. `phase-1g-courses-frontend-ui`).
-2. Implement only what is **approved** for that phase (see `docs/PRD.md` and `docs/AGENT_MEMORY.md`).
+2. Implement only what is **approved** for that phase (see `docs/IMPLEMENTATION_STATUS.md`, `docs/PRD.md`, and `docs/AGENT_MEMORY.md`).
 3. **Open a pull request** before merging into `main` (or the repository default branch).
 4. Do **not** force-push to shared branches unless a maintainer explicitly requests it.
 
+## Agent-assisted workflow
+
+This repo uses named agent roles (see `AGENTS.md`). Typical phase gates:
+
+| Human phrase | Meaning |
+|--------------|---------|
+| `approved — begin Phase X planning only` | Planning report only — no implementation |
+| `approved — implement Phase X` | Implementation per approved plan |
+| `approved — Phase X complete` | May update `docs/AGENT_MEMORY.md` |
+
+| Role | Purpose |
+|------|---------|
+| **Orchestrator** | Pick workflow, request approvals |
+| **Planning Agent** | Planning-only turns |
+| **Implementation Agent** | Code or approved docs |
+| **Testing Agent** | Tests only |
+| **Supervisor Review Agent** (Process Supervisor) | Diff / scope review before merge |
+| **Security Review Agent** | Security-sensitive diffs |
+| **Documentation Agent** | Memory and doc updates after phase complete |
+
+**Docs-only PRs** (e.g. README, `IMPLEMENTATION_STATUS`): Supervisor reviews accuracy; lint/test not required unless application files change.
+
 ## Before you open a PR
 
-### Run tests locally
+### Run quality checks locally
 
 ```bash
 cd backend && npm ci && npm run lint && npm test
@@ -71,8 +93,9 @@ Use `.env.example` placeholders locally only.
 
 | Doc | Use for |
 |-----|---------|
-| `docs/PRD.md` | Product scope, APIs, validation rules |
-| `AGENTS.md` / `CLAUDE.md` | Agent rules, off-limits files, Definition of Done |
+| `docs/IMPLEMENTATION_STATUS.md` | **What is built now** (routes, APIs, env, deferred work) |
+| `docs/PRD.md` | MVP product spec (includes future scope) |
+| `AGENTS.md` / `CLAUDE.md` | Agent roles, approvals, Definition of Done |
 | `docs/AGENT_MEMORY.md` | Completed phases, pitfalls, CI notes |
 | `DESIGN.md` | Layout, states, accessibility — **approved UI work only** |
 | `docs/adrs/` | Architecture decisions (001–005) |
