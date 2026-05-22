@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`). Phase 2I-c **`DESIGN.md` v2** **complete** (Supervisor + Security approved; NotebookLM-inspired presentation spec only — **not** product scope). Phase 2J **Frontend Styling Pass** **complete** (Supervisor + Security approved; DESIGN.md v2 applied via plain CSS — presentation only, no behavior changes). Phase 2K-a **Generate live smoke** **attempted** — pipeline verified through UI/backend; **blocked by Gemini HTTP 429** (no plan captured; **no code bug suspected**). Phase 2L-a **`public.material_generated_plans`** **complete** (Supervisor + Security approved; migration **applied manually** on Supabase — one latest plan per material, RLS + grants). Phase 2L-b **Backend Generated Plan Persistence** **complete** (Supervisor + Security approved; UPSERT on successful generate, GET/DELETE latest plan, backend Zod before write; backend tests **118/118** mocked). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials`, `material_generated_plans`. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. **UI spec:** `DESIGN.md` v2 (2026-05-22); **styled in code** via `frontend/src/styles/**`.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`). Phase 2I-c **`DESIGN.md` v2** **complete** (Supervisor + Security approved; NotebookLM-inspired presentation spec only — **not** product scope). Phase 2J **Frontend Styling Pass** **complete** (Supervisor + Security approved; DESIGN.md v2 applied via plain CSS — presentation only, no behavior changes). Phase 2K-a **Generate live smoke** **attempted** — pipeline verified through UI/backend; **blocked by Gemini HTTP 429** (no plan captured; **no code bug suspected**). Phase 2L-a **`public.material_generated_plans`** **complete** (Supervisor + Security approved; migration **applied manually** on Supabase — one latest plan per material, RLS + grants). Phase 2L-b **Backend Generated Plan Persistence** **complete** (Supervisor + Security approved; UPSERT on successful generate, GET/DELETE latest plan, backend Zod before write; backend tests **118/118** mocked). Phase 2L-c **Frontend Generated Plan Load/Clear** **complete** (Supervisor + Security approved; load/clear via backend GET/DELETE; plain React text; frontend tests **43/43** mocked). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials`, `material_generated_plans`. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. **UI spec:** `DESIGN.md` v2 (2026-05-22); **styled in code** via `frontend/src/styles/**`.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** **Phase 2L-c** frontend generated plan load/clear — requires `approved — implement Phase 2L-c` + **Security Review** (plain React text only; no `dangerouslySetInnerHTML`; frontend must not POST plan JSON to save). **2L-d** docs/smoke alignment is a separate approval. PRD course-level paste-generate remains **deferred**. Task/flashcard **tables/UI**, Trello, dashboard/admin, deployment require separate approval. **2K-a live Generate smoke:** blocked by **Gemini 429** — optional retry after quota cooldown; pending PNGs `11-`, `15-` — **do not fabricate**. Re-run **Security Review** for 2L-c plan rendering or auth surface changes. **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, 2L-b backend persistence, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
+**Next implementation:** **Phase 2L-d** docs/smoke alignment — requires `approved — implement Phase 2L-d` (update `SECURITY.md`, `IMPLEMENTATION_STATUS.md`, `DESIGN.md` for persisted latest plan per material; smoke checklist). PRD course-level paste-generate remains **deferred**. Task/flashcard **tables/UI**, Trello, dashboard/admin, deployment require separate approval. **2K-a live Generate smoke:** blocked by **Gemini 429** — optional retry after quota cooldown; pending PNGs `11-`, `15-` — **do not fabricate** (refresh may succeed now that plans persist). **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, 2L-b backend persistence, 2L-c frontend load/clear, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
 
 **Known constraints:**
 
@@ -899,11 +899,53 @@
 **Tests:** Mocked only — no live Gemini, no real Supabase. `cd backend && npm run lint` passed; `npm test` **118/118** passed; `.\scripts\check-all.ps1` passed  
 **Pitfalls:** Do not accept plan JSON from client on Generate or any route. Do not skip ownership check before service-role plan table access. Do not log full plans or material content. Do not start 2L-c without explicit approval.  
 **Tracked follow-ups:**
-- **Phase 2L-c:** frontend generated plan load/clear — next gated phase (`approved — implement Phase 2L-c` + Security Review)
-- Frontend must render persisted plan as **plain React text only**; **no** `dangerouslySetInnerHTML`
-- Frontend must **not** send plan JSON to save
+- **Phase 2L-c:** frontend generated plan load/clear — **complete** (see 2026-05-23 entry)
 - **Phase 2L-d:** `IMPLEMENTATION_STATUS` + smoke alignment (separate approval)
 - Optional hardening: re-validate `row.plan` on GET (backend)
 - Optional test hardening: `content` in generate body rejection assertion; failed-generate no-persist assertions
 - Phase 2K-a live Generate smoke / screenshots `11-`, `15-` — still pending Gemini quota (do not fabricate)
+- `study_tasks` / `flashcards` tables — separate future phases
+
+### 2026-05-23 — Phase 2L-c Frontend Generated Plan Load/Clear complete
+
+**Workflow:** `approved — begin Phase 2L-c Frontend Generated Plan Load/Clear planning only`; `approved — implement Phase 2L-c frontend generated plan load and clear`; Supervisor Review + Security Review; `approved — Phase 2L-c complete`  
+**Human gates:** Supervisor Review — passed; Security Review — passed (Approved with notes; no blocking issues; no Security Review file changes)  
+**Summary:** Frontend-only slice to **load**, **display**, and **clear** the latest persisted generated plan per study material using Phase 2L-b backend APIs. Material detail still generates via `POST .../generate` with strict `{}`; plans rehydrate on page load from GET; Clear calls DELETE. No backend, document-service, Supabase, package-lock, CI, or env changes.  
+**Frontend API usage:**
+- `GET /api/study-materials/:materialId/generated-plan` — load `plan` + `savedAt` after material loads
+- `DELETE /api/study-materials/:materialId/generated-plan` — clear persisted plan
+- `POST /api/study-materials/:materialId/generate` — body **`{}` only**; still does **not** send `plan`, `studyText`, `content`, `courseId`, or `userId`  
+**Security / UX behavior:**
+- **No** direct frontend Supabase writes for `material_generated_plans`
+- **No** frontend `service_role`, Gemini key, or document-service calls
+- **No** `localStorage` / `sessionStorage` plan persistence
+- Missing saved plan (`NOT_FOUND` + “Generated plan not found”) → **empty state** / idempotent clear — not a scary error
+- Wrong-owner or missing material → neutral **“Study material not found”** (unchanged)
+- Clear plan: backend **DELETE first**, then clear UI state; `Generated plan not found` on DELETE → treat as already cleared
+- Failed Clear (non-404): **safe error**, plan stays visible
+- Failed Generate: does **not** overwrite existing `plan` / `savedAt`
+- Generated plans: **plain React text only**; **no** `dangerouslySetInnerHTML`
+- `savedAt` shown as plain text (`toLocaleString()`)
+- Tasks/flashcards remain **read-only display** — no task management, flashcard management, Trello, admin/dashboard, upload, or **new routes**  
+**Changed frontend areas:**
+- `frontend/src/services/study-materials.service.js` — `getGeneratedPlan`, `deleteGeneratedPlan`; `generateMaterial` includes `savedAt`
+- `frontend/src/utils/generated-plan-errors.js` — 404 message helpers
+- `frontend/src/pages/StudyMaterialDetail.jsx` — load material → load saved plan; generate/clear state flow
+- `frontend/src/components/materials/GeneratedPlanSection.jsx` — saved copy, `savedAt`, clearing state
+- `frontend/src/styles/components.css` — minor plan panel / `savedAt` / `visually-hidden` utilities
+- `frontend/tests/unit/study-materials.service.test.js` — GET/DELETE/savedAt tests
+- `frontend/tests/unit/generated-plan-errors.test.js` — helper tests
+- `frontend/tests/unit/study-materials-plan-persistence.test.js` — no browser storage / strict generate body
+- `frontend/package.json` — **test script entries only**  
+**Scope boundary:**
+- No `backend/`, `document-service/`, `supabase/`, `docs/IMPLEMENTATION_STATUS.md`, `SECURITY.md`, `DESIGN.md`, `.github/`, CI, `.env` changes in 2L-c  
+**APIs affected:** none (frontend consumes existing 2L-b endpoints)  
+**Tests:** Mocked `apiFetch` only — no live backend/Gemini. `cd frontend && npm run lint` passed; `npm test` **43/43** passed; `.\scripts\check-all.ps1` passed  
+**Pitfalls:** Do not POST client `plan` JSON. Do not clear plan locally without DELETE. Do not use `dangerouslySetInnerHTML` on model fields. Do not start 2L-d without explicit approval.  
+**Tracked follow-ups:**
+- **Phase 2L-d:** docs/smoke alignment — update `SECURITY.md`, `IMPLEMENTATION_STATUS.md`, `DESIGN.md` for persisted latest plan per material
+- Optional: backend distinct error code for missing plan vs missing material
+- Optional UX: validate `savedAt` before display
+- Optional: component tests if frontend test stack expands (RTL)
+- Phase 2K-a live Generate smoke / screenshots `11-`, `15-` — pending quota; refresh may show persisted plan after reload
 - `study_tasks` / `flashcards` tables — separate future phases

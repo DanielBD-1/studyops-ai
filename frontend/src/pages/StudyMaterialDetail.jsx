@@ -14,7 +14,13 @@ import {
   updateMaterial,
   deleteMaterial,
   generateMaterial,
+  getGeneratedPlan,
+  deleteGeneratedPlan,
 } from '../services/study-materials.service.js';
+import {
+  isGeneratedPlanNotFound,
+  isStudyMaterialNotFound,
+} from '../utils/generated-plan-errors.js';
 import { updateStudyMaterialFormSchema } from '../utils/validation.js';
 
 export default function StudyMaterialDetail() {
@@ -38,8 +44,13 @@ export default function StudyMaterialDetail() {
   const [plan, setPlan] = useState(
     /** @type {import('../services/study-materials.service.js').StudyPlan | null} */ (null)
   );
+  const [savedAt, setSavedAt] = useState(/** @type {string | null} */ (null));
+  const [planLoading, setPlanLoading] = useState(false);
+  const [planLoadError, setPlanLoadError] = useState(/** @type {string | null} */ (null));
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(/** @type {string | null} */ (null));
+  const [clearing, setClearing] = useState(false);
+  const [clearError, setClearError] = useState(/** @type {string | null} */ (null));
 
   const hasUnsavedChanges =
     material !== null &&
@@ -48,7 +59,7 @@ export default function StudyMaterialDetail() {
       sourceType !== (material.sourceType === 'paste' ? 'paste' : 'manual'));
 
   const generateDisabled =
-    loading || generating || saving || deleting || hasUnsavedChanges;
+    loading || planLoading || generating || saving || deleting || hasUnsavedChanges;
 
   const handleAuthError = useCallback(
     async (err) => {
@@ -62,6 +73,35 @@ export default function StudyMaterialDetail() {
     [logout, navigate]
   );
 
+  const loadSavedPlan = useCallback(async () => {
+    if (!materialId) return;
+
+    setPlanLoading(true);
+    setPlanLoadError(null);
+
+    try {
+      const data = await getGeneratedPlan(materialId);
+      setPlan(data.plan);
+      setSavedAt(data.savedAt);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (isGeneratedPlanNotFound(err)) {
+        setPlan(null);
+        setSavedAt(null);
+        return;
+      }
+      if (isStudyMaterialNotFound(err)) {
+        setNotFound(true);
+        return;
+      }
+      setPlanLoadError(
+        err instanceof Error ? err.message : 'Failed to load saved study plan'
+      );
+    } finally {
+      setPlanLoading(false);
+    }
+  }, [materialId, handleAuthError]);
+
   const loadMaterial = useCallback(async () => {
     if (!materialId) {
       setNotFound(true);
@@ -72,8 +112,9 @@ export default function StudyMaterialDetail() {
     setLoading(true);
     setError(null);
     setNotFound(false);
-    setPlan(null);
     setGenerateError(null);
+    setPlanLoadError(null);
+    setClearError(null);
 
     try {
       const data = await getMaterial(materialId);
@@ -83,19 +124,26 @@ export default function StudyMaterialDetail() {
       setSourceType(
         data.material.sourceType === 'paste' ? 'paste' : 'manual'
       );
+      await loadSavedPlan();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
         setNotFound(true);
+        setPlan(null);
+        setSavedAt(null);
         return;
       }
       setError(err instanceof Error ? err.message : 'Failed to load study material');
+      setPlan(null);
+      setSavedAt(null);
     } finally {
       setLoading(false);
     }
-  }, [materialId, handleAuthError]);
+  }, [materialId, handleAuthError, loadSavedPlan]);
 
   useEffect(() => {
+    setPlan(null);
+    setSavedAt(null);
     loadMaterial();
   }, [loadMaterial]);
 
@@ -141,6 +189,8 @@ export default function StudyMaterialDetail() {
     try {
       const data = await generateMaterial(materialId);
       setPlan(data.plan);
+      setSavedAt(data.savedAt);
+      setClearError(null);
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -155,9 +205,30 @@ export default function StudyMaterialDetail() {
     }
   }
 
-  function handleClearPlan() {
-    setPlan(null);
-    setGenerateError(null);
+  async function handleClearPlan() {
+    if (!materialId || clearing) return;
+
+    setClearError(null);
+    setClearing(true);
+    try {
+      await deleteGeneratedPlan(materialId);
+      setPlan(null);
+      setSavedAt(null);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (isGeneratedPlanNotFound(err)) {
+        setPlan(null);
+        setSavedAt(null);
+        return;
+      }
+      if (isStudyMaterialNotFound(err)) {
+        setNotFound(true);
+        return;
+      }
+      setClearError(err instanceof Error ? err.message : 'Failed to clear saved plan');
+    } finally {
+      setClearing(false);
+    }
   }
 
   async function handleDelete() {
@@ -215,6 +286,8 @@ export default function StudyMaterialDetail() {
       </main>
     );
   }
+
+  const showPlanSection = planLoading || plan != null || planLoadError != null;
 
   return (
     <main className="page page--reading">
@@ -283,13 +356,34 @@ export default function StudyMaterialDetail() {
         )}
       </section>
 
-      {plan && (
-        <section className="section--compact">
-          <GeneratedPlanSection
-            plan={plan}
-            onClear={handleClearPlan}
-            clearDisabled={generating || saving || deleting}
-          />
+      {showPlanSection && (
+        <section className="section--compact" aria-labelledby="saved-plan-heading">
+          <h2 id="saved-plan-heading" className="visually-hidden">
+            Saved generated plan
+          </h2>
+          {planLoading && (
+            <p className="plan-panel__status">Loading saved plan…</p>
+          )}
+          {planLoadError && !planLoading && (
+            <>
+              <ErrorMessage message={planLoadError} />
+              <Button variant="secondary" onClick={loadSavedPlan} disabled={planLoading}>
+                Try again
+              </Button>
+            </>
+          )}
+          {plan && !planLoading && (
+            <GeneratedPlanSection
+              plan={plan}
+              savedAt={savedAt}
+              onClear={handleClearPlan}
+              clearDisabled={generating || saving || deleting || clearing}
+              clearing={clearing}
+            />
+          )}
+          {clearError && plan && !planLoading && (
+            <ErrorMessage message={clearError} />
+          )}
         </section>
       )}
 

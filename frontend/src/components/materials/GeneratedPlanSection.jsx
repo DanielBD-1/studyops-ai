@@ -4,11 +4,19 @@ import FormCard from '../ui/FormCard.jsx';
 /**
  * @param {{
  *   plan: import('../../services/study-materials.service.js').StudyPlan,
+ *   savedAt?: string | null,
  *   onClear: () => void,
  *   clearDisabled?: boolean,
+ *   clearing?: boolean,
  * }} props
  */
-export default function GeneratedPlanSection({ plan, onClear, clearDisabled = false }) {
+export default function GeneratedPlanSection({
+  plan,
+  savedAt = null,
+  onClear,
+  clearDisabled = false,
+  clearing = false,
+}) {
   if (!plan || typeof plan.summary !== 'string') {
     return (
       <FormCard title="Generated study plan" ai>
@@ -24,7 +32,15 @@ export default function GeneratedPlanSection({ plan, onClear, clearDisabled = fa
   return (
     <div className="plan-fade-in">
       <FormCard title="Generated study plan" ai>
-        <p className="plan-disclaimer">AI-generated — not saved. Reference only; verify before you study.</p>
+        <p className="plan-disclaimer">
+          AI-generated — saved as the latest plan for this material. Reference only; verify
+          before you study.
+        </p>
+        {savedAt ? (
+          <p className="plan-saved-at">
+            Last saved: {new Date(savedAt).toLocaleString()}
+          </p>
+        ) : null}
 
         <section className="plan-block">
           <h3 className="plan-block__title">Summary</h3>
@@ -101,7 +117,7 @@ export default function GeneratedPlanSection({ plan, onClear, clearDisabled = fa
         )}
 
         <Button variant="secondary" onClick={onClear} disabled={clearDisabled}>
-          Clear plan
+          {clearing ? 'Clearing…' : 'Clear plan'}
         </Button>
       </FormCard>
     </div>

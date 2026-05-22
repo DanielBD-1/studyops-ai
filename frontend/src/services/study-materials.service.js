@@ -134,10 +134,34 @@ export async function deleteMaterial(materialId) {
 /**
  * @param {string} materialId
  */
+export async function getGeneratedPlan(materialId) {
+  const data = await request(`/api/study-materials/${materialId}/generated-plan`, {
+    method: 'GET',
+  });
+  return /** @type {{ materialId: string, courseId: string, plan: StudyPlan, savedAt: string }} */ (
+    data
+  );
+}
+
+/**
+ * @param {string} materialId
+ */
+export async function deleteGeneratedPlan(materialId) {
+  const data = await request(`/api/study-materials/${materialId}/generated-plan`, {
+    method: 'DELETE',
+  });
+  return /** @type {{ deleted: boolean }} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ */
 export async function generateMaterial(materialId) {
   const data = await request(`/api/study-materials/${materialId}/generate`, {
     method: 'POST',
     body: JSON.stringify({}),
   });
-  return /** @type {{ materialId: string, courseId: string, plan: StudyPlan }} */ (data);
+  return /** @type {{ materialId: string, courseId: string, plan: StudyPlan, savedAt: string }} */ (
+    data
+  );
 }
