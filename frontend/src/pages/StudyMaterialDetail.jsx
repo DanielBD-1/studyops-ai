@@ -8,10 +8,12 @@ import Input from '../components/ui/Input.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import Textarea from '../components/ui/Textarea.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
+import GeneratedPlanSection from '../components/materials/GeneratedPlanSection.jsx';
 import {
   getMaterial,
   updateMaterial,
   deleteMaterial,
+  generateMaterial,
 } from '../services/study-materials.service.js';
 import { updateStudyMaterialFormSchema } from '../utils/validation.js';
 
@@ -33,6 +35,20 @@ export default function StudyMaterialDetail() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(/** @type {string | null} */ (null));
+  const [plan, setPlan] = useState(
+    /** @type {import('../services/study-materials.service.js').StudyPlan | null} */ (null)
+  );
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState(/** @type {string | null} */ (null));
+
+  const hasUnsavedChanges =
+    material !== null &&
+    (title !== material.title ||
+      content !== material.content ||
+      sourceType !== (material.sourceType === 'paste' ? 'paste' : 'manual'));
+
+  const generateDisabled =
+    loading || generating || saving || deleting || hasUnsavedChanges;
 
   const handleAuthError = useCallback(
     async (err) => {
@@ -56,6 +72,8 @@ export default function StudyMaterialDetail() {
     setLoading(true);
     setError(null);
     setNotFound(false);
+    setPlan(null);
+    setGenerateError(null);
 
     try {
       const data = await getMaterial(materialId);
@@ -113,6 +131,33 @@ export default function StudyMaterialDetail() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleGenerate() {
+    if (!materialId || generateDisabled) return;
+
+    setGenerateError(null);
+    setGenerating(true);
+    try {
+      const data = await generateMaterial(materialId);
+      setPlan(data.plan);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+        setNotFound(true);
+        return;
+      }
+      setGenerateError(
+        err instanceof Error ? err.message : 'Failed to generate study plan'
+      );
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function handleClearPlan() {
+    setPlan(null);
+    setGenerateError(null);
   }
 
   async function handleDelete() {
@@ -217,16 +262,48 @@ export default function StudyMaterialDetail() {
             required
           />
           {saveError && <ErrorMessage message={saveError} />}
-          <Button type="submit" variant="primary" disabled={saving || deleting}>
+          <Button type="submit" variant="primary" disabled={saving || deleting || generating}>
             {saving ? 'Saving…' : 'Save changes'}
           </Button>
         </form>
       </FormCard>
 
       <section style={{ marginTop: '1.5rem' }}>
+        <h2 style={{ fontSize: '1rem', margin: '0 0 0.75rem' }}>Generate study plan</h2>
+        {hasUnsavedChanges && (
+          <p style={{ color: '#555', margin: '0 0 0.75rem' }}>
+            Save changes before generating — generation uses your last saved material.
+          </p>
+        )}
+        {generateError && <ErrorMessage message={generateError} />}
+        <Button
+          variant="primary"
+          disabled={generateDisabled}
+          onClick={handleGenerate}
+        >
+          {generating ? 'Processing with AI…' : 'Generate study plan'}
+        </Button>
+        {generating && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <LoadingState message="Processing with AI…" />
+          </div>
+        )}
+      </section>
+
+      {plan && (
+        <section style={{ marginTop: '1.5rem' }}>
+          <GeneratedPlanSection
+            plan={plan}
+            onClear={handleClearPlan}
+            clearDisabled={generating || saving || deleting}
+          />
+        </section>
+      )}
+
+      <section style={{ marginTop: '1.5rem' }}>
         <h2 style={{ fontSize: '1rem', margin: '0 0 0.5rem' }}>Danger zone</h2>
         {deleteError && <ErrorMessage message={deleteError} />}
-        <Button variant="danger" disabled={saving || deleting} onClick={handleDelete}>
+        <Button variant="danger" disabled={saving || deleting || generating} onClick={handleDelete}>
           {deleting ? 'Deleting…' : 'Delete study material'}
         </Button>
       </section>

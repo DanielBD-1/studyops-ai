@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; `POST /api/study-materials/:materialId/generate`, backend tests 99/99 mocked). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) and frontend Generate UI each require **separate human approval** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (Phase 2E uses material-scoped generate instead). Tasks, flashcards tables, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, or re-apply 003.
+**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (Phases 2E–2F use material-scoped generate instead). Task/flashcard management UI, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, or re-apply 003.
 
 **Known constraints:**
 
@@ -506,3 +506,39 @@
 - Trello / tasks / flashcards / dashboard / admin remain separate future phases
 - Keep document-service private/internal; avoid logging request bodies/URLs in infra logs
 - Optional: PRD course-level paste/generate route when explicitly approved
+
+### 2026-05-22 — Phase 2F Frontend Generate UI complete
+
+**Workflow:** `approved — implement Phase 2F Frontend Generate UI`; `approved — Phase 2F complete`  
+**Human gates:** Phase 2F planning + implementation + Supervisor Review + Security Review — satisfied (no blocking issues)  
+**Summary:** Smallest safe frontend slice to call Phase 2E generate from study material detail: **Generate study plan** button, ephemeral in-page plan display, no persistence. Frontend calls backend only via existing `apiFetch` + Bearer session.  
+**UI (route unchanged):** `/study-materials/:materialId` — `StudyMaterialDetail` + `GeneratedPlanSection`  
+**Frontend API consumed:**
+- `POST /api/study-materials/:materialId/generate` via `generateMaterial(materialId)` in `study-materials.service.js`  
+**Request contract:**
+- `materialId` from route params only
+- Body exactly `{}` — does **not** send `studyText`, `content`, `courseId`, `course_id`, `userId`, `user_id`, or ownership fields  
+**Generated plan (ephemeral):**
+- Stored in React state only — no DB, `localStorage`, or `sessionStorage`
+- Read-only display: summary, key topics, difficulty, tasks, flashcards
+- Plain React text only — **no** `dangerouslySetInnerHTML`
+- **Clear plan** clears local state only (no API)
+- Refresh/navigation/`loadMaterial` clears plan  
+**UX / safety:**
+- Generate disabled while loading, generating, saving, deleting, or form has unsaved changes
+- Unsaved changes message: *“Save changes before generating — generation uses your last saved material.”*
+- Loading copy: *“Processing with AI…”*
+- **401:** existing logout + redirect (`AUTH_REQUIRED`)
+- **404:** neutral “Study material not found” (unchanged)  
+**Artifacts:** `frontend/src/services/study-materials.service.js` (`generateMaterial`, `StudyPlan` typedef); `frontend/src/pages/StudyMaterialDetail.jsx`; `frontend/src/components/materials/GeneratedPlanSection.jsx`; `frontend/tests/unit/study-materials.service.test.js`  
+**Tests:** Frontend `npm test` — **34/34** passed; `npm run build` succeeded; mocks only (`__setApiFetchForTests`) — no real backend, document-service, or Gemini  
+**Packages:** None added  
+**Scope boundary:** **Frontend only** — no backend, document-service, supabase, `.github`, or root changes. No task/flashcard management UI, Trello, dashboard, admin, styling pass, or deployment.  
+**Security notes:** No `GEMINI_API_KEY`, `DOCUMENT_SERVICE_URL`, or service role in frontend. Do not log material `content`, generated `plan`, tokens, or `Authorization`. Treat `plan` as **untrusted display data** until a persistence phase validates storage rules.  
+**Pitfalls:** Do not persist `plan` without separate approval and Security Review. Do not send `content` in generate body. Do not call document-service or Gemini from frontend.  
+**Tracked follow-ups:**
+- Optional UX hardening: clear generated plan after successful save to avoid stale plan display
+- Persistence of AI output requires separate DB/API phase and Security Review
+- Task/flashcard management UI remains separate future work
+- Trello / dashboard / admin / styling / Stitch remain separate future phases
+- Re-validate AI output before any future DB write

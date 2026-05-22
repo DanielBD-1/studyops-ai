@@ -63,6 +63,24 @@ async function request(path, init = {}) {
 /**
  * @typedef {{ id: string, courseId: string, title: string, sourceType: string, createdAt: string, updatedAt: string }} MaterialSummary
  * @typedef {MaterialSummary & { content: string }} MaterialDetail
+ * @typedef {{
+ *   summary: string,
+ *   keyTopics: string[],
+ *   difficulty: 'easy' | 'medium' | 'hard',
+ *   tasks: Array<{
+ *     title: string,
+ *     description: string,
+ *     priority: string,
+ *     estimatedMinutes: number,
+ *     difficulty: string,
+ *     tags: string[],
+ *   }>,
+ *   flashcards: Array<{
+ *     question: string,
+ *     answer: string,
+ *     tags: string[],
+ *   }>,
+ * }} StudyPlan
  */
 
 /**
@@ -111,4 +129,15 @@ export async function updateMaterial(materialId, body) {
 export async function deleteMaterial(materialId) {
   const data = await request(`/api/study-materials/${materialId}`, { method: 'DELETE' });
   return /** @type {{ deleted: boolean }} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ */
+export async function generateMaterial(materialId) {
+  const data = await request(`/api/study-materials/${materialId}/generate`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return /** @type {{ materialId: string, courseId: string, plan: StudyPlan }} */ (data);
 }
