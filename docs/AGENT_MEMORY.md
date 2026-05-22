@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening — design-prep docs only). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is Phase 1G UI guidance only — **not updated in 2I-a**; Stitch mockups + `DESIGN.md` v2 + frontend styling pass **not started**.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Phase 2H Docs / Agent Workflow **complete** (Supervisor + Security approved; `docs/IMPLEMENTATION_STATUS.md` hub, governance docs aligned). Phase 2I-a Stitch / DESIGN brief prep **complete** (Supervisor + Security approved; `docs/STITCH_BRIEF.md`, screenshot index, security hardening). Phase 2I-b design screenshots **complete** (Supervisor + Security approved; **13 PNGs** under `docs/design/screenshots/`, index/brief aligned — fake data, Stitch reference only). **Read first for built state:** `docs/IMPLEMENTATION_STATUS.md`. Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is Phase 1G UI guidance only — **not updated in 2I**; Stitch session + `DESIGN.md` v2 + frontend styling pass **not started**.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** and **Security Review** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (implemented generate: material-scoped, body `{}`). Task/flashcard management UI, Trello, dashboard, admin, deployment require separate approval. **Design pipeline (2I):** Human screenshots → Stitch review → `DESIGN.md` v2 (separate approval) → frontend styling pass (`approved — apply DESIGN styling pass`, separate branch/approval). Full Phase 2I **not complete** until screenshots/Stitch/`DESIGN.md` v2 are done or explicitly waived. **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
+**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** and **Security Review** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (implemented generate: material-scoped, body `{}`). Task/flashcard management UI, Trello, dashboard, admin, deployment require separate approval. **Design pipeline (2I):** Screenshots **captured (2I-b)** → human Stitch review (next) → `DESIGN.md` v2 (separate approval) → frontend styling pass (`approved — apply DESIGN styling pass`, separate branch/approval). Full Phase 2I **not complete** until Stitch review + `DESIGN.md` v2 decision are done or explicitly waived. Pending PNGs: `11-generated-plan-visible.png`, `15-processing-with-ai.png` — **do not fabricate**. **Lint is required** for code PRs (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). **Agent workflow:** planning (`approved — begin Phase X planning only`) → implement → lint/tests → Supervisor + Security when required → `approved — Phase X complete` → `AGENT_MEMORY`. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, 2H Docs / Agent Workflow, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
 
 **Known constraints:**
 
@@ -653,3 +653,37 @@
 - Frontend styling pass — separate branch and `approved — apply DESIGN styling pass` (or equivalent)
 - **Full Phase 2I not complete** until screenshots + Stitch review + `DESIGN.md` v2 decision are handled or explicitly waived by human
 - Persistence, tasks/flashcard management UI, Trello, dashboard/admin, deployment — still separate future phases
+
+### 2026-05-22 — Phase 2I-b design screenshots complete
+
+**Workflow:** `approved — implement Phase 2I Stitch / DESIGN brief` (2I-a); `approved — apply Phase 2I-b screenshot index alignment only`; `approved — apply Phase 2I-b Stitch brief filename nit only`; `approved — Phase 2I-b design screenshots complete`  
+**Human gates:** Supervisor Review + Security Review (screenshots + index alignment + filename nit) + human screenshot safety check — satisfied (no blocking issues)  
+**Summary:** **Screenshot-only** design reference assets for Stitch. **13 PNGs** added under `docs/design/screenshots/` using fake/demo data only. Aligned `docs/design/SCREENSHOT_INDEX.md` and `docs/STITCH_BRIEF.md` to captured and pending filenames. No application code, styling, packages, CI, env, or `DESIGN.md` changes.  
+**Captured screenshots (13):**
+- `01-login.png`, `02-register.png`, `03-dashboard.png`
+- `04-courses-empty.png`, `05-create-course-form.png`, `06-courses-list.png`
+- `07-course-detail-materials.png`, `08-create-material-form.png`, `09-study-material-detail.png`
+- `10-generate-study-plan.png`, `12-unsaved-changes-warning.png`, `13-validation-error.png`, `14-not-found.png`  
+**Pending screenshots (do not fabricate):**
+- `11-generated-plan-visible.png` — pending until live Generate output is available
+- `15-processing-with-ai.png` — pending until processing UI can be captured reliably  
+**Docs updated (2I-b alignment):**
+- `docs/design/SCREENSHOT_INDEX.md` — authoritative captured vs pending tables; do-not-fabricate rules
+- `docs/STITCH_BRIEF.md` — §5 filenames aligned; pointer to index; optional mobile `06-courses-list-mobile.png` (not `15-` prefix)  
+**Security notes:**
+- Human reviewed crops for PII/auth artifacts before commit intent
+- Stitch: use only `STITCH_BRIEF.md`, captured screenshots, short `IMPLEMENTATION_STATUS` excerpt — **not** full repo, backend/document-service source, `.env`, or service-role documentation
+- Stitch remains **advisory** only; `DESIGN.md` v2 and frontend styling pass require **separate** approvals/branches  
+**Scope boundary (unchanged):**
+- No `frontend/`, `backend/`, `document-service/`, `supabase/`, `.github/`, `package.json`, `package-lock.json`, CI, `.env` changes
+- No Stitch output as app code; no styling pass started; `DESIGN.md` unchanged  
+**APIs affected:** none  
+**Tests:** none — screenshots + docs only  
+**Pitfalls:** Do not fabricate `11-` or `15-processing-with-ai` PNGs. Do not attach pending files to Stitch. Do not treat screenshots as product scope or persistence/Trello/admin features.  
+**Tracked follow-ups:**
+- Human: run/review Stitch with captured PNGs + `docs/STITCH_BRIEF.md` §17 (note pending 11/15 in session)
+- Human: choose design direction before `DESIGN.md` v2
+- `DESIGN.md` v2 — separate approval
+- Frontend styling pass — separate branch and `approved — apply DESIGN styling pass`
+- Capture `11-generated-plan-visible.png` and `15-processing-with-ai.png` when Generate works locally (optional before or after Stitch)
+- **Full Phase 2I not complete** until Stitch review + `DESIGN.md` v2 decision (or explicit human waiver)

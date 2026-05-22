@@ -77,24 +77,27 @@ From `docs/IMPLEMENTATION_STATUS.md`:
 
 Humans capture screenshots per `docs/design/SCREENSHOT_INDEX.md`. Stitch should reference these filenames when proposing visual treatments.
 
+**Authoritative filenames (captured vs pending):** `docs/design/SCREENSHOT_INDEX.md` — use only PNGs present under `docs/design/screenshots/`; do not fabricate pending captures.
+
 | # | Filename | Screen |
 |---|----------|--------|
 | 1 | `01-login.png` | Login |
 | 2 | `02-register.png` | Register |
 | 3 | `03-dashboard.png` | Dashboard stub |
-| 4 | `04-courses-list.png` | Courses with ≥2 items |
-| 5 | `05-courses-empty.png` | Courses empty state |
-| 6 | `06-course-detail.png` | Course detail + materials |
-| 7 | `07-create-material.png` | Create material form visible |
-| 8 | `08-material-edit.png` | Study material edit state |
-| 9 | `09-generate-action.png` | Generate study plan CTA visible |
-| 10 | `10-generated-plan.png` | Generated plan section visible |
-| 11 | `11-unsaved-warning.png` | Unsaved changes before generate |
-| 12 | `12-processing-ai.png` | Processing / generating with AI |
+| 4 | `04-courses-empty.png` | Courses empty state |
+| 5 | `05-create-course-form.png` | Create course form |
+| 6 | `06-courses-list.png` | Courses with ≥2 items |
+| 7 | `07-course-detail-materials.png` | Course detail + materials |
+| 8 | `08-create-material-form.png` | Create material form visible |
+| 9 | `09-study-material-detail.png` | Study material edit state |
+| 10 | `10-generate-study-plan.png` | Generate study plan CTA visible |
+| 11 | `11-generated-plan-visible.png` | Generated plan visible (**pending** — see index) |
+| 12 | `12-unsaved-changes-warning.png` | Unsaved changes before generate |
 | 13 | `13-validation-error.png` | Inline validation error |
 | 14 | `14-not-found.png` | Neutral not-found copy |
+| — | `15-processing-with-ai.png` | Processing with AI (**pending** — see index) |
 
-**Optional (not required for Stitch MVP):** `15-mobile-courses.png` — courses list at ~390px width.
+**Optional (not required for Stitch MVP):** `06-courses-list-mobile.png` — courses list at ~390px width (do not confuse with pending `15-processing-with-ai.png`; see `SCREENSHOT_INDEX.md`).
 
 ---
 
@@ -341,3 +344,5 @@ Use fake placeholder data only. No secrets or real user content.
 |------|--------|
 | 2026-05-20 | Initial STITCH_BRIEF for Phase 2I design discovery |
 | 2026-05-20 | Security hardening: Stitch upload limits, screenshot crop checklist |
+| 2026-05-22 | Screenshot filename alignment pointer; §5 table matches `SCREENSHOT_INDEX.md` |
+| 2026-05-22 | Optional mobile filename: `06-courses-list-mobile.png` (avoids `15-` clash with pending processing) |

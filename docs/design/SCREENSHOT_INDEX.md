@@ -1,8 +1,11 @@
 # Screenshot index — StudyOps AI (Phase 2I)
 
-**Purpose:** Checklist for humans capturing the **current functional UI** before Stitch sessions.  
+**Purpose:** Checklist and **authoritative filename list** for screenshots under `docs/design/screenshots/`. Used for human capture and Stitch design reference only — **not** app implementation.
+
 **Folder:** `docs/design/screenshots/`  
 **Rules:** Fake data only · no real student content · no secrets · no `.env` values
+
+**Phase 2I note:** Screenshots are design reference only. **Full Phase 2I is not complete** until Stitch review and a `DESIGN.md` v2 decision are handled or explicitly waived by a human.
 
 ---
 
@@ -12,7 +15,7 @@
 2. Use a **test account** with obviously fake email (e.g. `demo.student@example.test`).
 3. Create **fake courses and materials** using placeholder titles and lorem-style content (≥100 characters for material body).
 4. Desktop baseline: **1440×900** (or full browser width with consistent zoom).
-5. Save PNG (or WebP) using the filenames below.
+5. Save PNG (or WebP) using the filenames in the tables below.
 6. Do not include OS notifications, API keys, or real PII in crops.
 7. Capture **application UI only**. Crop so screenshots do not include:
    - Browser DevTools
@@ -29,28 +32,46 @@
 9. Use a **dummy password only** (e.g. `TestPassword123!`) — never real credentials or a production/personal account.
 10. Before `git add` of PNGs, re-check crops for PII, tokens, and secrets.
 
-**Optional:** Repeat key screens at **390×844** (mobile) with suffix `-mobile` (e.g. `04-courses-list-mobile.png`).
+**Optional:** Repeat key screens at **390×844** (mobile) with suffix `-mobile` (e.g. `06-courses-list-mobile.png`).
+
+**Do not fabricate:** Do not create fake PNGs for generated-plan or processing states if live Generate output is unavailable.
 
 ---
 
-## Required screenshots
+## Captured screenshots (Phase 2I-b — in repo)
+
+These files are committed under `docs/design/screenshots/`:
 
 | # | Filename | Route / state | What must be visible |
 |---|----------|---------------|----------------------|
 | 1 | `01-login.png` | `/` | Email + password form, link to Register, StudyOps branding/title if present |
 | 2 | `02-register.png` | `/register` | Register form, link to Login |
 | 3 | `03-dashboard.png` | `/dashboard` | Stub only: signed-in identity (fake email), link/CTA to Courses, logout — **no charts or stats** |
-| 4 | `04-courses-list.png` | `/courses` | ≥2 fake courses in list, create affordance visible |
-| 5 | `05-courses-empty.png` | `/courses` | Empty state copy + primary CTA to create first course |
-| 6 | `06-course-detail.png` | `/courses/:id` | Course title, materials list (≥1 material), navigation back to courses |
-| 7 | `07-create-material.png` | `/courses/:id` | Create material form open: title, content, source type fields |
-| 8 | `08-material-edit.png` | `/study-materials/:materialId` | Edit form with fake title and long placeholder content |
-| 9 | `09-generate-action.png` | `/study-materials/:materialId` | **Generate study plan** button/section visible (plan may be hidden) |
-| 10 | `10-generated-plan.png` | `/study-materials/:materialId` | Generated plan section visible: summary, topics, tasks/flashcards as read-only |
-| 11 | `11-unsaved-warning.png` | `/study-materials/:materialId` | Unsaved changes warning when generate attempted with dirty form |
-| 12 | `12-processing-ai.png` | `/study-materials/:materialId` | Loading / “Processing with AI…” during generate |
+| 4 | `04-courses-empty.png` | `/courses` | Empty state copy + primary CTA to create first course |
+| 5 | `05-create-course-form.png` | `/courses` | Create course form visible (title field, submit) |
+| 6 | `06-courses-list.png` | `/courses` | ≥2 fake courses in list, create affordance visible |
+| 7 | `07-course-detail-materials.png` | `/courses/:id` | Course title, materials list (≥1 material), navigation back to courses |
+| 8 | `08-create-material-form.png` | `/courses/:id` | Create material form open: title, content, source type fields |
+| 9 | `09-study-material-detail.png` | `/study-materials/:materialId` | Edit form with fake title and long placeholder content |
+| 10 | `10-generate-study-plan.png` | `/study-materials/:materialId` | **Generate study plan** button/section visible (plan not required in this capture) |
+| 12 | `12-unsaved-changes-warning.png` | `/study-materials/:materialId` | Unsaved changes message when generate is blocked with dirty form |
 | 13 | `13-validation-error.png` | Any form screen | Inline validation (e.g. title too short or content &lt;100 chars) |
 | 14 | `14-not-found.png` | Course or material | Neutral not-found message (invalid id or deleted resource) |
+
+**Captured count:** 13 PNGs
+
+---
+
+## Pending screenshots (do not fabricate)
+
+Capture only when live Generate (and processing UI) are available locally. **Do not** create placeholder or edited PNGs.
+
+| Filename | Route / state | What must be visible | Reason pending |
+|----------|---------------|----------------------|----------------|
+| `11-generated-plan-visible.png` | `/study-materials/:materialId` | Generated plan section visible: summary, topics, difficulty, tasks/flashcards as **read-only** | Live Generate output not available yet |
+| `15-processing-with-ai.png` | `/study-materials/:materialId` | Loading / “Processing with AI…” during generate | Live Generate processing state not captured yet |
+
+**Note:** `12-unsaved-changes-warning.png` is **captured** (unsaved-before-generate). Do not reuse the `12-` prefix for the processing screenshot — use `15-processing-with-ai.png` when added.
 
 ---
 
@@ -72,9 +93,10 @@ Use variations; do not use real school assignments or personal essays.
 
 When running Stitch:
 
-1. Attach all available PNGs from `docs/design/screenshots/`.
+1. Attach **captured** PNGs from `docs/design/screenshots/` (see table above). Do not attach fabricated pending files.
 2. Paste the prompt block from `docs/STITCH_BRIEF.md` §17.
-3. Cross-check outputs against `docs/STITCH_BRIEF.md` §6 (out of scope) and §14 (review checklist).
+3. State in the session that `11-generated-plan-visible.png` and `15-processing-with-ai.png` are **pending** — do not invent saved-plan UI or fake plan content.
+4. Cross-check outputs against `docs/STITCH_BRIEF.md` §6 (out of scope) and §14 (review checklist).
 
 ---
 
@@ -82,9 +104,12 @@ When running Stitch:
 
 | Item | Status |
 |------|--------|
-| Screenshot files in repo | **Pending** — human capture after local run |
-| `STITCH_BRIEF.md` | **Ready** — Phase 2I |
-| `DESIGN.md` v2 | **Pending** — after Stitch review |
+| Captured screenshots (13) | **In repo** — Phase 2I-b |
+| `11-generated-plan-visible.png` | **Pending** — do not fabricate |
+| `15-processing-with-ai.png` | **Pending** — do not fabricate |
+| `STITCH_BRIEF.md` | **Ready** — Phase 2I-a |
+| `DESIGN.md` v2 | **Pending** — after Stitch review + human direction |
+| Full Phase 2I | **Not complete** — Stitch review + `DESIGN.md` v2 decision still required (or explicit human waiver) |
 
 ---
 
@@ -94,3 +119,4 @@ When running Stitch:
 |------|--------|
 | 2026-05-20 | Initial screenshot index for Phase 2I |
 | 2026-05-20 | Security hardening: capture crop rules, dummy password, pre-commit PNG check |
+| 2026-05-22 | Phase 2I-b alignment: filenames match captured PNGs; pending generate/processing documented |
