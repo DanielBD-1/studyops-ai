@@ -29,9 +29,9 @@ This document defines how the **implemented** StudyOps AI frontend should look a
 - Auth (`/`, `/register`)
 - Dashboard stub (`/dashboard`)
 - Courses (`/courses`, `/courses/:id`)
-- Study materials (`/study-materials/:materialId`) including **Generate study plan** (ephemeral)
+- Study materials (`/study-materials/:materialId`) including **Generate study plan** and **load/clear latest saved plan**
 
-**Out of this document’s authority:** New routes, persistence, task/flashcard management, Trello, admin analytics, deployment, backend changes.
+**Out of this document’s authority:** New routes, task/flashcard **management**, Trello, admin analytics, deployment, backend changes, saved-plan **library** or plan **history** UI.
 
 **Goal:** A **NotebookLM-inspired academic study workspace**—clean, Google-like productivity, source-first, modern AI study cockpit—without clinical aesthetics or scope creep.
 
@@ -263,8 +263,9 @@ Map to existing React components under `frontend/src/components/`. Styling pass 
 
 - Read-only sections: Summary, Key topics, Difficulty, Tasks (ordered list), Flashcards.
 - Plain text for all model strings—**no** `dangerouslySetInnerHTML`.
-- **Clear plan** → secondary button; session state only.
-- Optional subtle label: *“AI-generated reference — not saved to your account.”* (concept copy for styling pass).
+- **Clear plan** → secondary button; calls backend **DELETE** (then clears display).
+- Disclaimer (implemented): *“AI-generated — saved as the latest plan for this material. Reference only; verify before you study.”*
+- Optional **Last saved:** plain-text line from `savedAt` (e.g. `toLocaleString()`).
 - Tasks/flashcards are **display-only**—no checkboxes, edit, or “save task” (would imply task management).
 
 ---
@@ -396,17 +397,17 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 
 **Do not fabricate PNGs.** When live Generate works, capture `11-generated-plan-visible.png` and `15-processing-with-ai.png` per `SCREENSHOT_INDEX.md`.
 
-### 8.1 Generated plan visible (**concept-only**)
+### 8.1 Generated plan visible (**screenshot pending — feature implemented**)
 
-**Pending file:** `11-generated-plan-visible.png`
+**Pending file:** `11-generated-plan-visible.png` (do not fabricate; Phase 2K-a blocked by Gemini 429 for live capture)
 
-- Render `GeneratedPlanSection` below generate block when `plan` exists in **React state only**.
+- Render `GeneratedPlanSection` below generate block when a **saved** plan exists (loaded on visit or after Generate).
 - Card on `--color-primary-subtle` or white with subtle border.
-- Sections: summary, key topics, difficulty, tasks, flashcards—all **read-only**.
-- **Clear plan** clears local state only (no API).
-- **No** “Save plan”, library, sync, or persistence badges.
-- Copy hint: AI output is **untrusted reference** until a future persistence phase.
-- Navigating away / refresh / reload material clears plan (existing behavior).
+- Sections: summary, key topics, difficulty, tasks, flashcards—all **read-only** plain text.
+- **Clear plan** → backend DELETE; idempotent if already cleared.
+- **No** “Save plan”, multi-plan library, sync, or history UI.
+- Copy: saved as **latest** plan for this material; AI output is **untrusted reference**.
+- **Refresh** reloads saved plan from backend when one exists.
 
 ### 8.2 Processing with AI (**concept-only**)
 
@@ -426,7 +427,7 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 | **Request** | `POST /api/study-materials/:materialId/generate` with body **`{}` strict** |
 | **No client studyText** | UI must **not** send `studyText`, `content`, or paste-upload on generate |
 | **Saved content** | Backend reads **saved** DB `content` after ownership check |
-| **Ephemeral plan** | React state only—no `localStorage` / `sessionStorage` / DB |
+| **Persisted latest plan** | Backend `material_generated_plans` (one row per material); UI via GET on load; React state for display only—no `localStorage` / `sessionStorage`; no plan history library |
 | **Untrusted display** | Treat all plan fields as model output; plain text rendering |
 | **Read-only** | No inline edit of tasks/flashcards that implies DB writes |
 | **No saved library** | No list of past plans, no “synced” indicators |
@@ -492,13 +493,14 @@ Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect
 
 Do **not** design or implement UI for:
 
-- Task management (`study_tasks`) beyond read-only lines inside ephemeral plan
-- Flashcard **management** beyond read-only list inside ephemeral plan
+- Task management (`study_tasks`) beyond read-only lines inside the generated plan display
+- Flashcard **management** beyond read-only list inside the generated plan display
 - Trello connect/sync
 - Admin dashboard, cross-user views, audit logs
 - Real dashboard analytics, charts, KPIs, streaks
 - Saved generated plan library or “plan history”
-- Persistence UI (save plan, save tasks to DB)
+- Client “save plan” UI or POST of plan JSON
+- Normalized **task/flashcard table** management UI
 - Course-level paste-generate page with client `studyText`
 - Source **upload** UI, file picker, or drive connectors
 - Audio overview, citations panel, notebook sharing

@@ -38,12 +38,17 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 | `VITE_SUPABASE_ANON_KEY` | **frontend only** (public anon key by design) |
 
 - **`POST /process`** on document-service is **internal-only** (backend orchestration). Browsers must not call it directly.
-- **Generate (implemented):** `POST /api/study-materials/:materialId/generate` with strict empty body `{}`. Backend loads saved material `content` only after ownership checks. Frontend must not send `studyText`, `content`, `courseId`, or `userId` in the generate body.
+- **Generate (implemented):** `POST /api/study-materials/:materialId/generate` with strict empty body `{}`. Backend loads saved material `content` only after ownership checks. Frontend must not send `studyText`, `content`, `courseId`, `userId`, or `plan` in the generate body.
+- **Saved plan (implemented):** `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` — frontend loads/clears via backend only; **no** direct Supabase client writes to `material_generated_plans`.
 
-## AI output (current)
+## AI output — generated study plans (persisted)
 
-- Generated `plan` is shown in the UI as **ephemeral** React state only — **not** persisted to the database.
-- Treat model output as **untrusted** until validated. **Persisting** summary/tasks/flashcards to the database requires a separate approved phase and **Security Review** before any write path is merged.
+- **One latest validated plan per study material** in `public.material_generated_plans` — **no** plan history table, **no** saved-plan library, **no** raw Gemini response storage, **no** persistence of failed generate attempts.
+- **Backend-only persistence:** service role UPSERT after **Zod** validation of document-service output; ownership via material → course → user before any plan table access (service role bypasses RLS — app must filter).
+- **Frontend:** Load/clear through backend GET/DELETE only; display in React state for rendering — **not** `localStorage` / `sessionStorage`; **never** POST client `plan` JSON to save.
+- Treat model output as **untrusted** in the UI — plain **React text** only; **no** `dangerouslySetInnerHTML`.
+- Tasks and flashcards **inside** the plan JSON are **read-only display** — not task/flashcard **management** or Trello sync.
+- Missing saved plan → empty UI (backend `404` “Generated plan not found”). Wrong-owner or missing material → neutral `404` “Study material not found”.
 
 ## Logging
 
@@ -69,7 +74,7 @@ Request **Security Review** (see `AGENTS.md` and PR template) before merge when 
 - **CI / GitHub Actions** — secrets, permissions, `pull_request_target`, deploy steps
 - **Admin routes** or role checks
 - **Trello / Gemini** — credentials, logging, external API boundaries, `POST /process`, generate orchestration
-- **AI output persistence** (future) — any phase that writes Gemini output to the database
+- **AI generated-plan persistence or read/render paths** — any change to how plans are written, loaded, cleared, or displayed (Phases 2L-a/b/c established the baseline)
 - **Governance / security docs** — when changing CI permissions, env documentation, or trust boundaries
 - **Frontend security** — token storage, XSS (`dangerouslySetInnerHTML`), exposing ownership fields
 

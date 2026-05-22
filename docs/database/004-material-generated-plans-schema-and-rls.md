@@ -1,9 +1,9 @@
 # 004 — Material Generated Plans Schema and RLS (Phase 2L-a)
 
-**Status:** Draft — **not applied** to any Supabase project yet.  
+**Status:** **Applied manually** on Supabase (Phase 2L-a complete; Security Review approved).  
 **Migration file:** `supabase/migrations/004_material_generated_plans.sql`  
 **Prerequisite:** `001_profiles.sql`, `002_courses.sql`, and `003_study_materials.sql` applied and verified  
-**PRD reference:** Section 8 (Gemini output shape), Section 9 (future persistence of generated output — deferred until backend validation in Phase 2L-b)
+**PRD reference:** Section 8 (Gemini output shape), Section 9 (persistence model — latest plan per material implemented in Phases 2L-b/c)
 
 ---
 
@@ -13,7 +13,7 @@ Phase 2L-a adds `public.material_generated_plans` to store **one latest validate
 
 **In this phase:** SQL migration + this document only.
 
-**Not in this phase:** backend write/read API, frontend save/load UI, document-service changes, `study_tasks` / `flashcards` tables, plan history, failed-attempt logging, raw Gemini response storage.
+**Not in this phase (2L-a only):** backend write/read API, frontend save/load UI, document-service changes, `study_tasks` / `flashcards` tables, plan history, failed-attempt logging, raw Gemini response storage. (API/UI implemented in **2L-b/c** — see `docs/IMPLEMENTATION_STATUS.md`.)
 
 ---
 

@@ -5,7 +5,7 @@
 **Folder:** `docs/design/screenshots/`  
 **Rules:** Fake data only · no real student content · no secrets · no `.env` values
 
-**Phase 2I note:** Screenshots are design reference only. **Full Phase 2I is not complete** until Stitch review and a `DESIGN.md` v2 decision are handled or explicitly waived by a human.
+**Phase 2I note:** Screenshots are design reference only. **`DESIGN.md` v2** (Phase 2I-c) and the **Phase 2J styling pass** are **complete**; only `11-generated-plan-visible.png` and `15-processing-with-ai.png` remain **pending** (do not fabricate).
 
 ---
 
@@ -68,8 +68,8 @@ Capture only when live Generate (and processing UI) are available locally. **Do 
 
 | Filename | Route / state | What must be visible | Reason pending |
 |----------|---------------|----------------------|----------------|
-| `11-generated-plan-visible.png` | `/study-materials/:materialId` | Generated plan section visible: summary, topics, difficulty, tasks/flashcards as **read-only** | Live Generate output not available yet |
-| `15-processing-with-ai.png` | `/study-materials/:materialId` | Loading / “Processing with AI…” during generate | Live Generate processing state not captured yet |
+| `11-generated-plan-visible.png` | `/study-materials/:materialId` | Generated plan section: read-only summary, topics, difficulty, tasks/flashcards; **saved-as-latest** disclaimer; optional **Last saved** plain text | **Pending** — Phase 2K-a blocked by Gemini HTTP 429; do not fabricate |
+| `15-processing-with-ai.png` | `/study-materials/:materialId` | Loading / “Processing with AI…” during generate (processing-only frame) | **Pending** — do not fabricate; processing UI observed in 2K-a |
 
 **Note:** `12-unsaved-changes-warning.png` is **captured** (unsaved-before-generate). Do not reuse the `12-` prefix for the processing screenshot — use `15-processing-with-ai.png` when added.
 
@@ -95,7 +95,7 @@ When running Stitch:
 
 1. Attach **captured** PNGs from `docs/design/screenshots/` (see table above). Do not attach fabricated pending files.
 2. Paste the prompt block from `docs/STITCH_BRIEF.md` §17.
-3. State in the session that `11-generated-plan-visible.png` and `15-processing-with-ai.png` are **pending** — do not invent saved-plan UI or fake plan content.
+3. State in the session that `11-generated-plan-visible.png` and `15-processing-with-ai.png` are **pending** — do not invent a **multi-plan library**, task-management UI, or fake plan content. Latest-plan persistence is **implemented**; screenshot capture is separate.
 4. Cross-check outputs against `docs/STITCH_BRIEF.md` §6 (out of scope) and §14 (review checklist).
 
 ---
@@ -105,11 +105,11 @@ When running Stitch:
 | Item | Status |
 |------|--------|
 | Captured screenshots (13) | **In repo** — Phase 2I-b |
-| `11-generated-plan-visible.png` | **Pending** — do not fabricate |
-| `15-processing-with-ai.png` | **Pending** — do not fabricate |
+| `11-generated-plan-visible.png` | **Pending** — do not fabricate (2K-a: Gemini 429) |
+| `15-processing-with-ai.png` | **Pending** — do not fabricate (capture separate from 2L-d) |
 | `STITCH_BRIEF.md` | **Ready** — Phase 2I-a |
-| `DESIGN.md` v2 | **Pending** — after Stitch review + human direction |
-| Full Phase 2I | **Not complete** — Stitch review + `DESIGN.md` v2 decision still required (or explicit human waiver) |
+| `DESIGN.md` v2 | **Complete** — Phase 2I-c (UI/UX spec); styled in code via Phase 2J |
+| Full Phase 2I | **Partial** — 13 screenshots in repo; `11-` / `15-` still **pending** (do not fabricate) |
 
 ---
 

@@ -5,16 +5,17 @@
 
 ---
 
-## Implementation Status (as of Phase 2H — drift note)
+## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today**. It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase 2L-d). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c)
 
-- Auth, profiles, courses API/UI, study materials API/UI (`study_materials` table applied)
+- Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
+- **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
-- **Backend generate:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; ownership via course chain; returns ephemeral `{ materialId, courseId, plan }` — **no DB persistence**
-- **Frontend:** `/study-materials/:materialId` with **Generate study plan** (ephemeral in-page plan; plain text rendering)
+- **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
+- **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; plain text rendering
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -22,8 +23,9 @@ This section records **what the repository implements today**. It does **not** r
 | PRD (target MVP) | Implemented today |
 |------------------|-------------------|
 | `POST /api/courses/:courseId/generate` with `{ studyText }` | **Deferred** |
-| `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content` |
-| Persist tasks/flashcards after generate | **Deferred** — plan is untrusted display-only until a future phase validates storage (**Security Review** required) |
+| `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content`; persists **latest plan JSON** per material |
+| Persist **latest generated plan** per material | **Yes** (2L-a/b/c) — not a multi-plan library or history |
+| Persist tasks/flashcards to **`study_tasks` / `flashcards` tables** + management UI | **Deferred** — plan may **display** task/flashcard lines read-only only |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Tables `study_tasks`, `flashcards` | **Not created** |
 

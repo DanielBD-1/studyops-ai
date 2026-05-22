@@ -57,7 +57,7 @@ React (frontend)
 | Errors | Use PRD error codes (`AUTH_REQUIRED`, `GEMINI_INVALID_RESPONSE`, etc.) |
 | Logging | Redact prompts, credentials, and PII in api_logs |
 | Trello sync | `POST /api/trello/sync` body: `{ apiKey, token, listId, taskIds }` |
-| Generation (implemented) | `POST /api/study-materials/:materialId/generate` with body `{}`; backend loads saved owned `content`; ephemeral `plan` in UI — no DB persistence |
+| Generation (implemented) | `POST /api/study-materials/:materialId/generate` with body `{}`; backend loads saved owned `content`, validates plan, UPSERTs **latest** row; frontend load/clear via `GET`/`DELETE` `.../generated-plan`; plain-text display |
 | Generation (PRD deferred) | `POST /api/courses/:courseId/generate` with client `studyText` — not implemented |
 
 ---
@@ -81,8 +81,8 @@ Use:
 - Never call Gemini or document-service from frontend code. Frontend uses backend only (e.g. `POST /api/study-materials/:materialId/generate`).
 - Never put `GEMINI_API_KEY` or service role in frontend env.
 - Never persist Trello credentials.
-- Do not persist Gemini `plan` to the database without an approved persistence phase and Security Review.
-- Never skip Zod validation before **future** saving of Gemini output (not persisted today).
+- Do not add client POST of `plan` JSON or direct frontend Supabase writes to `material_generated_plans`.
+- Never skip backend Zod validation before persisting Gemini output; request **Security Review** for changes to plan write/read/render paths.
 
 ---
 

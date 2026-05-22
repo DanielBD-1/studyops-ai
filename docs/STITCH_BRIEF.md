@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-StudyOps AI has a **functional MVP skeleton** (auth, courses, study materials, ephemeral AI study-plan generation). Visual design is intentionally minimal (inline styles). Phase **2I** captures:
+StudyOps AI has a **functional MVP skeleton** (auth, courses, study materials, **persisted latest** AI study-plan per material). Visual design uses plain CSS (Phase 2J). Phase **2I** captures:
 
 - A curated brief for **Google Stitch** (or equivalent design tooling)
 - A **screenshot checklist** for humans to capture the live app (`docs/design/SCREENSHOT_INDEX.md`)
@@ -52,7 +52,7 @@ When Stitch output conflicts with `IMPLEMENTATION_STATUS`, **ignore the mockup f
 
 **User:** Student (single-user workspace; no admin console in scope).
 
-**Today’s workflow:** Register/login → courses → course detail → create/edit material → **Generate study plan** → read-only plan in session (not saved to DB).
+**Today’s workflow:** Register/login → courses → course detail → create/edit material → **Generate study plan** → **latest plan persisted** per material → reload on refresh → **Clear** removes saved plan. Read-only plain-text display.
 
 ---
 
@@ -67,7 +67,7 @@ From `docs/IMPLEMENTATION_STATUS.md`:
 | `/dashboard` | Dashboard stub | Email/role + link to courses — **not** analytics hub |
 | `/courses` | Courses list | List, create, empty state |
 | `/courses/:id` | Course detail | Title edit, materials list, create material |
-| `/study-materials/:materialId` | Study material detail | Edit content, generate, ephemeral plan display |
+| `/study-materials/:materialId` | Study material detail | Edit content, generate, load/clear **latest saved** plan display |
 
 **Catch-all:** Unknown paths redirect to `/` — design a neutral “not found” pattern only if it appears in screenshots; do not add a new route in mockups.
 
@@ -106,11 +106,11 @@ Humans capture screenshots per `docs/design/SCREENSHOT_INDEX.md`. Stitch should 
 Do **not** design or mock:
 
 - Task management UI (`study_tasks`)
-- Flashcard management UI (beyond read-only list inside ephemeral plan)
+- Flashcard management UI (beyond read-only list inside generated plan display)
 - Trello connect/sync UI
 - Admin dashboard, logs, cross-user views
 - Real dashboard analytics, charts, KPI cards, streaks
-- Persisted / saved generated plan library
+- Multi-plan **library** or plan **history** UI (only **one latest** plan per material exists)
 - Course-level paste-generate page (`POST /api/courses/:courseId/generate` with client `studyText`)
 - Deployment, billing, settings beyond logout
 - Sidebar navigation to unbuilt modules (`/tasks`, `/flashcards`, `/trello`, `/focus`, `/admin`)
@@ -215,7 +215,7 @@ Mockups may **suggest** motion; **do not** implement in repo during 2I.
 3. **Course detail:** Edit title, list materials, create material (title 3–150, content 100–50,000, source type)
 4. **Material detail:** Edit fields → save → **Generate study plan**
 5. **Generate:** `POST /api/study-materials/:materialId/generate` with body `{}` — uses **saved** DB content; warn if form dirty
-6. **Plan display:** Read-only in UI — summary, topics, difficulty, tasks, flashcards — **session only**, not persisted
+6. **Plan display:** Read-only in UI — summary, topics, difficulty, tasks, flashcards — loaded from backend when saved; **refresh keeps** latest plan
 
 ---
 
@@ -223,7 +223,7 @@ Mockups may **suggest** motion; **do not** implement in repo during 2I.
 
 | Rule | Design implication |
 |------|-------------------|
-| Plan is **ephemeral** | No “Saved plans”, library, or sync badges |
+| **One latest plan per material** | No multi-plan library, history list, or sync badges |
 | Body is **`{}`** | No paste-upload UI on generate; content comes from saved material |
 | **Untrusted display** | Present plan as AI-generated reference, not authoritative fact |
 | Save before generate | Show warning when edits unsaved |
@@ -258,7 +258,7 @@ Before updating `DESIGN.md` v2:
 - [ ] Every mock screen maps to an implemented route in §4
 - [ ] No tasks/Trello/admin/dashboard/persistence UI slipped in
 - [ ] No fake stats or charts on dashboard stub
-- [ ] Generate flow matches ephemeral, material-scoped rules (§12)
+- [ ] Generate flow matches persisted-latest-plan, material-scoped rules (§12)
 - [ ] Palette avoids medical teal / clinical look
 - [ ] Motion notes are subtle and include reduced-motion note
 - [ ] Screenshots use **fake data only** (no real student content)
@@ -275,7 +275,7 @@ Before updating `DESIGN.md` v2:
 - **Do not** upload the repository, backend/document-service source, `.env` files, or service-role documentation to Stitch
 - Use only this brief, screenshots, and a short `IMPLEMENTATION_STATUS` excerpt
 - Use lorem-style or clearly fake course/material titles
-- Generated AI output in designs is **untrusted display data** — do not imply verification or persistence
+- Generated AI output in designs is **untrusted display data** — may show **saved-as-latest** copy; do not imply multi-plan library, task management, or Trello sync
 
 ---
 

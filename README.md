@@ -4,14 +4,14 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G** and **2A–2G** are implemented — auth, courses, study materials, Gemini document-service, backend generate orchestration, frontend Generate UI, and ESLint in CI. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for what works today vs deferred. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (persistence, tasks UI, Trello, dashboard, deployment, styling pass) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Phases **1A–1G** and **2A–2G** are implemented, including **generated plan persistence** (Phases **2L-a/b/c**) — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, and frontend load/clear UI. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for what works today vs deferred. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (task/flashcard **management**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
 - **Auth** — register, login, protected routes
 - **Courses** — CRUD API + UI
 - **Study materials** — CRUD API + UI (`/study-materials/:materialId`)
-- **AI generate (ephemeral)** — save material → **Generate study plan** on material detail → read-only plan in the browser (not saved to DB)
+- **AI generate (persisted latest plan)** — save material → **Generate study plan** → latest plan stored per material → **reloads on refresh** → **Clear plan** removes saved plan via backend; read-only plain-text display (not task/flashcard management)
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 

@@ -12,7 +12,7 @@ StudyOps AI helps students turn pasted study text into summaries, tasks, flashca
 
 **Read first:** `docs/IMPLEMENTATION_STATUS.md` (what is built today), `docs/AGENT_MEMORY.md` (phase history), `docs/PRD.md` (MVP intent and future scope), relevant `docs/adrs/*.md`, the workflow for your phase, and `DESIGN.md` only for approved frontend UI work.
 
-**Built today (summary):** Auth, courses, study materials, document-service `POST /process`, `POST /api/study-materials/:materialId/generate` (ephemeral plan), frontend Generate UI, ESLint in CI. See `docs/IMPLEMENTATION_STATUS.md` — not course-level paste-generate or DB persistence of AI output yet.
+**Built today (summary):** Auth, courses, study materials, document-service `POST /process`, material-scoped generate with **latest plan persisted** per material (backend Zod + UPSERT; frontend load/clear via GET/DELETE), ESLint in CI. See `docs/IMPLEMENTATION_STATUS.md` — not course-level paste-generate; not normalized `study_tasks` / `flashcards` management.
 
 ---
 
@@ -167,7 +167,7 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 ## Implementation Rules
 
 1. **Modular monolith:** Backend modules under `backend/src/modules/` — no separate deployable services except `document-service`.
-2. **Gemini:** Only `document-service` calls Gemini (`GEMINI_API_KEY` there only); backend uses `DOCUMENT_SERVICE_URL` and `POST /process`; frontend calls `POST /api/study-materials/:materialId/generate` (empty body, ephemeral plan — no DB save yet).
+2. **Gemini:** Only `document-service` calls Gemini (`GEMINI_API_KEY` there only); backend uses `DOCUMENT_SERVICE_URL` and `POST /process`; frontend calls `POST /api/study-materials/:materialId/generate` (empty body `{}`) and load/clear via `GET`/`DELETE` `.../generated-plan` — **one latest plan per material** persisted after backend validation (no client `plan` POST).
 3. **Zod:** Validate env, request bodies, and Gemini output per ADR 003.
 4. **API format:** `{ success, data|error, meta }` per PRD Section 8.5.
 5. **Ownership:** Every query filters by authenticated user; admin is explicit exception for logs/stats.
