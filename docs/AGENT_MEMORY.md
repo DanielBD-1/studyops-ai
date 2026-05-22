@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C (local backend :3001, frontend :5173). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Gemini generation requires separate human approval. Tasks, flashcards, Trello, dashboard, and admin require separate approval. Full DESIGN styling pass requires separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, or re-apply 003.
+**Next implementation:** Backend generate orchestration (`POST /api/courses/:courseId/generate` calling document-service), persistence of Gemini output, and frontend Generate UI each require **separate human approval** — not started. Tasks, flashcards tables, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, or re-apply 003.
 
 **Known constraints:**
 
@@ -453,4 +453,28 @@
 - Align `supabase/migrations/001_profiles.sql` and `docs/database/001-profiles-schema-and-rls.md` with verified `public.profiles` grants (SELECT for `authenticated`/`service_role`, no `anon` access)
 - Continue to keep **service_role** backend-only; frontend uses anon key + session Bearer only
 - Future UI polish / Stitch / `DESIGN.md` styling pass remains later (separate approval)
-- Gemini generation remains a later separate phase
+- Backend generate orchestration calling document-service remains a later separate phase (Phase 2D service layer complete)
+
+### 2026-05-22 — Phase 2D Gemini document-service complete
+
+**Workflow:** `approved — implement Phase 2D Gemini document-service`; `approved — Phase 2D complete`  
+**Human gates:** Phase 2D planning + implementation + Supervisor Review + Security Review — satisfied (no blocking issues)  
+**Summary:** Smallest safe Gemini processing layer in `document-service` only. Internal **`POST /process`** with strict body `{ studyText }` (trimmed, **100–50,000** chars). Gemini via server-side **`GEMINI_API_KEY`** and Node **`fetch`** (`gemini-2.0-flash`); **30s** timeout; **no retries** on timeout, API error, invalid JSON, or Zod failure. Output validated with PRD §8 **`GeminiOutputSchema`** before success. PRD §8.5 envelopes on `/process`.  
+**APIs affected:** `POST /process` (document-service internal, default port **3002**); `GET /health` unchanged  
+**Error codes:** `VALIDATION_ERROR` (400), `GEMINI_TIMEOUT` (504), `GEMINI_RATE_LIMIT` (429), `GEMINI_API_ERROR` (500), `GEMINI_INVALID_RESPONSE` (500), `SERVER_ERROR` (500)  
+**Logging:** Redacted metadata only (`studyTextLength`, `durationMs`, `httpStatus`, `errorCode`, `zodIssueCount`, `zodPaths`) — no full studyText, prompt, raw Gemini response, API key, or request URL logs  
+**Tests:** `document-service` `npm test` — **27/27** passed; mocks/fake key only; no real Gemini calls  
+**Packages:** None added (`express`, `zod`, Node `fetch` only)  
+**Scope boundary:** No backend/frontend/supabase/.github/root changes; no DB persistence; no `POST /api/courses/:id/generate`; no Generate UI; no Study Tasks / Flashcards / Trello / dashboard / admin  
+**Security Review notes:**
+- `/process` is **internal-only** for later backend orchestration; not frontend-facing
+- `npm start` / `npm run dev` require **`GEMINI_API_KEY`** in `.env` (placeholder OK locally; real key must never be committed)
+- Gemini REST uses API key in **request URL query string** — future deployment must avoid logging outbound URLs/query strings at infra/proxy layer
+- **Security re-review required** when backend invokes `/process` or if document-service is exposed beyond localhost/private network  
+**Pitfalls:** Do not log Gemini URL or key; treat model JSON as untrusted until Zod passes; continue mocking Gemini in CI  
+**Tracked follow-ups:**
+- Backend generate orchestration requires separate approval
+- Persistence of Gemini output requires separate DB/API phase
+- Frontend Generate UI requires separate approval
+- Continue mocking Gemini in CI (no real secrets)
+- Re-review security if `/process` exposure, auth, or shared-secret strategy changes
