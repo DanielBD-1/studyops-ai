@@ -432,7 +432,7 @@
 - Full styling pass requires separate approval (e.g. `approved — apply DESIGN styling pass`)
 - Optional later polish: separate read-only view mode on material detail
 
-### 2026-05-23 — Phase 2C manual smoke test passed
+### 2026-05-22 — Phase 2C manual smoke test passed
 
 **Workflow:** `approved — manual smoke test passed`  
 **Human gate:** Manual end-to-end verification after Phase 2C — satisfied  
