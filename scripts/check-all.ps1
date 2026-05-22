@@ -35,12 +35,24 @@ function Invoke-PackageStep {
 Write-Host 'StudyOps AI — check-all' -ForegroundColor Green
 Write-Host "Repository: $RepoRoot" -ForegroundColor DarkGray
 
+Invoke-PackageStep -Title 'Backend — npm run lint' -Directory 'backend' -Command {
+    npm.cmd run lint
+}
+
 Invoke-PackageStep -Title 'Backend — npm test' -Directory 'backend' -Command {
     npm.cmd test
 }
 
+Invoke-PackageStep -Title 'Document service — npm run lint' -Directory 'document-service' -Command {
+    npm.cmd run lint
+}
+
 Invoke-PackageStep -Title 'Document service — npm test' -Directory 'document-service' -Command {
     npm.cmd test
+}
+
+Invoke-PackageStep -Title 'Frontend — npm run lint' -Directory 'frontend' -Command {
+    npm.cmd run lint
 }
 
 Invoke-PackageStep -Title 'Frontend — npm test' -Directory 'frontend' -Command {

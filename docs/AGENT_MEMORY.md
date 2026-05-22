@@ -29,7 +29,7 @@
 
 ## Project Baseline (2026-05-20)
 
-**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI verified green (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
+**Status:** Phase 1A–1G complete (through courses UI). Phase 2A `public.study_materials` **applied and verified** on Supabase. Phase 2B Study Materials Backend API and Phase 2C Study Materials Frontend UI **complete** (Supervisor + Security approved). **Manual smoke test passed** after Phase 2C. Phase 2D Gemini document-service **complete** (Supervisor + Security approved; `POST /process`, tests 27/27 mocked). Phase 2E Backend Generate Orchestration **complete** (Supervisor + Security approved; backend tests 99/99 mocked). Phase 2F Frontend Generate UI **complete** (Supervisor + Security approved; ephemeral plan on material detail, frontend tests 34/34 mocked). Phase 2G Quality/Lint **complete** (Supervisor + Security approved; ESLint in all packages + CI + `check-all.ps1`). Public tables: `profiles`, `courses`, `study_materials` only. GitHub Actions CI: `npm ci` → `npm run lint` → `npm test` per package; frontend also `npm run build` (Node.js 22 in CI). Node.js 20.6+ required locally. `DESIGN.md` is lightweight UI guidance only.
 
 **Architecture locked by ADRs:**
 
@@ -39,7 +39,7 @@
 - Trello credentials not persisted (004).
 - Manual List ID required for MVP Trello sync (005).
 
-**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (Phases 2E–2F use material-scoped generate instead). Task/flashcard management UI, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, or re-apply 003.
+**Next implementation:** Persistence of Gemini output (summary/tasks/flashcards) requires **separate human approval** — not started. PRD course-level paste route `POST /api/courses/:courseId/generate` with client `studyText` remains **deferred** (Phases 2E–2F use material-scoped generate instead). Task/flashcard management UI, Trello, dashboard, admin, and full DESIGN styling pass require separate approval. **Lint is required** before PRs: `npm run lint` in `backend/`, `document-service/`, and `frontend/` (see `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`). Do not restart Phase 1D, 1F, 1G, 2B backend, 2C frontend, 2D document-service, 2E generate orchestration, 2F Generate UI, 2G Quality/Lint, or re-apply 003. Do not use `npm audit fix --force` without explicit human approval.
 
 **Known constraints:**
 
@@ -542,3 +542,38 @@
 - Task/flashcard management UI remains separate future work
 - Trello / dashboard / admin / styling / Stitch remain separate future phases
 - Re-validate AI output before any future DB write
+
+### 2026-05-22 — Phase 2G Quality/Lint complete
+
+**Workflow:** `approved — implement Phase 2G Quality/Lint`; `approved — Phase 2G complete`  
+**Human gates:** Phase 2G planning + implementation + Supervisor Review + Security Review — satisfied (no blocking issues)  
+**Summary:** Aligned repo tooling with documented lint workflow (AGENTS.md, PRD §12). Added **ESLint only** (flat config) to `backend/`, `document-service/`, and `frontend/` — no Prettier, Husky, pre-commit hooks, `npm audit fix`, or dependency upgrade sweep.  
+**Artifacts:**
+- `backend/eslint.config.js`, `document-service/eslint.config.js`, `frontend/eslint.config.js`
+- Per-package `package.json` scripts: `npm run lint`, `npm run lint:fix`
+- `.github/workflows/ci.yml` — lint after `npm ci`, before tests/build
+- `scripts/check-all.ps1` — lint before tests/build per package
+- `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md` — lint required in workflow / Definition of Done  
+**Lint devDependencies (no runtime deps added):**
+- **Backend / document-service:** `eslint`, `@eslint/js`, `globals`
+- **Frontend:** above + `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh` (no `eslint-plugin-react` in this phase)  
+**Config baseline:**
+- `@eslint/js` recommended; Node ESM globals (backend/document-service); browser + React hooks/refresh (frontend)
+- `no-console: off` (intentional structured logging unchanged)
+- `^_` ignore for unused args/vars; `react-hooks/set-state-in-effect: off` (gradual)
+- Frontend `**/*.jsx`: `no-unused-vars` **off** (JSX usage not visible without `eslint-plugin-react`)  
+**Minimal lint fixes (tests only):** removed unused test imports; renamed omitted destructuring bindings to `_SUPABASE_URL` / `_VITE_SUPABASE_ANON_KEY` — no behavior change  
+**Not changed:** App `src/` feature/API/database/auth/UI behavior; Supabase/migrations; secrets/env; deploy/publish; CI `permissions: contents: read`  
+**Checks passed:**
+- Backend: `npm run lint`; `npm test` **99/99**
+- Document-service: `npm run lint`; `npm test` **27/27**
+- Frontend: `npm run lint` (1 warning); `npm test` **34/34**; `npm run build`
+- `scripts/check-all.ps1`  
+**Known notes:**
+- Frontend **1 warning:** `react-refresh/only-export-components` on `AuthContext.jsx` (`useAuth` export) — acceptable for Phase 2G  
+**Tracked follow-ups:**
+- Optional: add `eslint-plugin-react` and tighten JSX unused-import detection
+- Optional: secret scanning in CI (PRD suggested; not added in 2G)
+- Optional: stricter logging lint rules if desired
+- Do not use `npm audit fix --force` without explicit human approval
+- Adding new ESLint plugins or changing rule severity requires human approval (per `AGENTS.md`)

@@ -16,7 +16,7 @@ describe('frontend env validation', () => {
   });
 
   it('parseEnv rejects missing VITE_SUPABASE_ANON_KEY', () => {
-    const { VITE_SUPABASE_ANON_KEY, ...incomplete } = validEnv;
+    const { VITE_SUPABASE_ANON_KEY: _VITE_SUPABASE_ANON_KEY, ...incomplete } = validEnv;
     assert.throws(() => parseEnv(incomplete), /Invalid frontend environment/);
   });
 

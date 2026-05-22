@@ -14,9 +14,9 @@ Thank you for contributing. This project uses a **branch-based workflow**, expli
 ### Run tests locally
 
 ```bash
-cd backend && npm ci && npm test
-cd ../document-service && npm ci && npm test
-cd ../frontend && npm ci && npm test && npm run build
+cd backend && npm ci && npm run lint && npm test
+cd ../document-service && npm ci && npm run lint && npm test
+cd ../frontend && npm ci && npm run lint && npm test && npm run build
 ```
 
 **Windows (after `npm ci` in each package):** from the repository root, run:
@@ -25,9 +25,9 @@ cd ../frontend && npm ci && npm test && npm run build
 .\scripts\check-all.ps1
 ```
 
-This runs backend tests, document-service tests, frontend tests, and frontend build. It does **not** install dependencies, run migrations, create `.env` files, or deploy.
+This runs **lint**, tests, and frontend build in each package. It does **not** install dependencies, run migrations, create `.env` files, or deploy.
 
-CI runs the same steps on **Node.js 22** (see `.github/workflows/ci.yml`). Your PR should pass CI before merge.
+CI runs the same steps on **Node.js 22** (see `.github/workflows/ci.yml`): `npm ci`, then `npm run lint`, then `npm test` (and `npm run build` for frontend). Your PR should pass CI before merge.
 
 ### Use the PR template
 
@@ -91,9 +91,9 @@ Until rules are configured, contributors should still follow the PR + green CI p
 
 GitHub Actions workflow **CI** runs on every `push` and `pull_request`:
 
-- Backend: `npm ci` + `npm test`
-- Document service: `npm ci` + `npm test`
-- Frontend: `npm ci` + `npm test` + `npm run build`
+- Backend: `npm ci` + `npm run lint` + `npm test`
+- Document service: `npm ci` + `npm run lint` + `npm test`
+- Frontend: `npm ci` + `npm run lint` + `npm test` + `npm run build`
 
 No secrets, real Supabase credentials, migrations, or deployments run in CI.
 

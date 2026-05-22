@@ -25,21 +25,24 @@ jobs:
             document-service/package-lock.json
             frontend/package-lock.json
 
-      - name: Backend — install and test
+      - name: Backend — install, lint, and test
         working-directory: backend
         run: |
           npm ci
+          npm run lint
           npm test
 
-      - name: Document service — install and test
+      - name: Document service — install, lint, and test
         working-directory: document-service
         run: |
           npm ci
+          npm run lint
           npm test
 
-      - name: Frontend — install, test, and build
+      - name: Frontend — install, lint, test, and build
         working-directory: frontend
         run: |
           npm ci
+          npm run lint
           npm test
           npm run build

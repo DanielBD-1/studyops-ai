@@ -12,6 +12,7 @@ Instructions for Claude (and Claude Code) in this repository. **AGENTS.md** and 
 4. Open the **explicit workflow** for the phase—do not self-delegate to sub-agents dynamically.
 5. Check `docs/AGENT_MEMORY.md` for prior decisions and pitfalls.
 6. Read `DESIGN.md` only when implementing an **approved frontend UI** phase—not for backend, DB, or security work.
+7. Before marking work complete, run `npm run lint` in `backend/`, `document-service/`, and `frontend/` (plus `npm test` and frontend `npm run build` when those packages changed).
 
 ---
 
@@ -95,7 +96,7 @@ Use:
 
 ## Definition of Done
 
-See AGENTS.md. Claude must not mark work complete without tests, reviews (when required), and CI consideration.
+See AGENTS.md. Claude must not mark work complete without **lint**, **tests**, reviews (when required), and CI consideration. Minimum checks when code changed: `npm run lint` and `npm test` in each touched package; `npm run build` in `frontend/` if frontend code changed.
 
 ---
 

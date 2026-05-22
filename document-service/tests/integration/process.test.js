@@ -1,4 +1,4 @@
-import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
+import { describe, it, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../../src/app.js';
 import { AppError } from '../../src/errors.js';

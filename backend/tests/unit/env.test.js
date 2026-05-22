@@ -21,7 +21,7 @@ describe('backend env validation', () => {
   });
 
   it('parseEnv rejects missing SUPABASE_URL', () => {
-    const { SUPABASE_URL, ...incomplete } = validEnv;
+    const { SUPABASE_URL: _SUPABASE_URL, ...incomplete } = validEnv;
     assert.throws(() => parseEnv(incomplete), /Invalid environment configuration/);
   });
 

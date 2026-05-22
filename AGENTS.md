@@ -158,6 +158,7 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 6. **Trello:** Credentials in POST body only; never persist; clear from frontend state after sync.
 7. **Dashboard:** Manual refetch after mutations—no polling/WebSockets.
 8. **Tests:** Mock external APIs; no live Gemini/Trello in CI.
+9. **Lint:** Run `npm run lint` in `backend/`, `document-service/`, and `frontend/` before claiming work complete. CI runs the same commands after `npm ci`. Use `npm run lint:fix` only for mechanical fixes you review; do not add new ESLint plugins or change rule severity without human approval.
 
 ---
 
@@ -169,7 +170,7 @@ A feature or phase item is **done** only when **all** apply:
 - [ ] Complies with applicable ADRs (gate documented)
 - [ ] Does not violate this file or `CLAUDE.md`
 - [ ] Code + tests implemented; required PRD tests covered
-- [ ] Lint passes locally
+- [ ] Lint passes locally in each package: `cd backend && npm run lint`, `cd document-service && npm run lint`, `cd frontend && npm run lint`
 - [ ] No secrets in diff; `.env` not committed
 - [ ] Supervisor diff review completed (no blocking issues)
 - [ ] Security review completed if auth, Trello, Gemini, admin, or env touched
