@@ -1,254 +1,576 @@
-# DESIGN.md — StudyOps AI
+# DESIGN.md — StudyOps AI (v2)
 
-**Status:** Phase 1G guidance (documentation only)  
-**Last updated:** 2026-05-20  
-**Authority:** `docs/PRD.md` remains the product source of truth. This file defines UI/UX direction only—it does not change scope or APIs.
-
----
-
-## Purpose
-
-Provide lightweight UI/UX guidance for the **Courses Frontend UI** phase and related auth/dashboard surfaces. Agents should use this document to stay consistent while building **working flows first**. A dedicated **visual styling pass** comes later, after course CRUD works end-to-end against the backend API.
+**Status:** Phase 2I-c UI/UX specification (documentation only)  
+**Last updated:** 2026-05-22  
+**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20)
 
 ---
 
-## Product feeling
+## 0. Document control and authority
 
-StudyOps AI should feel like a **clean, focused student workspace**—not a social feed, not a corporate admin console, and not a gamified app.
+| Document | Role |
+|----------|------|
+| **`docs/PRD.md`** | Product intent and future MVP features |
+| **`docs/IMPLEMENTATION_STATUS.md`** | **What is built today** — routes, APIs, deferred work |
+| **`DESIGN.md` (this file)** | **Presentation and UX only** — does not change scope, APIs, database, or security |
+| **`docs/STITCH_BRIEF.md`** | Stitch session input (advisory); reviewed direction informed v2 |
+| **Stitch mockups / exports** | **Inspiration only** — not source of truth; never merge HTML/React into the repo |
+
+**Stitch review:** Human-approved **NotebookLM-inspired** visual direction (academic study workspace, source-first, calm productivity). StudyOps is **not** a NotebookLM clone—borrow principles and feeling, not branding, layout identity, or NotebookLM-only features.
+
+**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). Pending: `11-generated-plan-visible.png`, `15-processing-with-ai.png` — do not fabricate.
+
+---
+
+## 1. Purpose and scope
+
+This document defines how the **implemented** StudyOps AI frontend should look and behave when a future **styling pass** is approved. It applies to:
+
+- Auth (`/`, `/register`)
+- Dashboard stub (`/dashboard`)
+- Courses (`/courses`, `/courses/:id`)
+- Study materials (`/study-materials/:materialId`) including **Generate study plan** (ephemeral)
+
+**Out of this document’s authority:** New routes, persistence, task/flashcard management, Trello, admin analytics, deployment, backend changes.
+
+**Goal:** A **NotebookLM-inspired academic study workspace**—clean, Google-like productivity, source-first, modern AI study cockpit—without clinical aesthetics or scope creep.
+
+---
+
+## 2. Product feeling and positioning
+
+### Positioning
+
+StudyOps AI is a **source-first learning workspace** where a student organizes **courses** and **study materials** (saved text), then runs **AI-assisted study planning** on saved content. It should feel like a calm place to read, edit, and plan—not a social app, hospital system, or corporate analytics dashboard.
+
+### Qualities
 
 | Quality | Intent |
-|--------|--------|
-| Calm | Reduce noise; one primary action per screen |
-| Trustworthy | Clear labels, predictable errors, no dark patterns |
-| Study-first | Courses and tasks are the center of gravity |
-| Honest | Loading and empty states explain what is happening |
-| Lightweight | Fast to scan; avoid dense dashboards in early phases |
+|---------|--------|
+| **Academic & calm** | NotebookLM-inspired restraint; focus on reading and sources |
+| **Productive** | Clean Google-like clarity; predictable chrome |
+| **Source-first** | Materials feel like “documents in a course,” not generic CRUD rows |
+| **Trustworthy** | Honest empty/loading/error states; no fake metrics |
+| **Grounded AI** | Generate feels helpful and connected to saved material—not flashy or gamified |
+| **Readable** | Long study text is comfortable to read and edit |
+| **Modern** | Professional, pleasant, slightly contemporary—non-clinical |
 
-**Tone:** Supportive and direct. Copy should sound like a helpful study tool (“Add your first course”), not marketing hype.
+### Tone
 
----
+Supportive and direct. Example: *“Save changes before generating — generation uses your last saved material.”* Avoid hype, streaks, or “AI magic” marketing copy.
 
-## Inspiration (do not copy brands)
+### Inspiration (principles only — do not clone)
 
-Draw **principles** from these categories—not logos, colors, or layouts to clone:
+| Borrow | Do not copy |
+|--------|-------------|
+| Warm canvas + white cards + soft elevation | NotebookLM logo, exact layout, purple/brand lock-in |
+| Source/document card metaphor for materials | Source drawer, library search, recent sources panel |
+| Subject workspace for course detail | Multi-panel notebook, citations, audio overview |
+| Subtle AI accent zone on generate/plan | Neon gradients, hacker terminal, medical teal |
 
-| Source type | What to borrow |
-|-------------|----------------|
-| Academic productivity tools | Clear hierarchy, course-centric navigation, readable lists |
-| Minimal note/task apps | Simple forms, restrained chrome, strong whitespace |
-| Learning platforms (high level) | Progress and “what’s next” without turning MVP into a full LMS |
-| Native OS patterns | System fonts, familiar form controls, accessible focus states |
-
-**Do not:** Copy Notion, Linear, Duolingo, or any brand’s exact palette, typography, icons, or marketing layout. StudyOps should feel **familiar** but **original**.
-
----
-
-## Layout principles
-
-1. **Single column on small screens** — content width capped (~640–720px for forms; slightly wider for course lists).
-2. **Clear page title** — every screen has one `<h1>` describing where the user is.
-3. **Primary action visible** — e.g. “New course” on the courses list without hunting in menus.
-4. **Consistent vertical rhythm** — predictable spacing between sections (use rem-based spacing when styling is applied).
-5. **Auth vs app shell** — login/register stay simple centered layouts; authenticated areas can add a light header/nav later (functional first).
-6. **No sidebar requirement for MVP courses phase** — a top bar with app name + logout is enough until more modules exist.
+Earlier briefs referenced Notion/Linear/Raycast **principles**; v2 primary visual direction is **NotebookLM-inspired academic workspace** within the same guardrails (familiar, original).
 
 ---
 
-## Screen guidance
+## 3. Visual language
 
-### Login (`/`)
+### Canvas and surfaces
 
-- Centered **FormCard** with email + password.
-- Link to Register.
-- Show **ErrorMessage** for validation and API failures (generic message for auth failures per backend).
-- **LoadingState** on submit (“Signing in…”).
-- On success → navigate to dashboard or courses per routing decision (PRD: dashboard exists; courses list may be linked from dashboard stub).
+- **Page background:** Warm off-white or light gray (`--color-bg`).
+- **Cards / forms:** Clean white (`--color-surface`) on canvas.
+- **Borders:** Soft, low-contrast (`--color-border`)—not harsh black lines.
+- **Shadows:** Subtle (`--shadow-sm` on cards; `--shadow-md` on hover/focus elevation only).
+- **Corners:** Rounded (`--radius-md` for cards; `--radius-sm` for inputs/buttons).
 
-### Register (`/register`)
+### Color
 
-- Same layout pattern as Login.
-- Fields: email, password (and confirm only if PRD/workflow requires—match existing validation).
+- **Text:** Charcoal / near-black (`--color-text`); secondary copy muted (`--color-text-muted`).
+- **Primary accent:** Calm blue or muted indigo (`--color-primary`) for primary actions and links.
+- **AI zones only:** Very soft blue/lavender tint (`--color-primary-subtle`) for Generate block and (concept-only) generated plan card—**not** full-page gradients.
+- **Danger:** Restrained red for delete (`--color-danger`).
+- **Avoid:** Medical/clinical teal, excessive neon, dark hacker-terminal default theme.
+
+### Typography
+
+- **Stack:** Manrope-like geometric sans **via system fonts only** unless a human separately approves webfonts:
+
+  `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`
+
+- **Material body:** Comfortable size (e.g. 16px base), line-height ~1.6 in `Textarea` and plan summary.
+- **Hierarchy:** One clear `h1` per page; section titles `h2`/`h3` with consistent scale.
+
+### Iconography
+
+- **No Material Icons** or icon font libraries unless separately approved.
+- Prefer text labels, native controls, and minimal inline SVG added in styling pass with approval.
+
+---
+
+## 4. Layout and app chrome
+
+### Authenticated shell (styling pass)
+
+Optional **minimal top bar** (recommended for consistency):
+
+- App name / wordmark (text)
+- Link: **Courses** (or “My courses”)
+- **Log out**
+
+**Do not add:** Sidebar navigation to `/tasks`, `/flashcards`, `/trello`, `/admin`, settings beyond logout, Search Library, Source Drawer, AI Sidebar as product features.
+
+### Content width
+
+| Context | Max width (guideline) |
+|---------|------------------------|
+| Login / Register | ~420px centered (`--content-max-form`) |
+| Dashboard stub, lists, course detail | ~720px (`--content-max-workspace`) |
+| Study material editor / reading | ~800px (`--content-max-reading`) |
+
+### Layout patterns
+
+- **Single column** default on mobile and desktop for MVP screens.
+- **Auth:** Centered `FormCard` on canvas.
+- **Lists:** Vertical stack of cards with consistent gap (`--space-4`–`--space-6`).
+- **Course detail:** Title/edit card → materials list → add material form (inline) → danger zone separated.
+- **Material detail:** Back link → `h1` title → edit card → generate section → (concept) plan → danger zone.
+
+---
+
+## 5. Design tokens (framework-agnostic CSS variables)
+
+Define in a future `frontend/src/styles/tokens.css` (or equivalent)—**spec only here**, no implementation in Phase 2I-c.
+
+```css
+:root {
+  /* Color */
+  --color-bg: #f8f7f5;
+  --color-bg-subtle: #eeedeb;
+  --color-surface: #ffffff;
+  --color-border: #e5e2dd;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5c5c5c;
+  --color-primary: #4f6bed;
+  --color-primary-hover: #3d56c9;
+  --color-primary-subtle: #eef2ff;
+  --color-danger: #b42318;
+  --color-danger-hover: #912018;
+  --color-error: #b42318;
+  --color-focus-ring: var(--color-primary);
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --line-height-body: 1.6;
+  --line-height-tight: 1.35;
+
+  /* Spacing (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Radius & shadow */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Layout */
+  --content-max-form: 420px;
+  --content-max-workspace: 720px;
+  --content-max-reading: 800px;
+}
+```
+
+**Implementation notes:**
+
+- Use plain CSS or CSS modules—**not** Tailwind unless separately approved.
+- No `@import` from Google Fonts CDN unless separately approved.
+- Map existing inline styles in pages/components to these tokens gradually in the styling pass.
+
+---
+
+## 6. Component guidance
+
+Map to existing React components under `frontend/src/components/`. Styling pass updates presentation only—**no behavior or API changes**.
+
+### Button (`components/ui/Button.jsx`)
+
+| Variant | Use |
+|---------|-----|
+| **primary** | Save, Create, Generate study plan, main CTAs |
+| **secondary** | Cancel, Try again, Clear plan |
+| **danger** | Delete course / delete material |
+
+- Min height ~44px when styled; clear `:focus-visible` ring.
+- Disabled: reduced opacity + `cursor: not-allowed` (loading, generating, unsaved blocking generate).
+- No icon-only delete without `aria-label`.
+
+### Input (`components/ui/Input.jsx`)
+
+- Visible `<label>` + `id` / `htmlFor`.
+- Full width in forms; border `var(--color-border)`; focus ring primary.
+- Auth: email, password. Courses: title. Materials: title.
+
+### Textarea (`components/ui/Textarea.jsx`)
+
+- **Study material** body: tall (e.g. 12+ rows), `line-height: var(--line-height-body)`.
+- Monospace **not** required; prioritize readability.
+- Validation: content 100–50,000 characters (trimmed) per backend.
+
+### FormCard (`components/ui/FormCard.jsx`)
+
+- White surface, padding `var(--space-6)`, radius `var(--radius-md)`, shadow `var(--shadow-sm)`.
+- Optional `title` prop as `h2` for section (“Edit study material”, “Add study material”).
+
+### ErrorMessage (`components/ui/ErrorMessage.jsx`)
+
+- `role="alert"`; color `var(--color-error)`; short user-safe text.
+- Never show stack traces, tokens, or raw API bodies.
+
+### LoadingState (`components/ui/LoadingState.jsx`)
+
+- Muted text or minimal skeleton; preserve layout to avoid shift.
+- Copy: “Loading courses…”, “Loading study material…”, “Processing with AI…” (concept for generate).
+
+### EmptyState (`components/ui/EmptyState.jsx`)
+
+- Headline + one sentence + primary CTA.
+- Courses empty: drive “create first course” (see §7.4).
+
+### CourseCard (`components/courses/CourseCard.jsx`)
+
+- Card metaphor: title as primary link (plain text), optional `createdAt` muted.
+- Hover: subtle shadow lift; no fake progress or task counts.
+- **Security:** `course.title` as React text node only.
+
+### MaterialCard (`components/materials/MaterialCard.jsx`)
+
+- **Source/document card** feel: title link, `sourceType` + updated date secondary line.
+- List on course detail only—**no** `content` preview in list (API summary shape).
+- **Security:** `material.title` as plain text only.
+
+### GeneratedPlanSection (`components/materials/GeneratedPlanSection.jsx`)
+
+- Read-only sections: Summary, Key topics, Difficulty, Tasks (ordered list), Flashcards.
+- Plain text for all model strings—**no** `dangerouslySetInnerHTML`.
+- **Clear plan** → secondary button; session state only.
+- Optional subtle label: *“AI-generated reference — not saved to your account.”* (concept copy for styling pass).
+- Tasks/flashcards are **display-only**—no checkboxes, edit, or “save task” (would imply task management).
+
+---
+
+## 7. Screen-by-screen guidance (implemented only)
+
+Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
+
+### 7.1 Login (`/`)
+
+**Screenshot:** `01-login.png`
+
+- Centered `FormCard` on `--color-bg`.
+- Title: StudyOps AI; subcopy: “Sign in to continue.”
+- Email + password; primary **Sign in**; link to Register.
+- `ErrorMessage` for validation/auth failures (generic auth message per backend).
+- `LoadingState` on submit: “Signing in…”
+
+### 7.2 Register (`/register`)
+
+**Screenshot:** `02-register.png`
+
+- Same auth layout as login.
+- Email, password, confirm password (if present in UI).
+- Subcopy: student registration only.
 - Link back to Login.
-- Success → sign in flow or redirect per existing auth behavior.
 
-### Dashboard (`/dashboard`)
+### 7.3 Dashboard stub (`/dashboard`)
 
-- **Phase 1G:** Remains a simple authenticated landing—not a stats hub.
-- Show signed-in identity (email/role) if already present.
-- **Primary CTA:** Navigate to **Courses** (e.g. “View courses” / “My courses”).
-- Logout remains available.
-- **Do not** add Gemini logs, Trello status, focus timers, or analytics widgets in this phase.
+**Screenshot:** `03-dashboard.png`
 
-### Courses list (`/courses` — to be added)
+- **Not** an analytics hub—no charts, KPIs, streaks, or Gemini logs.
+- Short copy: authenticated landing; signed-in email/role (muted).
+- Primary CTA: **My courses** → `/courses`.
+- Logout available (button or link).
 
-- Page title: **My courses** (or **Courses**).
-- **LoadingState** while `GET /api/courses` runs.
-- **ErrorMessage** on fetch failure with retry affordance when practical.
-- **EmptyState** when `courses.length === 0` (see Course UI below).
-- Grid or vertical list of **CourseCard** components.
-- Prominent **Button** to create a course (opens inline form, modal, or `/courses/new`—pick one pattern and stay consistent).
+### 7.4 Courses — empty state (`/courses`)
 
-### Course create / edit
+**Screenshot:** `04-courses-empty.png`
 
-- **Create:** Title only (3–100 characters, trimmed)—align with backend Zod and DB rules.
-- **Edit:** PATCH title only; no `user_id` / `userId` fields in UI or payload.
-- Use **FormCard** + **Input** + submit **Button**; cancel returns to list.
-- Client-side validation messages should mirror PRD: *“Course title must be between 3 and 100 characters”* where applicable.
-- **Delete:** Confirm before `DELETE /api/courses/:id` (native `confirm()` acceptable in functional phase; replace with accessible dialog in styling pass).
+- `h1`: My courses (or Courses).
+- `EmptyState`: “No courses yet” + short body + primary create CTA.
+- Optional top link to Dashboard.
 
-### Course detail (`/courses/:id` — optional in 1G)
+### 7.5 Courses — create course form (`/courses`)
 
-- If implemented: show **title** only plus navigation back to list.
-- **Do not** surface `stats` from `GET /api/courses/:id` as real metrics in Phase 1G—the API returns a **zero-value stub** (`totalTasks`, `completedTasks`, `totalFlashcards` all 0). Do not build charts, progress rings, or “0 tasks” dashboards that imply features that do not exist yet.
+**Screenshot:** `05-create-course-form.png`
+
+- Inline or toggled form (match existing UX—do not add `/courses/new` route).
+- `FormCard` or equivalent: title field only (3–100 chars).
+- Primary create; secondary cancel.
+- `POST /api/courses` body `{ title }` only.
+
+### 7.6 Courses — list (`/courses`)
+
+**Screenshot:** `06-courses-list.png`
+
+- `h1` + primary **New course**.
+- `LoadingState` / `ErrorMessage` as today.
+- Vertical list of `CourseCard` components (≥2 in reference shot).
+- Optional link: Dashboard.
+
+### 7.7 Course detail — materials (`/courses/:id`)
+
+**Screenshot:** `07-course-detail-materials.png`
+
+- Back link: ← Back to courses.
+- `h1`: course title.
+- **Edit course** card: title + Save changes.
+- **Study materials** section: list of `MaterialCard` or empty state (“No study materials yet” + Add CTA).
+- **Do not** show `stats` stub as real metrics (zeros)—no progress rings.
+- **Danger zone** visually separated: Delete course (confirm).
+
+### 7.8 Course detail — create material form (`/courses/:id`)
+
+**Screenshot:** `08-create-material-form.png`
+
+- **Add study material** `FormCard`: title, source type (`manual` | `paste`), `Textarea` for content (100–50k).
+- Create + Cancel.
+- `POST` body: `{ title, content, sourceType? }` — never `courseId` from client body (route owns course).
+
+### 7.9 Study material detail (`/study-materials/:materialId`)
+
+**Screenshot:** `09-study-material-detail.png`
+
+- **Reading/editing workspace:** ← Back to course; `h1` = material title.
+- **Edit study material** card: title, source type select, large `Textarea`, Save changes.
+- Below: **Generate study plan** section (see §7.10).
+- **Danger zone:** Delete study material (confirm).
+
+### 7.10 Generate study plan action (`/study-materials/:materialId`)
+
+**Screenshot:** `10-generate-study-plan.png`
+
+- Section `h2`: Generate study plan.
+- Background: `var(--color-primary-subtle)` optional padding/border—grounded, not flashy.
+- Primary button: **Generate study plan**.
+- Disabled when: loading, saving, deleting, generating, or **unsaved changes** (see §7.11).
+
+### 7.11 Unsaved changes warning (`/study-materials/:materialId`)
+
+**Screenshot:** `12-unsaved-changes-warning.png`
+
+- Muted helper text above generate button:
+
+  *“Save changes before generating — generation uses your last saved material.”*
+
+- Generate button disabled until save succeeds.
+
+### 7.12 Validation error (forms)
+
+**Screenshot:** `13-validation-error.png`
+
+- Inline error under field and/or `ErrorMessage`.
+- Examples: course title length; material title 3–150; content 100–50,000.
+- Red text + message—not color alone.
+
+### 7.13 Neutral not-found
+
+**Screenshot:** `14-not-found.png`
+
+- Course: “Course not found” + neutral explanation + back to courses.
+- Material: “Study material not found” + “may have been deleted” + back link.
+- **404** messaging—not “access denied” (backend uses neutral 404 for wrong owner).
 
 ---
 
-## Reusable components (conceptual)
+## 8. Concept-only screens (pending screenshots — not implemented as new features)
 
-Build these as small, composable React components during the Courses UI phase. In Phase 1G they may use minimal inline styles; the **styling pass** will centralize tokens later.
+**Do not fabricate PNGs.** When live Generate works, capture `11-generated-plan-visible.png` and `15-processing-with-ai.png` per `SCREENSHOT_INDEX.md`.
 
-| Component | Role |
-|-----------|------|
-| **Button** | Primary (submit/create), secondary (cancel), danger (delete). Disabled when loading. |
-| **Input** | Labeled text/email/password; associates `htmlFor` + `id`; shows validation hint. |
-| **FormCard** | Wraps auth and course forms—title, children, consistent padding. |
-| **ErrorMessage** | `role="alert"`; one concise message; never expose stack traces or tokens. |
-| **LoadingState** | Text or skeleton for lists/forms; avoid layout shift where possible. |
-| **EmptyState** | Icon optional later; headline + short description + primary CTA. |
-| **CourseCard** | Displays `course.title` as **plain text** (React text node, not `dangerouslySetInnerHTML`). Optional: relative `createdAt` as secondary muted text. Link or button to edit. |
+### 8.1 Generated plan visible (**concept-only**)
 
----
+**Pending file:** `11-generated-plan-visible.png`
 
-## States: loading, error, empty, success
+- Render `GeneratedPlanSection` below generate block when `plan` exists in **React state only**.
+- Card on `--color-primary-subtle` or white with subtle border.
+- Sections: summary, key topics, difficulty, tasks, flashcards—all **read-only**.
+- **Clear plan** clears local state only (no API).
+- **No** “Save plan”, library, sync, or persistence badges.
+- Copy hint: AI output is **untrusted reference** until a future persistence phase.
+- Navigating away / refresh / reload material clears plan (existing behavior).
 
-| State | UX rule |
-|-------|---------|
-| **Loading** | Disable destructive/submit actions; show in-button label or list placeholder. |
-| **Error** | User-safe message from API envelope; map `VALIDATION_ERROR`, `NOT_FOUND`, `AUTH_REQUIRED` without leaking internals. |
-| **Empty** | Explain why list is empty + one action (“Create your first course”). |
-| **Success** | After create/update/delete: return to list or show brief confirmation; refetch list (manual refetch per PRD—no optimistic dashboard). |
+### 8.2 Processing with AI (**concept-only**)
 
-**Auth session expiry:** Redirect to login with a clear message when API returns 401 (existing auth patterns).
+**Pending file:** `15-processing-with-ai.png`
+
+- While `generating`: disable button; show `LoadingState`—“Processing with AI…”
+- Optional subtle pulse on loading text only (styling pass)—no full-screen overlay.
+- On success: reveal plan per §8.1; on error: `ErrorMessage` with safe mapped message.
 
 ---
 
-## Accessibility basics
+## 9. Generate and AI display rules
 
-- One **`<h1>`** per page; logical heading order if subsections exist.
-- Every **Input** has a visible **`<label>`** (not placeholder-only).
-- **ErrorMessage** uses `role="alert"` (or `aria-live="polite"` for non-blocking hints).
-- Buttons and links are keyboard-focusable; visible **focus** style (even a simple outline in functional phase).
-- **Delete** actions need confirmation and clear naming (“Delete course”, not “OK”).
-- Color must not be the only error indicator (icon or text prefix).
-- Respect `prefers-reduced-motion` when animations are added in the styling pass.
+| Rule | UI requirement |
+|------|----------------|
+| **Route** | `materialId` from URL only |
+| **Request** | `POST /api/study-materials/:materialId/generate` with body **`{}` strict** |
+| **No client studyText** | UI must **not** send `studyText`, `content`, or paste-upload on generate |
+| **Saved content** | Backend reads **saved** DB `content` after ownership check |
+| **Ephemeral plan** | React state only—no `localStorage` / `sessionStorage` / DB |
+| **Untrusted display** | Treat all plan fields as model output; plain text rendering |
+| **Read-only** | No inline edit of tasks/flashcards that implies DB writes |
+| **No saved library** | No list of past plans, no “synced” indicators |
+| **document-service** | Not called from frontend; no `GEMINI_API_KEY` in client |
 
 ---
 
-## Responsive behavior
+## 10. Motion and animation (styling pass only — not Phase 2I-c)
+
+Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect `prefers-reduced-motion: reduce`.
+
+| Pattern | Guidance |
+|---------|----------|
+| Route transition | Optional 150–200ms opacity or ≤8px translate |
+| Card hover | `shadow-sm` → `shadow-md` |
+| Button press | Slight darken or scale 0.98 |
+| Generate loading | Gentle pulse on loading label only |
+| Plan reveal | Short fade-in when plan appears (after screenshot 11 exists) |
+
+**Avoid:** Parallax, heavy neon animations, distracting looped gradients.
+
+---
+
+## 11. Accessibility
+
+- One **`h1`** per route; logical heading order for sections.
+- Every control has a visible **label** (not placeholder-only).
+- **`role="alert"`** / `aria-live` for errors and generate failures.
+- **`:focus-visible`** ring using `--color-focus-ring` (≥3:1 contrast).
+- Touch targets **≥44px** height on primary actions.
+- Errors: text + color (not color-only).
+- Delete: accessible confirm (upgrade from `window.confirm` in styling pass optional).
+- Generated plan lists: semantic `ul`/`ol`; task items not interactive checkboxes.
+- Material `Textarea`: comfortable contrast on white surface (body text ≥4.5:1).
+
+---
+
+## 12. Responsive behavior
 
 | Breakpoint | Behavior |
 |------------|----------|
-| Mobile (&lt; 640px) | Single column; full-width buttons; touch-friendly tap targets (min ~44px height when styled). |
-| Tablet/desktop | Centered content; course list may use 2 columns only if cards remain readable—default to single column for MVP. |
+| **&lt;640px** | Single column; full-width buttons; padding `var(--space-4)` |
+| **≥640px** | Centered main column at max-width tokens; cards full width within column |
 
-Avoid horizontal scroll on forms. Long course titles wrap; truncate with `title` tooltip only in styling pass if needed.
-
----
-
-## Course UI (Phase 1G scope)
-
-### List courses
-
-- `GET /api/courses` with Bearer token from existing auth session.
-- Render `{ courses }` from API (camelCase items: `id`, `title`, `createdAt`, `updatedAt`).
-- Sort: default API order acceptable; optional client sort by `updatedAt` desc later.
-
-### Create course
-
-- `POST /api/courses` body: `{ title }` only.
-- Never send `user_id`, `userId`, or role fields.
-- On 201 → refresh list or navigate to list with success feedback.
-
-### Edit course
-
-- `PATCH /api/courses/:id` with `{ title }` only.
-- 404 → treat as missing course (“Course not found”), not permission messaging.
-
-### Delete course
-
-- `DELETE /api/courses/:id`; expect `{ deleted: true }`.
-- Remove from list after success; handle 404 if already deleted.
-
-### Empty state (no courses)
-
-Example copy direction:
-
-- **Headline:** “No courses yet”
-- **Body:** “Create a course to organize your study material and tasks.”
-- **CTA:** Primary button → create flow
-
-### Explicitly out of scope on course screens (Phase 1G)
-
-- Gemini / document generation UI
-- Trello connect or sync UI
-- Task or flashcard lists (even if API stats stub exists)
-- Dashboard analytics, charts, or “progress by course”
-- Admin views or cross-user data
+- Avoid horizontal scroll on forms and long titles (wrap; truncate with `title` attribute only if needed).
+- Optional `06-courses-list-mobile.png` not required for MVP styling.
 
 ---
 
-## API & security reminders for UI
+## 13. API and security (UI-facing)
 
-- Use existing `api` service + auth Bearer header; no Supabase service role in frontend.
-- Render **`course.title` as text** to mitigate stored XSS.
-- Do not display or edit `user_id` / `userId` (not in API responses).
-
----
-
-## What not to do
-
-- Do not copy third-party brand visuals or marketing pages.
-- Do not add scope (tasks, flashcards, AI, Trello, focus, admin) to “fill space.”
-- Do not build a stats-heavy dashboard before course CRUD works.
-- Do not use `dangerouslySetInnerHTML` for user-generated titles.
-- Do not persist Trello credentials or add new npm UI libraries without human approval.
-- Do not block Phase 1G on perfect pixels—**function first**.
-- Do not replace PRD validation rules with looser client-only checks.
+- **Auth:** Bearer via Supabase session + `apiFetch`—no manual token storage in `localStorage`.
+- **No service role** in frontend; no `VITE_*` service keys.
+- **Ownership:** Never send `user_id`, `userId`, `courseId` in generate body; course id from route for materials create only via URL.
+- **XSS:** Render `course.title`, `material.title`, `material.content`, and all `plan` fields as **React text**—never `dangerouslySetInnerHTML`.
+- **401:** Existing logout + redirect (`AUTH_REQUIRED`).
+- **Logging:** Do not log material `content`, `plan`, tokens, or `Authorization` in frontend consoles for production hygiene.
+- **Env:** No secrets, API keys, or `.env` values in UI copy or design assets.
 
 ---
 
-## When agents may apply DESIGN.md
+## 14. Explicitly out of scope (design)
 
-| Phase | Allowed use of DESIGN.md |
-|-------|---------------------------|
-| **Phase 1G — Courses UI (functional)** | **Yes — lightweight.** Follow layout, components, states, accessibility, and copy direction. Minimal inline/CSS module styling is OK to ship working CRUD. |
-| **Before course flow works** | **No full styling pass.** Do not spend the phase on theme tokens, animations, or redesigning auth pages unless required for consistency. |
-| **After functional sign-off** | **Yes — styling pass** with human approval (e.g. `approved — apply DESIGN styling pass`). Then unify colors, typography, spacing, and polish Empty/Loading/CourseCard. |
-| **Any phase** | **Never** use this file to justify MVP scope creep—only presentation and UX patterns. |
+Do **not** design or implement UI for:
 
-**Gate:** Human approval required before starting Courses frontend implementation (`approved — begin Courses UI` or equivalent per workflow). Applying visual polish requires a **separate** explicit approval from functional completion.
+- Task management (`study_tasks`) beyond read-only lines inside ephemeral plan
+- Flashcard **management** beyond read-only list inside ephemeral plan
+- Trello connect/sync
+- Admin dashboard, cross-user views, audit logs
+- Real dashboard analytics, charts, KPIs, streaks
+- Saved generated plan library or “plan history”
+- Persistence UI (save plan, save tasks to DB)
+- Course-level paste-generate page with client `studyText`
+- Source **upload** UI, file picker, or drive connectors
+- Audio overview, citations panel, notebook sharing
+- Search Library, Source Drawer, Recent Sources, Drafting Space
+- AI Sidebar as a permanent product navigation feature
+- Footer links (Privacy, Terms, Help Center) unless separately approved
+- Sidebar links to `/tasks`, `/flashcards`, `/trello`, `/focus`, `/admin`
+- Social feed, gamification, leaderboards
+- Dark “hacker terminal” default theme or medical/clinical teal palette
+
+Label any future mock: **concept only — not implemented**.
 
 ---
 
-## Styling pass (deferred)
+## 15. What not to do
 
-When approved, define in a follow-up (not required for Phase 1G doc-only):
-
-- CSS variables: background, surface, text, border, primary, danger, focus ring
-- Typography scale (system-ui stack acceptable for MVP)
-- Shared `components/ui/*` or equivalent folder
-- Optional: light/dark—defer unless requested
-
-Until then, prefer **system-ui** stack and simple spacing consistent with existing auth pages.
+- Do **not** use Stitch HTML/React as source of truth or paste into `frontend/`.
+- Do **not** add **Tailwind**, **Google Fonts**, **Material Icons**, or new UI libraries without human approval.
+- Do **not** clone NotebookLM branding, layout, or NotebookLM-only features.
+- Do **not** use this file to justify new routes, APIs, tables, or persistence.
+- Do **not** imply frontend sends `studyText` on generate.
+- Do **not** show fake dashboard stats or course `stats` stub as real data.
+- Do **not** add checkboxes on generated tasks (implies task DB).
+- Do **not** add “Saved plan” or sync badges.
+- Do **not** weaken auth, RLS, or service boundaries in presentation choices.
+- Do **not** embed external scripts, CDNs for fonts/icons, or env values in design docs/screenshots.
 
 ---
 
-## Related documents
+## 16. When agents may apply DESIGN.md
 
-- `docs/PRD.md` — routes, validation, API shapes
-- `docs/AGENT_MEMORY.md` — Phase 1F backend contract
-- `docs/database/002-courses-schema-and-rls.md` — title length rules
-- `AGENTS.md` — agent workflow and approval gates
+| Situation | Allowed |
+|-----------|---------|
+| **Phase 2I-c** — authoring/updating this file | Yes (documentation only) |
+| **Planning / Stitch / screenshots** | Use `STITCH_BRIEF.md` + `SCREENSHOT_INDEX.md`; this file is output of 2I-c |
+| **Frontend styling pass** | Yes — after explicit human approval: `approved — apply DESIGN styling pass` or `approved — implement Phase 2J Frontend Styling` |
+| **Functional feature work** | Follow `IMPLEMENTATION_STATUS` for behavior; use this file only for presentation |
+| **Scope expansion** | **Never** — PRD + human approval required |
+
+**Gates:**
+
+- Updating **`DESIGN.md` v2`** required `approved — implement Phase 2I-c DESIGN.md v2`.
+- Applying CSS/tokens to components requires a **separate** styling approval.
+
+---
+
+## 17. Styling implementation guide (future Phase 2J)
+
+When styling is approved:
+
+1. Add `frontend/src/styles/tokens.css` (or equivalent) from §5; import once in app entry (e.g. `main.jsx`).
+2. Restyle in order: `components/ui/*` → `CourseCard` / `MaterialCard` → `GeneratedPlanSection` → pages.
+3. Replace inline styles with token-based classes or CSS modules incrementally—**no big-bang** unless reviewed.
+4. Optional minimal **top app bar** per §4—no feature sidebar.
+5. Keep all routes, API calls, validation, and generate behavior **unchanged**.
+6. Run `npm run lint`, `npm test`, `npm run build` in `frontend/`; `check-all.ps1` if touching multiple packages.
+7. Compare visuals to `docs/design/screenshots/` and this document—not to Stitch exports.
+8. Re-run **Security Review** if changing how plan/content is rendered or auth surfaces.
+
+**Forbidden in styling pass:** New dependencies (Tailwind, icon fonts, Google Fonts) without approval; persistence UI; Stitch code merge.
+
+---
+
+## 18. Related documents
+
+- `docs/IMPLEMENTATION_STATUS.md` — built vs deferred
+- `docs/STITCH_BRIEF.md` — Stitch advisory input (Phase 2I-a)
+- `docs/design/SCREENSHOT_INDEX.md` — screenshot filenames (captured vs pending)
+- `docs/AGENT_MEMORY.md` — phase history
+- `docs/PRD.md` — product intent
+- `AGENTS.md` — approval gates and agent roles
+- `SECURITY.md` — secrets and service boundaries
 
 ---
 
@@ -257,3 +579,4 @@ Until then, prefer **system-ui** stack and simple spacing consistent with existi
 | Date | Change |
 |------|--------|
 | 2026-05-20 | Initial DESIGN.md for Phase 1G Courses Frontend UI guidance |
+| 2026-05-22 | **v2** — NotebookLM-inspired study workspace spec; materials + generate; tokens; concept-only plan/processing; styling pass guide (Phase 2I-c) |
