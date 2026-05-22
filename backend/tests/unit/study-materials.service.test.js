@@ -4,6 +4,7 @@ import { applyTestEnv } from '../helpers/testEnv.js';
 import { setSupabaseAdminClientForTests } from '../../src/config/supabase.js';
 import {
   createStudyMaterialsMockSupabaseClient,
+  getMockGeneratedPlans,
   setStudyMaterialsMockOverrides,
   resetStudyMaterialsMockOverrides,
   TEST_USER_ID,
@@ -281,7 +282,7 @@ describe('study-materials.service ownership', () => {
     }
   });
 
-  it('generateFromMaterial returns ephemeral plan without persisting', async () => {
+  it('generateFromMaterial validates plan, persists, and returns savedAt', async () => {
     const { MOCK_GEMINI_PLAN } = await import('../helpers/mockDocumentService.js');
     const result = await generateFromMaterial(TEST_USER_ID, OWN_MATERIAL_ID, {
       processStudyTextFn: async () => MOCK_GEMINI_PLAN,
@@ -289,6 +290,10 @@ describe('study-materials.service ownership', () => {
     assert.equal(result.materialId, OWN_MATERIAL_ID);
     assert.equal(result.courseId, OWN_COURSE_ID);
     assert.equal(result.plan.difficulty, 'medium');
+    assert.ok(result.savedAt);
+    assert.equal(getMockGeneratedPlans().length, 1);
+    assert.equal(getMockGeneratedPlans()[0].study_material_id, OWN_MATERIAL_ID);
+    assert.equal(getMockGeneratedPlans()[0].course_id, OWN_COURSE_ID);
   });
 
   it('generateFromMaterial rejects short content before document-service', async () => {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { processStudyText } from '../../clients/document-service.client.js';
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
+import { parseAndValidateGeneratedPlan } from '../../shared/validation/generated-plan.schema.js';
 
 const studyTextLengthSchema = z
   .string()
@@ -75,6 +76,33 @@ function handleStudyMaterialError(error, kind) {
     kind === 'course' ? 'Failed to access course' : 'Failed to access study material',
     500
   );
+}
+
+/**
+ * @param {{ code?: string } | null} error
+ */
+function handleGeneratedPlanError(error) {
+  if (!error) return;
+
+  if (error.code === 'PGRST116') {
+    throw new ApiError('NOT_FOUND', 'Generated plan not found', 404);
+  }
+
+  throw new ApiError('DATABASE_ERROR', 'Failed to access generated plan', 500);
+}
+
+/**
+ * @param {string} materialId
+ * @param {string} courseId
+ * @param {{ plan: unknown, updated_at: string }} row
+ */
+function mapGeneratedPlanResponse(materialId, courseId, row) {
+  return {
+    materialId,
+    courseId,
+    plan: row.plan,
+    savedAt: row.updated_at,
+  };
 }
 
 /**
@@ -288,17 +316,109 @@ function assertStudyTextLength(studyText) {
  * @param {string} materialId
  * @param {{ processStudyTextFn?: typeof processStudyText }} [options]
  */
+/**
+ * @param {string} materialId
+ * @param {string} courseId
+ * @param {unknown} plan
+ * @returns {Promise<string>}
+ */
+async function persistValidatedGeneratedPlan(materialId, courseId, plan) {
+  const validatedPlan = parseAndValidateGeneratedPlan(plan);
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('material_generated_plans')
+    .upsert(
+      {
+        study_material_id: materialId,
+        course_id: courseId,
+        plan: validatedPlan,
+      },
+      { onConflict: 'study_material_id' }
+    )
+    .select('updated_at')
+    .single();
+
+  if (error) {
+    throw new ApiError('DATABASE_ERROR', 'Failed to save generated plan', 500);
+  }
+
+  if (data == null || typeof data !== 'object' || typeof data.updated_at !== 'string') {
+    throw new ApiError('DATABASE_ERROR', 'Failed to save generated plan', 500);
+  }
+
+  return /** @type {{ updated_at: string }} */ (data).updated_at;
+}
+
+/**
+ * @param {string} userId
+ * @param {string} materialId
+ */
+export async function getGeneratedPlanByMaterial(userId, materialId) {
+  const owned = await getOwnedMaterialOrThrow(userId, materialId);
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('material_generated_plans')
+    .select('plan, updated_at')
+    .eq('study_material_id', materialId)
+    .eq('course_id', owned.course_id)
+    .single();
+
+  if (error) {
+    handleGeneratedPlanError(error);
+  }
+
+  if (data == null || typeof data !== 'object') {
+    throw new ApiError('NOT_FOUND', 'Generated plan not found', 404);
+  }
+
+  return mapGeneratedPlanResponse(materialId, owned.course_id, /** @type {{ plan: unknown, updated_at: string }} */ (data));
+}
+
+/**
+ * @param {string} userId
+ * @param {string} materialId
+ */
+export async function deleteGeneratedPlanByMaterial(userId, materialId) {
+  const owned = await getOwnedMaterialOrThrow(userId, materialId);
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('material_generated_plans')
+    .delete()
+    .eq('study_material_id', materialId)
+    .eq('course_id', owned.course_id)
+    .select('id')
+    .single();
+
+  if (error) {
+    handleGeneratedPlanError(error);
+  }
+
+  if (data == null || typeof data !== 'object') {
+    throw new ApiError('NOT_FOUND', 'Generated plan not found', 404);
+  }
+
+  return { deleted: true };
+}
+
+/**
+ * @param {string} userId
+ * @param {string} materialId
+ * @param {{ processStudyTextFn?: typeof processStudyText }} [options]
+ */
 export async function generateFromMaterial(userId, materialId, options = {}) {
   const processFn = options.processStudyTextFn ?? processStudyText;
   const row = await getOwnedMaterialOrThrow(userId, materialId);
   const studyText = row.content.trim();
   assertStudyTextLength(studyText);
 
-  const plan = await processFn(studyText);
+  const rawPlan = await processFn(studyText);
+  const plan = parseAndValidateGeneratedPlan(rawPlan);
+  const savedAt = await persistValidatedGeneratedPlan(row.id, row.course_id, plan);
 
   return {
     materialId: row.id,
     courseId: row.course_id,
     plan,
+    savedAt,
   };
 }

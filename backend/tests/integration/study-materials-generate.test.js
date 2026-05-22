@@ -108,7 +108,7 @@ describe('POST /api/study-materials/:materialId/generate', () => {
     assert.equal(body.error.code, 'AUTH_REQUIRED');
   });
 
-  it('returns 200 with materialId, courseId, and plan', async () => {
+  it('returns 200 with materialId, courseId, plan, and savedAt', async () => {
     const { statusCode, body } = await request(generateUrl(OWN_MATERIAL_ID), {
       method: 'POST',
       headers: auth,
@@ -119,6 +119,7 @@ describe('POST /api/study-materials/:materialId/generate', () => {
     assert.equal(body.data.materialId, OWN_MATERIAL_ID);
     assert.equal(body.data.plan.difficulty, 'medium');
     assert.ok(Array.isArray(body.data.plan.tasks));
+    assert.equal(body.data.savedAt, '2026-01-10T00:00:00.000Z');
   });
 
   it('returns 404 for wrong-owner material', async () => {

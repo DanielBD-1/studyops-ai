@@ -13,6 +13,8 @@ import {
   updateMaterial,
   deleteMaterial,
   generateFromMaterial,
+  getGeneratedPlanByMaterial,
+  deleteGeneratedPlanByMaterial,
 } from './study-materials.service.js';
 
 /**
@@ -116,6 +118,51 @@ export async function update(req, res, next) {
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function getGeneratedPlan(req, res, next) {
+  const parsed = materialIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const result = await getGeneratedPlanByMaterial(req.user.id, parsed.data.materialId);
+    sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function deleteGeneratedPlan(req, res, next) {
+  const parsed = materialIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const result = await deleteGeneratedPlanByMaterial(req.user.id, parsed.data.materialId);
+    sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res

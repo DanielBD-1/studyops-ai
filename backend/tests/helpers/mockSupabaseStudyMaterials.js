@@ -35,8 +35,14 @@ let nextMaterialNumericId = 1;
  *   materialDeleteNullSuccess?: boolean,
  *   materialInsertError?: { code: string, message?: string, details?: string } | null,
  *   ownMaterialGenerateContent?: string,
+ *   generatedPlanUpsertError?: { code: string, message?: string } | null,
  * }} */
 let mockTestOverrides = {};
+
+let nextGeneratedPlanNumericId = 1;
+
+/** @type {Array<{ id: string, study_material_id: string, course_id: string, plan: unknown, created_at: string, updated_at: string }>} */
+const generatedPlans = [];
 
 /**
  * @param {typeof mockTestOverrides} overrides
@@ -47,6 +53,15 @@ export function setStudyMaterialsMockOverrides(overrides) {
 
 export function resetStudyMaterialsMockOverrides() {
   mockTestOverrides = {};
+  generatedPlans.length = 0;
+  nextGeneratedPlanNumericId = 1;
+}
+
+/**
+ * @returns {typeof generatedPlans}
+ */
+export function getMockGeneratedPlans() {
+  return generatedPlans;
 }
 
 /** @type {Array<{ id: string, course_id: string, title: string, content: string, source_type: string, created_at: string, updated_at: string }>} */
@@ -330,6 +345,133 @@ function createCoursesBuilder() {
   return builder;
 }
 
+/**
+ * @param {Record<string, unknown>} state
+ */
+function resolveGeneratedPlansSelect(state) {
+  let rows = generatedPlans.filter((p) => {
+    if (state.filters.study_material_id && p.study_material_id !== state.filters.study_material_id) {
+      return false;
+    }
+    if (state.filters.course_id && p.course_id !== state.filters.course_id) {
+      return false;
+    }
+    return true;
+  });
+
+  if (state.single) {
+    if (rows.length === 0) {
+      return { data: null, error: { code: 'PGRST116', message: 'not found' } };
+    }
+    const row = rows[0];
+    if (state.selectColumns === 'updated_at') {
+      return { data: { updated_at: row.updated_at }, error: null };
+    }
+    return { data: { plan: row.plan, updated_at: row.updated_at }, error: null };
+  }
+
+  return { data: rows, error: null };
+}
+
+/**
+ * @param {Record<string, unknown>} state
+ */
+function resolveGeneratedPlansUpsert(state) {
+  if (mockTestOverrides.generatedPlanUpsertError) {
+    return { data: null, error: mockTestOverrides.generatedPlanUpsertError };
+  }
+
+  const insert = /** @type {{ study_material_id: string, course_id: string, plan: unknown }} */ (
+    state.upsert
+  );
+  const existingIndex = generatedPlans.findIndex(
+    (p) => p.study_material_id === insert.study_material_id
+  );
+
+  if (existingIndex === -1) {
+    const suffix = String(nextGeneratedPlanNumericId++).padStart(12, '0');
+    generatedPlans.push({
+      id: `dddddddd-dddd-4ddd-8ddd-${suffix}`,
+      study_material_id: insert.study_material_id,
+      course_id: insert.course_id,
+      plan: insert.plan,
+      created_at: '2026-01-09T00:00:00.000Z',
+      updated_at: '2026-01-10T00:00:00.000Z',
+    });
+  } else {
+    const existing = generatedPlans[existingIndex];
+    existing.course_id = insert.course_id;
+    existing.plan = insert.plan;
+    existing.updated_at = '2026-01-10T00:00:00.000Z';
+  }
+
+  const row = generatedPlans.find((p) => p.study_material_id === insert.study_material_id);
+  return { data: { updated_at: row.updated_at }, error: null };
+}
+
+/**
+ * @param {Record<string, unknown>} state
+ */
+function resolveGeneratedPlansDelete(state) {
+  const index = generatedPlans.findIndex(
+    (p) =>
+      p.study_material_id === state.filters.study_material_id &&
+      p.course_id === state.filters.course_id
+  );
+  if (index === -1) {
+    return { data: null, error: { code: 'PGRST116', message: 'not found' } };
+  }
+  const [removed] = generatedPlans.splice(index, 1);
+  return { data: { id: removed.id }, error: null };
+}
+
+function createGeneratedPlansBuilder() {
+  /** @type {Record<string, unknown>} */
+  const state = {
+    filters: {},
+    single: false,
+    selectColumns: 'plan, updated_at',
+  };
+
+  const builder = {
+    select(columns) {
+      state.selectColumns = columns;
+      return builder;
+    },
+    upsert(row, _options) {
+      state.upsert = row;
+      state.single = true;
+      return builder;
+    },
+    delete() {
+      state.delete = true;
+      state.single = true;
+      return builder;
+    },
+    eq(column, value) {
+      state.filters[column] = value;
+      return builder;
+    },
+    single() {
+      state.single = true;
+      return builder;
+    },
+    then(onFulfilled, onRejected) {
+      let result;
+      if (state.upsert) {
+        result = resolveGeneratedPlansUpsert(state);
+      } else if (state.delete) {
+        result = resolveGeneratedPlansDelete(state);
+      } else {
+        result = resolveGeneratedPlansSelect(state);
+      }
+      return Promise.resolve(result).then(onFulfilled, onRejected);
+    },
+  };
+
+  return builder;
+}
+
 function createMaterialsBuilder() {
   /** @type {Record<string, unknown>} */
   const state = {
@@ -414,6 +556,9 @@ export function createStudyMaterialsMockSupabaseClient() {
       }
       if (table === 'study_materials') {
         return createMaterialsBuilder();
+      }
+      if (table === 'material_generated_plans') {
+        return createGeneratedPlansBuilder();
       }
       throw new Error(`Unexpected table: ${table}`);
     },
