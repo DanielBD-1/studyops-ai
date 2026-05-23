@@ -1140,9 +1140,7 @@
 **Security notes:** Tests use fake keys and placeholder study text only; no secrets logged; AI output still untrusted until Zod passes.  
 **Pitfalls:** Do not assume prompt hardening guarantees live success (model may still miss mins). Do not spam Generate. **Restart document-service** before next live smoke so new prompt is loaded. Do not restart **2O-c** without explicit approval. On live failure, inspect only safe **`zodPaths`** / error codes — not raw Gemini response.  
 **Tracked follow-ups:**
-- **Restart document-service** before Phase 2O-c live smoke
-- **Next gated step:** `approved — run Phase 2O-c live external AI Generate smoke` — **one** Generate click only; **`GEMINI_MODEL=gemini-2.5-flash-lite`** unless Supervisor explicitly approves another model; short fake material; **no retry loop**
-- Official screenshots **`11-`**, **`15-`** still **pending** until real live Generate succeeds — do not fabricate
+- **Live smoke:** completed — see **`### 2026-05-23 — Phase 2O-c live external AI Generate smoke complete`** below
 - Optional future hardening (non-blocking): align **`keyTopics`** non-empty Zod rule with prompt; consider document-service schema **`.strict()`** alignment with backend in a separate phase
 
 ### 2026-05-23 — Phase 2O-c live external AI Generate smoke complete
