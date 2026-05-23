@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 2L-d (docs alignment; through Phase 2L-c). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**) is documented below.
+**Last aligned:** Phase 3A-a (database only). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**) and **`study_tasks` table** (Phase **3A-a**, applied on Supabase) are documented below. **No** task API or task UI yet.
 
 ---
 
@@ -13,7 +13,7 @@ React frontend (Vite)
     → Express backend (modular monolith, port 3001)
         → document-service POST /process (port 3002)
             → Gemini API (server-side only)
-    → Supabase Auth + PostgreSQL (profiles, courses, study_materials, material_generated_plans)
+    → Supabase Auth + PostgreSQL (profiles, courses, study_materials, material_generated_plans, study_tasks)
 ```
 
 - **ADR 002:** Gemini is called only from `document-service`.
@@ -39,11 +39,13 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 ## Database (Supabase)
 
-**Applied tables:** `public.profiles`, `public.courses`, `public.study_materials`, `public.material_generated_plans`
+**Applied tables:** `public.profiles`, `public.courses`, `public.study_materials`, `public.material_generated_plans`, `public.study_tasks`
 
 **`material_generated_plans` (Phase 2L-a):** One **latest** validated generated plan per `study_material_id` (`UNIQUE`); `plan` jsonb (object, size-capped); RLS for `authenticated`; **`anon` has no access**; backend writes via **service role** with ownership filters (see `docs/database/004-material-generated-plans-schema-and-rls.md`). **No** plan history, failed-attempt rows, raw Gemini payloads, or duplicated material `content`.
 
-**Not created yet:** `study_tasks`, `flashcards` (normalized tables), focus sessions, admin log tables, etc. (PRD future scope). Tasks and flashcards **inside** a generated `plan` JSON are **read-only display** only—not managed entities.
+**`study_tasks` (Phase 3A-a):** Manual study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source = manual` only in DB CHECK for now. **No** backend REST API, **no** frontend task UI, **no** AI plan import into rows yet (see `docs/database/005-study-tasks-schema-and-rls.md`). `difficulty` / `tags` columns exist with defaults; **not editable** in Phase 3A until a separate product approval.
+
+**Not created yet:** `flashcards` (normalized table), focus sessions, admin log tables, etc. (PRD future scope). Tasks and flashcards **inside** a generated `plan` JSON remain **read-only display** only—not managed via plan JSON.
 
 **Study materials ownership:** `study_materials.course_id` → `courses.id` → `courses.user_id` (no `user_id` on materials row). Backend uses service role with explicit ownership filters.
 
@@ -94,7 +96,7 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 - Generated `plan` is **untrusted display data** — validated on the backend immediately before DB write; rendered as plain React text in the UI.
 - Missing saved plan → `404` “Generated plan not found” → **empty state** (not a scary error). Wrong-owner/missing material → neutral `404` “Study material not found”.
 
-**PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. Normalized **`study_tasks` / `flashcards` tables** and management UI remain **deferred** — only latest **plan JSON** is persisted.
+**PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. **`public.study_tasks` table** exists (Phase 3A-a, applied on Supabase); **`study_tasks` backend API/UI** and **`flashcards` table/UI** remain **deferred** — only latest **plan JSON** is persisted.
 
 ---
 
@@ -124,7 +126,7 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 
 ## Deferred / not started (requires separate approval)
 
-- `study_tasks` / `flashcards` **tables** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only)
+- `study_tasks` **backend API and management UI** (Phase 3A-b/c/d — table exists from 3A-a); `flashcards` **table** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello sync UI and backend
@@ -132,7 +134,7 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 - Admin dashboard and logs
 - Focus sessions
 - Production deployment strategy
-- **`DESIGN.md` v2** (Phase 2I-c) and **frontend styling pass** (Phase 2J) are **complete** — presentation only; pending design screenshots `11-`, `15-` are separate (see `docs/design/SCREENSHOT_INDEX.md`)
+- **`DESIGN.md` v2** (Phase 2I-c) and **frontend styling pass** (Phase 2J) are **complete** — presentation only; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`)
 - Pre-commit secret scanning (optional future)
 - `eslint-plugin-react` for stricter JSX unused-import lint (optional future)
 
@@ -140,7 +142,7 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 
 ## Manual smoke — persisted generated plan (Phase 2L-d)
 
-**Docs checklist only** — run locally when validating behavior; **not** automated in CI. **Do not** call live Gemini in `npm test` / CI. Screenshot capture (`11-`, `15-`) is **separate** — see [Pending design screenshots](#pending-design-screenshots).
+**Docs checklist only** — run locally when validating behavior; **not** automated in CI. **Do not** call live Gemini in `npm test` / CI. Design screenshot status (`11-` captured, `15-` pending) is **separate** — see [Design screenshots](#design-screenshots).
 
 | # | Step | Expected |
 |---|------|----------|
@@ -157,10 +159,10 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 | 11 | Save → Generate | Works; persists after refresh |
 | 12 | Plan in DOM | Plain text nodes only — no `dangerouslySetInnerHTML` |
 
-### Pending design screenshots
+### Design screenshots
 
-- **`11-generated-plan-visible.png`** — **Pending** (do not fabricate). Phase 2K-a smoke reached processing UI but **Gemini HTTP 429** blocked plan capture; persistence UI can be captured when quota allows. Should show read-only plan with **saved-as-latest** disclaimer and optional **Last saved**.
-- **`15-processing-with-ai.png`** — **Pending** (do not fabricate). Processing UI was observed in 2K-a; capture when convenient.
+- **`11-generated-plan-visible.png`** — **Captured** (Phase 2K-c). Screenshot taken from the **already-saved** generated plan after Phase 2O-c live external AI smoke; **no** additional Generate click during capture. Shows read-only plan with **saved-as-latest** disclaimer and optional **Last saved** (see `docs/design/screenshots/11-generated-plan-visible.png`).
+- **`15-processing-with-ai.png`** — **Pending** (do not fabricate). Requires a **separately approved** live Generate attempt to capture the “Processing with AI…” frame; processing UI was observed in earlier 2K-a/2K-b attempts but the official PNG is not in the repo yet.
 
 ---
 
