@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 3A-a (database only). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**) and **`study_tasks` table** (Phase **3A-a**, applied on Supabase) are documented below. **No** task API or task UI yet.
+**Last aligned:** Phase 3A-b (backend API). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**, applied on Supabase), and **`study_tasks` backend API** (Phase **3A-b**) are documented below. **No** frontend task UI yet.
 
 ---
 
@@ -43,7 +43,9 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 **`material_generated_plans` (Phase 2L-a):** One **latest** validated generated plan per `study_material_id` (`UNIQUE`); `plan` jsonb (object, size-capped); RLS for `authenticated`; **`anon` has no access**; backend writes via **service role** with ownership filters (see `docs/database/004-material-generated-plans-schema-and-rls.md`). **No** plan history, failed-attempt rows, raw Gemini payloads, or duplicated material `content`.
 
-**`study_tasks` (Phase 3A-a):** Manual study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source = manual` only in DB CHECK for now. **No** backend REST API, **no** frontend task UI, **no** AI plan import into rows yet (see `docs/database/005-study-tasks-schema-and-rls.md`). `difficulty` / `tags` columns exist with defaults; **not editable** in Phase 3A until a separate product approval.
+**`study_tasks` (Phase 3A-a):** Manual study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source = manual` only in DB CHECK for now. Table **applied and verified** on Supabase (see `docs/database/005-study-tasks-schema-and-rls.md`). **No** AI plan import into rows yet.
+
+**`study_tasks` backend API (Phase 3A-b):** Express routes with **`requireAuth`**; service-role queries always filter by authenticated `user_id`. **No** frontend task UI. Task responses are **camelCase** and do **not** include `userId`, study material `content`, or generated `plan` JSON. **`difficulty`** / **`tags`** are returned (defaults on create) but **not client-editable**. **`status`** is **not** PATCHable — use **`POST /api/tasks/:taskId/complete`** only. Wrong-owner or missing task → neutral **`404`** “Task not found”.
 
 **Not created yet:** `flashcards` (normalized table), focus sessions, admin log tables, etc. (PRD future scope). Tasks and flashcards **inside** a generated `plan` JSON remain **read-only display** only—not managed via plan JSON.
 
@@ -96,7 +98,32 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 - Generated `plan` is **untrusted display data** — validated on the backend immediately before DB write; rendered as plain React text in the UI.
 - Missing saved plan → `404` “Generated plan not found” → **empty state** (not a scary error). Wrong-owner/missing material → neutral `404` “Study material not found”.
 
-**PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. **`public.study_tasks` table** exists (Phase 3A-a, applied on Supabase); **`study_tasks` backend API/UI** and **`flashcards` table/UI** remain **deferred** — only latest **plan JSON** is persisted.
+**PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. **`flashcards` table/UI** remain **deferred** — only latest **plan JSON** is persisted for materials.
+
+---
+
+## Implemented — Study tasks (backend API, Phase 3A-b)
+
+Manual **`study_tasks`** management via the main backend only (not document-service, not direct Supabase from the browser). All routes **`requireAuth`**.
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/api/courses/:id/tasks` | List tasks for an **owned** course (`?status=pending` \| `completed` optional) |
+| `POST` | `/api/courses/:id/tasks` | Create task — body: `title`, `estimatedMinutes`, optional `description`, `priority`, `materialId` |
+| `GET` | `/api/tasks` | List caller’s tasks (`?courseId`, `?status` optional) |
+| `PATCH` | `/api/tasks/:taskId` | Update allowed fields only (see below) |
+| `POST` | `/api/tasks/:taskId/complete` | Mark **completed** — body **`{}` strict**; idempotent if already completed |
+| `DELETE` | `/api/tasks/:taskId` | Delete owned task |
+
+**Create (server-set, not in body):** `user_id` from JWT; `course_id` from route; `difficulty` = `medium`; `tags` = `[]`; `source` = `manual`; `status` = `pending`.
+
+**PATCH allowed fields:** `title`, `description`, `priority`, `estimatedMinutes`, `materialId` (nullable to unlink). **Rejected in body:** `status`, `difficulty`, `tags`, `source`, `userId` / `user_id`, `courseId` / `course_id`, Trello fields, unknown keys (Zod **strict**).
+
+**`materialId`:** Optional on create; on create/PATCH, material must belong to the **same owned course** as the task (or route course). Otherwise neutral **`404`** “Study material not found”.
+
+**Ownership / errors:** Wrong-owner or missing course → **`404`** “Course not found”. Wrong-owner or missing task → **`404`** “Task not found”. Responses do **not** expose other users’ task existence.
+
+**Not implemented:** `GET /api/tasks/:id` (PRD) — intentionally deferred. **No** frontend routes for tasks yet (`/tasks`, course task UI — Phase 3A-c/d). **No** Trello sync, focus sessions, dashboard metrics, admin, or import from `material_generated_plans.plan` into `study_tasks`.
 
 ---
 
@@ -120,13 +147,13 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 | `/courses/:id` | Course detail + materials list/create |
 | `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan** |
 
-**Not implemented:** `/courses/:id/generate`, `/tasks`, `/flashcards`, `/trello`, `/focus/:taskId`, `/admin` (PRD future)
+**Not implemented:** `/courses/:id/generate`, `/tasks` (global task UI), course-level **task management UI**, `/flashcards`, `/trello`, `/focus/:taskId`, `/admin` (PRD future). Backend **`/api/tasks`** and **`/api/courses/:id/tasks`** exist for future UI wiring.
 
 ---
 
 ## Deferred / not started (requires separate approval)
 
-- `study_tasks` **backend API and management UI** (Phase 3A-b/c/d — table exists from 3A-a); `flashcards` **table** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only)
+- `study_tasks` **frontend management UI** (Phase 3A-c course-level, 3A-d global `/tasks` — backend API exists from 3A-b); `flashcards` **table** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello sync UI and backend
