@@ -16,36 +16,50 @@ export function buildGeminiPrompt(studyText) {
 Study Material:
 ${studyText}
 
-Generate a JSON response with this exact structure:
+Return a single JSON object only. Use exactly this object shape (no extra top-level or nested properties):
 {
-  "summary": "A 2-3 sentence summary of the material",
-  "keyTopics": ["topic1", "topic2"],
-  "difficulty": "easy" | "medium" | "hard",
+  "summary": "A summary of at least 50 characters describing the material in full sentences.",
+  "keyTopics": ["topic one", "topic two"],
+  "difficulty": "medium",
   "tasks": [
     {
-      "title": "Task title",
-      "description": "Detailed description",
-      "priority": "low" | "medium" | "high",
+      "title": "Task title here",
+      "description": "Detailed task description for the learner.",
+      "priority": "medium",
       "estimatedMinutes": 30,
-      "difficulty": "easy" | "medium" | "hard",
+      "difficulty": "medium",
       "tags": ["tag1", "tag2"]
     }
   ],
   "flashcards": [
     {
-      "question": "Question text",
-      "answer": "Answer text",
-      "tags": ["tag1", "tag2"]
+      "question": "What is the main concept covered in this material?",
+      "answer": "A complete explanation of the concept in at least ten characters.",
+      "tags": ["tag1"]
     }
   ]
 }
 
-Requirements:
-- summary: 50-2000 characters
-- keyTopics: 1-10 items
-- tasks: 1-20 items, each 5-480 minutes
-- flashcards: 1-30 items
-- Respond ONLY with valid JSON, no other text`;
+Output rules:
+- Return one JSON object only. No markdown fences. No commentary before or after the JSON.
+- Do not add properties beyond those shown above.
+
+Schema contract (all required):
+- summary: string, 50 to 2000 characters (write enough content to meet the minimum).
+- keyTopics: array of 1 to 10 non-empty strings.
+- difficulty: exactly one of "easy", "medium", or "hard".
+- tasks: array of 1 to 20 objects. Each task:
+  - title: at least 3 characters.
+  - description: string, 0 to 1000 characters.
+  - priority: exactly "low", "medium", or "high".
+  - estimatedMinutes: integer (whole number) from 5 to 480.
+  - difficulty: exactly "easy", "medium", or "hard".
+  - tags: array with at most 5 strings.
+- flashcards: array of 1 to 30 objects. Each flashcard:
+  - question: at least 10 characters.
+  - answer: at least 10 characters; use a complete explanation, not a one-word answer.
+  - tags: array with at most 5 strings.
+- If a flashcard answer would be shorter than 10 characters, expand it until it satisfies the minimum.`;
 }
 
 /**

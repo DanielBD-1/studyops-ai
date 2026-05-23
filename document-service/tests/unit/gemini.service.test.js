@@ -3,11 +3,14 @@ import assert from 'node:assert/strict';
 import { AppError } from '../../src/errors.js';
 import { resetEnvForTests } from '../../src/config/env.js';
 import {
+  buildGeminiPrompt,
   callGeminiApi,
   extractJsonText,
   generateStudyPlan,
   parseAndValidateGeminiOutput,
 } from '../../src/services/gemini.service.js';
+
+const PROMPT_PLACEHOLDER = 'x'.repeat(100);
 import { PRD_VALID_GEMINI_OUTPUT } from '../helpers/fixtures.js';
 
 /** @param {unknown} url */
@@ -30,6 +33,64 @@ function geminiSuccessFetch() {
     }),
   });
 }
+
+describe('buildGeminiPrompt', () => {
+  const prompt = buildGeminiPrompt(PROMPT_PLACEHOLDER);
+
+  it('requires JSON-only output without markdown or commentary', () => {
+    assert.match(prompt, /single JSON object only/i);
+    assert.match(prompt, /No markdown fences/i);
+    assert.match(prompt, /No commentary before or after/i);
+  });
+
+  it('forbids extra properties beyond the expected shape', () => {
+    assert.match(prompt, /no extra top-level or nested properties/i);
+    assert.match(prompt, /Do not add properties beyond/i);
+  });
+
+  it('states summary minimum of 50 characters', () => {
+    assert.match(prompt, /summary:.*50.*2000 characters/i);
+    assert.doesNotMatch(prompt, /2-3 sentence/i);
+  });
+
+  it('states keyTopics count and non-empty strings', () => {
+    assert.match(prompt, /keyTopics:.*1 to 10 non-empty strings/i);
+  });
+
+  it('states allowed difficulty enum literals', () => {
+    assert.match(prompt, /difficulty: exactly one of "easy", "medium", or "hard"/i);
+  });
+
+  it('states task array bounds and field minimums', () => {
+    assert.match(prompt, /tasks: array of 1 to 20 objects/i);
+    assert.match(prompt, /title: at least 3 characters/i);
+    assert.match(prompt, /description: string, 0 to 1000 characters/i);
+  });
+
+  it('states task priority enum literals', () => {
+    assert.match(prompt, /priority: exactly "low", "medium", or "high"/i);
+  });
+
+  it('states estimatedMinutes integer range 5-480', () => {
+    assert.match(prompt, /estimatedMinutes: integer.*5 to 480/i);
+  });
+
+  it('states tags maximum of 5 strings', () => {
+    assert.match(prompt, /tags: array with at most 5 strings/g);
+  });
+
+  it('states flashcard array bounds and minimum lengths', () => {
+    assert.match(prompt, /flashcards: array of 1 to 30 objects/i);
+    assert.match(prompt, /question: at least 10 characters/i);
+    assert.match(prompt, /answer: at least 10 characters/i);
+    assert.match(prompt, /complete explanation, not a one-word answer/i);
+    assert.match(prompt, /expand it until it satisfies the minimum/i);
+  });
+
+  it('embeds study material placeholder without logging full prompt in test', () => {
+    assert.ok(prompt.includes(PROMPT_PLACEHOLDER));
+  });
+});
 
 describe('gemini.service helpers', () => {
   it('extractJsonText strips markdown fences', () => {

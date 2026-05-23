@@ -16,4 +16,21 @@ describe('GeminiOutputSchema', () => {
     });
     assert.equal(result.success, false);
   });
+
+  it('rejects flashcard answer shorter than 10 characters', () => {
+    const result = GeminiOutputSchema.safeParse({
+      ...PRD_VALID_GEMINI_OUTPUT,
+      flashcards: [
+        {
+          ...PRD_VALID_GEMINI_OUTPUT.flashcards[0],
+          answer: 'short',
+        },
+      ],
+    });
+    assert.equal(result.success, false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join('.'));
+      assert.ok(paths.some((p) => p.includes('flashcards') && p.includes('answer')));
+    }
+  });
 });
