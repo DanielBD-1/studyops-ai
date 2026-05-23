@@ -1,9 +1,7 @@
-import { getEnv } from '../config/env.js';
+import { DEFAULT_GEMINI_MODEL, getEnv } from '../config/env.js';
 import { AppError } from '../errors.js';
 import { GeminiOutputSchema } from '../schemas/gemini.schema.js';
 import { logGeminiEvent } from '../utils/logger.js';
-
-const GEMINI_MODEL = 'gemini-2.0-flash';
 const GEMINI_TIMEOUT_MS = 30_000;
 const GEMINI_API_BASE =
   'https://generativelanguage.googleapis.com/v1beta/models';
@@ -170,7 +168,7 @@ async function handleGeminiHttpResponse(response, studyTextLength) {
  * @param {{ apiKey: string, fetchFn?: typeof fetch, model?: string }} options
  */
 export async function callGeminiApi(studyText, options) {
-  const { apiKey, fetchFn = fetch, model = GEMINI_MODEL } = options;
+  const { apiKey, fetchFn = fetch, model = DEFAULT_GEMINI_MODEL } = options;
   const studyTextLength = studyText.length;
   const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const prompt = buildGeminiPrompt(studyText);
@@ -250,6 +248,6 @@ export async function callGeminiApi(studyText, options) {
  * @param {string} studyText
  */
 export async function generateStudyPlan(studyText) {
-  const { GEMINI_API_KEY } = getEnv();
-  return callGeminiApi(studyText, { apiKey: GEMINI_API_KEY });
+  const { GEMINI_API_KEY, GEMINI_MODEL } = getEnv();
+  return callGeminiApi(studyText, { apiKey: GEMINI_API_KEY, model: GEMINI_MODEL });
 }

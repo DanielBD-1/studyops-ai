@@ -67,7 +67,7 @@ cp frontend/.env.example frontend/.env
 | Package | Variables | Security |
 |---------|-----------|----------|
 | **backend** | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DOCUMENT_SERVICE_URL`, `FRONTEND_URL`, `PORT` | Service role **backend only** |
-| **document-service** | `GEMINI_API_KEY`, `PORT` | Gemini key **never** in frontend or backend |
+| **document-service** | `GEMINI_API_KEY`, `GEMINI_MODEL` (optional, default `gemini-2.5-flash-lite`), `PORT` | Gemini key **never** in frontend or backend |
 | **frontend** | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Calls backend API only |
 
 Zod validates env at startup (backend, document-service) or app load (frontend). Invalid config fails fast without logging secret values.
