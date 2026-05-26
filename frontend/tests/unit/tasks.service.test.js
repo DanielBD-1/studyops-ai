@@ -12,6 +12,7 @@ import {
 
 const COURSE_ID = '33333333-3333-4333-8333-333333333333';
 const TASK_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const MATERIAL_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const TOKEN = 'test-access-token';
 
 const MOCK_TASK = {
@@ -144,6 +145,38 @@ describe('tasks.service', () => {
     );
   });
 
+  it('createCourseTask includes materialId when provided', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { task: MOCK_TASK },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await createCourseTask(COURSE_ID, {
+      title: 'Read chapter 1',
+      estimatedMinutes: 30,
+      description: 'Focus on definitions',
+      priority: 'high',
+      materialId: MATERIAL_ID,
+    });
+    assert.equal(data.task.title, 'Read chapter 1');
+    assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks`);
+    assert.equal(calls[0].init.method, 'POST');
+    assert.equal(
+      calls[0].init.body,
+      JSON.stringify({
+        title: 'Read chapter 1',
+        estimatedMinutes: 30,
+        description: 'Focus on definitions',
+        priority: 'high',
+        materialId: MATERIAL_ID,
+      })
+    );
+  });
+
   it('updateTask PATCHes allowed fields only', async () => {
     __setApiFetchForTests(async (path, init, accessToken) => {
       calls.push({ path, init, token: accessToken });
@@ -170,6 +203,72 @@ describe('tasks.service', () => {
         estimatedMinutes: 45,
         description: 'Revised notes',
         priority: 'high',
+      })
+    );
+  });
+
+  it('updateTask PATCHes materialId when provided', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { task: { ...MOCK_TASK, materialId: MATERIAL_ID } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await updateTask(TASK_ID, {
+      title: 'Updated task title name',
+      estimatedMinutes: 45,
+      description: 'Revised notes',
+      priority: 'high',
+      materialId: MATERIAL_ID,
+    });
+
+    assert.equal(data.task.materialId, MATERIAL_ID);
+    assert.equal(calls[0].path, `/api/tasks/${TASK_ID}`);
+    assert.equal(calls[0].init.method, 'PATCH');
+    assert.equal(
+      calls[0].init.body,
+      JSON.stringify({
+        title: 'Updated task title name',
+        estimatedMinutes: 45,
+        description: 'Revised notes',
+        priority: 'high',
+        materialId: MATERIAL_ID,
+      })
+    );
+  });
+
+  it('updateTask PATCHes materialId:null to unlink', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { task: { ...MOCK_TASK, materialId: null } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await updateTask(TASK_ID, {
+      title: 'Updated task title name',
+      estimatedMinutes: 45,
+      description: 'Revised notes',
+      priority: 'high',
+      materialId: null,
+    });
+
+    assert.equal(data.task.materialId, null);
+    assert.equal(calls[0].path, `/api/tasks/${TASK_ID}`);
+    assert.equal(calls[0].init.method, 'PATCH');
+    assert.equal(
+      calls[0].init.body,
+      JSON.stringify({
+        title: 'Updated task title name',
+        estimatedMinutes: 45,
+        description: 'Revised notes',
+        priority: 'high',
+        materialId: null,
       })
     );
   });

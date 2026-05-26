@@ -93,7 +93,13 @@ export async function listCourseTasks(courseId, status) {
 
 /**
  * @param {string} courseId
- * @param {{ title: string, estimatedMinutes: number, description?: string, priority?: 'low' | 'medium' | 'high' }} body
+ * @param {{
+ *   title: string,
+ *   estimatedMinutes: number,
+ *   description?: string,
+ *   priority?: 'low' | 'medium' | 'high',
+ *   materialId?: string | null
+ * }} body
  */
 export async function createCourseTask(courseId, body) {
   const data = await request(`/api/courses/${courseId}/tasks`, {
@@ -105,7 +111,13 @@ export async function createCourseTask(courseId, body) {
 
 /**
  * @param {string} taskId
- * @param {{ title: string, estimatedMinutes: number, description?: string, priority?: 'low' | 'medium' | 'high' }} body
+ * @param {{
+ *   title: string,
+ *   estimatedMinutes: number,
+ *   description?: string,
+ *   priority?: 'low' | 'medium' | 'high',
+ *   materialId?: string | null
+ * }} body
  */
 export async function updateTask(taskId, body) {
   const data = await request(`/api/tasks/${taskId}`, {

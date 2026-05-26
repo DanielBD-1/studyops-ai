@@ -4,7 +4,7 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c/c.1/c.2** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear UI, **`study_tasks` backend API**, and **course-level manual task UI** on `/courses/:id` (list, **All/Pending/Completed filters**, create, **edit pending tasks**, mark complete, delete). **Completed** tasks are not editable. Filters are course-level only. There is **no** global `/tasks` page yet (Phase **3A-d** deferred). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (`materialId` linking, generated-plan import into tasks, global `/tasks`, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c/c.1/c.2/c.3** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear UI, **`study_tasks` backend API**, and **course-level manual task UI** on `/courses/:id` (list, **All/Pending/Completed filters**, create, **edit pending tasks**, optional **link/unlink study materials**, mark complete, delete). **Completed** tasks are not editable. Filters and material linking are course-level only. There is **no** global `/tasks` page yet (Phase **3A-d** deferred). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (material navigation/filtering, generated-plan import into tasks, global `/tasks`, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
@@ -12,7 +12,7 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Courses** — CRUD API + UI
 - **Study materials** — CRUD API + UI (`/study-materials/:materialId`)
 - **AI generate (persisted latest plan)** — save material → **Generate study plan** → latest plan stored per material → **reloads on refresh** → **Clear plan** removes saved plan via backend; read-only plain-text display (not task/flashcard management)
-- **Study tasks (course UI)** — on `/courses/:id`: **All/Pending/Completed filters**, list, create, **edit pending** tasks (`PATCH`), mark complete, delete via backend API (Bearer JWT); loading/empty/error states; **completed** tasks are read-only (no edit); filters are course-level and in-memory only; **no** global `/tasks` page; **no** import from generated plan JSON
+- **Study tasks (course UI)** — on `/courses/:id`: **All/Pending/Completed filters**, list, create, **edit pending** tasks (`PATCH`), optional **link/unlink** to existing course study materials (`materialId` on create/PATCH), mark complete, delete via backend API (Bearer JWT); loading/empty/error states; **completed** tasks are read-only (no edit); filters are course-level and in-memory only; **no** global `/tasks` page; **no** import from generated plan JSON
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 

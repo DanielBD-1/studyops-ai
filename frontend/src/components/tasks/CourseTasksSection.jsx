@@ -20,10 +20,11 @@ import Textarea from '../ui/Textarea.jsx';
 /**
  * @param {{
  *   courseId: string,
+ *   materials: import('../../services/study-materials.service.js').MaterialSummary[],
  *   handleAuthError: (err: unknown) => Promise<boolean>,
  * }} props
  */
-export default function CourseTasksSection({ courseId, handleAuthError }) {
+export default function CourseTasksSection({ courseId, materials, handleAuthError }) {
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
@@ -50,12 +51,16 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     /** @type {'all' | 'pending' | 'completed'} */ ('all')
   );
 
+  const [createMaterialId, setCreateMaterialId] = useState('');
+  const [editMaterialId, setEditMaterialId] = useState('');
+
   function cancelEdit() {
     setEditingTaskId(null);
     setEditTitle('');
     setEditEstimatedMinutes('');
     setEditDescription('');
     setEditPriority('medium');
+    setEditMaterialId('');
     setEditError(null);
   }
 
@@ -70,6 +75,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     setEditEstimatedMinutes(String(task.estimatedMinutes));
     setEditDescription(task.description ?? '');
     setEditPriority(task.priority);
+    setEditMaterialId(task.materialId ?? '');
     setEditError(null);
     setActionError(null);
   }
@@ -105,6 +111,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     cancelEdit();
     setShowCreate(false);
     setCreateError(null);
+    setCreateMaterialId('');
     setActionError(null);
     setStatusFilter(filter);
   }
@@ -122,13 +129,20 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
       estimatedMinutes,
       description: description.trim() === '' ? undefined : description,
       priority,
+      materialId: createMaterialId === '' ? undefined : createMaterialId,
     });
     if (!parsed.success) {
       setCreateError(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
     }
 
-    /** @type {{ title: string, estimatedMinutes: number, description?: string, priority?: 'low' | 'medium' | 'high' }} */
+    /** @type {{
+     *   title: string,
+     *   estimatedMinutes: number,
+     *   description?: string,
+     *   priority?: 'low' | 'medium' | 'high',
+     *   materialId?: string
+     * }} */
     const body = {
       title: parsed.data.title,
       estimatedMinutes: parsed.data.estimatedMinutes,
@@ -139,6 +153,9 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     if (parsed.data.priority !== undefined) {
       body.priority = parsed.data.priority;
     }
+    if (parsed.data.materialId !== undefined) {
+      body.materialId = parsed.data.materialId;
+    }
 
     setCreating(true);
     try {
@@ -147,6 +164,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
       setEstimatedMinutes('');
       setDescription('');
       setPriority('medium');
+      setCreateMaterialId('');
       setShowCreate(false);
       await loadTasks();
     } catch (err) {
@@ -172,18 +190,20 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
       estimatedMinutes: editEstimatedMinutes,
       description: editDescription,
       priority: editPriority,
+      materialId: editMaterialId === '' ? null : editMaterialId,
     });
     if (!parsed.success) {
       setEditError(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
     }
 
-    /** @type {{ title: string, estimatedMinutes: number, description: string, priority: 'low' | 'medium' | 'high' }} */
+    /** @type {{ title: string, estimatedMinutes: number, description: string, priority: 'low' | 'medium' | 'high', materialId: string | null }} */
     const body = {
       title: parsed.data.title,
       estimatedMinutes: parsed.data.estimatedMinutes,
       description: parsed.data.description?.trim() ?? '',
       priority: parsed.data.priority ?? editPriority,
+      materialId: parsed.data.materialId ?? null,
     };
 
     setSavingEdit(true);
@@ -251,6 +271,10 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     { value: 'completed', label: 'Completed' },
   ];
 
+  const materialTitleById = new Map(
+    (materials ?? []).map((m) => [m.id, m.title])
+  );
+
   return (
     <section className="section">
       <h2 className="section__title">Study tasks</h2>
@@ -287,6 +311,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
           actionLabel="Add study task"
           onAction={() => {
             cancelEdit();
+            setCreateMaterialId('');
             setShowCreate(true);
           }}
         />
@@ -336,6 +361,28 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
                       <option value="high">High</option>
                     </select>
                   </label>
+                  <label htmlFor={`task-material-edit-${task.id}`} className="field">
+                    Link to material (optional)
+                    <select
+                      id={`task-material-edit-${task.id}`}
+                      value={editMaterialId}
+                      onChange={(e) => setEditMaterialId(e.target.value)}
+                      className="field__select"
+                    >
+                      <option value="">None</option>
+                      {task.materialId &&
+                      !materialTitleById.has(task.materialId) ? (
+                        <option value={task.materialId}>
+                          Linked material unavailable
+                        </option>
+                      ) : null}
+                      {(materials ?? []).map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <Textarea
                     id={`task-description-edit-${task.id}`}
                     label="Description (optional)"
@@ -369,6 +416,11 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
                 editing={editingTaskId !== null}
                 completing={completingId === task.id}
                 deleting={deletingId === task.id}
+                materialLabel={
+                  task.materialId
+                    ? materialTitleById.get(task.materialId) ?? null
+                    : null
+                }
                 disabled={busy}
               />
             )
@@ -384,6 +436,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
             variant="primary"
             onClick={() => {
               cancelEdit();
+              setCreateMaterialId('');
               setShowCreate(true);
             }}
             disabled={busy}
@@ -427,6 +480,22 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
                   <option value="high">High</option>
                 </select>
               </label>
+              <label htmlFor="task-material-create" className="field">
+                Link to material (optional)
+                <select
+                  id="task-material-create"
+                  value={createMaterialId}
+                  onChange={(e) => setCreateMaterialId(e.target.value)}
+                  className="field__select"
+                >
+                  <option value="">None</option>
+                  {(materials ?? []).map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <Textarea
                 id="task-description-create"
                 label="Description (optional)"
@@ -446,6 +515,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
                   onClick={() => {
                     setShowCreate(false);
                     setCreateError(null);
+                    setCreateMaterialId('');
                   }}
                 >
                   Cancel
