@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 3A-e (create task on global `/tasks` page). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), and **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`) are documented below.
+**Last aligned:** Phase 3A-f (generated plan → `study_tasks` import). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), and **plan → task import** (Phase **3A-f**) are documented below.
 
 ---
 
@@ -43,11 +43,11 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 **`material_generated_plans` (Phase 2L-a):** One **latest** validated generated plan per `study_material_id` (`UNIQUE`); `plan` jsonb (object, size-capped); RLS for `authenticated`; **`anon` has no access**; backend writes via **service role** with ownership filters (see `docs/database/004-material-generated-plans-schema-and-rls.md`). **No** plan history, failed-attempt rows, raw Gemini payloads, or duplicated material `content`.
 
-**`study_tasks` (Phase 3A-a):** Manual study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source = manual` only in DB CHECK for now. Table **applied and verified** on Supabase (see `docs/database/005-study-tasks-schema-and-rls.md`). **No** AI plan import into rows yet.
+**`study_tasks` (Phase 3A-a):** Manual study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source = manual` only in DB CHECK for now. Table **applied and verified** on Supabase (see `docs/database/005-study-tasks-schema-and-rls.md`). **Frontend import** from saved generated `plan.tasks` (Phase **3A-f**) creates rows via existing create API — still stored as `source = manual` server-side.
 
-**`study_tasks` backend API (Phase 3A-b):** Express routes with **`requireAuth`**; service-role queries always filter by authenticated `user_id`. Task responses are **camelCase** and do **not** include `userId`, study material `content`, or generated `plan` JSON. **`difficulty`** / **`tags`** are returned (defaults on create) but **not client-editable**. **`status`** is **not** PATCHable — use **`POST /api/tasks/:taskId/complete`** only. Wrong-owner or missing task → neutral **`404`** “Task not found”. **Frontend** task UI: course-level Phases **3A-c**–**3A-c.3** and global Phases **3A-d**–**3A-e** (below).
+**`study_tasks` backend API (Phase 3A-b):** Express routes with **`requireAuth`**; service-role queries always filter by authenticated `user_id`. Task responses are **camelCase** and do **not** include `userId`, study material `content`, or generated `plan` JSON. **`difficulty`** / **`tags`** are returned (defaults on create) but **not client-editable**. **`status`** is **not** PATCHable — use **`POST /api/tasks/:taskId/complete`** only. Wrong-owner or missing task → neutral **`404`** “Task not found”. **Frontend** task UI: course-level Phases **3A-c**–**3A-c.3**, global Phases **3A-d**–**3A-e**, and plan import Phase **3A-f** (below).
 
-**Not created yet:** `flashcards` (normalized table), focus sessions, admin log tables, etc. (PRD future scope). Tasks and flashcards **inside** a generated `plan` JSON remain **read-only display** only—not managed via plan JSON.
+**Not created yet:** `flashcards` (normalized table), focus sessions, admin log tables, etc. (PRD future scope). **Plan task import** (3A-f) copies `plan.tasks[]` into `study_tasks` only — **flashcards** in plan JSON remain **read-only display**; no flashcard table import.
 
 **Study materials ownership:** `study_materials.course_id` → `courses.id` → `courses.user_id` (no `user_id` on materials row). Backend uses service role with explicit ownership filters.
 
@@ -87,7 +87,7 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 |-------|-------------|
 | **document-service** | `POST /process` — body `{ studyText }` (100–50k chars); Gemini via `GEMINI_API_KEY`; output validated with PRD §8 schema; **internal only** |
 | **backend** | `POST /api/study-materials/:materialId/generate` — body **`{}` strict**; `requireAuth`; ownership before reading saved `content`; one document-service call; **Zod-validates** plan before **UPSERT** to `material_generated_plans`; returns `{ materialId, courseId, plan, savedAt }`. `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` for load/clear. **No** client-supplied plan JSON; **no** raw Gemini storage; **no** failed-generate persistence |
-| **frontend** | **Generate** (`generateMaterial`, body `{}`); **load** saved plan on material detail (`GET`); **Clear** via backend `DELETE`; read-only plain-text display (summary, key topics, difficulty, tasks, flashcards); optional **Last saved** from `savedAt`. **No** `localStorage` / `sessionStorage` for plans; **no** direct Supabase plan writes |
+| **frontend** | **Generate** (`generateMaterial`, body `{}`); **load** saved plan on material detail (`GET`); **Clear** via backend `DELETE`; read-only plain-text display (summary, key topics, difficulty, tasks, flashcards); optional **Last saved** from `savedAt`. **Import tasks to course** (Phase **3A-f**) — sequential `POST /api/courses/:courseId/tasks` from visible `plan.tasks` (see below). **No** `localStorage` / `sessionStorage` for plans; **no** direct Supabase plan writes |
 
 **Generate and persistence rules:**
 
@@ -123,7 +123,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 **Ownership / errors:** Wrong-owner or missing course → **`404`** “Course not found”. Wrong-owner or missing task → **`404`** “Task not found”. Responses do **not** expose other users’ task existence.
 
-**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. **No** Trello sync, focus sessions, dashboard metrics, admin, or import from `material_generated_plans.plan` into `study_tasks`.
+**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. **No** Trello sync, focus sessions, dashboard metrics, admin, or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**).
 
 ---
 
@@ -249,6 +249,33 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 ---
 
+## Implemented — Generated plan → study_tasks import (Phase 3A-f)
+
+**Frontend-only** on **`/study-materials/:materialId`** — import **`plan.tasks[]`** from the **already visible** saved/generated plan (in-memory `plan` state) into real **`study_tasks`** via existing **`POST /api/courses/:courseId/tasks`**. **No** backend, database, migration, document-service, Gemini prompt/schema, or dependency changes.
+
+| Aspect | Detail |
+|--------|--------|
+| API | Sequential **`createCourseTask(material.courseId, body)`** — `courseId` in URL only |
+| Mapping | `title`, `estimatedMinutes`, optional `description`, optional `priority`, **`materialId`** = current material |
+| Not imported | summary, keyTopics, plan/task difficulty, tags, flashcards; no `courseId`/`userId`/`status`/`source` in body |
+| Validation | **`buildValidatedImportBodies`** — every body **`createTaskFormSchema.safeParse`** before **any** POST; any failure → **zero** creates, neutral *Plan tasks could not be imported. Try regenerating the plan.* |
+| Execution | Sequential `await`; **stop on first POST failure**; partial message *Imported X of N… duplicates may be created* |
+| UX | **Import tasks to course** in **`GeneratedPlanSection`** when plan has tasks; confirm warns re-import may duplicate; plan **not** auto-cleared; hidden when unsaved material edits / generating / clearing / importing |
+
+**Implementation files:** `frontend/src/utils/plan-import.js`, `frontend/src/pages/StudyMaterialDetail.jsx`, `frontend/src/components/materials/GeneratedPlanSection.jsx`, `frontend/tests/unit/plan-import.test.js`.
+
+**Tests (frontend):** `npm test` **80/80** (+8 plan-import tests). Lint passed (one pre-existing `AuthContext.jsx` warning). Build passed. Backend tests not re-run (backend untouched).
+
+**package.json (test wiring only):** `npm test` script lists `tests/unit/plan-import.test.js` — **no** dependency, devDependency, or `package-lock.json` change (Supervisor + Security: acceptable minimal test discovery).
+
+**Reviews:** Supervisor — approved with notes. Security Review — no blockers.
+
+**Not in 3A-f:** backend batch import; `source = 'plan'`; flashcard import; dedupe beyond confirm; atomic all-or-nothing; `GET /api/tasks/:id`; Trello, focus, dashboard/admin.
+
+**Known limitations:** Imported rows indistinguishable from manual tasks (`source` stays `manual`); re-import can duplicate; partial import possible on mid-loop API failure (max 20 tasks per plan).
+
+---
+
 ## Implemented — Quality / lint (Phase 2G)
 
 - ESLint flat config in `backend/`, `document-service/`, `frontend/`
@@ -268,7 +295,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
-| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan** |
+| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks` (material-linked) |
 
 **Not implemented:** `/courses/:id/generate`, `/flashcards`, `/trello`, `/focus/:taskId`, `/admin` (PRD future).
 
@@ -276,7 +303,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 ## Deferred / not started (requires separate approval)
 
-- Material **navigation** links from task cards; **filtering** tasks by `materialId`; generated-plan → `study_tasks` **import**; `flashcards` **table** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
+- Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system; `flashcards` **table** and **management UI** (plan JSON flashcards remain **read-only**; **plan tasks** import shipped in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello sync UI and backend

@@ -4,16 +4,16 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c/c.1/c.2/c.3/d/e** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear UI, **`study_tasks` backend API**, **course-level manual task UI** on `/courses/:id`, and a protected **All study tasks** page at **`/tasks`** (global list with course/status filters, **create/edit/complete/delete**). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (focus sessions, material navigation/filtering, generated-plan import, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c/c.1/c.2/c.3/d/e/f** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear/**import plan tasks** UI, **`study_tasks` backend API**, **course-level** and **global** task management. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (focus sessions, material navigation/filtering, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
 - **Auth** — register, login, protected routes
 - **Courses** — CRUD API + UI
 - **Study materials** — CRUD API + UI (`/study-materials/:materialId`)
-- **AI generate (persisted latest plan)** — save material → **Generate study plan** → latest plan stored per material → **reloads on refresh** → **Clear plan** removes saved plan via backend; read-only plain-text display (not task/flashcard management)
+- **AI generate (persisted latest plan)** — save material → **Generate study plan** → latest plan stored per material → **reloads on refresh** → **Clear plan** removes saved plan via backend; read-only plain-text display; **Import tasks to course** copies plan tasks into `study_tasks` (linked to that material; appears on course and `/tasks` pages)
 - **Study tasks (course UI)** — on `/courses/:id`: **All/Pending/Completed filters**, list, **create**, **edit pending** tasks (`PATCH`), optional **link/unlink** study materials, mark complete, delete (Bearer JWT)
-- **Study tasks (global UI)** — on **`/tasks`**: protected cross-course list; **course + status filters** (in-memory); **create** (select an owned course, then title/minutes/priority; optional material link via lazy load); **edit pending** (incl. `materialId` via lazy materials load), mark complete, delete; course name links to `/courses/:id`; **no** import from generated plan JSON
+- **Study tasks (global UI)** — on **`/tasks`**: protected cross-course list; **course + status filters** (in-memory); **create**, **edit pending**, mark complete, delete; includes tasks created manually or **imported from a generated plan**
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 

@@ -17,10 +17,15 @@ import {
   getGeneratedPlan,
   deleteGeneratedPlan,
 } from '../services/study-materials.service.js';
+import { createCourseTask } from '../services/tasks.service.js';
 import {
   isGeneratedPlanNotFound,
   isStudyMaterialNotFound,
 } from '../utils/generated-plan-errors.js';
+import {
+  buildValidatedImportBodies,
+  importPlanTasksSequentially,
+} from '../utils/plan-import.js';
 import { updateStudyMaterialFormSchema } from '../utils/validation.js';
 
 export default function StudyMaterialDetail() {
@@ -51,6 +56,10 @@ export default function StudyMaterialDetail() {
   const [generateError, setGenerateError] = useState(/** @type {string | null} */ (null));
   const [clearing, setClearing] = useState(false);
   const [clearError, setClearError] = useState(/** @type {string | null} */ (null));
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState(/** @type {string | null} */ (null));
+  const [importSuccess, setImportSuccess] = useState(/** @type {string | null} */ (null));
+  const [importProgress, setImportProgress] = useState(/** @type {string | null} */ (null));
 
   const hasUnsavedChanges =
     material !== null &&
@@ -59,7 +68,13 @@ export default function StudyMaterialDetail() {
       sourceType !== (material.sourceType === 'paste' ? 'paste' : 'manual'));
 
   const generateDisabled =
-    loading || planLoading || generating || saving || deleting || hasUnsavedChanges;
+    loading ||
+    planLoading ||
+    generating ||
+    saving ||
+    deleting ||
+    importing ||
+    hasUnsavedChanges;
 
   const handleAuthError = useCallback(
     async (err) => {
@@ -205,6 +220,63 @@ export default function StudyMaterialDetail() {
     }
   }
 
+  async function handleImportPlan() {
+    if (!materialId || !material || !plan || importing) return;
+
+    const planTasks = Array.isArray(plan.tasks) ? plan.tasks : [];
+    if (planTasks.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Import ${planTasks.length} tasks from this plan into your study tasks? Importing again may create duplicates.`
+    );
+    if (!confirmed) return;
+
+    setImportError(null);
+    setImportSuccess(null);
+    setImportProgress(null);
+
+    const validated = buildValidatedImportBodies(plan, materialId);
+    if (!validated.success) {
+      setImportError(validated.error);
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const result = await importPlanTasksSequentially(
+        material.courseId,
+        validated.bodies,
+        createCourseTask,
+        (current, total) => {
+          setImportProgress(`Importing task ${current} of ${total}…`);
+        }
+      );
+
+      if (result.success) {
+        setImportSuccess(`Imported ${result.imported} study tasks.`);
+        setImportProgress(null);
+        return;
+      }
+
+      if (await handleAuthError(result.error)) return;
+
+      if (result.imported === 0) {
+        setImportError(
+          result.error instanceof Error
+            ? result.error.message
+            : 'Failed to import study tasks'
+        );
+      } else {
+        setImportError(
+          `Imported ${result.imported} of ${result.total} tasks before an error. You can try again, but duplicates may be created.`
+        );
+      }
+      setImportProgress(null);
+    } finally {
+      setImporting(false);
+    }
+  }
+
   async function handleClearPlan() {
     if (!materialId || clearing) return;
 
@@ -289,6 +361,14 @@ export default function StudyMaterialDetail() {
 
   const showPlanSection = planLoading || plan != null || planLoadError != null;
 
+  const planTasks = plan && Array.isArray(plan.tasks) ? plan.tasks : [];
+  const canImportPlan =
+    planTasks.length > 0 &&
+    !generating &&
+    !clearing &&
+    !importing &&
+    !hasUnsavedChanges;
+
   return (
     <main className="page page--reading">
       <p className="back-link">
@@ -330,7 +410,11 @@ export default function StudyMaterialDetail() {
             required
           />
           {saveError && <ErrorMessage message={saveError} />}
-          <Button type="submit" variant="primary" disabled={saving || deleting || generating}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={saving || deleting || generating || importing}
+          >
             {saving ? 'Saving…' : 'Save changes'}
           </Button>
         </form>
@@ -377,9 +461,22 @@ export default function StudyMaterialDetail() {
               plan={plan}
               savedAt={savedAt}
               onClear={handleClearPlan}
-              clearDisabled={generating || saving || deleting || clearing}
+              clearDisabled={generating || saving || deleting || clearing || importing}
               clearing={clearing}
+              onImport={canImportPlan ? handleImportPlan : undefined}
+              importDisabled={
+                generating || saving || deleting || clearing || importing || hasUnsavedChanges
+              }
+              importing={importing}
+              importProgress={importProgress}
             />
+          )}
+          {importError && plan && !planLoading && <ErrorMessage message={importError} />}
+          {importSuccess && plan && !planLoading && (
+            <p className="plan-panel__status">
+              {importSuccess}{' '}
+              <Link to={`/courses/${material.courseId}`}>View tasks on course</Link>
+            </p>
           )}
           {clearError && plan && !planLoading && (
             <ErrorMessage message={clearError} />
@@ -390,7 +487,11 @@ export default function StudyMaterialDetail() {
       <section className="danger-zone">
         <h2 className="danger-zone__title">Danger zone</h2>
         {deleteError && <ErrorMessage message={deleteError} />}
-        <Button variant="danger" disabled={saving || deleting || generating} onClick={handleDelete}>
+        <Button
+          variant="danger"
+          disabled={saving || deleting || generating || importing}
+          onClick={handleDelete}
+        >
           {deleting ? 'Deleting…' : 'Delete study material'}
         </Button>
       </section>
