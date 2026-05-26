@@ -110,12 +110,15 @@ export const taskEstimatedMinutesSchema = z.coerce
   .min(5, TASK_MINUTES_MESSAGE)
   .max(480, TASK_MINUTES_MESSAGE);
 
+export const materialIdSchema = z.string().uuid('Invalid material id');
+
 export const createTaskFormSchema = z
   .object({
     title: taskTitleSchema,
     estimatedMinutes: taskEstimatedMinutesSchema,
     description: taskDescriptionSchema.optional(),
     priority: taskPrioritySchema.optional(),
+    materialId: materialIdSchema.optional(),
   })
   .strict();
 
@@ -125,5 +128,6 @@ export const updateTaskFormSchema = z
     estimatedMinutes: taskEstimatedMinutesSchema,
     description: taskDescriptionSchema.optional(),
     priority: taskPrioritySchema.optional(),
+    materialId: materialIdSchema.nullable().optional(),
   })
   .strict();

@@ -9,6 +9,7 @@ import Button from '../ui/Button.jsx';
  *   editing: boolean,
  *   completing: boolean,
  *   deleting: boolean,
+ *   materialLabel: string | null,
  *   disabled: boolean,
  * }} props
  */
@@ -20,6 +21,7 @@ export default function TaskCard({
   editing,
   completing,
   deleting,
+  materialLabel,
   disabled,
 }) {
   const isCompleted = task.status === 'completed';
@@ -30,6 +32,9 @@ export default function TaskCard({
       {isCompleted && <p className="source-card__meta">Status: Completed</p>}
       {task.description ? (
         <p className="source-card__meta">{task.description}</p>
+      ) : null}
+      {task.materialId ? (
+        <p className="source-card__meta">Material: {materialLabel ?? 'unavailable'}</p>
       ) : null}
       <p className="source-card__meta">
         Priority: {task.priority} · {task.estimatedMinutes} min

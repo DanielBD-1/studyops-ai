@@ -2,6 +2,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTaskFormSchema, updateTaskFormSchema } from '../../src/utils/validation.js';
 
+const MATERIAL_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
 describe('createTaskFormSchema', () => {
   it('accepts valid create payload', () => {
     const result = createTaskFormSchema.safeParse({
@@ -42,11 +44,29 @@ describe('createTaskFormSchema', () => {
     assert.equal(result.success, false);
   });
 
+  it('accepts valid materialId on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      materialId: MATERIAL_ID,
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('rejects invalid materialId on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      materialId: 'not-a-uuid',
+    });
+    assert.equal(result.success, false);
+  });
+
   it('rejects unknown keys', () => {
     const result = createTaskFormSchema.safeParse({
       title: 'Valid title',
       estimatedMinutes: 30,
-      materialId: '00000000-0000-0000-0000-000000000000',
+      userId: '00000000-0000-0000-0000-000000000000',
     });
     assert.equal(result.success, false);
   });
@@ -87,11 +107,29 @@ describe('updateTaskFormSchema', () => {
     assert.equal(result.success, false);
   });
 
-  it('rejects materialId in PATCH payload', () => {
+  it('accepts materialId UUID on PATCH payload', () => {
     const result = updateTaskFormSchema.safeParse({
       title: 'Valid title',
       estimatedMinutes: 30,
-      materialId: '00000000-0000-0000-0000-000000000000',
+      materialId: MATERIAL_ID,
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('accepts materialId:null on PATCH payload', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      materialId: null,
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('rejects invalid materialId in PATCH payload', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      materialId: 'not-a-uuid',
     });
     assert.equal(result.success, false);
   });

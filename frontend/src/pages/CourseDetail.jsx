@@ -356,7 +356,11 @@ export default function CourseDetail() {
         )}
       </section>
 
-      <CourseTasksSection courseId={id} handleAuthError={handleAuthError} />
+      <CourseTasksSection
+        courseId={id}
+        materials={materials}
+        handleAuthError={handleAuthError}
+      />
 
       <section className="danger-zone">
         <h2 className="danger-zone__title">Danger zone</h2>
