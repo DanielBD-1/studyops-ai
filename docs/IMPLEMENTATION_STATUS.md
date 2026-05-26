@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 3A-f (generated plan → `study_tasks` import). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), and **plan → task import** (Phase **3A-f**) are documented below.
+**Last aligned:** Phase 3B-a (frontend-only flashcard study UI from generated plan). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), and **flashcard study UI** (Phase **3B-a**) are documented below.
 
 ---
 
@@ -275,6 +275,15 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 **Known limitations:** Imported rows indistinguishable from manual tasks (`source` stays `manual`); re-import can duplicate; partial import possible on mid-loop API failure (max 20 tasks per plan).
 
 ---
+## Implemented — Flashcard study UI (Phase 3B-a)
+
+Frontend-only on **`/study-materials/:materialId`** — when `plan.flashcards` exists and length > 0, `GeneratedPlanSection` renders a flip/reveal study UI (`FlashcardStudy`) showing **one card at a time** (question first, **“Show answer”**, answer as plain text), with **Previous/Next** navigation and a **“Card X of N”** counter. Reveal state resets on navigation; current card index resets to `0` when `flashcards` changes. Flashcards are consumed **only** from generated plan JSON persisted per material (`material_generated_plans.plan`); there is **no** `flashcards` table, **no** backend flashcard API, and **no** study-progress persistence. Tags are rendered as plain React text metadata (no HTML injection).
+
+Implementation files: `frontend/src/components/materials/GeneratedPlanSection.jsx`, `frontend/src/components/materials/FlashcardStudy.jsx`, `frontend/src/utils/flashcard-study.js`, `frontend/tests/unit/flashcard-study.test.js`.
+
+Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; `npm run lint` and `npm run build` passed. Reviews: Supervisor approved with notes; Security Review not required (read-only UI; no new writes/API; safe plain-text rendering).
+
+---
 
 ## Implemented — Quality / lint (Phase 2G)
 
@@ -295,7 +304,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
-| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks` (material-linked) |
+| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks` (material-linked), and frontend flashcard study UI for `plan.flashcards` (flip/reveal) |
 
 **Not implemented:** `/courses/:id/generate`, `/flashcards`, `/trello`, `/focus/:taskId`, `/admin` (PRD future).
 
@@ -303,7 +312,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 ## Deferred / not started (requires separate approval)
 
-- Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system; `flashcards` **table** and **management UI** (plan JSON flashcards remain **read-only**; **plan tasks** import shipped in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
+- Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system; `flashcards` **table** and **management UI** (global `/flashcards` page + CRUD; plan JSON flashcards remain **read-only**; material-detail flip/reveal shipped in **3B-a**; **plan tasks** import shipped in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello sync UI and backend

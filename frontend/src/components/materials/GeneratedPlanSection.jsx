@@ -1,4 +1,5 @@
 import Button from '../ui/Button.jsx';
+import FlashcardStudy from './FlashcardStudy.jsx';
 import FormCard from '../ui/FormCard.jsx';
 
 /**
@@ -119,26 +120,7 @@ export default function GeneratedPlanSection({
           </section>
         )}
 
-        {flashcards.length > 0 && (
-          <section className="plan-block">
-            <h3 className="plan-block__title">Flashcards</h3>
-            <ul className="plan-block__list">
-              {flashcards.map((card, index) => (
-                <li key={`${card.question}-${index}`} className="plan-block__item">
-                  <p className="plan-block__body">
-                    <strong>Q:</strong> {card.question}
-                  </p>
-                  <p className="plan-block__body">
-                    <strong>A:</strong> {card.answer}
-                  </p>
-                  {Array.isArray(card.tags) && card.tags.length > 0 ? (
-                    <p className="plan-block__meta">Tags: {card.tags.join(', ')}</p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        {flashcards.length > 0 && <FlashcardStudy flashcards={flashcards} />}
 
         <div className="form-row">
           <Button variant="secondary" onClick={onClear} disabled={clearDisabled || importing}>

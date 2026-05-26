@@ -7,16 +7,16 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **3A-f**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **3B-a**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
 - **`study_tasks`** — manual task table + RLS (Phase **3A-a**); **manual backend API** (Phase **3A-b**); **course-level task UI** on `/courses/:id` (Phases **3A-c**–**3A-c.3**: list, create, filters, edit, `materialId` link/unlink); **global task UI** on `/tasks` (Phases **3A-d**–**3A-e**: cross-course list, course/status filters, **create** with required course picker + optional material link, edit/complete/delete)
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
 - **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
-- **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); plain text rendering
+- **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); **flashcard study UI** from `plan.flashcards` (flip/reveal); plain text rendering
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -35,7 +35,7 @@ This section records **what the repository implements today** (summary only; ali
 | Material **navigation** from tasks; **filter** tasks by `materialId` | **Deferred** |
 | Start Focus; mark incomplete | **Deferred** |
 | Import generated **plan tasks** into **`study_tasks`** (`plan.tasks[]` only; `POST /api/courses/:courseId/tasks`; material-linked; no dedupe/`source='plan'`) | **Yes** (3A-f on `/study-materials/:materialId`) |
-| Flashcard **management UI** / import plan flashcards | **Deferred** — flashcards in plan JSON remain read-only display only |
+| Flashcard **management UI** / import plan flashcards | **Deferred** — flashcards in plan JSON remain read-only display only (material-detail flip/reveal study UI is implemented in **3B-a**; DB-backed CRUD/global `/flashcards` still deferred) |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
 | Table **`flashcards`** | **Not created** |
