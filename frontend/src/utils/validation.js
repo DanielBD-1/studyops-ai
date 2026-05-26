@@ -82,3 +82,39 @@ export const updateStudyMaterialFormSchema = z
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
   });
+
+const TASK_TITLE_MESSAGE = 'Task title must be between 3 and 200 characters';
+
+export const taskTitleSchema = z
+  .string()
+  .trim()
+  .min(3, TASK_TITLE_MESSAGE)
+  .max(200, TASK_TITLE_MESSAGE);
+
+const TASK_DESCRIPTION_MESSAGE = 'Task description must be at most 1000 characters';
+
+export const taskDescriptionSchema = z
+  .string()
+  .trim()
+  .max(1000, TASK_DESCRIPTION_MESSAGE);
+
+export const taskPrioritySchema = z.enum(['low', 'medium', 'high'], {
+  message: 'Priority must be low, medium, or high',
+});
+
+const TASK_MINUTES_MESSAGE = 'Estimated minutes must be between 5 and 480';
+
+export const taskEstimatedMinutesSchema = z.coerce
+  .number({ message: 'Estimated minutes is required' })
+  .int('Estimated minutes must be a whole number')
+  .min(5, TASK_MINUTES_MESSAGE)
+  .max(480, TASK_MINUTES_MESSAGE);
+
+export const createTaskFormSchema = z
+  .object({
+    title: taskTitleSchema,
+    estimatedMinutes: taskEstimatedMinutesSchema,
+    description: taskDescriptionSchema.optional(),
+    priority: taskPrioritySchema.optional(),
+  })
+  .strict();

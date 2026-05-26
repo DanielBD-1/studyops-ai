@@ -1,0 +1,64 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { createTaskFormSchema } from '../../src/utils/validation.js';
+
+describe('createTaskFormSchema', () => {
+  it('accepts valid create payload', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Read chapter 1',
+      estimatedMinutes: 30,
+      description: 'Optional notes',
+      priority: 'high',
+    });
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal(result.data.title, 'Read chapter 1');
+      assert.equal(result.data.estimatedMinutes, 30);
+    }
+  });
+
+  it('rejects title shorter than 3 characters', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'ab',
+      estimatedMinutes: 30,
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('rejects estimatedMinutes out of range', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 4,
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('rejects description longer than 1000 characters', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      description: 'a'.repeat(1001),
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('rejects unknown keys', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      materialId: '00000000-0000-0000-0000-000000000000',
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('coerces estimatedMinutes from string input', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: '45',
+    });
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal(result.data.estimatedMinutes, 45);
+    }
+  });
+});

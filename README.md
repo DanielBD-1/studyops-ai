@@ -4,7 +4,7 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear UI, and a **manual study tasks backend API** (`study_tasks` table on Supabase). There is **still no task UI** (Phase **3A-c/d** deferred). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (task **UI**, generated-plan import into tasks, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear UI, **`study_tasks` backend API**, and **course-level manual task UI** on `/courses/:id` (list, create, mark complete, delete). There is **no** global `/tasks` page yet (Phase **3A-d** deferred). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (task edit/filters, generated-plan import into tasks, global `/tasks`, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
@@ -12,7 +12,7 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Courses** — CRUD API + UI
 - **Study materials** — CRUD API + UI (`/study-materials/:materialId`)
 - **AI generate (persisted latest plan)** — save material → **Generate study plan** → latest plan stored per material → **reloads on refresh** → **Clear plan** removes saved plan via backend; read-only plain-text display (not task/flashcard management)
-- **Study tasks (backend only)** — manual CRUD via `/api/courses/:id/tasks` and `/api/tasks` (Bearer JWT); **no** `/tasks` or course task UI yet; **no** import from generated plan JSON
+- **Study tasks (course UI, MVP)** — on `/courses/:id`: list, create, mark complete, delete manual tasks via backend API (Bearer JWT); loading/empty/error states; **no** global `/tasks` page; **no** edit, filters, or import from generated plan JSON
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 
