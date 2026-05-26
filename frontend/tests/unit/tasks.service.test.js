@@ -2,6 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   listCourseTasks,
+  listAllTasks,
   createCourseTask,
   updateTask,
   completeTask,
@@ -113,6 +114,71 @@ describe('tasks.service', () => {
 
     await listCourseTasks(COURSE_ID, undefined);
     assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks`);
+  });
+
+  it('listAllTasks calls GET /api/tasks with Bearer token', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [MOCK_TASK] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await listAllTasks();
+    assert.equal(data.tasks.length, 1);
+    assert.equal(calls[0].path, '/api/tasks');
+    assert.equal(calls[0].init.method, 'GET');
+    assert.equal(calls[0].token, TOKEN);
+  });
+
+  it('listAllTasks with courseId only sends ?courseId=', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ courseId: COURSE_ID });
+    assert.equal(calls[0].path, `/api/tasks?courseId=${COURSE_ID}`);
+    assert.equal(calls[0].token, TOKEN);
+  });
+
+  it('listAllTasks with status=pending sends ?status=pending', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ status: 'pending' });
+    assert.equal(calls[0].path, '/api/tasks?status=pending');
+    assert.equal(calls[0].token, TOKEN);
+  });
+
+  it('listAllTasks with courseId and status sends both query params', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ courseId: COURSE_ID, status: 'completed' });
+    assert.equal(
+      calls[0].path,
+      `/api/tasks?courseId=${COURSE_ID}&status=completed`
+    );
+    assert.equal(calls[0].token, TOKEN);
   });
 
   it('createCourseTask POSTs allowed fields only', async () => {

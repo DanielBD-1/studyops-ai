@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Button from '../ui/Button.jsx';
 
 /**
@@ -10,6 +11,7 @@ import Button from '../ui/Button.jsx';
  *   completing: boolean,
  *   deleting: boolean,
  *   materialLabel: string | null,
+ *   courseLabel?: { courseId: string, title: string } | null,
  *   disabled: boolean,
  * }} props
  */
@@ -22,6 +24,7 @@ export default function TaskCard({
   completing,
   deleting,
   materialLabel,
+  courseLabel,
   disabled,
 }) {
   const isCompleted = task.status === 'completed';
@@ -29,6 +32,14 @@ export default function TaskCard({
   return (
     <article className="source-card">
       <h3 className="source-card__title">{task.title}</h3>
+      {courseLabel ? (
+        <p className="source-card__meta">
+          Course:{' '}
+          <Link to={`/courses/${courseLabel.courseId}`}>{courseLabel.title}</Link>
+        </p>
+      ) : task.courseId ? (
+        <p className="source-card__meta">Course: unavailable</p>
+      ) : null}
       {isCompleted && <p className="source-card__meta">Status: Completed</p>}
       {task.description ? (
         <p className="source-card__meta">{task.description}</p>

@@ -5,6 +5,7 @@ import RegisterPage from './pages/Register.jsx';
 import DashboardStub from './pages/DashboardStub.jsx';
 import CoursesList from './pages/CoursesList.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
+import TasksPage from './pages/TasksPage.jsx';
 import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 
 export default function App() {
@@ -34,6 +35,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <CourseDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <TasksPage />
             </ProtectedRoute>
           }
         />

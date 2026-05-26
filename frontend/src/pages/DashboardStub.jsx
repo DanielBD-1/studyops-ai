@@ -26,6 +26,8 @@ export default function DashboardStub() {
         )}
         <p className="dashboard-actions">
           <Link to="/courses">My courses</Link>
+          {' · '}
+          <Link to="/tasks">All study tasks</Link>
         </p>
         <Button variant="secondary" onClick={handleLogout}>
           Log out

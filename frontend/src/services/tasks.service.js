@@ -92,6 +92,23 @@ export async function listCourseTasks(courseId, status) {
 }
 
 /**
+ * @param {{ courseId?: string, status?: 'pending' | 'completed' }} [filters]
+ */
+export async function listAllTasks(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.courseId) {
+    params.set('courseId', filters.courseId);
+  }
+  if (filters.status === 'pending' || filters.status === 'completed') {
+    params.set('status', filters.status);
+  }
+  const query = params.toString();
+  const path = query ? `/api/tasks?${query}` : '/api/tasks';
+  const data = await request(path, { method: 'GET' });
+  return /** @type {{ tasks: StudyTask[] }} */ (data);
+}
+
+/**
  * @param {string} courseId
  * @param {{
  *   title: string,
