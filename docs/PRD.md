@@ -7,13 +7,13 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **3A-c**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **3A-c.1**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
-- **`study_tasks`** — manual task table + RLS (Phase **3A-a**); **manual backend API** (Phase **3A-b**); **course-level task UI** on `/courses/:id` (Phase **3A-c** MVP: list, create, mark complete, delete only — **no** global `/tasks` page)
+- **`study_tasks`** — manual task table + RLS (Phase **3A-a**); **manual backend API** (Phase **3A-b**); **course-level task UI** on `/courses/:id` (Phase **3A-c**: list, create, mark complete, delete; Phase **3A-c.1**: edit **pending** tasks via `PATCH` — **no** global `/tasks` page)
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
 - **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; plain text rendering
@@ -26,10 +26,12 @@ This section records **what the repository implements today** (summary only; ali
 | `POST /api/courses/:courseId/generate` with `{ studyText }` | **Deferred** |
 | `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content`; persists **latest plan JSON** per material |
 | Persist **latest generated plan** per material | **Yes** (2L-a/b/c) — not a multi-plan library or history |
-| Course-level **manual task UI** (list / create / complete / delete) | **Yes** (3A-c MVP on `/courses/:id`) — **no** edit, filters, or `materialId` linking |
+| Course-level **manual task UI** (list / create / complete / delete) | **Yes** (3A-c on `/courses/:id`) |
+| Edit **pending** course tasks (`title`, `description`, `priority`, `estimated minutes`) | **Yes** (3A-c.1 — `PATCH /api/tasks/:taskId`; **no** edit on completed tasks) |
+| Task **filters**, **`materialId`** linking on course tasks | **Deferred** |
 | Import generated plan tasks into **`study_tasks`**; global **`/tasks`** UI; flashcard **management UI** | **Deferred** — plan may **display** task/flashcard lines read-only only |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
-| Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course UI (3A-c); **no** plan → row import |
+| Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course UI (3A-c/c.1); **no** plan → row import |
 | Table **`flashcards`** | **Not created** |
 
 ### Architecture and env (unchanged intent)

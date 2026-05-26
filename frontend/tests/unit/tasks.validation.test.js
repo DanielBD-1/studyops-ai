@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTaskFormSchema } from '../../src/utils/validation.js';
+import { createTaskFormSchema, updateTaskFormSchema } from '../../src/utils/validation.js';
 
 describe('createTaskFormSchema', () => {
   it('accepts valid create payload', () => {
@@ -60,5 +60,39 @@ describe('createTaskFormSchema', () => {
     if (result.success) {
       assert.equal(result.data.estimatedMinutes, 45);
     }
+  });
+});
+
+describe('updateTaskFormSchema', () => {
+  it('accepts valid update payload', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Updated task title',
+      estimatedMinutes: 60,
+      description: 'Updated notes',
+      priority: 'low',
+    });
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal(result.data.title, 'Updated task title');
+      assert.equal(result.data.estimatedMinutes, 60);
+    }
+  });
+
+  it('rejects status in PATCH payload', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      status: 'completed',
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('rejects materialId in PATCH payload', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      materialId: '00000000-0000-0000-0000-000000000000',
+    });
+    assert.equal(result.success, false);
   });
 });

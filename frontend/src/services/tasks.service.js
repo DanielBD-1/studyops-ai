@@ -100,6 +100,18 @@ export async function createCourseTask(courseId, body) {
 
 /**
  * @param {string} taskId
+ * @param {{ title: string, estimatedMinutes: number, description?: string, priority?: 'low' | 'medium' | 'high' }} body
+ */
+export async function updateTask(taskId, body) {
+  const data = await request(`/api/tasks/${taskId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+  return /** @type {{ task: StudyTask }} */ (data);
+}
+
+/**
+ * @param {string} taskId
  */
 export async function completeTask(taskId) {
   const data = await request(`/api/tasks/${taskId}/complete`, {
