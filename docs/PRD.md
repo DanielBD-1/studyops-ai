@@ -7,19 +7,19 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **3B-d**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **3B-e**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
 - **`study_tasks`** — manual task table + RLS (Phase **3A-a**); **manual backend API** (Phase **3A-b**); **course-level task UI** on `/courses/:id` (Phases **3A-c**–**3A-c.3**: list, create, filters, edit, `materialId` link/unlink); **global task UI** on `/tasks` (Phases **3A-d**–**3A-e**: cross-course list, course/status filters, **create** with required course picker + optional material link, edit/complete/delete)
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
 - **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
-- **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **import plan flashcards** into `public.flashcards` (sequential `POST /api/courses/:id/flashcards`, validate-all-before-POST); **flashcard study UI** from `plan.flashcards` (flip/reveal, unchanged **3B-a**); plain text rendering
+- **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **manual create/edit/delete** saved flashcards (inline forms, **3B-e**); **import plan flashcards** into `public.flashcards` (sequential `POST /api/courses/:id/flashcards`, validate-all-before-POST); **flashcard study UI** from `plan.flashcards` (flip/reveal, unchanged **3B-a**); plain text rendering
 - **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**
 - **Flashcards backend API** (Phase **3B-c**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; auth + ownership filters
-- **Flashcards frontend integration** (Phase **3B-d**) — material-detail saved list + plan import via backend REST only; **no** global `/flashcards` page or manual create/edit/delete UI yet
+- **Flashcards frontend integration** (Phase **3B-d** + **3B-e**) — material-detail saved list, plan import, and manual CRUD via backend REST only; **no** global `/flashcards` page or course-level management yet
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -39,7 +39,8 @@ This section records **what the repository implements today** (summary only; ali
 | Start Focus; mark incomplete | **Deferred** |
 | Import generated **plan tasks** into **`study_tasks`** (`plan.tasks[]` only; `POST /api/courses/:courseId/tasks`; material-linked; no dedupe/`source='plan'`) | **Yes** (3A-f on `/study-materials/:materialId`) |
 | Import generated **plan flashcards** into **`public.flashcards`** | **Yes** (3B-d on `/study-materials/:materialId` — sequential create; plan not cleared; no dedupe/`source='plan'`) |
-| Flashcard **management UI** (global page, manual create, edit/delete) | **Deferred** — global `/flashcards`, CRUD forms (material-detail saved list + plan study in **3B-d**; plan JSON study in **3B-a**) |
+| Material-detail **manual flashcard CRUD** (create, edit, delete saved rows) | **Yes** (3B-e on `/study-materials/:materialId`) |
+| Flashcard **management UI** (global page, course-level management) | **Deferred** — global `/flashcards`; course-level list/CRUD (material-detail saved list + plan import in **3B-d**; manual CRUD in **3B-e**; plan JSON study in **3B-a**) |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
 | Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) |
@@ -954,7 +955,7 @@ All API responses follow this structure:
 
 ### Flashcards
 
-**Implemented (Phases 3B-c + 3B-d):** Backend REST (3B-c) and material-detail frontend consumer (3B-d) — see `docs/IMPLEMENTATION_STATUS.md`. Saved DB flashcards load via `GET`; plan import uses `POST /api/courses/:id/flashcards`. Generated-plan flip/reveal study (**3B-a**) remains on plan JSON.
+**Implemented (Phases 3B-c + 3B-d + 3B-e):** Backend REST (3B-c) and material-detail frontend (3B-d list/import; 3B-e manual CRUD) — see `docs/IMPLEMENTATION_STATUS.md`. Saved DB flashcards load via `GET`; manual create/edit/delete via `POST` / `PATCH` / `DELETE`; plan import uses `POST /api/courses/:id/flashcards`. Generated-plan flip/reveal study (**3B-a**) remains on plan JSON.
 
 **GET /api/flashcards** - List flashcards
 
@@ -977,7 +978,7 @@ All API responses follow this structure:
 
 Wrong-owner or missing resources → neutral **404** (Course / Study material / Flashcard not found).
 
-**Deferred:** Global `/flashcards` page; manual create/edit/delete flashcard UI; known/unknown; spaced repetition; Anki; client-side import dedupe; `source = 'plan'`.
+**Deferred:** Global `/flashcards` page; course-level flashcard management; known/unknown; spaced repetition; Anki; client-side import dedupe; `source = 'plan'`; pagination/rate limiting.
 
 ---
 

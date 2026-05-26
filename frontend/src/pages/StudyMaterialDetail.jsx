@@ -20,7 +20,9 @@ import {
 } from '../services/study-materials.service.js';
 import {
   createCourseFlashcard,
+  deleteFlashcard,
   listFlashcards,
+  updateFlashcard,
 } from '../services/flashcards.service.js';
 import { createCourseTask } from '../services/tasks.service.js';
 import {
@@ -86,6 +88,9 @@ export default function StudyMaterialDetail() {
   );
 
   const importingAny = importing || importingFlashcards;
+
+  const flashcardsCrudDisabled =
+    saving || deleting || generating || clearing || importingAny;
 
   const hasUnsavedChanges =
     material !== null &&
@@ -540,10 +545,18 @@ export default function StudyMaterialDetail() {
           Saved flashcards
         </h2>
         <DbFlashcardsSection
+          courseId={material.courseId}
+          materialId={materialId}
           flashcards={dbFlashcards}
           loading={dbFlashcardsLoading}
           error={dbFlashcardsError}
           onRetry={loadDbFlashcards}
+          onMutated={loadDbFlashcards}
+          createCourseFlashcard={createCourseFlashcard}
+          updateFlashcard={updateFlashcard}
+          deleteFlashcard={deleteFlashcard}
+          handleAuthError={handleAuthError}
+          disabled={flashcardsCrudDisabled}
         />
         {importFlashcardsError && (
           <ErrorMessage message={importFlashcardsError} />

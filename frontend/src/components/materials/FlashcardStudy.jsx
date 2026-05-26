@@ -10,9 +10,10 @@ import {
 /**
  * @param {{
  *   flashcards: Array<{ question: string, answer: string, tags?: string[] }>,
+ *   title?: string,
  * }} props
  */
-export default function FlashcardStudy({ flashcards }) {
+export default function FlashcardStudy({ flashcards, title = 'Flashcards' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
 
@@ -41,7 +42,7 @@ export default function FlashcardStudy({ flashcards }) {
 
   return (
     <section className="plan-block" aria-label="Flashcard study">
-      <h3 className="plan-block__title">Flashcards</h3>
+      <h3 className="plan-block__title">{title}</h3>
       <p className="plan-block__meta">{formatCardCounter(currentIndex, total)}</p>
 
       <article className="plan-block__item">
