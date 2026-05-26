@@ -1,18 +1,19 @@
 # PRD — StudyOps AI (Version 2.0)
 
-**Last Updated:** 2026-05-21  
+**Last Updated:** 2026-05-26  
 **Status:** Ready for Implementation
 
 ---
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase 2L-d). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **3A-b**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
+- **`study_tasks`** — manual task table + RLS (Phase **3A-a** applied on Supabase); **manual backend API** (Phase **3A-b**) — course-scoped and global routes; **no** task UI yet
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
 - **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; plain text rendering
@@ -25,9 +26,10 @@ This section records **what the repository implements today** (summary only; ali
 | `POST /api/courses/:courseId/generate` with `{ studyText }` | **Deferred** |
 | `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content`; persists **latest plan JSON** per material |
 | Persist **latest generated plan** per material | **Yes** (2L-a/b/c) — not a multi-plan library or history |
-| Persist tasks/flashcards to **`study_tasks` / `flashcards` tables** + management UI | **Deferred** — plan may **display** task/flashcard lines read-only only |
+| Task/flashcard **management UI** and import generated plan tasks into **`study_tasks`** | **Deferred** — plan may **display** task/flashcard lines read-only only |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
-| Tables `study_tasks`, `flashcards` | **Not created** |
+| Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — **no** frontend task UI; **no** plan → row import |
+| Table **`flashcards`** | **Not created** |
 
 ### Architecture and env (unchanged intent)
 
