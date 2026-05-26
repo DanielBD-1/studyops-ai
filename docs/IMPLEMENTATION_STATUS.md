@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 3B-c (flashcards backend REST API). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), and **flashcards backend API** (Phase **3B-c**) are documented below.
+**Last aligned:** Phase 3B-d (flashcards frontend integration). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), and **flashcards frontend integration** (Phase **3B-d**) are documented below.
 
 ---
 
@@ -47,9 +47,9 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 **`study_tasks` backend API (Phase 3A-b):** Express routes with **`requireAuth`**; service-role queries always filter by authenticated `user_id`. Task responses are **camelCase** and do **not** include `userId`, study material `content`, or generated `plan` JSON. **`difficulty`** / **`tags`** are returned (defaults on create) but **not client-editable**. **`status`** is **not** PATCHable — use **`POST /api/tasks/:taskId/complete`** only. Wrong-owner or missing task → neutral **`404`** “Task not found”. **Frontend** task UI: course-level Phases **3A-c**–**3A-c.3**, global Phases **3A-d**–**3A-e**, and plan import Phase **3A-f** (below).
 
-**`flashcards` (Phase 3B-b + 3B-c):** Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `question`, `answer`, `tags`, `source = manual` only in DB CHECK for now). RLS by `user_id = auth.uid()`; **`anon` has no access**; ownership triggers mirror `study_tasks`. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/006-flashcards-schema-and-rls.md`). **Backend REST API** (Phase **3B-c**) — see [Flashcards backend API](#implemented--flashcards-backend-api-phase-3b-c) below. **No** frontend DB-backed management UI, **no** frontend client for `/api/flashcards`, **no** import from `plan.flashcards` into rows yet. Phase **3B-a** study UI still reads **only** from generated plan JSON — not from `public.flashcards` rows.
+**`flashcards` (Phase 3B-b through 3B-d):** Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `question`, `answer`, `tags`, `source = manual` only in DB CHECK for now). RLS by `user_id = auth.uid()`; **`anon` has no access**; ownership triggers mirror `study_tasks`. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/006-flashcards-schema-and-rls.md`). **Backend REST API** (Phase **3B-c**) and **frontend integration** (Phase **3B-d**) — see sections below. Material detail shows **saved DB flashcards** and **generated-plan flashcards** (both may appear after import). **No** global `/flashcards` page; **no** manual create/edit/delete flashcard UI.
 
-**Not created yet:** focus sessions, admin log tables, etc. (PRD future scope). **Plan task import** (3A-f) copies `plan.tasks[]` into `study_tasks` only — **flashcards** in plan JSON are studied via **3B-a** UI but are **not** imported into `public.flashcards` yet.
+**Not created yet:** focus sessions, admin log tables, etc. (PRD future scope). **Plan task import** (3A-f) copies `plan.tasks[]` into `study_tasks` only.
 
 **Study materials ownership:** `study_materials.course_id` → `courses.id` → `courses.user_id` (no `user_id` on materials row). Backend uses service role with explicit ownership filters.
 
@@ -100,7 +100,7 @@ Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (
 - Generated `plan` is **untrusted display data** — validated on the backend immediately before DB write; rendered as plain React text in the UI.
 - Missing saved plan → `404` “Generated plan not found” → **empty state** (not a scary error). Wrong-owner/missing material → neutral `404` “Study material not found”.
 
-**PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. **`public.flashcards` table** exists (3B-b); **flashcard backend API** exists (3B-c); **DB-backed frontend UI / import / global `/flashcards`** remain **deferred** — latest **plan JSON** flashcards are still studied via **3B-a** only.
+**PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. **`public.flashcards` table** (3B-b), **backend API** (3B-c), and **material-detail frontend** (3B-d: saved list + plan import) exist; **global `/flashcards`**, manual CRUD UI, and advanced study features remain **deferred**.
 
 ---
 
@@ -279,7 +279,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 ---
 ## Implemented — Flashcard study UI (Phase 3B-a)
 
-Frontend-only on **`/study-materials/:materialId`** — when `plan.flashcards` exists and length > 0, `GeneratedPlanSection` renders a flip/reveal study UI (`FlashcardStudy`) showing **one card at a time** (question first, **“Show answer”**, answer as plain text), with **Previous/Next** navigation and a **“Card X of N”** counter. Reveal state resets on navigation; current card index resets to `0` when `flashcards` changes. Flashcards are consumed **only** from generated plan JSON persisted per material (`material_generated_plans.plan`) — **not** from `public.flashcards` rows or **`GET /api/flashcards`** (backend API exists after **3B-c** but frontend does not call it yet). **No** study-progress persistence. Tags are rendered as plain React text metadata (no HTML injection).
+Frontend-only on **`/study-materials/:materialId`** — when `plan.flashcards` exists and length > 0, `GeneratedPlanSection` renders a flip/reveal study UI (`FlashcardStudy`) showing **one card at a time** (question first, **“Show answer”**, answer as plain text), with **Previous/Next** navigation and a **“Card X of N”** counter. Reveal state resets on navigation; current card index resets to `0` when `flashcards` changes. This block reads **only** from generated plan JSON (`material_generated_plans.plan`). **Saved DB flashcards** (Phase **3B-d**) use a separate **Saved flashcards** section and the same `FlashcardStudy` component via **`GET /api/flashcards?materialId=`**. **No** study-progress persistence. Tags are rendered as plain React text metadata (no HTML injection).
 
 Implementation files: `frontend/src/components/materials/GeneratedPlanSection.jsx`, `frontend/src/components/materials/FlashcardStudy.jsx`, `frontend/src/utils/flashcard-study.js`, `frontend/tests/unit/flashcard-study.test.js`.
 
@@ -336,6 +336,32 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 
 ---
 
+## Implemented — Flashcards frontend integration (Phase 3B-d)
+
+**Frontend-only** on **`/study-materials/:materialId`** — consumes **3B-c** API via backend REST (Bearer JWT); **no** direct Supabase access to `public.flashcards`.
+
+| Capability | Detail |
+|------------|--------|
+| **Saved flashcards** | `DbFlashcardsSection` — `listFlashcards({ materialId })` on material load; loading / error / empty / study via `FlashcardStudy` |
+| **Import from plan** | **Import flashcards to library** in `GeneratedPlanSection` when `plan.flashcards.length > 0`; `plan-flashcard-import.js` validates all cards before first POST; sequential `createCourseFlashcard(courseId, body)` with `materialId` from route; confirm warns duplicates; stop on first failure; refetches saved list on success/partial success; **does not** clear or mutate generated plan |
+| **Plan study (3B-a)** | Unchanged — `FlashcardStudy` still renders `plan.flashcards` inside generated plan section |
+
+**Service:** `frontend/src/services/flashcards.service.js` — `listFlashcards`, `createCourseFlashcard`, `updateFlashcard`, `deleteFlashcard` (update/delete implemented for tests/future; **no** edit/delete UI in 3B-d).
+
+**Validation:** `createFlashcardFormSchema` in `frontend/src/utils/validation.js` — question 10–500, answer 10–2000, tags max 5 (each 1–50), strict bodies.
+
+**Implementation files:** `DbFlashcardsSection.jsx`, `GeneratedPlanSection.jsx`, `StudyMaterialDetail.jsx`, `plan-flashcard-import.js`, `flashcards.service.js`.
+
+**Tests:** `frontend/tests/unit/flashcards.service.test.js`, `frontend/tests/unit/plan-flashcard-import.test.js`. **`frontend/package.json`** `npm test` lists both (**no** dependency or lockfile change). `cd frontend && npm run lint`, `npm test` (**115** tests, **0** failures), and `npm run build` passed.
+
+**Reviews:** Supervisor — approved with notes. Security Review — no blockers.
+
+**Not in 3B-d:** Global `/flashcards` page; manual create flashcard form; edit/delete flashcard UI; known/unknown; spaced repetition; Anki; client-side import dedupe; `source = 'plan'`; pagination/rate limiting.
+
+**Known limitations:** Re-import can duplicate saved rows; partial import possible; plan and saved sections may both show similar content after import.
+
+---
+
 ## Implemented — Quality / lint (Phase 2G)
 
 - ESLint flat config in `backend/`, `document-service/`, `frontend/`
@@ -355,7 +381,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
-| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks` (material-linked), and frontend flashcard study UI for `plan.flashcards` (flip/reveal) |
+| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks`, **saved DB flashcards** (list + study), **import plan flashcards** to library, and **generated-plan** flashcard study UI (`plan.flashcards`, flip/reveal) |
 
 **Not implemented:** `/courses/:id/generate`, `/flashcards`, `/trello`, `/focus/:taskId`, `/admin` (PRD future).
 
@@ -363,7 +389,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 
 ## Deferred / not started (requires separate approval)
 
-- Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system; **flashcards DB-backed frontend UI**, **frontend client for `/api/flashcards`**, **import** `plan.flashcards[]` into rows, global **`/flashcards`** page, known/unknown tracking, spaced repetition ( **`public.flashcards` table + RLS** in **3B-b**; **backend CRUD API** in **3B-c**; material-detail flip/reveal from plan JSON in **3B-a**; **plan tasks** import in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
+- Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system for flashcards; global **`/flashcards`** page; flashcard **manual create** / **edit** / **delete** UI; known/unknown tracking; spaced repetition; Anki ( **`public.flashcards` table + RLS** in **3B-b**; **backend API** in **3B-c**; **material-detail saved list + plan import** in **3B-d**; **plan JSON study** in **3B-a**; **plan tasks** import in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello sync UI and backend

@@ -13,6 +13,10 @@ import FormCard from '../ui/FormCard.jsx';
  *   importDisabled?: boolean,
  *   importing?: boolean,
  *   importProgress?: string | null,
+ *   onImportFlashcards?: () => void,
+ *   importFlashcardsDisabled?: boolean,
+ *   importingFlashcards?: boolean,
+ *   importFlashcardsProgress?: string | null,
  * }} props
  */
 export default function GeneratedPlanSection({
@@ -25,6 +29,10 @@ export default function GeneratedPlanSection({
   importDisabled = false,
   importing = false,
   importProgress = null,
+  onImportFlashcards,
+  importFlashcardsDisabled = false,
+  importingFlashcards = false,
+  importFlashcardsProgress = null,
 }) {
   if (!plan || typeof plan.summary !== 'string') {
     return (
@@ -74,21 +82,36 @@ export default function GeneratedPlanSection({
           </section>
         )}
 
-        {tasks.length > 0 && onImport && (
+        {(tasks.length > 0 && onImport) || (flashcards.length > 0 && onImportFlashcards) ? (
           <p className="section__actions">
-            <Button
-              type="button"
-              variant="primary"
-              onClick={onImport}
-              disabled={importDisabled || importing}
-            >
-              {importing ? 'Importing…' : 'Import tasks to course'}
-            </Button>
+            {tasks.length > 0 && onImport ? (
+              <Button
+                type="button"
+                variant="primary"
+                onClick={onImport}
+                disabled={importDisabled || importing || importingFlashcards}
+              >
+                {importing ? 'Importing…' : 'Import tasks to course'}
+              </Button>
+            ) : null}
+            {flashcards.length > 0 && onImportFlashcards ? (
+              <Button
+                type="button"
+                variant="primary"
+                onClick={onImportFlashcards}
+                disabled={importFlashcardsDisabled || importing || importingFlashcards}
+              >
+                {importingFlashcards ? 'Importing…' : 'Import flashcards to library'}
+              </Button>
+            ) : null}
             {importing && importProgress ? (
               <span className="plan-panel__status"> {importProgress}</span>
             ) : null}
+            {importingFlashcards && importFlashcardsProgress ? (
+              <span className="plan-panel__status"> {importFlashcardsProgress}</span>
+            ) : null}
           </p>
-        )}
+        ) : null}
 
         {tasks.length > 0 && (
           <section className="plan-block">
@@ -123,7 +146,11 @@ export default function GeneratedPlanSection({
         {flashcards.length > 0 && <FlashcardStudy flashcards={flashcards} />}
 
         <div className="form-row">
-          <Button variant="secondary" onClick={onClear} disabled={clearDisabled || importing}>
+          <Button
+            variant="secondary"
+            onClick={onClear}
+            disabled={clearDisabled || importing || importingFlashcards}
+          >
             {clearing ? 'Clearing…' : 'Clear plan'}
           </Button>
         </div>

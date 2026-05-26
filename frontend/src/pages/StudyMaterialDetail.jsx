@@ -8,6 +8,7 @@ import Input from '../components/ui/Input.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import Textarea from '../components/ui/Textarea.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
+import DbFlashcardsSection from '../components/materials/DbFlashcardsSection.jsx';
 import GeneratedPlanSection from '../components/materials/GeneratedPlanSection.jsx';
 import {
   getMaterial,
@@ -17,11 +18,19 @@ import {
   getGeneratedPlan,
   deleteGeneratedPlan,
 } from '../services/study-materials.service.js';
+import {
+  createCourseFlashcard,
+  listFlashcards,
+} from '../services/flashcards.service.js';
 import { createCourseTask } from '../services/tasks.service.js';
 import {
   isGeneratedPlanNotFound,
   isStudyMaterialNotFound,
 } from '../utils/generated-plan-errors.js';
+import {
+  buildValidatedFlashcardImportBodies,
+  importPlanFlashcardsSequentially,
+} from '../utils/plan-flashcard-import.js';
 import {
   buildValidatedImportBodies,
   importPlanTasksSequentially,
@@ -60,6 +69,23 @@ export default function StudyMaterialDetail() {
   const [importError, setImportError] = useState(/** @type {string | null} */ (null));
   const [importSuccess, setImportSuccess] = useState(/** @type {string | null} */ (null));
   const [importProgress, setImportProgress] = useState(/** @type {string | null} */ (null));
+  const [dbFlashcards, setDbFlashcards] = useState(
+    /** @type {import('../services/flashcards.service.js').Flashcard[]} */ ([])
+  );
+  const [dbFlashcardsLoading, setDbFlashcardsLoading] = useState(false);
+  const [dbFlashcardsError, setDbFlashcardsError] = useState(/** @type {string | null} */ (null));
+  const [importingFlashcards, setImportingFlashcards] = useState(false);
+  const [importFlashcardsError, setImportFlashcardsError] = useState(
+    /** @type {string | null} */ (null)
+  );
+  const [importFlashcardsSuccess, setImportFlashcardsSuccess] = useState(
+    /** @type {string | null} */ (null)
+  );
+  const [importFlashcardsProgress, setImportFlashcardsProgress] = useState(
+    /** @type {string | null} */ (null)
+  );
+
+  const importingAny = importing || importingFlashcards;
 
   const hasUnsavedChanges =
     material !== null &&
@@ -73,7 +99,7 @@ export default function StudyMaterialDetail() {
     generating ||
     saving ||
     deleting ||
-    importing ||
+    importingAny ||
     hasUnsavedChanges;
 
   const handleAuthError = useCallback(
@@ -117,6 +143,26 @@ export default function StudyMaterialDetail() {
     }
   }, [materialId, handleAuthError]);
 
+  const loadDbFlashcards = useCallback(async () => {
+    if (!materialId) return;
+
+    setDbFlashcardsLoading(true);
+    setDbFlashcardsError(null);
+
+    try {
+      const data = await listFlashcards({ materialId });
+      setDbFlashcards(data.flashcards);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      setDbFlashcards([]);
+      setDbFlashcardsError(
+        err instanceof Error ? err.message : 'Failed to load saved flashcards'
+      );
+    } finally {
+      setDbFlashcardsLoading(false);
+    }
+  }, [materialId, handleAuthError]);
+
   const loadMaterial = useCallback(async () => {
     if (!materialId) {
       setNotFound(true);
@@ -140,6 +186,7 @@ export default function StudyMaterialDetail() {
         data.material.sourceType === 'paste' ? 'paste' : 'manual'
       );
       await loadSavedPlan();
+      await loadDbFlashcards();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -154,7 +201,7 @@ export default function StudyMaterialDetail() {
     } finally {
       setLoading(false);
     }
-  }, [materialId, handleAuthError, loadSavedPlan]);
+  }, [materialId, handleAuthError, loadSavedPlan, loadDbFlashcards]);
 
   useEffect(() => {
     setPlan(null);
@@ -220,8 +267,67 @@ export default function StudyMaterialDetail() {
     }
   }
 
+  async function handleImportFlashcards() {
+    if (!materialId || !material || !plan || importingAny) return;
+
+    const planFlashcards = Array.isArray(plan.flashcards) ? plan.flashcards : [];
+    if (planFlashcards.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Import ${planFlashcards.length} flashcards from this plan into your saved library? Importing again may create duplicates.`
+    );
+    if (!confirmed) return;
+
+    setImportFlashcardsError(null);
+    setImportFlashcardsSuccess(null);
+    setImportFlashcardsProgress(null);
+
+    const validated = buildValidatedFlashcardImportBodies(plan, materialId);
+    if (!validated.success) {
+      setImportFlashcardsError(validated.error);
+      return;
+    }
+
+    setImportingFlashcards(true);
+    try {
+      const result = await importPlanFlashcardsSequentially(
+        material.courseId,
+        validated.bodies,
+        createCourseFlashcard,
+        (current, total) => {
+          setImportFlashcardsProgress(`Importing flashcard ${current} of ${total}…`);
+        }
+      );
+
+      if (result.success) {
+        setImportFlashcardsSuccess(`Imported ${result.imported} saved flashcards.`);
+        setImportFlashcardsProgress(null);
+        await loadDbFlashcards();
+        return;
+      }
+
+      if (await handleAuthError(result.error)) return;
+
+      if (result.imported === 0) {
+        setImportFlashcardsError(
+          result.error instanceof Error
+            ? result.error.message
+            : 'Failed to import flashcards'
+        );
+      } else {
+        setImportFlashcardsError(
+          `Imported ${result.imported} of ${result.total} flashcards before an error. You can try again, but duplicates may be created.`
+        );
+        await loadDbFlashcards();
+      }
+      setImportFlashcardsProgress(null);
+    } finally {
+      setImportingFlashcards(false);
+    }
+  }
+
   async function handleImportPlan() {
-    if (!materialId || !material || !plan || importing) return;
+    if (!materialId || !material || !plan || importingAny) return;
 
     const planTasks = Array.isArray(plan.tasks) ? plan.tasks : [];
     if (planTasks.length === 0) return;
@@ -362,11 +468,20 @@ export default function StudyMaterialDetail() {
   const showPlanSection = planLoading || plan != null || planLoadError != null;
 
   const planTasks = plan && Array.isArray(plan.tasks) ? plan.tasks : [];
+  const planFlashcards = plan && Array.isArray(plan.flashcards) ? plan.flashcards : [];
+
   const canImportPlan =
     planTasks.length > 0 &&
     !generating &&
     !clearing &&
-    !importing &&
+    !importingAny &&
+    !hasUnsavedChanges;
+
+  const canImportFlashcards =
+    planFlashcards.length > 0 &&
+    !generating &&
+    !clearing &&
+    !importingAny &&
     !hasUnsavedChanges;
 
   return (
@@ -413,12 +528,30 @@ export default function StudyMaterialDetail() {
           <Button
             type="submit"
             variant="primary"
-            disabled={saving || deleting || generating || importing}
+            disabled={saving || deleting || generating || importingAny}
           >
             {saving ? 'Saving…' : 'Save changes'}
           </Button>
         </form>
       </FormCard>
+
+      <section className="section--compact" aria-labelledby="saved-flashcards-heading">
+        <h2 id="saved-flashcards-heading" className="visually-hidden">
+          Saved flashcards
+        </h2>
+        <DbFlashcardsSection
+          flashcards={dbFlashcards}
+          loading={dbFlashcardsLoading}
+          error={dbFlashcardsError}
+          onRetry={loadDbFlashcards}
+        />
+        {importFlashcardsError && (
+          <ErrorMessage message={importFlashcardsError} />
+        )}
+        {importFlashcardsSuccess && (
+          <p className="plan-panel__status">{importFlashcardsSuccess}</p>
+        )}
+      </section>
 
       <section className="ai-panel" aria-labelledby="generate-heading">
         <h2 id="generate-heading" className="section__title--sm">
@@ -461,14 +594,20 @@ export default function StudyMaterialDetail() {
               plan={plan}
               savedAt={savedAt}
               onClear={handleClearPlan}
-              clearDisabled={generating || saving || deleting || clearing || importing}
+              clearDisabled={generating || saving || deleting || clearing || importingAny}
               clearing={clearing}
               onImport={canImportPlan ? handleImportPlan : undefined}
               importDisabled={
-                generating || saving || deleting || clearing || importing || hasUnsavedChanges
+                generating || saving || deleting || clearing || importingAny || hasUnsavedChanges
               }
               importing={importing}
               importProgress={importProgress}
+              onImportFlashcards={canImportFlashcards ? handleImportFlashcards : undefined}
+              importFlashcardsDisabled={
+                generating || saving || deleting || clearing || importingAny || hasUnsavedChanges
+              }
+              importingFlashcards={importingFlashcards}
+              importFlashcardsProgress={importFlashcardsProgress}
             />
           )}
           {importError && plan && !planLoading && <ErrorMessage message={importError} />}
@@ -489,7 +628,7 @@ export default function StudyMaterialDetail() {
         {deleteError && <ErrorMessage message={deleteError} />}
         <Button
           variant="danger"
-          disabled={saving || deleting || generating || importing}
+          disabled={saving || deleting || generating || importingAny}
           onClick={handleDelete}
         >
           {deleting ? 'Deleting…' : 'Delete study material'}
