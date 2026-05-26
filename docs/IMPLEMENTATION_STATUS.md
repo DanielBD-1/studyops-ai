@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 3A-d (global `/tasks` page). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), and **global manual task UI** (Phase **3A-d** on `/tasks`) are documented below.
+**Last aligned:** Phase 3A-e (create task on global `/tasks` page). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), and **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`) are documented below.
 
 ---
 
@@ -45,7 +45,7 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 **`study_tasks` (Phase 3A-a):** Manual study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source = manual` only in DB CHECK for now. Table **applied and verified** on Supabase (see `docs/database/005-study-tasks-schema-and-rls.md`). **No** AI plan import into rows yet.
 
-**`study_tasks` backend API (Phase 3A-b):** Express routes with **`requireAuth`**; service-role queries always filter by authenticated `user_id`. Task responses are **camelCase** and do **not** include `userId`, study material `content`, or generated `plan` JSON. **`difficulty`** / **`tags`** are returned (defaults on create) but **not client-editable**. **`status`** is **not** PATCHable — use **`POST /api/tasks/:taskId/complete`** only. Wrong-owner or missing task → neutral **`404`** “Task not found”. **Frontend** task UI: course-level Phases **3A-c**–**3A-c.3** and global Phase **3A-d** (below).
+**`study_tasks` backend API (Phase 3A-b):** Express routes with **`requireAuth`**; service-role queries always filter by authenticated `user_id`. Task responses are **camelCase** and do **not** include `userId`, study material `content`, or generated `plan` JSON. **`difficulty`** / **`tags`** are returned (defaults on create) but **not client-editable**. **`status`** is **not** PATCHable — use **`POST /api/tasks/:taskId/complete`** only. Wrong-owner or missing task → neutral **`404`** “Task not found”. **Frontend** task UI: course-level Phases **3A-c**–**3A-c.3** and global Phases **3A-d**–**3A-e** (below).
 
 **Not created yet:** `flashcards` (normalized table), focus sessions, admin log tables, etc. (PRD future scope). Tasks and flashcards **inside** a generated `plan` JSON remain **read-only display** only—not managed via plan JSON.
 
@@ -225,7 +225,27 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 **Tests (frontend):** `npm test` **72/72** (adds `listAllTasks` query-variant service tests). Lint passed (one pre-existing `AuthContext.jsx` warning). Build passed. Backend tests not re-run (backend untouched).
 
-**Known limitations:** `/tasks` renders task section only after `listCourses()` succeeds; material titles on list cards often unavailable until edit loads materials.
+**Known limitations:** `/tasks` renders task section only after `listCourses()` succeeds; material titles on list cards often unavailable until edit loads materials. **Create on `/tasks`** added in Phase **3A-e** (below).
+
+---
+
+## Implemented — Study tasks (global create, Phase 3A-e)
+
+**Frontend-only addition to protected `/tasks`** — inline **create** manual **`study_tasks`** from the global page using existing backend **`POST /api/courses/:courseId/tasks`**. **No** backend, database, migration, document-service, or package changes. **Only** `frontend/src/components/tasks/GlobalTasksSection.jsx` changed in implementation.
+
+| Action | API |
+|--------|-----|
+| Create | `POST /api/courses/:courseId/tasks` — body: `title`, `estimatedMinutes`, optional `description`, `priority`, optional `materialId` (course id in URL only) |
+
+**UI:** **Add study task** when user has at least one course and status filter is **not** Completed (also hidden while list is loading or has load error). Inline create form: **required course** dropdown (`Select a course` + owned courses from `listCourses()` prop); **title**, **estimated minutes**, **priority**; optional **description**; optional **Link to material** — **`listMaterials(createCourseId)`** lazy-loaded only after a valid owned course is selected (not preloaded for all courses). **None** omits `materialId` from POST; selected material sends UUID. Client Zod: **`createTaskFormSchema`** (unchanged). Opening create cancels edit; opening edit closes create; filter changes close create and cancel edit. After success: form closes, fields reset, list refetches, **`courseFilter`** set to created course so the new **pending** task is visible.
+
+**Not in 3A-e:** `GET /api/tasks/:id`, Start Focus / focus sessions, generated-plan → `study_tasks` import, mark incomplete, material filtering/navigation links, URL-persisted filters, flashcards, Trello, dashboard/admin.
+
+**Tests (frontend):** `npm test` **72/72** (unchanged — no service/validation file changes). Lint passed (one pre-existing `AuthContext.jsx` warning). Build passed. Backend tests not re-run (backend untouched).
+
+**Reviews:** Supervisor — approved with notes. Security Review — no blockers.
+
+**Known limitations / minor notes:** Possible **double refetch** after create (explicit `loadTasks` overrides + filter `useEffect`); brief **loading flash** after create; create **`NOT_FOUND`** may display **“Course not found”** even for material mismatch (UX only, not security); material titles on list cards often unavailable until edit loads materials; `/tasks` task section gated on successful `listCourses()`.
 
 ---
 
@@ -247,7 +267,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 | `/dashboard` | Stub landing |
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
-| `/tasks` | **All study tasks** across courses — **course + status filters**, **edit pending** (incl. `materialId` link/unlink via lazy materials load), complete, delete; **no create** |
+| `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
 | `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan** |
 
 **Not implemented:** `/courses/:id/generate`, `/flashcards`, `/trello`, `/focus/:taskId`, `/admin` (PRD future).
@@ -256,7 +276,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 ## Deferred / not started (requires separate approval)
 
-- **Create task on `/tasks`** (create remains on `/courses/:id` only); material **navigation** links from task cards; **filtering** tasks by `materialId`; generated-plan → `study_tasks` **import**; `flashcards` **table** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d**)
+- Material **navigation** links from task cards; **filtering** tasks by `materialId`; generated-plan → `study_tasks` **import**; `flashcards` **table** and **management UI** (plan JSON may list tasks/flashcards for **read-only** display only); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello sync UI and backend
