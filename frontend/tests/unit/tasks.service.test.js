@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   listCourseTasks,
   createCourseTask,
+  updateTask,
   completeTask,
   deleteTask,
   __setApiFetchForTests,
@@ -94,6 +95,36 @@ describe('tasks.service', () => {
         title: 'Read chapter 1',
         estimatedMinutes: 30,
         description: 'Focus on definitions',
+        priority: 'high',
+      })
+    );
+  });
+
+  it('updateTask PATCHes allowed fields only', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { task: { ...MOCK_TASK, title: 'Updated task title name' } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await updateTask(TASK_ID, {
+      title: 'Updated task title name',
+      estimatedMinutes: 45,
+      description: 'Revised notes',
+      priority: 'high',
+    });
+    assert.equal(data.task.title, 'Updated task title name');
+    assert.equal(calls[0].path, `/api/tasks/${TASK_ID}`);
+    assert.equal(calls[0].init.method, 'PATCH');
+    assert.equal(
+      calls[0].init.body,
+      JSON.stringify({
+        title: 'Updated task title name',
+        estimatedMinutes: 45,
+        description: 'Revised notes',
         priority: 'high',
       })
     );

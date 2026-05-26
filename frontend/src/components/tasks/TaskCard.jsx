@@ -3,8 +3,10 @@ import Button from '../ui/Button.jsx';
 /**
  * @param {{
  *   task: import('../../services/tasks.service.js').StudyTask,
+ *   onEdit: () => void,
  *   onComplete: () => void,
  *   onDelete: () => void,
+ *   editing: boolean,
  *   completing: boolean,
  *   deleting: boolean,
  *   disabled: boolean,
@@ -12,8 +14,10 @@ import Button from '../ui/Button.jsx';
  */
 export default function TaskCard({
   task,
+  onEdit,
   onComplete,
   onDelete,
+  editing,
   completing,
   deleting,
   disabled,
@@ -32,14 +36,24 @@ export default function TaskCard({
       </p>
       <div className="form-row">
         {!isCompleted && (
-          <Button
-            type="button"
-            variant="primary"
-            disabled={disabled || completing || deleting}
-            onClick={onComplete}
-          >
-            {completing ? 'Completing…' : 'Mark complete'}
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={disabled || editing || completing || deleting}
+              onClick={onEdit}
+            >
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              disabled={disabled || editing || completing || deleting}
+              onClick={onComplete}
+            >
+              {completing ? 'Completing…' : 'Mark complete'}
+            </Button>
+          </>
         )}
         <Button
           type="button"

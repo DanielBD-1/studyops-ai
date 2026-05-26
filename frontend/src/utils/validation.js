@@ -118,3 +118,12 @@ export const createTaskFormSchema = z
     priority: taskPrioritySchema.optional(),
   })
   .strict();
+
+export const updateTaskFormSchema = z
+  .object({
+    title: taskTitleSchema,
+    estimatedMinutes: taskEstimatedMinutesSchema,
+    description: taskDescriptionSchema.optional(),
+    priority: taskPrioritySchema.optional(),
+  })
+  .strict();
