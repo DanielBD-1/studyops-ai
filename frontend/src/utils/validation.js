@@ -131,3 +131,38 @@ export const updateTaskFormSchema = z
     materialId: materialIdSchema.nullable().optional(),
   })
   .strict();
+
+const FLASHCARD_QUESTION_MESSAGE = 'Question must be between 10 and 500 characters';
+
+export const flashcardQuestionSchema = z
+  .string()
+  .trim()
+  .min(10, FLASHCARD_QUESTION_MESSAGE)
+  .max(500, FLASHCARD_QUESTION_MESSAGE);
+
+const FLASHCARD_ANSWER_MESSAGE = 'Answer must be between 10 and 2000 characters';
+
+export const flashcardAnswerSchema = z
+  .string()
+  .trim()
+  .min(10, FLASHCARD_ANSWER_MESSAGE)
+  .max(2000, FLASHCARD_ANSWER_MESSAGE);
+
+export const flashcardTagSchema = z
+  .string()
+  .trim()
+  .min(1, 'Tags must be non-empty strings')
+  .max(50, 'Tags must be at most 50 characters');
+
+export const flashcardTagsSchema = z
+  .array(flashcardTagSchema)
+  .max(5, 'You can specify at most 5 tags');
+
+export const createFlashcardFormSchema = z
+  .object({
+    question: flashcardQuestionSchema,
+    answer: flashcardAnswerSchema,
+    tags: flashcardTagsSchema.optional(),
+    materialId: materialIdSchema,
+  })
+  .strict();
