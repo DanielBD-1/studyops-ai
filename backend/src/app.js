@@ -5,6 +5,7 @@ import authRoutes from './modules/auth/auth.routes.js';
 import coursesRoutes from './modules/courses/courses.routes.js';
 import studyMaterialsRoutes from './modules/study-materials/study-materials.routes.js';
 import tasksRoutes from './modules/tasks/tasks.routes.js';
+import flashcardsRoutes from './modules/flashcards/flashcards.routes.js';
 import { ApiError } from './shared/errors/ApiError.js';
 import { sendError } from './shared/utils/response.js';
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/study-materials', studyMaterialsRoutes);
 app.use('/api/tasks', tasksRoutes);
+app.use('/api/flashcards', flashcardsRoutes);
 
 app.use((err, _req, res, next) => {
   if (res.headersSent) {

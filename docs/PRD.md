@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **3B-b**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **3B-c**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -17,7 +17,8 @@ This section records **what the repository implements today** (summary only; ali
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
 - **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); **flashcard study UI** from `plan.flashcards` (flip/reveal; **not** from `public.flashcards` rows yet); plain text rendering
-- **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**; schema/RLS only — **no** flashcard REST API or DB-backed UI yet
+- **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**
+- **Flashcards backend API** (Phase **3B-c**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; auth + ownership filters; **no** frontend client or DB-backed management UI yet
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -36,11 +37,12 @@ This section records **what the repository implements today** (summary only; ali
 | Material **navigation** from tasks; **filter** tasks by `materialId` | **Deferred** |
 | Start Focus; mark incomplete | **Deferred** |
 | Import generated **plan tasks** into **`study_tasks`** (`plan.tasks[]` only; `POST /api/courses/:courseId/tasks`; material-linked; no dedupe/`source='plan'`) | **Yes** (3A-f on `/study-materials/:materialId`) |
-| Flashcard **management UI** / import plan flashcards | **Deferred** — DB-backed CRUD, import into rows, global `/flashcards` (material-detail flip/reveal from plan JSON in **3B-a** only) |
+| Flashcard **management UI** / import plan flashcards | **Deferred** — frontend DB CRUD UI, import into rows, global `/flashcards` (material-detail flip/reveal from plan JSON in **3B-a** only; backend API in **3B-c**) |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
-| Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) — **no** backend API or management UI yet |
-| Backend **`GET /api/flashcards`** (and CRUD) | **Deferred** (3B-c+) |
+| Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) |
+| Backend flashcards **CRUD API** | **Yes** (3B-c) — **no** frontend consumer yet |
+| Global route **`/flashcards`** (UI) | **Deferred** |
 
 ### Architecture and env (unchanged intent)
 
@@ -949,10 +951,30 @@ All API responses follow this structure:
 
 ### Flashcards
 
+**Implemented (Phase 3B-c):** Backend REST only — see `docs/IMPLEMENTATION_STATUS.md`. Frontend does not call these routes yet; material-detail study still uses plan JSON (**3B-a**).
+
 **GET /api/flashcards** - List flashcards
 
-- Query params: `?courseId=...`
-- Returns: `{ flashcards: [...] }`
+- Query params: `?courseId=...`, `?materialId=...` (optional; ownership verified before list)
+- Returns: `{ flashcards: [...] }` (camelCase; no `userId`)
+
+**POST /api/courses/:id/flashcards** - Create flashcard
+
+- Body: `{ question, answer, tags?, materialId? }` — strict; cannot set `userId`, `courseId`, `source`, timestamps
+- Returns: `{ flashcard }` (201)
+
+**PATCH /api/flashcards/:flashcardId** - Update flashcard
+
+- Body: at least one of `question`, `answer`, `tags`, `materialId` (nullable to unlink)
+- Returns: `{ flashcard }`
+
+**DELETE /api/flashcards/:flashcardId** - Delete flashcard
+
+- Returns: `{ deleted: true }`
+
+Wrong-owner or missing resources → neutral **404** (Course / Study material / Flashcard not found).
+
+**Deferred:** Frontend management UI, global `/flashcards` page, import `plan.flashcards[]` into DB rows.
 
 ---
 
