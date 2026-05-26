@@ -70,6 +70,50 @@ describe('tasks.service', () => {
     assert.equal(calls[0].token, TOKEN);
   });
 
+  it('listCourseTasks with status=pending sends ?status=pending', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, 'pending');
+    assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks?status=pending`);
+    assert.equal(calls[0].init.method, 'GET');
+  });
+
+  it('listCourseTasks with status=completed sends ?status=completed', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, 'completed');
+    assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks?status=completed`);
+    assert.equal(calls[0].init.method, 'GET');
+  });
+
+  it('listCourseTasks with undefined status sends no query string', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, undefined);
+    assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks`);
+  });
+
   it('createCourseTask POSTs allowed fields only', async () => {
     __setApiFetchForTests(async (path, init, accessToken) => {
       calls.push({ path, init, token: accessToken });

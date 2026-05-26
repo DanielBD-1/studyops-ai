@@ -1293,4 +1293,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Security:** Bearer JWT; no service role; no direct Supabase task writes; strict PATCH body; neutral **404** copy; Security Review — no blockers.
 **Not implemented (intentional):** Status filters; `materialId` linking; edit completed tasks; mark incomplete; global `/tasks` (3A-d); generated-plan → `study_tasks` import; flashcards/Trello/dashboard/admin.
 **Pitfalls:** Do not send `status`, `materialId`, `difficulty`, or `tags` in PATCH from UI. Do not add checkboxes to **generated plan** task lines.
-**Follow-up:** Phase **3A-d** global `/tasks` UI or task filters/`materialId` — separate planning/approval
+**Follow-up:** Phase **3A-d** global `/tasks` UI or `materialId` linking — separate planning/approval
+
+### 2026-05-26 — Phase 3A-c.2 course task status filters complete
+
+**Workflow:** Phase 3A-c.2 course task status filters (frontend-only)
+**ADR refs:** 001 (frontend → backend REST read-only GET)
+**Human gates:** `approved — begin Phase 3A-c.2 planning only`; `approved — implement Phase 3A-c.2`; Supervisor Review (approved, no issues); Security Review (no blockers); `approved — Phase 3A-c.2 complete` — satisfied
+**Summary:** Frontend-only **All / Pending / Completed** filter bar on **`/courses/:id`** using existing backend `?status=` query support. `statusFilter` state drives `loadTasks`; switching filter cancels open edit, closes create form, refetches list. Create form/button visible on **All** only. Per-filter empty states (no misleading create CTA on Pending/Completed). Filter values allowlisted (`'pending' | 'completed' | undefined`) before URL construction — no user-controlled string concatenation. Filter is **in-memory only** (not URL-persisted).
+**APIs affected (frontend client only):** `GET /api/courses/:courseId/tasks[?status=pending|completed]` — backend unchanged
+**Tests:** Frontend `npm run lint` passed (1 pre-existing warning in `AuthContext.jsx`); `npm test` **61/61**; `npm run build` passed. Backend tests not re-run (backend untouched).
+**Security:** GET-only; closed enum allowlist; ownership enforced server-side; no write path; Security Review — no blockers.
+**Not implemented (intentional):** URL-persisted filters; `materialId` linking; mark incomplete; global `/tasks` (3A-d); generated-plan import; flashcards/Trello/dashboard/admin.
+**Pitfalls:** Filter state is component-local — resets on unmount. Do not pass arbitrary strings to `listCourseTasks` `status` param.
+**Follow-up:** Phase **3A-d** global `/tasks` UI or `materialId` linking — separate planning/approval

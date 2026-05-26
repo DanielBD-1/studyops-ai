@@ -46,6 +46,9 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
   const [completingId, setCompletingId] = useState(/** @type {string | null} */ (null));
   const [deletingId, setDeletingId] = useState(/** @type {string | null} */ (null));
   const [actionError, setActionError] = useState(/** @type {string | null} */ (null));
+  const [statusFilter, setStatusFilter] = useState(
+    /** @type {'all' | 'pending' | 'completed'} */ ('all')
+  );
 
   function cancelEdit() {
     setEditingTaskId(null);
@@ -78,7 +81,10 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     setError(null);
 
     try {
-      const data = await listCourseTasks(courseId);
+      const data = await listCourseTasks(
+        courseId,
+        statusFilter === 'all' ? undefined : statusFilter
+      );
       setTasks(data.tasks);
     } catch (err) {
       if (await handleAuthError(err)) return;
@@ -90,7 +96,18 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
     } finally {
       setLoading(false);
     }
-  }, [courseId, handleAuthError]);
+  }, [courseId, handleAuthError, statusFilter]);
+
+  /**
+   * @param {'all' | 'pending' | 'completed'} filter
+   */
+  function handleFilterChange(filter) {
+    cancelEdit();
+    setShowCreate(false);
+    setCreateError(null);
+    setActionError(null);
+    setStatusFilter(filter);
+  }
 
   useEffect(() => {
     loadTasks();
@@ -227,9 +244,30 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
 
   const busy = creating || savingEdit || completingId !== null || deletingId !== null;
 
+  /** @type {Array<{ value: 'all' | 'pending' | 'completed', label: string }>} */
+  const FILTERS = [
+    { value: 'all', label: 'All' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'completed', label: 'Completed' },
+  ];
+
   return (
     <section className="section">
       <h2 className="section__title">Study tasks</h2>
+
+      <div className="form-row">
+        {FILTERS.map((f) => (
+          <Button
+            key={f.value}
+            type="button"
+            variant={statusFilter === f.value ? 'primary' : 'secondary'}
+            onClick={() => handleFilterChange(f.value)}
+            disabled={busy}
+          >
+            {f.label}
+          </Button>
+        ))}
+      </div>
 
       {loading && <LoadingState message="Loading study tasks…" />}
 
@@ -242,7 +280,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
         </>
       )}
 
-      {!loading && !error && tasks.length === 0 && !showCreate && (
+      {!loading && !error && tasks.length === 0 && !showCreate && statusFilter === 'all' && (
         <EmptyState
           headline="No study tasks yet"
           description="Add a manual task to track work for this course."
@@ -252,6 +290,14 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
             setShowCreate(true);
           }}
         />
+      )}
+
+      {!loading && !error && tasks.length === 0 && statusFilter === 'pending' && (
+        <p className="section__meta">No pending tasks.</p>
+      )}
+
+      {!loading && !error && tasks.length === 0 && statusFilter === 'completed' && (
+        <p className="section__meta">No completed tasks.</p>
       )}
 
       {!loading && !error && tasks.length > 0 && (
@@ -332,7 +378,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
 
       {actionError && <ErrorMessage message={actionError} />}
 
-      {!loading && !error && tasks.length > 0 && !showCreate && (
+      {!loading && !error && tasks.length > 0 && !showCreate && statusFilter === 'all' && (
         <p className="section__actions">
           <Button
             variant="primary"
@@ -347,7 +393,7 @@ export default function CourseTasksSection({ courseId, handleAuthError }) {
         </p>
       )}
 
-      {showCreate && (
+      {showCreate && statusFilter === 'all' && (
         <div className="section--compact">
           <FormCard title="Add study task">
             <form onSubmit={handleCreate} className="form-stack">

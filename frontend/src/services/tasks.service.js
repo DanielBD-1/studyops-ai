@@ -80,9 +80,14 @@ async function request(path, init = {}) {
 
 /**
  * @param {string} courseId
+ * @param {'pending' | 'completed' | undefined} [status]
  */
-export async function listCourseTasks(courseId) {
-  const data = await request(`/api/courses/${courseId}/tasks`, { method: 'GET' });
+export async function listCourseTasks(courseId, status) {
+  const path =
+    status === 'pending' || status === 'completed'
+      ? `/api/courses/${courseId}/tasks?status=${status}`
+      : `/api/courses/${courseId}/tasks`;
+  const data = await request(path, { method: 'GET' });
   return /** @type {{ tasks: StudyTask[] }} */ (data);
 }
 
