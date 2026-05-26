@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   ApiRequestError,
   listAllTasks,
+  createCourseTask,
   updateTask,
   completeTask,
   deleteTask,
 } from '../../services/tasks.service.js';
 import { listMaterials } from '../../services/study-materials.service.js';
-import { updateTaskFormSchema } from '../../utils/validation.js';
+import { createTaskFormSchema, updateTaskFormSchema } from '../../utils/validation.js';
 import TaskCard from './TaskCard.jsx';
 import Button from '../ui/Button.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
@@ -50,8 +51,36 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   const [completingId, setCompletingId] = useState(/** @type {string | null} */ (null));
   const [deletingId, setDeletingId] = useState(/** @type {string | null} */ (null));
   const [actionError, setActionError] = useState(/** @type {string | null} */ (null));
+  const [showCreate, setShowCreate] = useState(false);
+  const [createCourseId, setCreateCourseId] = useState('');
+  const [createTitle, setCreateTitle] = useState('');
+  const [createEstimatedMinutes, setCreateEstimatedMinutes] = useState('');
+  const [createDescription, setCreateDescription] = useState('');
+  const [createPriority, setCreatePriority] = useState(
+    /** @type {'low' | 'medium' | 'high'} */ ('medium')
+  );
+  const [createMaterialId, setCreateMaterialId] = useState('');
+  const [createMaterials, setCreateMaterials] = useState(
+    /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
+  );
+  const [loadingCreateMaterials, setLoadingCreateMaterials] = useState(false);
+  const [createError, setCreateError] = useState(/** @type {string | null} */ (null));
+  const [creating, setCreating] = useState(false);
 
   const courseTitleById = new Map(courses.map((c) => [c.id, c.title]));
+
+  function cancelCreate() {
+    setShowCreate(false);
+    setCreateCourseId('');
+    setCreateTitle('');
+    setCreateEstimatedMinutes('');
+    setCreateDescription('');
+    setCreatePriority('medium');
+    setCreateMaterialId('');
+    setCreateMaterials([]);
+    setCreateError(null);
+    setLoadingCreateMaterials(false);
+  }
 
   function cancelEdit() {
     setEditingTaskId(null);
@@ -65,38 +94,83 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     setLoadingEditMaterials(false);
   }
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  /**
+   * @param {{ courseFilter?: 'all' | string, statusFilter?: 'all' | 'pending' | 'completed' }} [overrides]
+   */
+  const loadTasks = useCallback(
+    async (overrides = {}) => {
+      setLoading(true);
+      setError(null);
 
-    const courseId =
-      courseFilter !== 'all' && courses.some((c) => c.id === courseFilter)
-        ? courseFilter
-        : undefined;
-    const status =
-      statusFilter === 'pending' || statusFilter === 'completed'
-        ? statusFilter
-        : undefined;
+      const effectiveCourseFilter = overrides.courseFilter ?? courseFilter;
+      const effectiveStatusFilter = overrides.statusFilter ?? statusFilter;
 
-    try {
-      const data = await listAllTasks({ courseId, status });
-      setTasks(data.tasks);
-    } catch (err) {
-      if (await handleAuthError(err)) return;
-      setError(err instanceof Error ? err.message : 'Failed to load study tasks');
-    } finally {
-      setLoading(false);
-    }
-  }, [courseFilter, statusFilter, handleAuthError, courses]);
+      const courseId =
+        effectiveCourseFilter !== 'all' &&
+        courses.some((c) => c.id === effectiveCourseFilter)
+          ? effectiveCourseFilter
+          : undefined;
+      const status =
+        effectiveStatusFilter === 'pending' || effectiveStatusFilter === 'completed'
+          ? effectiveStatusFilter
+          : undefined;
+
+      try {
+        const data = await listAllTasks({ courseId, status });
+        setTasks(data.tasks);
+      } catch (err) {
+        if (await handleAuthError(err)) return;
+        setError(err instanceof Error ? err.message : 'Failed to load study tasks');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [courseFilter, statusFilter, handleAuthError, courses]
+  );
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
 
+  useEffect(() => {
+    if (!showCreate || !createCourseId || !courses.some((c) => c.id === createCourseId)) {
+      setCreateMaterials([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    async function loadCreateMaterials() {
+      setLoadingCreateMaterials(true);
+      try {
+        const data = await listMaterials(createCourseId);
+        if (!cancelled) {
+          setCreateMaterials(data.materials);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        if (await handleAuthError(err)) return;
+        setCreateError('Failed to load study materials for this course');
+        setCreateMaterials([]);
+      } finally {
+        if (!cancelled) {
+          setLoadingCreateMaterials(false);
+        }
+      }
+    }
+
+    loadCreateMaterials();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [createCourseId, showCreate, courses, handleAuthError]);
+
   /**
    * @param {import('../../services/tasks.service.js').StudyTask} task
    */
   async function startEdit(task) {
+    cancelCreate();
     cancelEdit();
     setActionError(null);
     setEditingTaskId(task.id);
@@ -122,6 +196,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
    * @param {'all' | string} course
    */
   function handleCourseFilterChange(course) {
+    cancelCreate();
     cancelEdit();
     setActionError(null);
     setCourseFilter(course);
@@ -131,9 +206,84 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
    * @param {'all' | 'pending' | 'completed'} filter
    */
   function handleStatusFilterChange(filter) {
+    cancelCreate();
     cancelEdit();
     setActionError(null);
     setStatusFilter(filter);
+  }
+
+  function openCreateForm() {
+    cancelEdit();
+    setActionError(null);
+    setCreateError(null);
+    setCreateCourseId(courseFilter !== 'all' ? courseFilter : '');
+    setShowCreate(true);
+  }
+
+  async function handleCreate(event) {
+    event.preventDefault();
+    setCreateError(null);
+
+    if (!createCourseId || !courses.some((c) => c.id === createCourseId)) {
+      setCreateError('Select a course');
+      return;
+    }
+
+    const parsed = createTaskFormSchema.safeParse({
+      title: createTitle,
+      estimatedMinutes: createEstimatedMinutes,
+      description: createDescription.trim() === '' ? undefined : createDescription,
+      priority: createPriority,
+      materialId: createMaterialId === '' ? undefined : createMaterialId,
+    });
+    if (!parsed.success) {
+      setCreateError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      return;
+    }
+
+    /** @type {{
+     *   title: string,
+     *   estimatedMinutes: number,
+     *   description?: string,
+     *   priority?: 'low' | 'medium' | 'high',
+     *   materialId?: string
+     * }} */
+    const body = {
+      title: parsed.data.title,
+      estimatedMinutes: parsed.data.estimatedMinutes,
+    };
+    if (parsed.data.description !== undefined) {
+      body.description = parsed.data.description;
+    }
+    if (parsed.data.priority !== undefined) {
+      body.priority = parsed.data.priority;
+    }
+    if (parsed.data.materialId !== undefined) {
+      body.materialId = parsed.data.materialId;
+    }
+
+    const createdCourseId = createCourseId;
+
+    setCreating(true);
+    try {
+      await createCourseTask(createdCourseId, body);
+      cancelCreate();
+      const nextStatusFilter = statusFilter === 'completed' ? 'pending' : statusFilter;
+      setCourseFilter(createdCourseId);
+      if (statusFilter === 'completed') {
+        setStatusFilter('pending');
+      }
+      await loadTasks({ courseFilter: createdCourseId, statusFilter: nextStatusFilter });
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+        setCreateError('Course not found');
+        return;
+      }
+      setCreateError(err instanceof Error ? err.message : 'Failed to create study task');
+    } finally {
+      setCreating(false);
+    }
   }
 
   async function handleUpdate(event) {
@@ -219,7 +369,15 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     }
   }
 
-  const busy = savingEdit || completingId !== null || deletingId !== null || loadingEditMaterials;
+  const busy =
+    creating ||
+    savingEdit ||
+    completingId !== null ||
+    deletingId !== null ||
+    loadingEditMaterials ||
+    loadingCreateMaterials;
+
+  const canShowCreate = courses.length > 0 && statusFilter !== 'completed';
 
   /** @type {Array<{ value: 'all' | 'pending' | 'completed', label: string }>} */
   const STATUS_FILTERS = [
@@ -275,6 +433,112 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         ))}
       </div>
 
+      {canShowCreate && !showCreate && !loading && !error && (
+        <p className="section__actions">
+          <Button variant="primary" onClick={openCreateForm} disabled={busy}>
+            Add study task
+          </Button>
+        </p>
+      )}
+
+      {showCreate && canShowCreate && (
+        <div className="section--compact">
+          <FormCard title="Add study task">
+            <form onSubmit={handleCreate} className="form-stack">
+              <label htmlFor="global-task-course-create" className="field">
+                Course
+                <select
+                  id="global-task-course-create"
+                  value={createCourseId}
+                  onChange={(e) => {
+                    setCreateCourseId(e.target.value);
+                    setCreateMaterialId('');
+                    setCreateError(null);
+                  }}
+                  className="field__select"
+                  required
+                >
+                  <option value="">Select a course</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Input
+                id="global-task-title-create"
+                label="Title"
+                value={createTitle}
+                onChange={setCreateTitle}
+                required
+              />
+              <Input
+                id="global-task-estimated-minutes-create"
+                label="Estimated minutes"
+                type="number"
+                value={createEstimatedMinutes}
+                onChange={setCreateEstimatedMinutes}
+                required
+              />
+              <label htmlFor="global-task-priority-create" className="field">
+                Priority
+                <select
+                  id="global-task-priority-create"
+                  value={createPriority}
+                  onChange={(e) =>
+                    setCreatePriority(/** @type {'low' | 'medium' | 'high'} */ (e.target.value))
+                  }
+                  className="field__select"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+              <label htmlFor="global-task-material-create" className="field">
+                Link to material (optional)
+                <select
+                  id="global-task-material-create"
+                  value={createMaterialId}
+                  onChange={(e) => setCreateMaterialId(e.target.value)}
+                  className="field__select"
+                  disabled={!createCourseId || loadingCreateMaterials}
+                >
+                  <option value="">None</option>
+                  {createMaterials.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Textarea
+                id="global-task-description-create"
+                label="Description (optional)"
+                value={createDescription}
+                onChange={setCreateDescription}
+                rows={4}
+              />
+              {createError && <ErrorMessage message={createError} />}
+              <div className="form-row">
+                <Button type="submit" variant="primary" disabled={creating || busy}>
+                  {creating ? 'Creating…' : 'Create study task'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={creating}
+                  onClick={cancelCreate}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </FormCard>
+        </div>
+      )}
+
       {loading && <LoadingState message="Loading study tasks…" />}
 
       {!loading && error && (
@@ -286,13 +550,24 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         </>
       )}
 
-      {showGlobalEmpty && (
+      {showGlobalEmpty && courses.length === 0 && (
         <EmptyState
           headline="No study tasks yet"
           description="Add tasks from a course, or create a course first."
           actionLabel="Go to courses"
           onAction={() => navigate('/courses')}
         />
+      )}
+
+      {showGlobalEmpty && courses.length > 0 && (
+        <>
+          <EmptyState
+            headline="No study tasks yet"
+            description="Create a study task for one of your courses."
+            actionLabel="Add study task"
+            onAction={openCreateForm}
+          />
+        </>
       )}
 
       {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'pending' && (
