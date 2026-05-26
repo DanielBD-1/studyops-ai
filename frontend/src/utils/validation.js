@@ -166,3 +166,11 @@ export const createFlashcardFormSchema = z
     materialId: materialIdSchema,
   })
   .strict();
+
+export const updateFlashcardFormSchema = z
+  .object({
+    question: flashcardQuestionSchema,
+    answer: flashcardAnswerSchema,
+    tags: flashcardTagsSchema,
+  })
+  .strict();
