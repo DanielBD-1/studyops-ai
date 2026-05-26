@@ -3,7 +3,7 @@
 **Owner:** Orchestrator  
 **Prerequisite:** Phase 1 complete (auth, courses); study materials schema applied (Phase 2A)  
 **ADR gate:** 002, 003 (mandatory)  
-**Status:** **Partially complete** — implemented in slices **2D–2F**; persistence and PRD course-level generate **deferred**
+**Status:** **Partially complete** — implemented in slices **2D–2F**, **2L** (latest plan persistence), **3A-a/b** (`study_tasks` table + manual backend API); plan → `study_tasks` import, task UI, and PRD course-level generate **deferred**
 
 See **`docs/IMPLEMENTATION_STATUS.md`** for the authoritative built-state summary.
 
@@ -21,22 +21,28 @@ End-to-end: document-service Gemini + Zod, backend generate, **persist** materia
 |-------|-------------------|
 | **2D** | `document-service` `POST /process` — `{ studyText }`, `GEMINI_API_KEY`, Zod `GeminiOutputSchema`, mocked tests |
 | **2E** | Backend `POST /api/study-materials/:materialId/generate` — body `{}`, ownership, `DOCUMENT_SERVICE_URL` → `/process`, ephemeral `{ materialId, courseId, plan }` |
-| **2F** | Frontend Generate on `/study-materials/:materialId` — ephemeral plan display |
+| **2F** | Frontend Generate on `/study-materials/:materialId` — plan display |
 | **2G** | ESLint in all packages + CI |
+| **2L-a/b/c** | Latest generated plan persisted per material; frontend load/clear |
+| **3A-a** | `public.study_tasks` schema + RLS (migration applied on Supabase) |
+| **3A-b** | Manual `study_tasks` backend API — **no** frontend task UI |
 
 **Implemented generate contract (current):**
 
 - Route: `POST /api/study-materials/:materialId/generate` (not `POST /api/courses/:courseId/generate`)
 - Body: `{}` only — backend reads saved `study_materials.content` after ownership
-- **No** DB persistence of `plan`, tasks, or flashcards yet
+- Latest **`plan` JSON** persisted per material (2L); **no** import of plan tasks into **`study_tasks`** rows; **`flashcards`** table not created
 
 ---
 
 ## Deferred (requires separate approval)
 
 - [ ] `POST /api/courses/:courseId/generate` with client `{ studyText }` (PRD §9)
-- [ ] DB tables: `study_tasks`, `flashcards` (beyond `study_materials`)
-- [ ] Persist validated Gemini output after generate
+- [x] DB table: `study_tasks` (Phase 3A-a)
+- [x] Manual `study_tasks` backend API (Phase 3A-b)
+- [ ] Import generated plan tasks into `study_tasks` rows
+- [ ] DB table: `flashcards` (beyond `study_materials`)
+- [x] Persist validated Gemini **latest plan** per material (Phases 2L-a/b/c)
 - [ ] Task/flashcard management UI, Trello, dashboard, admin
 - [ ] Course page `/courses/:id/generate` route (PRD §6.5)
 
@@ -78,7 +84,7 @@ The steps below describe the **original monolithic workflow**. Completed items a
 - [x] Material-scoped generate (2E) — **not** course `{ studyText }` route
 - [x] Verify ownership via `study_materials` → `courses.user_id`
 - [x] HTTP call to document-service
-- [ ] Save study_tasks, flashcards — **deferred**
+- [ ] Import generated plan tasks into `study_tasks`; save `flashcards` rows — **deferred**
 - [x] Standard API envelope; error codes: `GEMINI_*`, `VALIDATION_ERROR`
 
 ### 4. Implementation Agent — Frontend
@@ -102,7 +108,8 @@ Required for Gemini, generate, logging, and any future persistence.
 ### 8. Human — Final judgment
 
 - [x] Generate flow with saved material (manual smoke when env configured)
-- [ ] Persisted tasks/flashcards — **deferred**
+- [x] Persisted latest plan per material (2L)
+- [ ] Task UI, plan → `study_tasks` import, `flashcards` table/UI — **deferred**
 
 ### 9. Documentation Agent
 
