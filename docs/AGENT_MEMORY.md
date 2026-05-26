@@ -1380,4 +1380,20 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Helper-file note:** `frontend/src/utils/flashcard-study.js` was added for pure UI/helper logic to keep component code simple and enable helper-level unit tests; it has no API calls and no storage usage.
 **package.json note:** `frontend/package.json` `scripts.test` was updated only to include `tests/unit/flashcard-study.test.js` in the existing `node --test ...` list; no deps/devDeps or lockfile changes.
 **Pitfalls / minor notes:** Tags are displayed as plain-text metadata (shown alongside the question). Unit tests cover helper logic and expected reveal/navigation state transitions; no full DOM/component rendering tests were added.
-**Follow-up:** Still deferred: `flashcards` table + management UI, global `/flashcards` page, backend flashcard API, flashcard import/persistence, known/unknown tracking, and spaced repetition.
+**Follow-up:** Still deferred: `flashcards` table + management UI, global `/flashcards` page, backend flashcard API, flashcard import/persistence, known/unknown tracking, and spaced repetition. (**`public.flashcards` table shipped in 3B-b** — see below.)
+
+### 2026-05-26 — Phase 3B-b flashcards schema/RLS complete
+
+**Workflow:** Phase 3B-b flashcards database foundation (schema/RLS only)
+**ADR refs:** none (database only; future API will use 001, 003)
+**Human gates:** `approved — implement Phase 3B-b`; Supervisor Review approved with notes; Security Review no blockers; optional security doc polish; migration **applied manually** on Supabase SQL Editor **2026-05-26**; `approved — Phase 3B-b complete` — satisfied
+**Summary:** Created and **applied** `public.flashcards` with `user_id`, `course_id`, optional `material_id`, `question`, `answer`, `tags`, `source = manual` only, timestamps, ownership triggers, RLS (own-row for `authenticated`), and Data API grants (`anon` none). Mirrors `study_tasks` ownership patterns. **No** backend API, frontend management UI, plan import into rows, or app wiring to DB flashcards.
+**Apply:** `supabase/migrations/006_flashcards.sql` in SQL Editor — **Success. No rows returned.**
+**Verification:** Catalog passed (table, RLS, columns, policies, grants, indexes, triggers, CHECK/FK). Behavioral: valid course-level insert, CHECK rejects (short question, too many tags, invalid source). Cross-user RLS probe **skipped** (no second auth user). Test row inserted then **cleaned** (`remaining_test_flashcards = 0`).
+**Files:** `006_flashcards.sql` (comments updated post-apply), `docs/database/006-flashcards-schema-and-rls.md`
+**APIs affected:** none
+**Tests:** none (schema-only phase; no npm changes)
+**Security:** Supervisor + Security Review approved; doc includes service_role filter, no frontend Supabase writes, no Q/A logging, neutral 404 guidance for future API.
+**Not implemented (intentional):** Backend flashcard API (3B-c), frontend DB UI, import `plan.flashcards[]`, global `/flashcards`, known/unknown, spaced repetition, Gemini/document-service/package changes.
+**Pitfalls:** Do not re-apply migration where table exists. Backend must filter `user_id` on every service-role query when API ships. **3B-a** UI still uses plan JSON only.
+**Follow-up:** Phase **3B-c** backend flashcards API — separate approval; then UI/import as planned.
