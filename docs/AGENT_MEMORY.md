@@ -1366,3 +1366,18 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Known limitations:** Rows look like manual tasks; partial import possible; duplicate risk on re-import.
 **Pitfalls:** Do not spread raw `planTask` into POST body. Do not skip validate-all-before-POST. Do not call generate/clear during import loop.
 **Follow-up:** Flashcards table/UI, Trello, focus, material nav/filtering, backend batch/`source='plan'` — separate approval.
+
+### 2026-05-26 — Phase 3B-a frontend-only flashcard study UI complete
+
+**Workflow:** Phase 3B-a flashcard study UI (frontend-only)
+**ADR refs:** none (UI-only; read-only plan rendering)
+**Human gates:** `approved — implement Phase 3B-a`; Supervisor Review approved with notes; Security Review not required (no new writes, no new API call, and safe plain-text rendering)
+**Summary:** On **`/study-materials/:materialId`**, `GeneratedPlanSection` renders `FlashcardStudy` when `plan.flashcards` exists (length > 0). The UI shows **one card at a time** with **question first**, a **“Show answer”** reveal interaction (answer shown as plain text), **Previous/Next** navigation, and a **“Card X of N”** counter. Reveal state resets when navigating; the current card index resets to `0` when the `flashcards` array changes. No study progress/persistence, no known/unknown tracking, and no spaced repetition.
+**Backend/DB/document-service impact:** none (frontend-only UI; no backend/API/DB/migration/document-service changes and no dependency changes)
+**APIs affected:** none
+**Tests:** Frontend `npm run lint` passed (1 pre-existing warning in `AuthContext.jsx`); `npm test` passed with **92** tests; `npm run build` passed.
+**Changed files:** `frontend/src/components/materials/FlashcardStudy.jsx`, `frontend/src/utils/flashcard-study.js`, `frontend/src/components/materials/GeneratedPlanSection.jsx`, `frontend/tests/unit/flashcard-study.test.js`, `frontend/package.json` (test-script wiring only).
+**Helper-file note:** `frontend/src/utils/flashcard-study.js` was added for pure UI/helper logic to keep component code simple and enable helper-level unit tests; it has no API calls and no storage usage.
+**package.json note:** `frontend/package.json` `scripts.test` was updated only to include `tests/unit/flashcard-study.test.js` in the existing `node --test ...` list; no deps/devDeps or lockfile changes.
+**Pitfalls / minor notes:** Tags are displayed as plain-text metadata (shown alongside the question). Unit tests cover helper logic and expected reveal/navigation state transitions; no full DOM/component rendering tests were added.
+**Follow-up:** Still deferred: `flashcards` table + management UI, global `/flashcards` page, backend flashcard API, flashcard import/persistence, known/unknown tracking, and spaced repetition.
