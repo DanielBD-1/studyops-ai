@@ -8,6 +8,10 @@ import FormCard from '../ui/FormCard.jsx';
  *   onClear: () => void,
  *   clearDisabled?: boolean,
  *   clearing?: boolean,
+ *   onImport?: () => void,
+ *   importDisabled?: boolean,
+ *   importing?: boolean,
+ *   importProgress?: string | null,
  * }} props
  */
 export default function GeneratedPlanSection({
@@ -16,6 +20,10 @@ export default function GeneratedPlanSection({
   onClear,
   clearDisabled = false,
   clearing = false,
+  onImport,
+  importDisabled = false,
+  importing = false,
+  importProgress = null,
 }) {
   if (!plan || typeof plan.summary !== 'string') {
     return (
@@ -63,6 +71,22 @@ export default function GeneratedPlanSection({
             <h3 className="plan-block__title">Difficulty</h3>
             <p className="plan-block__body plan-block__body--capitalize">{plan.difficulty}</p>
           </section>
+        )}
+
+        {tasks.length > 0 && onImport && (
+          <p className="section__actions">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={onImport}
+              disabled={importDisabled || importing}
+            >
+              {importing ? 'Importing…' : 'Import tasks to course'}
+            </Button>
+            {importing && importProgress ? (
+              <span className="plan-panel__status"> {importProgress}</span>
+            ) : null}
+          </p>
         )}
 
         {tasks.length > 0 && (
@@ -116,9 +140,11 @@ export default function GeneratedPlanSection({
           </section>
         )}
 
-        <Button variant="secondary" onClick={onClear} disabled={clearDisabled}>
-          {clearing ? 'Clearing…' : 'Clear plan'}
-        </Button>
+        <div className="form-row">
+          <Button variant="secondary" onClick={onClear} disabled={clearDisabled || importing}>
+            {clearing ? 'Clearing…' : 'Clear plan'}
+          </Button>
+        </div>
       </FormCard>
     </div>
   );
