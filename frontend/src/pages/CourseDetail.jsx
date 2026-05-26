@@ -16,6 +16,7 @@ import {
   deleteCourse,
 } from '../services/courses.service.js';
 import { createMaterial, listMaterials } from '../services/study-materials.service.js';
+import CourseTasksSection from '../components/tasks/CourseTasksSection.jsx';
 import { createStudyMaterialFormSchema, updateCourseFormSchema } from '../utils/validation.js';
 
 export default function CourseDetail() {
@@ -354,6 +355,8 @@ export default function CourseDetail() {
           </div>
         )}
       </section>
+
+      <CourseTasksSection courseId={id} handleAuthError={handleAuthError} />
 
       <section className="danger-zone">
         <h2 className="danger-zone__title">Danger zone</h2>
