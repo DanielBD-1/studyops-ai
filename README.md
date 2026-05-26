@@ -4,7 +4,7 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c/c.1/c.2/c.3/d/e/f** plus **3B-a** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear/**import plan tasks** UI, **flashcard study UI** (frontend-only, 3B-a), **`study_tasks` backend API**, **course-level** and **global** task management. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (focus sessions, material navigation/filtering, flashcards **table/UI**, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, and **3A-a/b/c/c.1/c.2/c.3/d/e/f** plus **3B-a/b/c** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear/**import plan tasks** UI, **flashcard study UI** (frontend-only, 3B-a, from plan JSON), **`public.flashcards` table** (3B-b), **flashcards backend REST API** (3B-c), **`study_tasks` backend API**, **course-level** and **global** task management. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** for routes and boundaries. Phase history: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (focus sessions, material navigation/filtering, flashcards **frontend UI** / import / global page, Trello, dashboard, deployment) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
@@ -12,7 +12,8 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Courses** — CRUD API + UI
 - **Study materials** — CRUD API + UI (`/study-materials/:materialId`)
 - **AI generate (persisted latest plan)** — save material → **Generate study plan** → latest plan stored per material → **reloads on refresh** → **Clear plan** removes saved plan via backend; read-only plain-text display; **Import tasks to course** copies plan tasks into `study_tasks` (linked to that material; appears on course and `/tasks` pages)
-- **Flashcard study UI (frontend-only)** — on `/study-materials/:materialId`, students can reveal and navigate generated-plan flashcards (question/answer flip) with no separate flashcards DB rows
+- **Flashcard study UI (frontend-only, plan JSON)** — on `/study-materials/:materialId`, students can reveal and navigate flashcards from the **saved generated plan** (`plan.flashcards`); does **not** read `public.flashcards` or call `/api/flashcards` yet
+- **Flashcards backend API** — `GET /api/flashcards`, `POST /api/courses/:id/flashcards`, `PATCH` / `DELETE /api/flashcards/:flashcardId` (auth + ownership; no frontend consumer yet)
 - **Study tasks (course UI)** — on `/courses/:id`: **All/Pending/Completed filters**, list, **create**, **edit pending** tasks (`PATCH`), optional **link/unlink** study materials, mark complete, delete (Bearer JWT)
 - **Study tasks (global UI)** — on **`/tasks`**: protected cross-course list; **course + status filters** (in-memory); **create**, **edit pending**, mark complete, delete; includes tasks created manually or **imported from a generated plan**
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
