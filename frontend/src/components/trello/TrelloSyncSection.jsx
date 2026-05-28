@@ -146,20 +146,22 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
   );
 
   return (
-    <>
+    <div className="trello-sync">
       {tasksLoading && <LoadingState message="Loading study tasks…" />}
 
       {!tasksLoading && tasksError && (
-        <>
+        <div className="trello-sync__error-block">
           <ErrorMessage message={tasksError} />
-          <Button variant="secondary" onClick={loadTasks}>
-            Try again
-          </Button>
-        </>
+          <div className="trello-sync__actions">
+            <Button variant="secondary" onClick={loadTasks}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {!tasksLoading && !tasksError && (
-        <form onSubmit={handleSubmit} noValidate>
+        <form className="trello-sync__form" onSubmit={handleSubmit} noValidate>
           <TrelloSyncForm
             apiKey={apiKey}
             token={token}
@@ -181,10 +183,14 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
             disabled={syncing}
           />
 
-          {validationError && <ErrorMessage message={validationError} />}
-          {syncError && <ErrorMessage message={syncError} />}
+          {(validationError || syncError) && (
+            <div className="trello-sync__messages">
+              {validationError && <ErrorMessage message={validationError} />}
+              {syncError && <ErrorMessage message={syncError} />}
+            </div>
+          )}
 
-          <div className="form-actions">
+          <div className="trello-sync__submit">
             <Button type="submit" disabled={submitDisabled}>
               {syncing ? 'Syncing…' : 'Sync to Trello'}
             </Button>
@@ -193,6 +199,6 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
       )}
 
       <TrelloSyncResults summary={summary} results={results} taskTitleById={taskTitleById} />
-    </>
+    </div>
   );
 }

@@ -21,19 +21,26 @@ export default function TrelloSyncResults({ summary, results, taskTitleById }) {
   return (
     <FormCard>
       <h2 className="form-card__title">Sync results</h2>
-      <p className="form-card__hint">{buildTrelloSyncSummaryText(summary)}</p>
+      <p className="trello-sync-results__summary">{buildTrelloSyncSummaryText(summary)}</p>
       <ul className="trello-sync-results">
         {rows.map((row) => (
-          <li key={row.taskId} className={`trello-sync-results__item trello-sync-results__item--${row.status}`}>
-            <p className="trello-sync-results__title">
-              <strong>{row.title}</strong>
-              <span className="trello-sync-results__status">{row.statusLabel}</span>
-            </p>
+          <li
+            key={row.taskId}
+            className={`trello-sync-results__item trello-sync-results__item--${row.status}`}
+          >
+            <div className="trello-sync-results__header">
+              <p className="trello-sync-results__title">{row.title}</p>
+              <span
+                className={`trello-sync-results__status trello-sync-results__status--${row.status}`}
+              >
+                {row.statusLabel}
+              </span>
+            </div>
             {row.status === 'success' && row.trelloCardId && (
               <p className="trello-sync-results__detail">Trello card ID: {row.trelloCardId}</p>
             )}
             {row.error && (
-              <p className="trello-sync-results__detail" role="alert">
+              <p className="trello-sync-results__detail trello-sync-results__detail--error" role="alert">
                 {row.error}
               </p>
             )}
