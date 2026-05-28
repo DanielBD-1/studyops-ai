@@ -28,6 +28,8 @@ export default function DashboardStub() {
           <Link to="/courses">My courses</Link>
           {' · '}
           <Link to="/tasks">All study tasks</Link>
+          {' · '}
+          <Link to="/flashcards">All flashcards</Link>
         </p>
         <Button variant="secondary" onClick={handleLogout}>
           Log out

@@ -6,6 +6,7 @@ import DashboardStub from './pages/DashboardStub.jsx';
 import CoursesList from './pages/CoursesList.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
 import TasksPage from './pages/TasksPage.jsx';
+import FlashcardsPage from './pages/FlashcardsPage.jsx';
 import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 
 export default function App() {
@@ -43,6 +44,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <TasksPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/flashcards"
+          element={
+            <ProtectedRoute>
+              <FlashcardsPage />
             </ProtectedRoute>
           }
         />

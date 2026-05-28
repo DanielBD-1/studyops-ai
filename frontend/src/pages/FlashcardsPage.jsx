@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import GlobalTasksSection from '../components/tasks/GlobalTasksSection.jsx';
+import GlobalFlashcardsSection from '../components/flashcards/GlobalFlashcardsSection.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { ApiRequestError, listCourses } from '../services/courses.service.js';
 
-export default function TasksPage() {
+export default function FlashcardsPage() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState(
@@ -50,11 +50,11 @@ export default function TasksPage() {
   return (
     <main className="page page--workspace">
       <header className="page-header">
-        <h1>All study tasks</h1>
+        <h1>All saved flashcards</h1>
         <nav className="page-header__nav" aria-label="Secondary">
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/courses">My courses</Link>
-          <Link to="/flashcards">All flashcards</Link>
+          <Link to="/tasks">All study tasks</Link>
         </nav>
       </header>
 
@@ -70,7 +70,7 @@ export default function TasksPage() {
       )}
 
       {!coursesLoading && !coursesError && (
-        <GlobalTasksSection courses={courses} handleAuthError={handleAuthError} />
+        <GlobalFlashcardsSection courses={courses} handleAuthError={handleAuthError} />
       )}
     </main>
   );
