@@ -4,7 +4,7 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
-**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, **3A-a/b/c/c.1/c.2/c.3/d/e/f**, **3B-a/b/c/d/e/f/g**, and **4A-0** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear/**import plan tasks** UI, **saved DB flashcards** (material detail + global `/flashcards`), **`study_tasks`** API and task UI, and **`public.trello_sync_logs`** (append-only sync audit table, **applied/verified** on Supabase; **no credentials stored**). **Trello sync** (`POST /api/trello/sync`, `/trello` UI) is **still pending** (4A-1/4A-2). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** and **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (focus sessions, Trello API/UI, dashboard, deployment, etc.) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, **3A-a/b/c/c.1/c.2/c.3/d/e/f**, **3B-a/b/c/d/e/f/g**, **4A-0**, and **4A-1** are implemented — auth, courses, study materials, Gemini document-service, backend generate + saved-plan APIs, frontend load/clear/**import plan tasks** UI, **saved DB flashcards**, **`study_tasks`** API and task UI, **`public.trello_sync_logs`** (applied on Supabase), and backend **`POST /api/trello/sync`** (manual apiKey/token/listId; per-task results; **no credentials stored**). **Trello sync is partial** — no `/trello` frontend yet (Phase **4A-2**). See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** and **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. Future work (Trello UI, focus sessions, dashboard, deployment, etc.) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
@@ -19,6 +19,7 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Global saved flashcards (`/flashcards`)** — protected page listing all saved flashcards across your account; **create** new cards (required course, optional study material link); **filter by course and study material**; **study filtered cards** with flip/reveal UI; **edit** and **delete** saved cards; links to course and material pages (plan import remains on study material detail)
 - **Study tasks (course UI)** — on `/courses/:id`: **All/Pending/Completed filters**, list, **create**, **edit pending** tasks (`PATCH`), optional **link/unlink** study materials, mark complete, delete (Bearer JWT)
 - **Study tasks (global UI)** — on **`/tasks`**: protected cross-course list; **course + status filters** (in-memory); **create**, **edit pending**, mark complete, delete; includes tasks created manually or **imported from a generated plan**
+- **Trello sync (backend API only)** — `POST /api/trello/sync` syncs selected owned tasks to a Trello list using manual apiKey/token/listId (not stored); writes `trello_sync_logs` and updates `study_tasks.trello_card_id` on success; **no `/trello` page yet**
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 

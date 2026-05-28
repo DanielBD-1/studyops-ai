@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **4A-0**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **4A-1**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -21,7 +21,8 @@ This section records **what the repository implements today** (summary only; ali
 - **Flashcards backend API** (Phase **3B-c**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; auth + ownership filters
 - **Flashcards frontend integration** (Phases **3B-d** + **3B-e** + **3B-f** + **3B-g**) — material-detail saved list, plan import, manual CRUD; **global `/flashcards`** page (create with required course + optional material, list, study, course/material filters, edit/delete); course-level management and advanced study still deferred
 - **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
-- **Trello integration (partial):** database log table only — **`POST /api/trello/sync`**, Trello HTTP client, and **`/trello` UI** are **not** implemented (Phases **4A-1** / **4A-2**)
+- **Trello backend sync API** (Phase **4A-1**) — `POST /api/trello/sync` with manual `{ apiKey, token, listId, taskIds }` in body; native `fetch` Trello client; per-task `results[]` with `status` enum `success` \| `failed` \| `skipped` (approved refinement vs PRD boolean `success` example); updates `study_tasks.trello_card_id` on success; appends `trello_sync_logs` for owned tasks; **credentials never stored**
+- **Trello integration (partial):** backend sync API exists — **`/trello` frontend UI** not implemented (Phase **4A-2**); no boards/lists fetch; no OAuth
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -51,8 +52,10 @@ This section records **what the repository implements today** (summary only; ali
 | Material-detail **saved DB flashcards** + **plan import** | **Yes** (3B-d) |
 | Global route **`/flashcards`** (UI) | **Yes** (3B-f–**3B-g** — create, filter, study, edit/delete; plan import remains on material detail) |
 | Table **`trello_sync_logs`** + RLS (no credentials stored) | **Yes** (4A-0 applied on Supabase) |
-| Trello sync **`POST /api/trello/sync`** + sync UI | **Deferred** — 4A-1 backend, 4A-2 frontend |
-| Per-row sync status `skipped` (e.g. already synced) | **Yes** in DB schema (4A-0); API behavior in 4A-1 |
+| Trello sync **`POST /api/trello/sync`** (manual apiKey/token/listId; per-task `status` results) | **Yes** (4A-1 backend) |
+| Trello sync **UI** (`/trello`, clear credentials after sync) | **Deferred** — Phase 4A-2 |
+| Per-row sync status `skipped` (e.g. already synced) | **Yes** (4A-0 schema + 4A-1 API) |
+| `POST /api/trello/boards` (fetch boards/lists) | **Deferred** |
 
 ### Architecture and env (unchanged intent)
 
@@ -990,11 +993,11 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 
 ### Trello Integration
 
-**POST /api/trello/sync** - Sync tasks to Trello
+**POST /api/trello/sync** - Sync tasks to Trello (**implemented** — Phase 4A-1)
 
 - Body: `{ apiKey, token, listId, taskIds: [...] }`
 - Note: Credentials in body, NOT in query params
-- Returns: `{ results: [{ taskId, success, trelloCardId?, error? }] }`
+- Returns: `{ results: [{ taskId, status: "success"|"failed"|"skipped", trelloCardId?, error? }], summary: { total, success, skipped, failed } }` (implemented shape uses `status` enum, not boolean `success` alone)
 - Credentials are NOT persisted
 
 **POST /api/trello/boards** - Fetch Trello boards (optional for MVP)
