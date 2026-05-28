@@ -83,6 +83,27 @@ describe('buildCreateFlashcardBody', () => {
     );
     assert.equal(result.success, false);
   });
+
+  it('omits materialId when undefined', () => {
+    const result = buildCreateFlashcardBody(VALID_QUESTION, VALID_ANSWER, '', undefined);
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal('materialId' in result.body, false);
+      assert.equal('userId' in result.body, false);
+      assert.equal('courseId' in result.body, false);
+      assert.equal('source' in result.body, false);
+      assert.equal('createdAt' in result.body, false);
+      assert.equal('updatedAt' in result.body, false);
+    }
+  });
+
+  it('omits materialId when empty string', () => {
+    const result = buildCreateFlashcardBody(VALID_QUESTION, VALID_ANSWER, '', '');
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal('materialId' in result.body, false);
+    }
+  });
 });
 
 describe('buildUpdateFlashcardBody', () => {

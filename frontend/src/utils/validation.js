@@ -163,7 +163,7 @@ export const createFlashcardFormSchema = z
     question: flashcardQuestionSchema,
     answer: flashcardAnswerSchema,
     tags: flashcardTagsSchema.optional(),
-    materialId: materialIdSchema,
+    materialId: materialIdSchema.optional(),
   })
   .strict();
 
