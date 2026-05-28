@@ -1,1 +1,309 @@
-/* Global resets and tokens are in src/styles/ — imported from main.jsx */
+/* Trello sync page polish (Phase 4A-3) — scoped to /trello */
+
+.page--trello .page-header--intro {
+  align-items: flex-start;
+}
+
+.page--trello .page-header__intro {
+  flex: 1 1 auto;
+  min-width: min(100%, 28rem);
+}
+
+.page--trello .page-header__intro h1 {
+  margin: 0 0 var(--space-2);
+}
+
+.page--trello .page-header__lead {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+}
+
+.page--trello .page-header__note {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+}
+
+.page--trello .page-header__nav {
+  flex-shrink: 0;
+  padding-top: var(--space-1);
+}
+
+.trello-sync {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.trello-sync__form {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.trello-sync .form-card__hint {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+}
+
+.trello-sync__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.trello-sync__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.trello-sync__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.trello-sync__selection-count {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.trello-sync__selection-count-value {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.trello-sync__limit-error {
+  margin: 0 0 var(--space-3);
+}
+
+.trello-sync__messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.trello-sync__messages .alert {
+  margin-bottom: 0;
+}
+
+.trello-sync__submit {
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.trello-sync__error-block {
+  margin-bottom: var(--space-6);
+}
+
+.trello-sync__error-block .trello-sync__actions {
+  margin-top: var(--space-4);
+}
+
+/* Task list */
+.trello-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: min(24rem, 50vh);
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.trello-task-list__item {
+  margin: 0;
+}
+
+.trello-task-list__label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.trello-task-list__label:hover {
+  border-color: #c8c4bc;
+  box-shadow: var(--shadow-sm);
+}
+
+.trello-task-list__label--selected {
+  background: var(--color-primary-subtle);
+  border-color: #b8c4f0;
+}
+
+.trello-task-list__checkbox {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.2rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.trello-task-list__checkbox:disabled {
+  cursor: not-allowed;
+}
+
+.trello-task-list__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.trello-task-list__title {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.trello-task-list__meta {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+}
+
+/* Sync results */
+.trello-sync-results__summary {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+}
+
+.trello-sync-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.trello-sync-results__item {
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  border-left-width: 3px;
+}
+
+.trello-sync-results__item--success {
+  border-left-color: var(--color-success);
+}
+
+.trello-sync-results__item--skipped {
+  border-left-color: var(--color-text-muted);
+}
+
+.trello-sync-results__item--failed {
+  border-left-color: var(--color-error);
+}
+
+.trello-sync-results__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.trello-sync-results__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
+  flex: 1 1 auto;
+  min-width: min(100%, 12rem);
+  word-break: break-word;
+}
+
+.trello-sync-results__status {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.trello-sync-results__status--success {
+  color: var(--color-success);
+  border-color: #a8d4b8;
+  background: #f0faf4;
+}
+
+.trello-sync-results__status--skipped {
+  color: var(--color-text-muted);
+}
+
+.trello-sync-results__status--failed {
+  color: var(--color-error);
+  border-color: #e8b4b0;
+  background: #fef3f2;
+}
+
+.trello-sync-results__detail {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+  word-break: break-word;
+}
+
+.trello-sync-results__detail--error {
+  color: var(--color-error);
+}
+
+@media (max-width: 640px) {
+  .page--trello .page-header--intro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page--trello .page-header__nav {
+    padding-top: 0;
+  }
+
+  .trello-sync__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .trello-task-list {
+    max-height: none;
+  }
+}

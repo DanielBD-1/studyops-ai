@@ -47,13 +47,17 @@ export default function TrelloSyncPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace">
-      <header className="page-header">
-        <h1>Trello sync</h1>
-        <p className="page__lead">Sync selected study tasks to a Trello list.</p>
-        <p className="page__lead">
-          Credentials are used only for this sync request and are not saved.
-        </p>
+    <main className="page page--workspace page--trello">
+      <header className="page-header page-header--intro">
+        <div className="page-header__intro">
+          <h1>Trello sync</h1>
+          <p className="page-header__lead">
+            Sync selected study tasks to a Trello list.
+          </p>
+          <p className="page-header__note">
+            Credentials are used only for this sync request and are not saved.
+          </p>
+        </div>
         <nav className="page-header__nav" aria-label="Secondary">
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/courses">My courses</Link>
@@ -61,7 +65,7 @@ export default function TrelloSyncPage() {
         </nav>
       </header>
 
-      {coursesLoading && <LoadingState message="Loading…" />}
+      {coursesLoading && <LoadingState message="Loading courses…" />}
 
       {!coursesLoading && coursesError && (
         <ErrorMessage message={coursesError} />

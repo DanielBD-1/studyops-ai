@@ -30,16 +30,18 @@ export default function TrelloSyncForm({
       <p className="form-card__hint">
         Credentials are used only for this sync request and are not saved.
       </p>
-      <TrelloSyncFormFields
-        apiKey={apiKey}
-        token={token}
-        listId={listId}
-        onApiKeyChange={onApiKeyChange}
-        onTokenChange={onTokenChange}
-        onListIdChange={onListIdChange}
-        disabled={disabled}
-      />
-      <div className="form-actions">
+      <div className="trello-sync__fields">
+        <TrelloSyncFormFields
+          apiKey={apiKey}
+          token={token}
+          listId={listId}
+          onApiKeyChange={onApiKeyChange}
+          onTokenChange={onTokenChange}
+          onListIdChange={onListIdChange}
+          disabled={disabled}
+        />
+      </div>
+      <div className="trello-sync__actions">
         <Button type="button" variant="secondary" onClick={onClearCredentials} disabled={disabled}>
           Clear credentials
         </Button>
