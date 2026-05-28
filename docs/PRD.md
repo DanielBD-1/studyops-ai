@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **3B-f**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **3B-g**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -19,7 +19,7 @@ This section records **what the repository implements today** (summary only; ali
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **manual create/edit/delete** saved flashcards (inline forms, **3B-e**); **import plan flashcards** into `public.flashcards` (sequential `POST /api/courses/:id/flashcards`, validate-all-before-POST); **flashcard study UI** from `plan.flashcards` (flip/reveal, unchanged **3B-a**); plain text rendering
 - **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**
 - **Flashcards backend API** (Phase **3B-c**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; auth + ownership filters
-- **Flashcards frontend integration** (Phases **3B-d** + **3B-e** + **3B-f**) — material-detail saved list, plan import, manual CRUD; **global `/flashcards`** page (list, study, course/material filters, edit/delete; **no** global create); course-level management still deferred
+- **Flashcards frontend integration** (Phases **3B-d** + **3B-e** + **3B-f** + **3B-g**) — material-detail saved list, plan import, manual CRUD; **global `/flashcards`** page (create with required course + optional material, list, study, course/material filters, edit/delete); course-level management and advanced study still deferred
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -40,14 +40,14 @@ This section records **what the repository implements today** (summary only; ali
 | Import generated **plan tasks** into **`study_tasks`** (`plan.tasks[]` only; `POST /api/courses/:courseId/tasks`; material-linked; no dedupe/`source='plan'`) | **Yes** (3A-f on `/study-materials/:materialId`) |
 | Import generated **plan flashcards** into **`public.flashcards`** | **Yes** (3B-d on `/study-materials/:materialId` — sequential create; plan not cleared; no dedupe/`source='plan'`) |
 | Material-detail **manual flashcard CRUD** (create, edit, delete saved rows) | **Yes** (3B-e on `/study-materials/:materialId`) |
-| Global **`/flashcards`** page (list, study, filter, edit/delete saved rows) | **Yes** (3B-f — **no** global create) |
-| Flashcard **management UI** (global create, course-level management) | **Deferred** — global create on `/flashcards`; course-level list/CRUD (material-detail in **3B-d**–**3B-e**; global view in **3B-f**; plan JSON study in **3B-a**) |
+| Global **`/flashcards`** page (create, list, study, filter, edit/delete saved rows) | **Yes** (3B-f + **3B-g** — create with required course + optional material) |
+| Flashcard **management UI** (course-level management, bulk create, advanced study) | **Deferred** — course-level list/CRUD; bulk create; known/unknown; spaced repetition; Anki (material-detail in **3B-d**–**3B-e**; global in **3B-f**–**3B-g**; plan JSON study in **3B-a**) |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
 | Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) |
 | Backend flashcards **CRUD API** | **Yes** (3B-c) |
 | Material-detail **saved DB flashcards** + **plan import** | **Yes** (3B-d) |
-| Global route **`/flashcards`** (UI) | **Yes** (3B-f — filter, study, edit/delete; create on material detail only) |
+| Global route **`/flashcards`** (UI) | **Yes** (3B-f–**3B-g** — create, filter, study, edit/delete; plan import remains on material detail) |
 
 ### Architecture and env (unchanged intent)
 
@@ -956,7 +956,7 @@ All API responses follow this structure:
 
 ### Flashcards
 
-**Implemented (Phases 3B-c + 3B-d + 3B-e + 3B-f):** Backend REST (3B-c); material-detail frontend (3B-d list/import; 3B-e manual CRUD); global **`/flashcards`** (3B-f list/filter/study/edit/delete) — see `docs/IMPLEMENTATION_STATUS.md`. Saved DB flashcards load via `GET` (optionally filtered); manual create on material detail; global edit/delete via `PATCH` / `DELETE`; plan import uses `POST /api/courses/:id/flashcards`. Generated-plan flip/reveal study (**3B-a**) remains on plan JSON.
+**Implemented (Phases 3B-c + 3B-d + 3B-e + 3B-f + 3B-g):** Backend REST (3B-c); material-detail frontend (3B-d list/import; 3B-e manual CRUD); global **`/flashcards`** (3B-f list/filter/study/edit/delete; 3B-g global create) — see `docs/IMPLEMENTATION_STATUS.md`. Saved DB flashcards load via `GET` (optionally filtered); create via `POST /api/courses/:id/flashcards` on material detail and globally (required course; optional `materialId`); global edit/delete via `PATCH` / `DELETE`; plan import uses `POST` on material detail only. Generated-plan flip/reveal study (**3B-a**) remains on plan JSON.
 
 **GET /api/flashcards** - List flashcards
 
@@ -979,7 +979,7 @@ All API responses follow this structure:
 
 Wrong-owner or missing resources → neutral **404** (Course / Study material / Flashcard not found).
 
-**Deferred:** Global create flashcard UI on `/flashcards`; course-level flashcard management; known/unknown; spaced repetition; Anki; client-side import dedupe; `source = 'plan'`; pagination/rate limiting; URL-persisted flashcard filters.
+**Deferred:** Bulk create; AI/Gemini flashcard generation; plan import on `/flashcards`; course-level flashcard management; known/unknown; spaced repetition; Anki; client-side import dedupe; `source = 'plan'`; pagination/rate limiting; URL-persisted flashcard filters.
 
 ---
 

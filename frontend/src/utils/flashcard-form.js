@@ -31,10 +31,10 @@ function tagsForCreateBody(tagsInput) {
  * @param {string} question
  * @param {string} answer
  * @param {string} tagsInput
- * @param {string} materialId
+ * @param {string} [materialId]
  * @returns {{
  *   success: true,
- *   body: { question: string, answer: string, materialId: string, tags?: string[] },
+ *   body: { question: string, answer: string, materialId?: string, tags?: string[] },
  * } | { success: false, error: string }}
  */
 export function buildCreateFlashcardBody(question, answer, tagsInput, materialId) {
@@ -44,8 +44,10 @@ export function buildCreateFlashcardBody(question, answer, tagsInput, materialId
   const candidate = {
     question,
     answer,
-    materialId,
   };
+  if (typeof materialId === 'string' && materialId.trim() !== '') {
+    candidate.materialId = materialId;
+  }
   if (tags) {
     candidate.tags = tags;
   }
@@ -58,12 +60,14 @@ export function buildCreateFlashcardBody(question, answer, tagsInput, materialId
     };
   }
 
-  /** @type {{ question: string, answer: string, materialId: string, tags?: string[] }} */
+  /** @type {{ question: string, answer: string, materialId?: string, tags?: string[] }} */
   const body = {
     question: parsed.data.question,
     answer: parsed.data.answer,
-    materialId: parsed.data.materialId,
   };
+  if (parsed.data.materialId !== undefined) {
+    body.materialId = parsed.data.materialId;
+  }
   if (parsed.data.tags !== undefined) {
     body.tags = parsed.data.tags;
   }

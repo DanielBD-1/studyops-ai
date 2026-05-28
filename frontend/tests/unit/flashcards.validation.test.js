@@ -27,6 +27,17 @@ describe('createFlashcardFormSchema', () => {
     }
   });
 
+  it('accepts valid question and answer without materialId', () => {
+    const result = createFlashcardFormSchema.safeParse({
+      question: VALID_QUESTION,
+      answer: VALID_ANSWER,
+    });
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal('materialId' in result.data, false);
+    }
+  });
+
   it('rejects question shorter than 10 characters', () => {
     const result = createFlashcardFormSchema.safeParse({
       question: 'short',
