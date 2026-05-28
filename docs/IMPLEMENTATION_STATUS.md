@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 4A-0 (Trello sync logs database). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), and **`trello_sync_logs` DB foundation** (Phase **4A-0**) are documented below.
+**Last aligned:** Phase 4A-1 (backend Trello sync API). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), and **backend Trello sync API** (Phase **4A-1**) are documented below.
 
 ---
 
@@ -61,7 +61,7 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `question`, `answer`, `tags`, `source = manual` only in DB CHECK for now). RLS by `user_id = auth.uid()`; **`anon` has no access**; ownership triggers mirror `study_tasks`. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/006-flashcards-schema-and-rls.md`). Material detail shows **saved DB flashcards** (study + create/edit/delete) and **generated-plan flashcards** (both may appear after import). Global page shows **all saved flashcards** with course/material filters, **create**, study, edit, and delete. **No** course-level flashcard management UI.
 
-**`trello_sync_logs` (Phase 4A-0):** Append-only per-task Trello sync attempt log (`user_id`, `task_id`, `status` = `success` \| `failed` \| `skipped`, optional `trello_card_id`, optional sanitized `error_message` max 500). **No** credential columns (ADR 004). RLS: `authenticated` **SELECT** own rows; **`service_role` SELECT + INSERT**; owner trigger on INSERT. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/007-trello-sync-logs-schema-and-rls.md`). **`study_tasks.trello_card_id`** column exists (3A-a) but is **not** updated by app yet. **No** `POST /api/trello/sync`, **no** `/trello` UI (Phases **4A-1** / **4A-2**).
+**`trello_sync_logs` (Phase 4A-0):** Append-only per-task Trello sync attempt log (`user_id`, `task_id`, `status` = `success` \| `failed` \| `skipped`, optional `trello_card_id`, optional sanitized `error_message` max 500). **No** credential columns (ADR 004). RLS: `authenticated` **SELECT** own rows; **`service_role` SELECT + INSERT**; owner trigger on INSERT. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/007-trello-sync-logs-schema-and-rls.md`). **`study_tasks.trello_card_id`** is updated by **`POST /api/trello/sync`** (Phase **4A-1**) on successful card creation; still **omitted** from task GET/PATCH API responses. **Trello integration partial** — backend sync API exists; **no** `/trello` frontend (Phase **4A-2**).
 
 **Not created yet:** focus sessions, `api_logs` admin table, etc. (PRD future scope). **Plan task import** (3A-f) copies `plan.tasks[]` into `study_tasks` only.
 
@@ -139,7 +139,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 **Ownership / errors:** Wrong-owner or missing course → **`404`** “Course not found”. Wrong-owner or missing task → **`404`** “Task not found”. Responses do **not** expose other users’ task existence.
 
-**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. **No** Trello sync, focus sessions, dashboard metrics, admin, or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**).
+**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. **No** focus sessions, dashboard metrics, admin, or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**). Trello sync: **`POST /api/trello/sync`** implemented (Phase **4A-1**); no `/trello` UI yet.
 
 ---
 
@@ -334,9 +334,31 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Not in 4A-0:** `POST /api/trello/sync`; updating `study_tasks.trello_card_id` from sync; frontend sync form; credential persistence.
 
-**Next:** Phase **4A-1** backend Trello sync API — requires **`approved — implement Phase 4A-1`** and **Security Review**.
-
 **See:** `docs/database/007-trello-sync-logs-schema-and-rls.md`
+
+---
+
+## Implemented — Backend Trello sync API (Phase 4A-1)
+
+**Backend only** — `POST /api/trello/sync` with ephemeral credentials in request body (ADR 004). **No** frontend `/trello` page, **no** boards/lists fetch, **no** credential persistence.
+
+| Item | Detail |
+|------|--------|
+| Route | `POST /api/trello/sync` — mounted at `/api/trello`; **`requireAuth`** |
+| Body | `{ apiKey, token, listId, taskIds }` — Zod strict; `taskIds` 1–50 unique UUIDs |
+| Trello client | `backend/src/clients/trello.client.js` — native `fetch`; mocked in tests |
+| Ownership | Tasks loaded/updated with `user_id = req.user.id`; wrong-owner/missing → per-task `failed` / `"Task not found"` **no log row** |
+| Skip | `study_tasks.trello_card_id` already set → `skipped`; no Trello call |
+| Success | Trello card created; `trello_card_id` updated; `trello_sync_logs` `success` row |
+| Logs | Append-only insert for owned tasks only; sanitized `error_message`; **never** credentials |
+| Response | `{ results: [{ taskId, status, trelloCardId, error }], summary: { total, success, skipped, failed } }` — `status` ∈ `success` \| `failed` \| `skipped` (PRD boolean refinement) |
+| Checks | `cd backend && npm run lint` and `npm test` passed — **208** tests, **0** failures |
+
+**Not in 4A-1:** `/trello` UI; `POST /api/trello/boards`; OAuth; stored credentials; Trello card update/delete; force re-sync; exposing `trelloCardId` on task list APIs.
+
+**Known MVP note:** Orphan Trello card possible if Trello succeeds but DB update fails.
+
+**Next:** Phase **4A-2** frontend Trello sync page — **`approved — implement Phase 4A-2`** + Supervisor + Security Review.
 
 ---
 
@@ -494,7 +516,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | `/flashcards` | **All saved flashcards** — **course + material filters** (in-memory), **create** (required course, optional material), list, **study filtered** cards, **edit/delete**; links to course/material |
 | `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks`, **saved DB flashcards** (list, study, **manual create/edit/delete**), **import plan flashcards** to library, and **generated-plan** flashcard study UI (`plan.flashcards`, flip/reveal) |
 
-**Not implemented:** `/courses/:id/generate`, `/trello`, `/focus/:taskId`, `/admin` (PRD future).
+**Not implemented:** `/courses/:id/generate`, `/trello` (UI — backend sync API exists), `/focus/:taskId`, `/admin` (PRD future).
 
 ---
 
@@ -503,7 +525,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system for flashcards; **bulk create** flashcards; **AI/Gemini** flashcard generation on `/flashcards`; **plan import** on `/flashcards`; **course-level** flashcard management; known/unknown tracking; spaced repetition; Anki; pagination/rate limiting; **URL-persisted** flashcard filters (in-memory filters shipped in **3B-f**); optional shared CRUD form extraction; link from `/courses` to `/flashcards` ( **`public.flashcards` table + RLS** in **3B-b**; **backend API** in **3B-c**; **material-detail** in **3B-d**–**3B-e**; **global page** in **3B-f**–**3B-g**; **plan JSON study** in **3B-a**; **plan tasks** import in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
-- Trello sync **backend API** (`POST /api/trello/sync`) and **frontend** `/trello` UI — **`public.trello_sync_logs` table exists** (Phase **4A-0** applied); sync feature **not** complete until **4A-1** / **4A-2**
+- Trello sync **frontend** `/trello` UI (credential form, task checkboxes, clear credentials after sync) — **`POST /api/trello/sync` backend exists** (Phase **4A-1**); **`trello_sync_logs` table** applied (4A-0); end-to-end Trello feature **partial** until **4A-2**
 - Student dashboard analytics (real metrics)
 - Admin dashboard and logs
 - Focus sessions
