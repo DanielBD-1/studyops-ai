@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **3B-g**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **4A-0**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -20,6 +20,8 @@ This section records **what the repository implements today** (summary only; ali
 - **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**
 - **Flashcards backend API** (Phase **3B-c**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; auth + ownership filters
 - **Flashcards frontend integration** (Phases **3B-d** + **3B-e** + **3B-f** + **3B-g**) — material-detail saved list, plan import, manual CRUD; **global `/flashcards`** page (create with required course + optional material, list, study, course/material filters, edit/delete); course-level management and advanced study still deferred
+- **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
+- **Trello integration (partial):** database log table only — **`POST /api/trello/sync`**, Trello HTTP client, and **`/trello` UI** are **not** implemented (Phases **4A-1** / **4A-2**)
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -48,6 +50,9 @@ This section records **what the repository implements today** (summary only; ali
 | Backend flashcards **CRUD API** | **Yes** (3B-c) |
 | Material-detail **saved DB flashcards** + **plan import** | **Yes** (3B-d) |
 | Global route **`/flashcards`** (UI) | **Yes** (3B-f–**3B-g** — create, filter, study, edit/delete; plan import remains on material detail) |
+| Table **`trello_sync_logs`** + RLS (no credentials stored) | **Yes** (4A-0 applied on Supabase) |
+| Trello sync **`POST /api/trello/sync`** + sync UI | **Deferred** — 4A-1 backend, 4A-2 frontend |
+| Per-row sync status `skipped` (e.g. already synced) | **Yes** in DB schema (4A-0); API behavior in 4A-1 |
 
 ### Architecture and env (unchanged intent)
 
