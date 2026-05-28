@@ -30,6 +30,8 @@ export default function DashboardStub() {
           <Link to="/tasks">All study tasks</Link>
           {' · '}
           <Link to="/flashcards">All flashcards</Link>
+          {' · '}
+          <Link to="/trello">Trello sync</Link>
         </p>
         <Button variant="secondary" onClick={handleLogout}>
           Log out

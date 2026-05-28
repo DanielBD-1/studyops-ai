@@ -7,6 +7,7 @@ import CoursesList from './pages/CoursesList.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FlashcardsPage from './pages/FlashcardsPage.jsx';
+import TrelloSyncPage from './pages/TrelloSyncPage.jsx';
 import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 
 export default function App() {
@@ -52,6 +53,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <FlashcardsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trello"
+          element={
+            <ProtectedRoute>
+              <TrelloSyncPage />
             </ProtectedRoute>
           }
         />
