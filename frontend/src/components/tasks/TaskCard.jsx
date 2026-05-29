@@ -31,8 +31,16 @@ export default function TaskCard({
 }) {
   const isCompleted = task.status === 'completed';
 
+  const cardClass = [
+    'source-card',
+    'source-card--task',
+    isCompleted && 'source-card--completed',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <article className="source-card">
+    <article className={cardClass}>
       <h3 className="source-card__title">{task.title}</h3>
       {courseLabel ? (
         <p className="source-card__meta">
@@ -52,7 +60,7 @@ export default function TaskCard({
       <p className="source-card__meta">
         Priority: {task.priority} · {task.estimatedMinutes} min
       </p>
-      <div className="form-row">
+      <div className="form-row source-card__actions">
         {!isCompleted && (
           <>
             {disabled || editing || completing || deleting ? (

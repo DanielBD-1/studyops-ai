@@ -255,7 +255,7 @@ export default function FocusPage() {
   const tasksBackPath = returnTo.startsWith('/') ? returnTo : '/tasks';
 
   return (
-    <main className="page page--workspace">
+    <main className="page page--workspace page--focus">
       <header className="page-header">
         <h1>Focus session</h1>
         {taskTitle ? <p className="page-header__lead">{taskTitle}</p> : null}
@@ -289,15 +289,13 @@ export default function FocusPage() {
       )}
 
       {phase === 'active' && session && (
-        <section>
-          <p className="focus-timer" aria-live="polite">
-            {formatCountdown(secondsLeft)}
-          </p>
-          <p className="source-card__meta">
+        <section className="focus-panel" aria-live="polite">
+          <p className="focus-timer">{formatCountdown(secondsLeft)}</p>
+          <p className="focus-panel__hint">
             {session.durationMinutes}-minute focus timer
           </p>
 
-          <label className="form-row">
+          <label className="focus-panel__checkbox">
             <input
               type="checkbox"
               checked={markTaskComplete}
@@ -309,7 +307,7 @@ export default function FocusPage() {
 
           {completeError ? <ErrorMessage message={completeError} /> : null}
 
-          <div className="form-row">
+          <div className="focus-panel__actions">
             <Button
               type="button"
               variant="primary"
@@ -323,7 +321,7 @@ export default function FocusPage() {
       )}
 
       {phase === 'done' && completedSession && (
-        <section aria-live="polite">
+        <section className="focus-done" aria-live="polite">
           <p>
             Session complete. You focused for {completedSession.durationMinutes} minute
             {completedSession.durationMinutes === 1 ? '' : 's'}.
@@ -331,7 +329,7 @@ export default function FocusPage() {
           {completedTask ? (
             <p>Task marked complete: {completedTask.title}</p>
           ) : null}
-          <div className="form-row">
+          <div className="focus-panel__actions">
             <Link to={tasksBackPath}>Back to tasks</Link>
             {showCourseBack ? <Link to={`/courses/${courseId}`}>Back to course</Link> : null}
           </div>

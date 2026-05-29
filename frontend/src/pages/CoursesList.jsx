@@ -90,7 +90,6 @@ export default function CoursesList() {
         <h1>My courses</h1>
         <nav className="page-header__nav" aria-label="Secondary">
           <Link to="/dashboard">Dashboard</Link>
-          {' · '}
           <Link to="/tasks">All study tasks</Link>
         </nav>
       </header>
