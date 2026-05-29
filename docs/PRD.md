@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **4C-2**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **4C-3**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -28,7 +28,8 @@ This section records **what the repository implements today** (summary only; ali
 - **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker. **Still deferred:** OAuth / Connect Trello (future production improvement); credential storage; board/list persistence; Trello card update/delete; force re-sync
 - **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
 - **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion)
-- **Focus Sessions frontend UI** (Phase **4C-2**) — protected **`/focus/:taskId`**; **Start Focus** on pending tasks; fixed **25**-minute display countdown; complete sends **`{ completedTask }` only**; **no** pause/resume, duration picker, or browser storage. **Still deferred:** manual focus smoke (**4C-3**); dashboard **`totalFocusMinutes`** (**5B**)
+- **Focus Sessions frontend UI** (Phase **4C-2**) — protected **`/focus/:taskId`**; **Start Focus** on pending tasks; fixed **25**-minute display countdown; complete sends **`{ completedTask }` only**; **no** pause/resume, duration picker, or browser storage
+- **Focus Sessions manual smoke** (Phase **4C-3**) — **passed** (**2026-05-29**): Start Focus from pending tasks; complete without/with marking task complete; course page flow; network and console clean. **Focus Sessions MVP complete** through **4C-0**–**4C-3**. **Still deferred:** dashboard **`totalFocusMinutes`** (**5B**)
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -67,7 +68,9 @@ This section records **what the repository implements today** (summary only; ali
 | Frontend Trello board/list picker on `/trello` | **Yes** (4B-2 — Load boards, board/list dropdowns) |
 | Table **`focus_sessions`** + RLS | **Yes** (4C-0 applied on Supabase) |
 | Backend **`POST /api/focus`** + **`POST /api/focus/:sessionId/complete`** | **Yes** (4C-1) |
-| Frontend **`/focus/:taskId`** focus timer UI | **Yes** (4C-2 — manual smoke **4C-3** pending) |
+| Frontend **`/focus/:taskId`** focus timer UI | **Yes** (4C-2) |
+| Focus Sessions manual smoke (**4C-3**) | **Yes** — passed **2026-05-29**; MVP complete through DB + backend + frontend + smoke |
+| Dashboard **`totalFocusMinutes`** | **Deferred** (Phase **5B**) |
 
 ### Architecture and env (unchanged intent)
 
