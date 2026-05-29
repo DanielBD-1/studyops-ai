@@ -24,6 +24,8 @@ Phase 3B-b adds the **database foundation** for DB-backed flashcards by creating
 - **No import of generated-plan flashcards into DB rows** (deferred).
 - No global `/flashcards` page, known/unknown tracking, spaced repetition, or Gemini/document-service changes.
 
+> **Superseded (post-3B-b):** Backend flashcards API (**3B-c**), material-detail and global flashcards UI (**3B-d**–**3B-g**), and plan-flashcard import are **implemented**. See **`docs/IMPLEMENTATION_STATUS.md`** for current state — the bullets above describe **3B-b scope only**.
+
 ---
 ## Schema summary
 
@@ -46,7 +48,7 @@ Phase 3B-b adds the **database foundation** for DB-backed flashcards by creating
 
 - `question` / `answer` length checks mirror the existing generated-plan constraints so later APIs/import validation can remain consistent.
 - `tags` cardinality is constrained to `<= 5` (matches the plan contract).
-- `source = 'manual'` only: this phase does not implement plan import or distinguish imported content.
+- `source = 'manual'` only in **3B-b** schema CHECK: plan-flashcard import and broader `source` values were added in later phases — see superseded note under **Not implemented in Phase 3B-b** above and **`docs/IMPLEMENTATION_STATUS.md`**.
 - `material_id` is **nullable** so course-level cards can exist without a specific material link (and to match `study_tasks`’ optional `material_id` pattern).
 
 ---

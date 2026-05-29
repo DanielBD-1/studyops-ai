@@ -5,7 +5,9 @@
 **Folder:** `docs/design/screenshots/`  
 **Rules:** Fake data only · no real student content · no secrets · no `.env` values
 
-**Phase 2I note:** Screenshots are design reference only. **`DESIGN.md` v2** (Phase 2I-c) and the **Phase 2J styling pass** are **complete**; `11-generated-plan-visible.png` **captured** (Phase 2K-c, from **already-saved** plan after Phase 2O-c live smoke — no additional Generate). Only `15-processing-with-ai.png` remains **pending** (do not fabricate).
+**Phase 2I note:** Screenshots are design reference only — **not** product truth. **`DESIGN.md` v2** (Phase 2I-c), the **Phase 2J styling pass**, and **Phase 8A UI polish** are **complete**; `11-generated-plan-visible.png` **captured** (Phase 2K-c, from **already-saved** plan after Phase 2O-c live smoke — no additional Generate). Only `15-processing-with-ai.png` remains **pending** (do not fabricate).
+
+**Visual drift (Phase 8B):** PNGs committed under `docs/design/screenshots/` were captured during Phase **2I-b** / **2K-c** and may **predate Phase 8A** polish (tokens, cards, stat tiles). Treat them as layout/flow references unless recaptured on the current UI. **`03-dashboard.png`** in particular is a **pre-5C / pre-8A** capture — the live **`/dashboard`** route shows real aggregate stats from **`GET /api/dashboard/stats`** (Overview, Tasks, Focus, Learning assets, Trello sync count, per-course breakdown).
 
 ---
 
@@ -46,7 +48,7 @@ These files are committed under `docs/design/screenshots/`:
 |---|----------|---------------|----------------------|
 | 1 | `01-login.png` | `/` | Email + password form, link to Register, StudyOps branding/title if present |
 | 2 | `02-register.png` | `/register` | Register form, link to Login |
-| 3 | `03-dashboard.png` | `/dashboard` | Stub only: signed-in identity (fake email), link/CTA to Courses, logout — **no charts or stats** |
+| 3 | `03-dashboard.png` | `/dashboard` | **Pre-5C / pre-8A reference capture** — stub-era layout (identity, Courses link, logout). **Current product:** real read-only aggregate stats (no charts/KPI hub). Recapture optional to match **5C**/**8A** UI |
 | 4 | `04-courses-empty.png` | `/courses` | Empty state copy + primary CTA to create first course |
 | 5 | `05-create-course-form.png` | `/courses` | Create course form visible (title field, submit) |
 | 6 | `06-courses-list.png` | `/courses` | ≥2 fake courses in list, create affordance visible |
@@ -108,8 +110,8 @@ When running Stitch:
 | `11-generated-plan-visible.png` | **Captured** — Phase 2K-c (saved plan from Phase 2O-c live smoke; no Generate during capture) |
 | `15-processing-with-ai.png` | **Pending** — do not fabricate (requires future approved live Generate) |
 | `STITCH_BRIEF.md` | **Ready** — Phase 2I-a |
-| `DESIGN.md` v2 | **Complete** — Phase 2I-c (UI/UX spec); styled in code via Phase 2J |
-| Full Phase 2I | **Partial** — 14 screenshots in repo; `15-` still **pending** (do not fabricate) |
+| `DESIGN.md` v2 | **Complete** — Phase 2I-c (UI/UX spec); styled in code via Phase 2J; polished Phase 8A |
+| Full Phase 2I | **Partial** — 14 screenshots in repo; `15-` still **pending** (do not fabricate); **`03-dashboard.png`** is pre-5C/pre-8A reference |
 
 ---
 
@@ -121,3 +123,4 @@ When running Stitch:
 | 2026-05-20 | Security hardening: capture crop rules, dummy password, pre-commit PNG check |
 | 2026-05-22 | Phase 2I-b alignment: filenames match captured PNGs; pending generate/processing documented |
 | 2026-05-23 | Phase 2K-c: `11-generated-plan-visible.png` captured from already-saved plan (Phase 2O-c); `15-` still pending |
+| 2026-05-30 | Phase 8B: `03-dashboard.png` clarified as pre-5C/pre-8A reference; note on screenshot visual drift vs 8A polish |
