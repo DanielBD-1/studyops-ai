@@ -1675,3 +1675,15 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** Frontend context/notifier, provider placement, dashboard subscription, mutation wiring, unit tests, **`frontend/package.json`** `test` script only — **no** backend, DB, migration, dependency, or **`package-lock`** changes
 **Not implemented (intentional):** global stats cache in context; polling; WebSockets; cross-tab sync; visibility/focus refetch; admin dashboard; chart library; further dashboard refresh work unless separately approved
 **Follow-up:** Choose next product feature (admin dashboard, polish pass, etc.) — **not** more dashboard refresh unless explicitly approved
+
+### 2026-05-29 — Flashcards material filter bugfix complete
+
+**Workflow:** Bugfix — flashcards material filter (backend only)
+**ADR refs:** 001 (modular monolith), 003 (Zod unchanged — query validation only)
+**Human gates:** `approved — flashcards material filter bugfix complete`
+**Summary:** Fixed **`500 DATABASE_ERROR`** (“Failed to access study material”) on **`GET /api/flashcards?courseId=&materialId=`** when selecting a study material on **`/flashcards`**. Root cause: **`assertMaterialBelongsToOwnedCourseForFlashcards`** in **`flashcards.service.js`** filtered by **`courses.user_id`** without embedding **`courses!inner(...)`** in the PostgREST select — real PostgREST rejected the query. Fix: **`MATERIAL_OWNERSHIP_SELECT`** = **`'id, course_id, courses!inner(id)'`** on the material ownership query (same pattern as **`tasks.service.js`**). Ownership checks preserved — material **`id`**, **`course_id`**, and joined **`courses.user_id`** still enforced; wrong owner / wrong course / cross-course material remain neutral **`404`** “Study material not found”. Valid owned course+material now returns **`200`**. When **`materialId`** is specified, course-level flashcards (**`material_id` null**) are excluded from results; course-only listing unchanged.
+**APIs affected:** **`GET /api/flashcards`** (behavior fix only — no contract change)
+**Tests:** **`backend/tests/integration/flashcards.test.js`**, **`backend/tests/unit/flashcards.service.test.js`**, **`mockSupabaseFlashcards.js`**, **`mockSupabaseStudyMaterials.js`** (PostgREST fidelity for missing inner join). **`cd backend && npm run lint`** passed; **`npm test`** **287/287** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers** (no ownership weakening; no content/plan selected in ownership query; no raw PostgREST errors exposed)
+**Scope boundary:** Backend service + tests only — **no** frontend, DB/migration/RLS, auth, package, or dependency changes
+**Pitfalls:** **`assertMaterialOwnedForFlashcards`** still uses inline select string (optional DRY follow-up only)

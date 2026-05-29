@@ -4,11 +4,14 @@ import { applyTestEnv } from '../helpers/testEnv.js';
 import { setSupabaseAdminClientForTests } from '../../src/config/supabase.js';
 import {
   createFlashcardsMockSupabaseClient,
+  getLastStudyMaterialsSelectColumns,
+  resetFlashcardsMockTelemetry,
   TEST_USER_ID,
   OWN_COURSE_ID,
   OTHER_USER_COURSE_ID,
   OWN_MATERIAL_ID,
   OWN_FLASHCARD_ID,
+  OWN_COURSE_LEVEL_FLASHCARD_ID,
   OTHER_USER_FLASHCARD_ID,
   OTHER_USER_MATERIAL_ID,
   getMockFlashcards,
@@ -28,7 +31,7 @@ setSupabaseAdminClientForTests(createFlashcardsMockSupabaseClient());
 
 describe('flashcards.service', () => {
   beforeEach(() => {
-    // nothing to reset yet; mock client holds state for simple checks
+    resetFlashcardsMockTelemetry();
   });
 
   it('mapFlashcard omits userId and maps fields', () => {
@@ -105,6 +108,40 @@ describe('flashcards.service', () => {
         return true;
       },
     );
+  });
+
+  it('listFlashcards with owned courseId and materialId returns 200 path', async () => {
+    const cards = await listFlashcards(TEST_USER_ID, {
+      courseId: OWN_COURSE_ID,
+      materialId: OWN_MATERIAL_ID,
+    });
+    assert.ok(cards.length >= 1);
+    for (const card of cards) {
+      assert.equal(card.courseId, OWN_COURSE_ID);
+      assert.equal(card.materialId, OWN_MATERIAL_ID);
+    }
+    const select = getLastStudyMaterialsSelectColumns();
+    assert.ok(select);
+    assert.ok(select.includes('courses!inner'));
+    assert.equal(select.includes('content'), false);
+    assert.equal(select.includes('plan'), false);
+  });
+
+  it('listFlashcards with courseId and materialId excludes course-level cards', async () => {
+    const cards = await listFlashcards(TEST_USER_ID, {
+      courseId: OWN_COURSE_ID,
+      materialId: OWN_MATERIAL_ID,
+    });
+    const ids = cards.map((card) => card.id);
+    assert.ok(ids.includes(OWN_FLASHCARD_ID));
+    assert.equal(ids.includes(OWN_COURSE_LEVEL_FLASHCARD_ID), false);
+  });
+
+  it('listFlashcards with courseId still includes course-level cards', async () => {
+    const cards = await listFlashcards(TEST_USER_ID, { courseId: OWN_COURSE_ID });
+    const ids = cards.map((card) => card.id);
+    assert.ok(ids.includes(OWN_FLASHCARD_ID));
+    assert.ok(ids.includes(OWN_COURSE_LEVEL_FLASHCARD_ID));
   });
 
   it('createFlashcard sets defaults and user_id via service', async () => {

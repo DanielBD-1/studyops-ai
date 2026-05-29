@@ -16,7 +16,18 @@ export {
 };
 
 export const OWN_FLASHCARD_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+export const OWN_COURSE_LEVEL_FLASHCARD_ID = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 export const OTHER_USER_FLASHCARD_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+let lastStudyMaterialsSelectColumns = null;
+
+export function getLastStudyMaterialsSelectColumns() {
+  return lastStudyMaterialsSelectColumns;
+}
+
+export function resetFlashcardsMockTelemetry() {
+  lastStudyMaterialsSelectColumns = null;
+}
 
 /** @type {Array<{
  *   id: string,
@@ -42,6 +53,18 @@ const flashcards = [
     source: 'manual',
     created_at: '2026-01-10T00:00:00.000Z',
     updated_at: '2026-01-10T00:00:00.000Z',
+  },
+  {
+    id: OWN_COURSE_LEVEL_FLASHCARD_ID,
+    user_id: TEST_USER_ID,
+    course_id: OWN_COURSE_ID,
+    material_id: null,
+    question: 'What is a course-level flashcard?',
+    answer: 'A flashcard not linked to any study material.',
+    tags: ['general'],
+    source: 'manual',
+    created_at: '2026-01-08T00:00:00.000Z',
+    updated_at: '2026-01-08T00:00:00.000Z',
   },
   {
     id: OTHER_USER_FLASHCARD_ID,
@@ -199,6 +222,7 @@ function createFlashcardsBuilder() {
 
 export function createFlashcardsMockSupabaseClient() {
   const base = createStudyMaterialsMockSupabaseClient();
+  const baseFrom = base.from.bind(base);
 
   return {
     ...base,
@@ -206,7 +230,16 @@ export function createFlashcardsMockSupabaseClient() {
       if (table === 'flashcards') {
         return createFlashcardsBuilder();
       }
-      return base.from(table);
+      if (table === 'study_materials') {
+        const builder = baseFrom(table);
+        const originalSelect = builder.select.bind(builder);
+        builder.select = (columns) => {
+          lastStudyMaterialsSelectColumns = columns;
+          return originalSelect(columns);
+        };
+        return builder;
+      }
+      return baseFrom(table);
     },
   };
 }
