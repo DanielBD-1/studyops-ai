@@ -1554,4 +1554,19 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** **Backend only** — no frontend, DB/migration, document-service, Gemini, docs (until this entry), dependency, or lockfile changes
 **Not implemented (intentional):** Frontend board/list picker (**4B-2**); OAuth; credential storage; board/list persistence; Trello card update/delete; force re-sync
 **Known UX note (not security):** Rare 404 on `/members/me/boards` may surface a less ideal message (“Trello list not found”) — acceptable for MVP; optional follow-up.
-**Follow-up:** Phase **4B-2** frontend board/list picker on `/trello` (replace manual `listId` paste; call these endpoints only).
+**Follow-up:** Phase **4B-2** frontend board/list picker on `/trello` — **complete** (see below).
+
+### 2026-05-29 — Phase 4B-2 frontend Trello board/list picker complete
+
+**Workflow:** Phase 4B-2 frontend Trello board/list picker
+**ADR refs:** 001 (frontend → backend only); 004 (no credential persistence); 005 (ephemeral credentials in POST body — list chosen via picker, not manual paste)
+**Human gates:** `approved — implement Phase 4B-2`; Supervisor Review **approved with notes**; Security Review **no blockers**; `approved — Phase 4B-2 complete`
+**Summary:** Protected **`/trello`** — **manual listId input removed** from primary UX. Flow: enter apiKey/token → **Load boards** → select board → app loads lists → select list → select StudyOps tasks → **Sync to Trello**. **`fetchTrelloBoards`** / **`fetchTrelloBoardLists`** in **`trello.service.js`** call **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`** with Bearer JWT only; **no** browser calls to `api.trello.com`. **`TrelloBoardListPicker`** + **`mapTrelloNamedOptions`** (`trello-picker.js`) — board/list names only in dropdowns. **`validateTrelloLoadBoards`**; sync requires selected list (`Select a Trello list`). Credentials React-state only; cleared after backend sync attempt; **Clear credentials** resets apiKey/token and picker state. Board/list labels may remain after sync (non-secret). **`syncTasksToTrello`** unchanged — sends `selectedListId` as `listId`. With **4B-1**, Trello picker flow is **end-to-end** in repo.
+**Files:** `frontend/src/services/trello.service.js`, `utils/trello-sync-validation.js`, `utils/trello-picker.js`, `components/trello/TrelloBoardListPicker.jsx`, `TrelloSyncForm.jsx`, `TrelloSyncSection.jsx`, `index.css` (scoped `.trello-picker`); unit tests; **`frontend/package.json`** test script only (+`trello-picker.test.js`)
+**APIs affected:** frontend consumer of `POST /api/trello/boards`, `POST /api/trello/boards/:boardId/lists`, `POST /api/trello/sync` (no new backend routes)
+**Tests:** `cd frontend && npm run lint` passed (pre-existing `AuthContext` react-refresh warning); `cd frontend && npm test` passed — **168** tests, **0** failures; `cd frontend && npm run build` passed
+**Security:** Backend-only Trello boundary; no storage/URL/logging of credentials; password fields + `autoComplete="off"`; sanitized error strings only
+**Scope boundary:** **Frontend only** — no backend, DB/migration, document-service, Gemini, dependency, or lockfile changes
+**Not implemented (intentional):** OAuth / Connect Trello; credential storage; board/list persistence; Trello card update/delete; force re-sync
+**Known UX notes (not security blockers):** After sync, board/list dropdown labels may remain while apiKey/token clear; re-entering credentials without **Load boards** may reuse prior `selectedListId` — Security Review: operational/UX only. Optional hardening: clear `selectedListId` after sync or require fresh board load after credential clear.
+**Follow-up:** Manual smoke test of full picker flow (Load boards → board → list → sync) with real Trello credentials.

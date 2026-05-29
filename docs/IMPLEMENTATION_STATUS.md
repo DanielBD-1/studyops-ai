@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 4B-1 (backend Trello board/list discovery). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), and **backend Trello board/list discovery** (Phase **4B-1**) are documented below.
+**Last aligned:** Phase 4B-2 (frontend Trello board/list picker). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), and **frontend Trello board/list picker** (Phase **4B-2**) are documented below.
 
 ---
 
@@ -393,13 +393,13 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Unchanged from 4A-2:** Password apiKey/token; credentials cleared after backend sync attempt; backend-only `POST /api/trello/sync`; max 50 tasks.
 
-**Still deferred (Trello):** OAuth; **frontend** boards/lists picker (**4B-2**); stored credentials; board/list **persistence**; Trello card update/delete; force re-sync; advanced sync management beyond manual MVP.
+**Still deferred (Trello):** OAuth; stored credentials; board/list **persistence**; Trello card update/delete; force re-sync; advanced sync management beyond manual MVP.
 
 ---
 
 ## Implemented — Backend Trello board/list discovery (Phase 4B-1)
 
-**Backend only** — proxy endpoints for Trello board/list picker (**4B-2** frontend). Ephemeral `{ apiKey, token }` in POST body (ADR 004). **No** DB reads/writes; **no** Supabase on discovery paths; **no** credential or board/list metadata persistence.
+**Backend only** — proxy endpoints consumed by **4B-2** frontend picker. Ephemeral `{ apiKey, token }` in POST body (ADR 004). **No** DB reads/writes; **no** Supabase on discovery paths; **no** credential or board/list metadata persistence.
 
 | Item | Detail |
 |------|--------|
@@ -413,11 +413,32 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Checks:** `cd backend && npm run lint` passed; `cd backend && npm test` passed — **235** tests, **0** failures.
 
-**Not in 4B-1:** Frontend picker on `/trello`; replacing manual **listId** field (**still on `/trello` until 4B-2**); OAuth; stored credentials; board/list persistence.
+**Not in 4B-1:** Frontend picker on `/trello` (added in **4B-2**); OAuth; stored credentials; board/list persistence.
 
 **Approved refinement:** Two endpoints (boards, then lists for selected board) instead of one nested PRD example — lazy list load after board selection.
 
 **Known UX note:** Rare 404 on `/members/me/boards` may return a less ideal message — not a security blocker.
+
+---
+
+## Implemented — Frontend Trello board/list picker (Phase 4B-2)
+
+**Frontend only** — board/list picker on **`/trello`**; **manual listId lookup is no longer the primary UX**. End-to-end picker flow: apiKey/token → **Load boards** → select board → load lists → select list → select tasks → sync via **`POST /api/trello/sync`**.
+
+| Item | Detail |
+|------|--------|
+| Service | `fetchTrelloBoards`, `fetchTrelloBoardLists`, `syncTasksToTrello` — StudyOps backend only; **no** `api.trello.com` from browser |
+| Picker | `TrelloBoardListPicker` — Load boards, board/list `<select>`s, loading/empty/error states |
+| Form | `TrelloSyncForm` — password apiKey/token only; **Clear credentials** resets picker + credentials |
+| Validation | `validateTrelloLoadBoards`; sync requires selected list + 1–50 tasks |
+| Credentials | React state only; cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL |
+| Sync body | `listId` = selected list id from picker (unchanged backend contract) |
+
+**Checks:** `cd frontend && npm run lint` passed; `npm test` (**168** tests, **0** failures); `npm run build` passed.
+
+**Not in 4B-2:** OAuth; credential storage; board/list persistence; Trello card update/delete; force re-sync.
+
+**Known UX notes:** After sync, board/list labels may remain while credentials clear; re-entering apiKey/token without **Load boards** may reuse prior list selection — not a security blocker.
 
 ---
 
@@ -573,7 +594,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
 | `/flashcards` | **All saved flashcards** — **course + material filters** (in-memory), **create** (required course, optional material), list, **study filtered** cards, **edit/delete**; links to course/material |
-| `/trello` | **Trello sync** — manual apiKey/token/**listId** (not stored; **listId** until **4B-2** picker); card-style task selection (max 50); sync via **`POST /api/trello/sync`**; backend also exposes **`POST /api/trello/boards`** + **`POST /api/trello/boards/:boardId/lists`** (**4B-1**, not wired in UI yet); credentials cleared after sync attempt; UI polished (**4A-3**) |
+| `/trello` | **Trello sync** — apiKey/token (not stored); **Load boards** → board/list picker (**4B-2**); task selection (max 50); sync via backend only (`/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync`); credentials cleared after sync attempt; UI polished (**4A-3**) |
 | `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks`, **saved DB flashcards** (list, study, **manual create/edit/delete**), **import plan flashcards** to library, and **generated-plan** flashcard study UI (`plan.flashcards`, flip/reveal) |
 
 **Not implemented:** `/courses/:id/generate`, `/focus/:taskId`, `/admin` (PRD future).
@@ -585,7 +606,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Material **navigation** links from task cards; **filtering** tasks by `materialId`; **backend batch** plan-import endpoint; `source = 'plan'` / import dedupe system for flashcards; **bulk create** flashcards; **AI/Gemini** flashcard generation on `/flashcards`; **plan import** on `/flashcards`; **course-level** flashcard management; known/unknown tracking; spaced repetition; Anki; pagination/rate limiting; **URL-persisted** flashcard filters (in-memory filters shipped in **3B-f**); optional shared CRUD form extraction; link from `/courses` to `/flashcards` ( **`public.flashcards` table + RLS** in **3B-b**; **backend API** in **3B-c**; **material-detail** in **3B-d**–**3B-e**; **global page** in **3B-f**–**3B-g**; **plan JSON study** in **3B-a**; **plan tasks** import in **3A-f**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
-- Trello **OAuth**; **frontend** board/list picker (**4B-2** — backend discovery **4B-1** complete); **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** manual sync end-to-end with demo-ready UI; **4B-1** backend discovery only)
+- Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
 - Student dashboard analytics (real metrics)
 - Admin dashboard and logs
 - Focus sessions

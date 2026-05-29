@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { listAllTasks } from '../../services/tasks.service.js';
-import { ApiRequestError, syncTasksToTrello } from '../../services/trello.service.js';
+import {
+  ApiRequestError,
+  fetchTrelloBoardLists,
+  fetchTrelloBoards,
+  syncTasksToTrello,
+} from '../../services/trello.service.js';
 import {
   isTrelloSyncSubmitDisabled,
   TRELLO_SYNC_MAX_TASKS,
+  validateTrelloLoadBoards,
   validateTrelloSyncForm,
 } from '../../utils/trello-sync-validation.js';
+import TrelloBoardListPicker from './TrelloBoardListPicker.jsx';
 import TrelloSyncForm from './TrelloSyncForm.jsx';
 import TrelloTaskSelector from './TrelloTaskSelector.jsx';
 import TrelloSyncResults from './TrelloSyncResults.jsx';
@@ -28,7 +35,20 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
 
   const [apiKey, setApiKey] = useState('');
   const [token, setToken] = useState('');
-  const [listId, setListId] = useState('');
+  const [boards, setBoards] = useState(
+    /** @type {import('../../services/trello.service.js').TrelloNamedItem[]} */ ([])
+  );
+  const [lists, setLists] = useState(
+    /** @type {import('../../services/trello.service.js').TrelloNamedItem[]} */ ([])
+  );
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [selectedListId, setSelectedListId] = useState('');
+  const [boardsLoading, setBoardsLoading] = useState(false);
+  const [listsLoading, setListsLoading] = useState(false);
+  const [boardsAttempted, setBoardsAttempted] = useState(false);
+  const [listsAttempted, setListsAttempted] = useState(false);
+  const [boardsError, setBoardsError] = useState(/** @type {string | null} */ (null));
+  const [listsError, setListsError] = useState(/** @type {string | null} */ (null));
   const [selectedTaskIds, setSelectedTaskIds] = useState(() => new Set());
 
   const [syncing, setSyncing] = useState(false);
@@ -51,10 +71,26 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     [tasks]
   );
 
+  const resetPickerState = useCallback(() => {
+    setBoards([]);
+    setLists([]);
+    setSelectedBoardId('');
+    setSelectedListId('');
+    setBoardsAttempted(false);
+    setListsAttempted(false);
+    setBoardsError(null);
+    setListsError(null);
+  }, []);
+
   const clearCredentials = useCallback(() => {
     setApiKey('');
     setToken('');
-    setListId('');
+    resetPickerState();
+  }, [resetPickerState]);
+
+  const clearCredentialsAfterSync = useCallback(() => {
+    setApiKey('');
+    setToken('');
   }, []);
 
   const loadTasks = useCallback(async () => {
@@ -75,6 +111,85 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  async function handleLoadBoards() {
+    setBoardsError(null);
+    setListsError(null);
+    setValidationError(null);
+
+    const validation = validateTrelloLoadBoards(apiKey, token);
+    if (!validation.valid) {
+      setBoardsError(validation.message);
+      return;
+    }
+
+    setBoardsLoading(true);
+    resetPickerState();
+    setBoardsAttempted(false);
+    setListsAttempted(false);
+
+    try {
+      const data = await fetchTrelloBoards({
+        apiKey: apiKey.trim(),
+        token: token.trim(),
+      });
+      setBoards(data.boards);
+      setBoardsAttempted(true);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError) {
+        setBoardsError(err.message);
+      } else {
+        setBoardsError('Failed to load Trello boards. Please try again.');
+      }
+      setBoardsAttempted(true);
+    } finally {
+      setBoardsLoading(false);
+    }
+  }
+
+  async function handleBoardChange(boardId) {
+    setSelectedBoardId(boardId);
+    setSelectedListId('');
+    setLists([]);
+    setListsError(null);
+    setListsAttempted(false);
+
+    if (!boardId) {
+      return;
+    }
+
+    const validation = validateTrelloLoadBoards(apiKey, token);
+    if (!validation.valid) {
+      setListsError(validation.message);
+      return;
+    }
+
+    setListsLoading(true);
+
+    try {
+      const data = await fetchTrelloBoardLists({
+        apiKey: apiKey.trim(),
+        token: token.trim(),
+        boardId,
+      });
+      setLists(data.lists);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError) {
+        setListsError(err.message);
+      } else {
+        setListsError('Failed to load Trello lists. Please try again.');
+      }
+    } finally {
+      setListsLoading(false);
+      setListsAttempted(true);
+    }
+  }
+
+  function handleListChange(listId) {
+    setSelectedListId(listId);
+  }
 
   function handleToggleTask(taskId) {
     setSelectedTaskIds((prev) => {
@@ -103,7 +218,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setSyncError(null);
 
     const taskIds = [...selectedTaskIds];
-    const validation = validateTrelloSyncForm(apiKey, token, listId, taskIds);
+    const validation = validateTrelloSyncForm(apiKey, token, selectedListId, taskIds);
     if (!validation.valid) {
       setValidationError(validation.message);
       return;
@@ -117,7 +232,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
       const data = await syncTasksToTrello({
         apiKey: apiKey.trim(),
         token: token.trim(),
-        listId: listId.trim(),
+        listId: selectedListId.trim(),
         taskIds,
       });
       setSummary(data.summary);
@@ -131,16 +246,18 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
       }
     } finally {
       if (backendAttempted) {
-        clearCredentials();
+        clearCredentialsAfterSync();
       }
       setSyncing(false);
     }
   }
 
+  const loadBoardsDisabled = validateTrelloLoadBoards(apiKey, token).valid !== true;
+
   const submitDisabled = isTrelloSyncSubmitDisabled(
     apiKey,
     token,
-    listId,
+    selectedListId,
     [...selectedTaskIds],
     syncing
   );
@@ -165,11 +282,27 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
           <TrelloSyncForm
             apiKey={apiKey}
             token={token}
-            listId={listId}
             onApiKeyChange={setApiKey}
             onTokenChange={setToken}
-            onListIdChange={setListId}
             onClearCredentials={clearCredentials}
+            disabled={syncing}
+          />
+
+          <TrelloBoardListPicker
+            boards={boards}
+            lists={lists}
+            selectedBoardId={selectedBoardId}
+            selectedListId={selectedListId}
+            boardsLoading={boardsLoading}
+            listsLoading={listsLoading}
+            boardsAttempted={boardsAttempted}
+            listsAttempted={listsAttempted}
+            boardsError={boardsError}
+            listsError={listsError}
+            loadBoardsDisabled={loadBoardsDisabled}
+            onLoadBoards={handleLoadBoards}
+            onBoardChange={handleBoardChange}
+            onListChange={handleListChange}
             disabled={syncing}
           />
 

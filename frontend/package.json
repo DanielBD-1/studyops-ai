@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/unit/env.test.js tests/unit/validation.test.js tests/unit/courses.validation.test.js tests/unit/courses.service.test.js tests/unit/study-materials.validation.test.js tests/unit/study-materials.service.test.js tests/unit/generated-plan-errors.test.js tests/unit/study-materials-plan-persistence.test.js tests/unit/tasks.validation.test.js tests/unit/tasks.service.test.js tests/unit/plan-import.test.js tests/unit/flashcards.service.test.js tests/unit/plan-flashcard-import.test.js tests/unit/flashcard-study.test.js tests/unit/flashcards.validation.test.js tests/unit/flashcard-form.test.js tests/unit/flashcard-filters.test.js tests/unit/trello.service.test.js tests/unit/trello-sync-validation.test.js tests/unit/trello-sync-results.test.js",
+    "test": "node --test tests/unit/env.test.js tests/unit/validation.test.js tests/unit/courses.validation.test.js tests/unit/courses.service.test.js tests/unit/study-materials.validation.test.js tests/unit/study-materials.service.test.js tests/unit/generated-plan-errors.test.js tests/unit/study-materials-plan-persistence.test.js tests/unit/tasks.validation.test.js tests/unit/tasks.service.test.js tests/unit/plan-import.test.js tests/unit/flashcards.service.test.js tests/unit/plan-flashcard-import.test.js tests/unit/flashcard-study.test.js tests/unit/flashcards.validation.test.js tests/unit/flashcard-form.test.js tests/unit/flashcard-filters.test.js tests/unit/trello.service.test.js tests/unit/trello-sync-validation.test.js tests/unit/trello-sync-results.test.js tests/unit/trello-picker.test.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

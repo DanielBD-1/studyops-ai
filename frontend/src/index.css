@@ -58,6 +58,38 @@
   margin-bottom: var(--space-4);
 }
 
+/* Board/list picker (Phase 4B-2) */
+.trello-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.trello-picker__load {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.trello-picker__field {
+  margin: 0;
+}
+
+.trello-picker__message .alert {
+  margin-bottom: 0;
+}
+
+.trello-picker__empty {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+}
+
+.trello-picker__lists-loading {
+  margin: 0;
+}
+
 .trello-sync__actions {
   display: flex;
   flex-wrap: wrap;
