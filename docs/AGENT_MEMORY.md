@@ -1577,3 +1577,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Context:** Phase **4B-2** implemented, reviewed, merged to **main**; CI green.
 **Summary:** Manual end-to-end smoke on protected **`/trello`** with real Trello credentials — **passed**. Verified: page loads for authenticated user; manual **listId** input removed; **Load boards** → board selection loads lists → list selection; sync creates Trello card; duplicate sync of same task returns **skipped** / “Already synced to Trello”; **apiKey/token** cleared after sync. Browser **Network**: only StudyOps backend calls (`POST /api/trello/boards`, `POST /api/trello/boards/:boardId/lists`, `POST /api/trello/sync`) — **no** `api.trello.com`. **Console**: no Trello credentials logged. **localStorage/sessionStorage**: no Trello apiKey/token (Supabase auth session in localStorage expected, not Trello-related).
 **Scope boundary:** Documentation only — no code changes in this step.
+
+### 2026-05-29 — Phase 4C-0 focus_sessions database migration applied and verified
+
+**Workflow:** Phase 4C-0 Focus Sessions database foundation
+**ADR refs:** 001 (modular monolith — future `focus` module); 003 (future Zod on API)
+**Human gates:** `approved — implement Phase 4C-0`; Supervisor Review **approved with notes**; Security / Migration Review **no blockers**; `approved — Phase 4C-0 applied and verified`
+**Summary:** **`public.focus_sessions`** table created on Supabase via **`008_focus_sessions.sql`** (manual SQL Editor apply). RLS enabled; policies **`focus_sessions_select_own`**, **`focus_sessions_insert_own`**, **`focus_sessions_update_own`**; **no** student DELETE policy. Grants: **`authenticated`** and **`service_role`** SELECT/INSERT/UPDATE only; **`anon`** none. Trigger **`focus_sessions_enforce_task_owner`** enforces `user_id` and `course_id` alignment with **`study_tasks`** on INSERT/UPDATE. Catalog + behavioral verification passed **2026-05-29**.
+**Duration semantics:** **`duration_minutes`** is a **provisional session ceiling** while **`ended_at IS NULL`**; after complete (Phase **4C-1**), backend overwrites with **actual** elapsed minutes from **`started_at`** / **`ended_at`** (server-side only; not client-reported). Dashboard (**5B**) will sum **`duration_minutes`** only where **`ended_at IS NOT NULL`**.
+**APIs affected:** none (database only)
+**Tests:** none in this phase (schema/docs only)
+**Security:** Own-row RLS; ownership trigger; no credentials or study content columns; frontend must use Express API only in later phases (no direct `service_role`)
+**Scope boundary:** SQL migration file + `docs/database/008-focus-sessions-schema-and-rls.md` only — **no** backend, frontend, or app tests in 4C-0
+**Not implemented (intentional):** `POST /api/focus`; `POST /api/focus/:sessionId/complete`; `/focus/:taskId` UI; `totalFocusMinutes` on dashboard
+**Follow-up:** Phase **4C-1** backend Focus Sessions API — `approved — implement Phase 4C-1` when ready
