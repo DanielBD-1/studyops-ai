@@ -1730,3 +1730,12 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Known gaps (non-blocking):** **SEC-6A3-1** — silent refresh after admin demotion can leave previously loaded aggregate stats visible (backend still blocks new data); optional extract duplicated **`StatItem`** / **`StatSection`**; optional reduce layered loading UX
 **Not implemented (intentional):** **`/admin/logs`**; user management; role management; **`api_logs`** / **`GET /api/admin/logs`**
 **Follow-up:** Admin logs/user management remain deferred per PRD
+
+### 2026-05-29 — Phase 7B DB docs status alignment complete
+
+**Workflow:** Phase 7B — Database docs status alignment
+**Summary:** Docs-only update. Updated `docs/database/001–004` status headers and “Applying this migration” sections to reflect applied migrations on Supabase. Aligned database docs with `docs/IMPLEMENTATION_STATUS.md` and AGENT_MEMORY apply records.
+**APIs affected:** none
+**Tests:** none (docs-only; no lint/test/build run per phase scope)
+**Scope boundary:** `docs/database/001–004` + `docs/AGENT_MEMORY.md` only — no SQL, migrations, backend, frontend, tests, packages, or CI changed
+**Reviews:** Security Review not required (docs-only)

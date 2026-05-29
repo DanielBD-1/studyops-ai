@@ -1,6 +1,6 @@
 # 003 — Study Materials Schema and RLS (Phase 2A)
 
-**Status:** Draft — **not applied** to any Supabase project yet.  
+**Status:** **Applied manually** on Supabase (Phase 2A complete; catalog + behavioral verification passed on **2026-05-21**).
 **Migration file:** `supabase/migrations/003_study_materials.sql`  
 **Prerequisite:** `001_profiles.sql` and `002_courses.sql` applied and verified  
 **PRD reference:** Section 3 (study material input), Section 7.3 (generate flow — later), Section 7.10 (study text validation), Section 9 (`study_materials`)
@@ -143,13 +143,11 @@ grant select, insert, update, delete on table public.study_materials to service_
 
 ## Applying this migration (human gates)
 
-This file is a **draft**. Do **not** assume it has been run until documented in `docs/AGENT_MEMORY.md`.
+1. **Draft created** — `approved — create study materials migration draft` (complete).
+2. **Applied on Supabase** — human ran `supabase/migrations/003_study_materials.sql` in SQL Editor on **2026-05-21**.
+3. **Verified** — catalog + behavioral probes; documented in `docs/AGENT_MEMORY.md`.
 
-1. **Draft created** — `approved — create study materials migration draft`.
-2. **Apply to Supabase** — separate approval, e.g. `approved — apply study materials migration`, before SQL Editor apply.
-3. **Verify** — checklist below.
-
-Do **not** run Supabase CLI apply in an agent session unless explicitly directed.
+Do **not** re-apply this migration on an environment where `public.study_materials` already exists.
 
 ---
 

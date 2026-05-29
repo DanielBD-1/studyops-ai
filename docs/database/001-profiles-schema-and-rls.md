@@ -1,6 +1,6 @@
 # 001 — Profiles Schema and RLS (Phase 1C)
 
-**Status:** Draft — **not applied** to any Supabase project yet.  
+**Status:** **Applied manually** on Supabase (Phase 1C complete; catalog + behavioral verification passed on **2026-05-20**).
 **Migration file:** `supabase/migrations/001_profiles.sql`  
 **PRD reference:** Section 9 (`profiles`), Section 7.1 (registration), Section 9.5 (permissions)
 
@@ -120,12 +120,11 @@ After auth exists in a later phase, the browser Supabase client (`getSupabaseBro
 
 ## Applying this migration (human gates)
 
-This repo file is a **draft**. Do **not** assume it has been run on any project until documented otherwise.
+1. **Draft created** — `approved — create profiles migration` (complete).
+2. **Applied on Supabase** — human ran `supabase/migrations/001_profiles.sql` in SQL Editor on **2026-05-20**.
+3. **Verified** — catalog + behavioral probes, documented in `docs/AGENT_MEMORY.md`.
 
-1. **File creation** — `approved — create profiles migration` (done when this doc exists).
-2. **Apply to Supabase** — separate human approval required before:
-   - `supabase db push` / SQL editor run / CI apply
-3. **Verify** — After apply: test signup creates profile; student cannot `SELECT` another user’s row; client cannot `UPDATE` profile.
+Do **not** re-apply this migration on an environment where `public.profiles` already exists.
 
 ---
 
