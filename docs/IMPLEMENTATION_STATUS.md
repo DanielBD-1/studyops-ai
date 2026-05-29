@@ -61,7 +61,7 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `question`, `answer`, `tags`, `source = manual` only in DB CHECK for now). RLS by `user_id = auth.uid()`; **`anon` has no access**; ownership triggers mirror `study_tasks`. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/006-flashcards-schema-and-rls.md`). Material detail shows **saved DB flashcards** (study + create/edit/delete) and **generated-plan flashcards** (both may appear after import). Global page shows **all saved flashcards** with course/material filters, **create**, study, edit, and delete. **No** course-level flashcard management UI.
 
-**`trello_sync_logs` (Phase 4A-0):** Append-only per-task Trello sync attempt log (`user_id`, `task_id`, `status` = `success` \| `failed` \| `skipped`, optional `trello_card_id`, optional sanitized `error_message` max 500). **No** credential columns (ADR 004). RLS: `authenticated` **SELECT** own rows; **`service_role` SELECT + INSERT**; owner trigger on INSERT. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/007-trello-sync-logs-schema-and-rls.md`). **`study_tasks.trello_card_id`** is updated by **`POST /api/trello/sync`** (Phase **4A-1**) on successful card creation; still **omitted** from task GET/PATCH API responses. **Trello manual sync MVP (4A-0 + 4A-1 + 4A-2 + 4A-3):** end-to-end via protected **`/trello`** UI with demo-ready polish (Phase **4A-3**).
+**`trello_sync_logs` (Phase 4A-0):** Append-only per-task Trello sync attempt log (`user_id`, `task_id`, `status` = `success` \| `failed` \| `skipped`, optional `trello_card_id`, optional sanitized `error_message` max 500). **No** credential columns (ADR 004). RLS: `authenticated` **SELECT** own rows; **`service_role` SELECT + INSERT**; owner trigger on INSERT. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/007-trello-sync-logs-schema-and-rls.md`). **`study_tasks.trello_card_id`** is updated by **`POST /api/trello/sync`** (Phase **4A-1**) on successful card creation; still **omitted** from task GET/PATCH API responses. **Trello sync + board/list picker (4A + 4B):** end-to-end on **`/trello`** — Load boards → select board/list → sync tasks; **manually smoke-tested** (Phase **4B** picker flow, **2026-05-29**).
 
 **Not created yet:** focus sessions, `api_logs` admin table, etc. (PRD future scope). **Plan task import** (3A-f) copies `plan.tasks[]` into `study_tasks` only.
 
@@ -435,6 +435,8 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 | Sync body | `listId` = selected list id from picker (unchanged backend contract) |
 
 **Checks:** `cd frontend && npm run lint` passed; `npm test` (**168** tests, **0** failures); `npm run build` passed.
+
+**Manual smoke test (passed, 2026-05-29):** Authenticated **`/trello`**; Load boards and board/list picker; sync creates Trello card; second sync **skipped** (duplicate prevention); apiKey/token cleared after sync; browser calls **only** `/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync` — **no** direct `api.trello.com`; no Trello credentials in console, **localStorage**, or **sessionStorage** (Supabase auth token in localStorage is expected).
 
 **Not in 4B-2:** OAuth; credential storage; board/list persistence; Trello card update/delete; force re-sync.
 
