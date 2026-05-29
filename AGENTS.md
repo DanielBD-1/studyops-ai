@@ -12,7 +12,7 @@ StudyOps AI helps students turn pasted study text into summaries, tasks, flashca
 
 **Read first:** `docs/IMPLEMENTATION_STATUS.md` (what is built today), `docs/AGENT_MEMORY.md` (phase history), `docs/PRD.md` (MVP intent and future scope), relevant `docs/adrs/*.md`, the workflow for your phase, and `DESIGN.md` only for approved frontend UI work.
 
-**Built today (summary):** Auth, courses, study materials, document-service `POST /process`, material-scoped generate with **latest plan persisted** per material (backend Zod + UPSERT; frontend load/clear via GET/DELETE), **`study_tasks` manual backend API** (Phase 3A-b), ESLint in CI. See `docs/IMPLEMENTATION_STATUS.md` — not course-level paste-generate; **`study_tasks` normalized task UI and generated-plan → task import are still deferred**; `flashcards` table/UI still deferred.
+**Built today (summary):** Auth complete; courses complete; study materials complete; material-scoped generate + persisted latest generated plan complete; tasks API and UI complete; flashcards API and UI complete; Trello board/list picker + sync complete; focus sessions complete; dashboard stats backend/frontend complete; admin auth foundation, aggregate stats API, and frontend **`/admin`** UI complete. For details, rely on **`docs/IMPLEMENTATION_STATUS.md`** — course-level paste-generate, admin logs/user management, and several polish items remain deferred.
 
 ---
 

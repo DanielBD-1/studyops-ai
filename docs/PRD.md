@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **5C.1**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **6A-3**; docs consistency through **7C**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C, 5C.1)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C, 5C.1, 6A-1, 6A-2, 6A-3)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -32,7 +32,10 @@ This section records **what the repository implements today** (summary only; ali
 - **Focus Sessions manual smoke** (Phase **4C-3**) — **passed** (**2026-05-29**): Start Focus from pending tasks; complete without/with marking task complete; course page flow; network and console clean. **Focus Sessions MVP complete** through **4C-0**–**4C-3**
 - **Dashboard backend stats API** (Phase **5B**) — **`GET /api/dashboard/stats`** (`requireAuth`); user-owned aggregate counts including **`totalFocusMinutes`** (completed focus sessions only), **`totalGeneratedPlans`** (count only — no plan JSON), **`trelloSyncedTasks`** (DB count only — no Trello API calls)
 - **Dashboard frontend UI** (Phase **5C**) — protected **`/dashboard`** consumes **`GET /api/dashboard/stats`** via backend only (Bearer JWT; **no** direct Supabase stats queries); displays aggregate stats + **`courseStats[]`**; read-only; fetch on mount + manual **Try again**
-- **Dashboard cross-page refresh** (Phase **5C.1**) — **invalidation-only** **`DashboardContext`**: **`refreshStats()`** after successful stat-changing mutations; **`DashboardStub`** keeps local stats state and refetches via existing **`GET /api/dashboard/stats`** when mounted (manual **Refresh stats** + silent refresh); coalesces duplicate notifications; **not** a global stats cache in context. **Still deferred:** polling; WebSockets; **`BroadcastChannel`**; **`localStorage`/`sessionStorage`** cross-tab sync; visibility/focus refetch; admin dashboard
+- **Dashboard cross-page refresh** (Phase **5C.1**) — **invalidation-only** **`DashboardContext`**: **`refreshStats()`** after successful stat-changing mutations; **`DashboardStub`** keeps local stats state and refetches via existing **`GET /api/dashboard/stats`** when mounted (manual **Refresh stats** + silent refresh); coalesces duplicate notifications; **not** a global stats cache in context. **Still deferred:** polling; WebSockets; **`BroadcastChannel`**; **`localStorage`/`sessionStorage`** cross-tab sync; visibility/focus refetch
+- **Admin authorization foundation** (Phase **6A-1**) — **`requireAdmin`** middleware verifies **`profiles.role`** from DB (not frontend/JWT role); **`GET /api/admin/access-check`** returns **`{ admin: true }`** only
+- **Admin aggregate stats API** (Phase **6A-2**) — **`GET /api/admin/stats`** ( **`requireAuth` + `requireAdmin`** ); platform-wide aggregate counts only; Trello sync today breakdown; static **`systemHealth.backend`**
+- **Admin dashboard UI** (Phase **6A-3**) — protected **`/admin`** consumes **`GET /api/admin/stats`** via backend only; **`AdminRoute`** is UX-only. **Still deferred:** **`GET /api/admin/logs`** / **`api_logs`**; admin user list; role management UI; Gemini/system error metrics
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -78,7 +81,10 @@ This section records **what the repository implements today** (summary only; ali
 | Student dashboard **frontend UI** (`/dashboard`) | **Yes** (5C — consumes **5B** stats API; read-only; mount fetch + **Try again** + **Refresh stats**) |
 | **`DashboardContext`/cross-page dashboard refresh after mutations** | **Yes** (5C.1 — invalidation-only **`refreshStats()`**; stats remain local to **`DashboardStub`**; **not** a global stats cache) |
 | Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** | **Deferred** — **5C.1** implements PRD §12.5 manual refetch-after-mutations only |
-| Admin dashboard | **Deferred** |
+| Admin auth foundation (`requireAdmin`, `GET /api/admin/access-check`) | **Yes** (6A-1) |
+| Admin aggregate stats API (`GET /api/admin/stats`) | **Yes** (6A-2 — aggregate-only; Trello sync today breakdown + `systemHealth.backend`) |
+| Admin dashboard frontend UI (`/admin`) | **Yes** (6A-3 — consumes stats API; no logs/user management) |
+| Admin logs / user list / role management / Gemini admin metrics | **Deferred** — no **`api_logs`** table; **`GET /api/admin/logs`** not implemented |
 
 ### Architecture and env (unchanged intent)
 
@@ -950,17 +956,21 @@ All API responses follow this structure:
 
 ### Study Materials & Generation
 
-**POST /api/courses/:courseId/generate** - Generate study plan
+**Implemented (material-scoped — Phases 2D–2F, 2L-a/b/c):**
+
+- **`POST /api/study-materials/:materialId/generate`** — body **`{}` strict**; backend loads saved owned material `content` after ownership check; Zod-validates plan; UPSERTs **latest** plan per material; returns `{ materialId, courseId, plan, savedAt }`
+- **`GET /api/study-materials/:materialId/generated-plan`** — load saved plan for owned material
+- **`DELETE /api/study-materials/:materialId/generated-plan`** — clear saved plan (idempotent)
+
+Frontend: Generate / load / clear on **`/study-materials/:materialId`**; plain-text display; **import plan tasks** (3A-f) and **import plan flashcards** (3B-d) use separate flows — not part of generate body.
+
+**Deferred (PRD target MVP — not implemented):**
+
+**POST /api/courses/:courseId/generate** - Generate study plan from client paste
 
 - Body: `{ studyText }`
 - Returns: `{ material, tasks: [...], flashcards: [...] }`
-- Flow:
-  1. Validate studyText (100-50000 chars)
-  2. Call Document Processing Microservice
-  3. Microservice calls Gemini
-  4. Validate response with Zod
-  5. Save material, tasks, flashcards
-  6. Return all data
+- Intended flow: validate studyText → document-service → Gemini → Zod → save material/tasks/flashcards in one step. **Use material-scoped generate above instead.**
 
 ---
 
@@ -1078,25 +1088,38 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 
 ### Admin (role='admin' required)
 
-**GET /api/admin/logs** - Get system logs
+**Implemented (Phases 6A-1 + 6A-2 + 6A-3):** Backend **`requireAuth` + `requireAdmin`** on **`/api/admin/*`**; **`requireAdmin`** verifies **`profiles.role`** from DB — not frontend role. **`GET /api/admin/access-check`** returns **`{ admin: true }`** only. **`GET /api/admin/stats`** returns **platform-wide aggregate counts only** (no raw rows, PII, content, or Trello card IDs). Frontend **`/admin`** consumes stats via backend; **`AdminRoute`** is UX-only.
 
-- Query params: `?service=gemini|trello|system&limit=100`
-- Returns: `{ logs: [...] }`
+**GET /api/admin/stats** - Get admin statistics (**implemented**)
 
-**GET /api/admin/stats** - Get admin statistics
-
-- Returns:
+- Returns aggregate-only JSON, e.g.:
 
 ```json
 {
   "totalUsers": 50,
   "totalCourses": 120,
+  "totalStudyMaterials": 80,
+  "totalGeneratedPlans": 40,
   "totalTasks": 1500,
-  "geminiCallsToday": 45,
-  "trelloSyncsToday": 12,
-  "errorsToday": 3
+  "pendingTasks": 900,
+  "completedTasks": 600,
+  "totalFlashcards": 200,
+  "totalFocusMinutes": 3200,
+  "completedFocusSessions": 128,
+  "trelloSyncedTasks": 45,
+  "trelloSyncAttemptsToday": 12,
+  "trelloSyncSucceededToday": 10,
+  "trelloSyncFailedToday": 1,
+  "trelloSyncSkippedToday": 1,
+  "systemHealth": { "backend": "ok" }
 }
 ```
+
+**Deferred:** **`GET /api/admin/logs`** — Get system logs (requires future **`api_logs`** table)
+
+- Query params: `?service=gemini|trello|system&limit=100`
+- Returns: `{ logs: [...] }`
+- **Not implemented** — no Gemini call/error metrics in admin stats today
 
 ---
 
@@ -1254,7 +1277,7 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 ### Gemini
 
 - Gemini API key must be server-side only
-- No direct frontend calls to external Gemini APIs; the frontend uses backend endpoints (e.g. `POST /api/courses/:courseId/generate`). External Gemini calls go through the backend and document-service only.
+- No direct frontend calls to external Gemini APIs; the frontend uses backend endpoints (e.g. `POST /api/study-materials/:materialId/generate` with body `{}`). External Gemini calls go through the backend and document-service only.
 - Gemini output must be schema-validated with Zod
 - Gemini failures must be logged with redacted metadata
 

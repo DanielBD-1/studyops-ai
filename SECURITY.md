@@ -63,6 +63,19 @@ When the backend uses `getSupabaseAdmin()`:
 - Do not add unfiltered `select` / `update` / `delete` on `courses`, profiles, or future user tables.
 - Wrong-owner access should return **404**, not 403, where documented for courses.
 
+## Admin routes and aggregate stats
+
+- **`/api/admin/*`** routes require **`requireAuth`** then **`requireAdmin`** (middleware order: auth → admin gate → handler).
+- **`requireAdmin`** verifies **`profiles.role === 'admin'`** from the database for **`req.user.id`** — **not** frontend role state, JWT role claims, or client-supplied role fields.
+- Frontend **`AdminRoute`** is a **UX guard only**; backend admin middleware remains the real authorization boundary.
+- **`GET /api/admin/stats`** intentionally performs **platform-wide aggregate** reads via **`getSupabaseAdmin()`** (service role). This is an **approved exception** to the normal per-user filtering rule because:
+  - the backend admin gate runs first (**`requireAuth` + `requireAdmin`**);
+  - the response is **aggregate-only** (numeric counts + static **`systemHealth.backend`**);
+  - **no** PII, study content, raw rows, Trello card IDs, emails, or user lists are returned.
+- **`SUPABASE_SERVICE_ROLE_KEY`** remains **backend-only** — never in frontend or **`VITE_*`** env.
+
+**Still deferred:** **`GET /api/admin/logs`**, **`api_logs`** table, Gemini/system error metrics, user list, role mutation endpoints.
+
 ## Security Review required
 
 Request **Security Review** (see `AGENTS.md` and PR template) before merge when changes touch:

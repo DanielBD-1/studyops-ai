@@ -62,8 +62,8 @@ Before coding:
 
 ### Trello
 
-- Manual API key, token, List ID; POST body only; no persistence (ADR 004, 005).
-- Partial success per task in response.
+- Manual API key, token; **board/list picker** via **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; sync via **`POST /api/trello/sync`**; POST body only; no persistence (ADR 004, 005).
+- Partial success per task in response (`success` \| `failed` \| `skipped`).
 
 ### Focus & Dashboard
 
@@ -72,7 +72,9 @@ Before coding:
 
 ### Admin
 
-- `role === 'admin'` on all `/api/admin/*`.
+- **`requireAuth` + `requireAdmin`** on all `/api/admin/*`; **`requireAdmin`** checks **`profiles.role`** from DB — not frontend role.
+- **`GET /api/admin/stats`** and frontend **`/admin`** UI **implemented** (aggregate counts only).
+- **`GET /api/admin/logs`**, user management, role management — **deferred**.
 - Logs never expose secrets.
 
 ---

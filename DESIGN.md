@@ -18,7 +18,7 @@
 
 **Stitch review:** Human-approved **NotebookLM-inspired** visual direction (academic study workspace, source-first, calm productivity). StudyOps is **not** a NotebookLM clone—borrow principles and feeling, not branding, layout identity, or NotebookLM-only features.
 
-**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). Pending: `11-generated-plan-visible.png`, `15-processing-with-ai.png` — do not fabricate.
+**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). **`11-generated-plan-visible.png`** — **captured** (Phase 2K-c). **Pending:** `15-processing-with-ai.png` — do not fabricate.
 
 ---
 
@@ -27,11 +27,11 @@
 This document defines how the **implemented** StudyOps AI frontend should look and behave when a future **styling pass** is approved. It applies to:
 
 - Auth (`/`, `/register`)
-- Dashboard stub (`/dashboard`)
+- Student dashboard with functional stats UI (`/dashboard`)
 - Courses (`/courses`, `/courses/:id`)
 - Study materials (`/study-materials/:materialId`) including **Generate study plan** and **load/clear latest saved plan**
 
-**Out of this document’s authority:** New routes, task/flashcard **management**, Trello, admin analytics, deployment, backend changes, saved-plan **library** or plan **history** UI.
+**Out of this document’s authority:** New routes or features beyond what **`docs/IMPLEMENTATION_STATUS.md`** lists as built; deployment; backend changes; saved-plan **library** or plan **history** UI. **Note:** Tasks, flashcards, Trello, focus, admin aggregate stats, and dashboard analytics **are implemented** — this file guides **presentation only** for those screens when a styling pass is approved, not product scope.
 
 **Goal:** A **NotebookLM-inspired academic study workspace**—clean, Google-like productivity, source-first, modern AI study cockpit—without clinical aesthetics or scope creep.
 
@@ -123,7 +123,7 @@ Optional **minimal top bar** (recommended for consistency):
 | Context | Max width (guideline) |
 |---------|------------------------|
 | Login / Register | ~420px centered (`--content-max-form`) |
-| Dashboard stub, lists, course detail | ~720px (`--content-max-workspace`) |
+| Dashboard, lists, course detail | ~720px (`--content-max-workspace`) |
 | Study material editor / reading | ~800px (`--content-max-reading`) |
 
 ### Layout patterns
@@ -266,7 +266,7 @@ Map to existing React components under `frontend/src/components/`. Styling pass 
 - **Clear plan** → secondary button; calls backend **DELETE** (then clears display).
 - Disclaimer (implemented): *“AI-generated — saved as the latest plan for this material. Reference only; verify before you study.”*
 - Optional **Last saved:** plain-text line from `savedAt` (e.g. `toLocaleString()`).
-- Tasks/flashcards are **display-only**—no checkboxes, edit, or “save task” (would imply task management).
+- Tasks/flashcards **inside this section** remain **read-only** plain-text display (no inline edit here). **Import** and **CRUD** flows live elsewhere on the material detail page and on **`/tasks`** / **`/flashcards`** (implemented — see **`docs/IMPLEMENTATION_STATUS.md`**).
 
 ---
 
@@ -293,14 +293,14 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 - Subcopy: student registration only.
 - Link back to Login.
 
-### 7.3 Dashboard stub (`/dashboard`)
+### 7.3 Student dashboard (`/dashboard`)
 
-**Screenshot:** `03-dashboard.png`
+**Screenshot:** `03-dashboard.png` (baseline layout; live UI shows real stats from **`GET /api/dashboard/stats`**)
 
-- **Not** an analytics hub—no charts, KPIs, streaks, or Gemini logs.
-- Short copy: authenticated landing; signed-in email/role (muted).
-- Primary CTA: **My courses** → `/courses`.
-- Logout available (button or link).
+- **Implemented:** read-only aggregate stats (Overview, Tasks, Focus, Learning assets, Trello sync count, per-course breakdown); **Try again** + **Refresh stats**; cross-page silent refresh when mounted (**5C.1**).
+- **Not** an analytics hub—no charts, KPIs, streaks, or Gemini logs on this page.
+- Optional **Admin** nav link when **`user?.role === 'admin'`** (UX only).
+- Links to **My courses**, **Tasks**, **Flashcards**, **Trello** as implemented today.
 
 ### 7.4 Courses — empty state (`/courses`)
 
@@ -395,11 +395,11 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 
 ## 8. Concept-only screens (pending screenshots — not implemented as new features)
 
-**Do not fabricate PNGs.** When live Generate works, capture `11-generated-plan-visible.png` and `15-processing-with-ai.png` per `SCREENSHOT_INDEX.md`.
+**Do not fabricate PNGs.** **`11-generated-plan-visible.png`** is **captured** (see `docs/design/screenshots/`). **`15-processing-with-ai.png`** remains pending per `SCREENSHOT_INDEX.md`.
 
-### 8.1 Generated plan visible (**screenshot pending — feature implemented**)
+### 8.1 Generated plan visible (**screenshot captured — feature implemented**)
 
-**Pending file:** `11-generated-plan-visible.png` (do not fabricate; Phase 2K-a blocked by Gemini 429 for live capture)
+**Reference file:** `11-generated-plan-visible.png` (Phase 2K-c)
 
 - Render `GeneratedPlanSection` below generate block when a **saved** plan exists (loaded on visit or after Generate).
 - Card on `--color-primary-subtle` or white with subtle border.
@@ -493,11 +493,9 @@ Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect
 
 Do **not** design or implement UI for:
 
-- Task management (`study_tasks`) beyond read-only lines inside the generated plan display
-- Flashcard **management** beyond read-only list inside the generated plan display
-- Trello connect/sync
-- Admin dashboard, cross-user views, audit logs
-- Real dashboard analytics, charts, KPIs, streaks
+- **New** task/flashcard/Trello/focus/admin **features** beyond current **`IMPLEMENTATION_STATUS`**
+- Admin **logs**, user list, role management, Gemini error metrics UI
+- Charts, KPI widgets, streaks, or fake progress rings on dashboard/course pages
 - Saved generated plan library or “plan history”
 - Client “save plan” UI or POST of plan JSON
 - Normalized **task/flashcard table** management UI

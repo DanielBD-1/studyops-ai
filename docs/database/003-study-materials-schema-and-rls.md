@@ -93,7 +93,7 @@ The backend (future Study Materials API) must treat `req.user.id` as `courses.us
 
 ---
 
-## Service-role rule (future API)
+## Service-role rule (backend API)
 
 When the backend uses `getSupabaseAdmin()` on `study_materials`:
 

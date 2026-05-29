@@ -64,7 +64,7 @@ From `docs/IMPLEMENTATION_STATUS.md`:
 |-------|--------|--------|
 | `/` | Login | Centered auth |
 | `/register` | Register | Centered auth |
-| `/dashboard` | Dashboard stub | Email/role + link to courses — **not** analytics hub |
+| `/dashboard` | Student dashboard (stats UI) | Real aggregate stats from backend — **not** charts/KPI hub; Stitch brief predates **5B/5C** |
 | `/courses` | Courses list | List, create, empty state |
 | `/courses/:id` | Course detail | Title edit, materials list, create material |
 | `/study-materials/:materialId` | Study material detail | Edit content, generate, load/clear **latest saved** plan display |
@@ -83,7 +83,7 @@ Humans capture screenshots per `docs/design/SCREENSHOT_INDEX.md`. Stitch should 
 |---|----------|--------|
 | 1 | `01-login.png` | Login |
 | 2 | `02-register.png` | Register |
-| 3 | `03-dashboard.png` | Dashboard stub |
+| 3 | `03-dashboard.png` | Student dashboard (stats UI baseline) |
 | 4 | `04-courses-empty.png` | Courses empty state |
 | 5 | `05-create-course-form.png` | Create course form |
 | 6 | `06-courses-list.png` | Courses with ≥2 items |
@@ -91,7 +91,7 @@ Humans capture screenshots per `docs/design/SCREENSHOT_INDEX.md`. Stitch should 
 | 8 | `08-create-material-form.png` | Create material form visible |
 | 9 | `09-study-material-detail.png` | Study material edit state |
 | 10 | `10-generate-study-plan.png` | Generate study plan CTA visible |
-| 11 | `11-generated-plan-visible.png` | Generated plan visible (**pending** — see index) |
+| 11 | `11-generated-plan-visible.png` | Generated plan visible (**captured** — Phase 2K-c; see index) |
 | 12 | `12-unsaved-changes-warning.png` | Unsaved changes before generate |
 | 13 | `13-validation-error.png` | Inline validation error |
 | 14 | `14-not-found.png` | Neutral not-found copy |
@@ -210,7 +210,7 @@ Mockups may **suggest** motion; **do not** implement in repo during 2I.
 
 ## 11. Key UX flows (implemented behavior)
 
-1. **Auth:** Login or register → session → dashboard stub or courses
+1. **Auth:** Login or register → session → student dashboard or courses
 2. **Courses:** List → create (title 3–100) → open course
 3. **Course detail:** Edit title, list materials, create material (title 3–150, content 100–50,000, source type)
 4. **Material detail:** Edit fields → save → **Generate study plan**
@@ -257,7 +257,7 @@ Before updating `DESIGN.md` v2:
 
 - [ ] Every mock screen maps to an implemented route in §4
 - [ ] No tasks/Trello/admin/dashboard/persistence UI slipped in
-- [ ] No fake stats or charts on dashboard stub
+- [ ] No fake stats or charts on student dashboard stats UI
 - [ ] Generate flow matches persisted-latest-plan, material-scoped rules (§12)
 - [ ] Palette avoids medical teal / clinical look
 - [ ] Motion notes are subtle and include reduced-motion note
@@ -298,7 +298,7 @@ Copy the block below into Stitch (attach screenshots from `docs/design/screensho
 Project: StudyOps AI — Modern AI Study Cockpit (productivity SaaS)
 
 CONTEXT: Functional React app exists. Design ONLY these implemented screens:
-Login (/), Register (/register), Dashboard stub (/dashboard), Courses list (/courses),
+Login (/), Register (/register), Student dashboard (/dashboard), Courses list (/courses),
 Course detail (/courses/:id), Study material detail (/study-materials/:materialId)
 including create material, Generate study plan, and read-only Generated plan section.
 
