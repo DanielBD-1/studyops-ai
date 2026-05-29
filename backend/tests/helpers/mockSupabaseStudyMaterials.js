@@ -165,6 +165,21 @@ function resolveCoursesDelete(state) {
  * @param {Record<string, unknown>} state
  */
 function resolveMaterialsSelect(state) {
+  if (
+    state.single &&
+    state.coursesUserIdFilter !== undefined &&
+    !state.innerJoinCourses
+  ) {
+    return {
+      data: null,
+      error: {
+        code: 'PGRST200',
+        message:
+          "Could not find a relationship between 'study_materials' and 'courses' in the schema cache",
+      },
+    };
+  }
+
   const idOnlyLookup =
     state.filters.id &&
     !state.filters.course_id &&

@@ -174,6 +174,19 @@ describe('flashcards API integration', () => {
     assert.equal(body.error.message, 'Study material not found');
   });
 
+  it('GET /api/flashcards?courseId&materialId returns flashcards for owned material', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/flashcards?courseId=${OWN_COURSE_ID}&materialId=${OWN_MATERIAL_ID}`,
+      { headers: auth },
+    );
+    assert.equal(statusCode, 200);
+    assert.ok(body.data.flashcards.length >= 1);
+    for (const card of body.data.flashcards) {
+      assert.equal(card.courseId, OWN_COURSE_ID);
+      assert.equal(card.materialId, OWN_MATERIAL_ID);
+    }
+  });
+
   it('POST /api/courses/:courseId/flashcards creates flashcard for owned course', async () => {
     const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/flashcards`, {
       method: 'POST',

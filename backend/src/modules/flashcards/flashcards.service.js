@@ -5,6 +5,8 @@ import { assertCourseOwned } from '../study-materials/study-materials.service.js
 const FLASHCARD_COLUMNS =
   'id, course_id, material_id, question, answer, tags, source, created_at, updated_at';
 
+const MATERIAL_OWNERSHIP_SELECT = 'id, course_id, courses!inner(id)';
+
 const FLASHCARD_CHECK_CONSTRAINTS = {
   flashcards_question_length: 'Question must be between 10 and 500 characters',
   flashcards_answer_length: 'Answer must be between 10 and 2000 characters',
@@ -116,7 +118,7 @@ async function assertMaterialBelongsToOwnedCourseForFlashcards(userId, courseId,
 
   const { data, error } = await getSupabaseAdmin()
     .from('study_materials')
-    .select('id')
+    .select(MATERIAL_OWNERSHIP_SELECT)
     .eq('id', materialId)
     .eq('course_id', courseId)
     .eq('courses.user_id', userId)

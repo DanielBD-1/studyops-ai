@@ -618,15 +618,17 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 
 **List filters:** Wrong-owner or missing course → **`404`** “Course not found”. Wrong-owner, missing, or cross-course material → **`404`** “Study material not found”. Unfiltered list returns only rows for **`req.user.id`**.
 
+**Bugfix (2026-05-29) — material-specific list filter:** **`GET /api/flashcards?courseId=&materialId=`** now works for valid owned course+material pairs (**200**; was **`500`** `DATABASE_ERROR` when PostgREST rejected the ownership query missing **`courses!inner`**). Ownership validation unchanged — enforced via material **`course_id`** and joined **`courses.user_id`**. **`materialId`** filter returns only flashcards linked to that material (excludes course-level / unlinked flashcards with **`material_id` null**). Course-only listing (**`?courseId=`** without **`materialId`**) still includes course-level flashcards. **No** frontend or API contract change.
+
 **Responses:** camelCase; include `source`; **do not** include `userId`. Wrong-owner/missing flashcard on PATCH/DELETE → **`404`** “Flashcard not found”.
 
 **Validation (Zod):** Question 10–500; answer 10–2000; tags max 5 (each 1–50); strict bodies (reject `userId`, `courseId`, `source`, timestamps on create); update requires ≥1 allowed field.
 
 **Implementation files:** `backend/src/modules/flashcards/*`, `backend/src/shared/validation/flashcard.schema.js`, `backend/src/modules/courses/courses.routes.js` (create route), `backend/src/app.js` (mount `/api/flashcards`).
 
-**Tests:** `backend/tests/integration/flashcards.test.js`, `backend/tests/unit/flashcards.service.test.js`, `backend/tests/helpers/mockSupabaseFlashcards.js`. **`backend/package.json`** `npm test` script lists both flashcards test files explicitly (**no** dependency or lockfile change). `cd backend && npm run lint` and `npm test` passed — **180** tests, **0** failures (CI runs same script).
+**Tests:** `backend/tests/integration/flashcards.test.js`, `backend/tests/unit/flashcards.service.test.js`, `backend/tests/helpers/mockSupabaseFlashcards.js`, `backend/tests/helpers/mockSupabaseStudyMaterials.js`. **`backend/package.json`** `npm test` script lists flashcards test files explicitly (**no** dependency or lockfile change). `cd backend && npm run lint` and `npm test` passed — **287** tests, **0** failures after **2026-05-29** material-filter bugfix (CI runs same script).
 
-**Reviews:** Supervisor — approved with notes. Security Review — no blockers.
+**Reviews:** Supervisor — approved with notes. Security Review — no blockers (initial **3B-c** and **2026-05-29** bugfix).
 
 **Not in 3B-c:** Frontend DB flashcards UI; frontend `/api/flashcards` client; global `/flashcards` page; import `plan.flashcards[]` into rows; known/unknown; spaced repetition; pagination/rate limiting; wiring **3B-a** UI to DB rows.
 
