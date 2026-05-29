@@ -678,6 +678,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                 editing={editingTaskId !== null}
                 completing={completingId === task.id}
                 deleting={deletingId === task.id}
+                focusReturnTo="/tasks"
                 courseLabel={
                   courseTitleById.has(task.courseId)
                     ? { courseId: task.courseId, title: courseTitleById.get(task.courseId) }

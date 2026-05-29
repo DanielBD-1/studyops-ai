@@ -8,6 +8,7 @@ import CourseDetail from './pages/CourseDetail.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FlashcardsPage from './pages/FlashcardsPage.jsx';
 import TrelloSyncPage from './pages/TrelloSyncPage.jsx';
+import FocusPage from './pages/FocusPage.jsx';
 import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 
 export default function App() {
@@ -61,6 +62,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <TrelloSyncPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/focus/:taskId"
+          element={
+            <ProtectedRoute>
+              <FocusPage />
             </ProtectedRoute>
           }
         />
