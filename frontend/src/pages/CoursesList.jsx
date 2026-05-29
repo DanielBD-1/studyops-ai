@@ -86,47 +86,53 @@ export default function CoursesList() {
   }
 
   return (
-    <main className="page page--workspace">
-      <PageHeader title="My courses" />
-
-      {!showCreateForm && (
-        <p className="section__actions">
-          <Button variant="primary" onClick={() => setShowCreateForm(true)}>
-            New course
-          </Button>
-        </p>
-      )}
+    <main className="page page--workspace page--courses">
+      <PageHeader
+        intro
+        title="My courses"
+        lead="Each course is a subject workspace for your study materials and tasks."
+      >
+        {!showCreateForm && (
+          <div className="page-header__actions">
+            <Button variant="primary" onClick={() => setShowCreateForm(true)}>
+              New course
+            </Button>
+          </div>
+        )}
+      </PageHeader>
 
       {showCreateForm && (
-        <FormCard title="Create course">
-          <form onSubmit={handleCreate} className="form-stack">
-            <Input
-              id="course-title-create"
-              label="Course title"
-              value={title}
-              onChange={setTitle}
-              error={createError}
-              required
-            />
-            <div className="form-row">
-              <Button type="submit" variant="primary" disabled={creating}>
-                {creating ? 'Creating…' : 'Create course'}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={creating}
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setCreateError(null);
-                  setTitle('');
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </FormCard>
+        <div className="courses-create">
+          <FormCard title="Create course">
+            <form onSubmit={handleCreate} className="form-stack">
+              <Input
+                id="course-title-create"
+                label="Course title"
+                value={title}
+                onChange={setTitle}
+                error={createError}
+                required
+              />
+              <div className="form-row">
+                <Button type="submit" variant="primary" disabled={creating}>
+                  {creating ? 'Creating…' : 'Create course'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={creating}
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setCreateError(null);
+                    setTitle('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </FormCard>
+        </div>
       )}
 
       {loading && <LoadingState message="Loading courses…" />}
@@ -149,7 +155,7 @@ export default function CoursesList() {
       )}
 
       {!loading && !error && courses.length > 0 && (
-        <section className="card-list" aria-label="Course list">
+        <section className="courses-shelf" aria-label="Course list">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}

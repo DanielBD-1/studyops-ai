@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import MaterialCard from '../components/materials/MaterialCard.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
@@ -211,7 +212,7 @@ export default function CourseDetail() {
 
   if (loading) {
     return (
-      <main className="page page--workspace">
+      <main className="page page--workspace page--course-detail">
         <LoadingState message="Loading course…" />
       </main>
     );
@@ -219,7 +220,7 @@ export default function CourseDetail() {
 
   if (notFound) {
     return (
-      <main className="page page--workspace">
+      <main className="page page--workspace page--course-detail">
         <h1 className="page__title--tight">Course not found</h1>
         <p className="not-found__text">This course may have been deleted.</p>
         <Link to="/courses">Back to courses</Link>
@@ -229,7 +230,7 @@ export default function CourseDetail() {
 
   if (error || !course) {
     return (
-      <main className="page page--workspace">
+      <main className="page page--workspace page--course-detail">
         <ErrorMessage message={error ?? 'Failed to load course'} />
         <Button variant="secondary" onClick={loadCourse}>
           Try again
@@ -242,31 +243,38 @@ export default function CourseDetail() {
   }
 
   return (
-    <main className="page page--workspace">
-      <p className="back-link">
-        <Link to="/courses">← Back to courses</Link>
-      </p>
+    <main className="page page--workspace page--course-detail course-workspace">
+      <PageHeader
+        intro
+        title={course.title}
+        lead="Course workspace"
+        note="Study materials and tasks for this subject."
+        backTo={{ to: '/courses', label: '← Back to courses' }}
+      />
 
-      <h1 className="page__title--tight">{course.title}</h1>
+      <section className="course-workspace__settings" aria-label="Course settings">
+        <FormCard title="Course settings">
+          <form onSubmit={handleSave} className="form-stack">
+            <Input
+              id="course-title-edit"
+              label="Course title"
+              value={title}
+              onChange={setTitle}
+              error={saveError}
+              required
+            />
+            <Button type="submit" variant="primary" disabled={saving || deleting}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </Button>
+          </form>
+        </FormCard>
+      </section>
 
-      <FormCard title="Edit course">
-        <form onSubmit={handleSave} className="form-stack">
-          <Input
-            id="course-title-edit"
-            label="Course title"
-            value={title}
-            onChange={setTitle}
-            error={saveError}
-            required
-          />
-          <Button type="submit" variant="primary" disabled={saving || deleting}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
-        </form>
-      </FormCard>
-
-      <section className="section">
-        <h2 className="section__title">Study materials</h2>
+      <section className="section course-workspace__materials">
+        <div className="section__header-row">
+          <h2 className="section__title">Study materials</h2>
+          <p className="section__subtitle">Document shelf</p>
+        </div>
 
         {materialsLoading && <LoadingState message="Loading study materials…" />}
 
@@ -289,7 +297,7 @@ export default function CourseDetail() {
         )}
 
         {!materialsLoading && !materialsError && materials.length > 0 && (
-          <div className="card-list">
+          <div className="document-shelf card-list">
             {materials.map((material) => (
               <MaterialCard key={material.id} material={material} />
             ))}
@@ -305,7 +313,7 @@ export default function CourseDetail() {
         )}
 
         {showCreateMaterial && (
-          <div className="section--compact">
+          <div className="course-workspace__create-material section--compact">
             <FormCard title="Add study material">
               <form onSubmit={handleCreateMaterial} className="form-stack">
                 <Input
@@ -367,7 +375,7 @@ export default function CourseDetail() {
         handleAuthError={handleAuthError}
       />
 
-      <section className="danger-zone">
+      <section className="danger-zone course-workspace__danger">
         <h2 className="danger-zone__title">Danger zone</h2>
         {deleteError && <ErrorMessage message={deleteError} />}
         <Button variant="danger" disabled={saving || deleting} onClick={handleDelete}>

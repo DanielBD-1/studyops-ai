@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
-import FormCard from '../components/ui/FormCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import PageHeader from '../components/layout/PageHeader.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -28,15 +27,15 @@ function StatItem({ label, value, detail }) {
 }
 
 /**
- * @param {{ title: string, children: import('react').ReactNode }} props
+ * @param {{ title: string, children: import('react').ReactNode, bandClass?: string }} props
  */
-function StatSection({ title, children }) {
+function StatBand({ title, children, bandClass }) {
+  const bandClasses = ['dashboard-band', bandClass].filter(Boolean).join(' ');
+
   return (
-    <section className="section section--compact">
-      <h2 className="section__title section__title--sm">{title}</h2>
-      <FormCard>
-        <dl className="dashboard-stats">{children}</dl>
-      </FormCard>
+    <section className={bandClasses}>
+      <h2 className="dashboard-band__title">{title}</h2>
+      <dl className="dashboard-stats">{children}</dl>
     </section>
   );
 }
@@ -142,14 +141,25 @@ export default function DashboardStub() {
   const isEmptyAccount = stats?.totalCourses === 0;
 
   return (
-    <main className="page page--workspace">
-      <PageHeader title="Dashboard" />
-
-      {user && (
-        <p className="page__lead">
-          Signed in as <strong>{user.email}</strong>
-        </p>
-      )}
+    <main className="page page--workspace page--dashboard">
+      <PageHeader
+        intro
+        title="Dashboard"
+        lead="Your study cockpit — a calm overview of courses, tasks, and learning activity."
+        note={user ? `Signed in as ${user.email}` : undefined}
+      >
+        {!loading && !error && stats && (
+          <div className="page-header__actions">
+            <Button
+              variant="secondary"
+              disabled={refreshing}
+              onClick={() => runSilentRefresh()}
+            >
+              {refreshing ? 'Refreshing…' : 'Refresh stats'}
+            </Button>
+          </div>
+        )}
+      </PageHeader>
 
       {loading && <LoadingState message="Loading dashboard…" />}
 
@@ -164,73 +174,75 @@ export default function DashboardStub() {
 
       {!loading && !error && stats && (
         <>
-          <p className="section__actions">
-            <Button
-              variant="secondary"
-              disabled={refreshing}
-              onClick={() => runSilentRefresh()}
-            >
-              {refreshing ? 'Refreshing…' : 'Refresh stats'}
-            </Button>
-          </p>
-
           {isEmptyAccount && (
-            <section className="dashboard-empty-cta">
+            <section className="dashboard-empty-cta" aria-label="Get started">
+              <p className="dashboard-empty-cta__eyebrow">Get started</p>
               <p className="dashboard-empty-cta__text">
                 You have not created any courses yet. Start by adding a course to organize your
                 study materials.
               </p>
-              <Link to="/courses">Go to My courses</Link>
+              <Link to="/courses" className="dashboard-empty-cta__link">
+                Go to My courses
+              </Link>
             </section>
           )}
 
-          <StatSection title="Overview">
-            <StatItem label="Courses" value={stats.totalCourses} />
-            <StatItem label="Study materials" value={stats.totalStudyMaterials} />
-            <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
-          </StatSection>
+          <div className="dashboard-cockpit">
+            <StatBand title="Overview" bandClass="dashboard-band--overview">
+              <StatItem label="Courses" value={stats.totalCourses} />
+              <StatItem label="Study materials" value={stats.totalStudyMaterials} />
+              <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
+            </StatBand>
 
-          <StatSection title="Tasks">
-            <StatItem label="Total tasks" value={stats.totalTasks} />
-            <StatItem label="Pending" value={stats.pendingTasks} />
-            <StatItem
-              label="Completed"
-              value={stats.completedTasks}
-              detail={
-                taskCompletionPercent !== null
-                  ? `${taskCompletionPercent}% complete`
-                  : undefined
-              }
-            />
-          </StatSection>
+            <div className="dashboard-cockpit__row">
+              <StatBand title="Tasks" bandClass="dashboard-band--tasks">
+                <StatItem label="Total tasks" value={stats.totalTasks} />
+                <StatItem label="Pending" value={stats.pendingTasks} />
+                <StatItem
+                  label="Completed"
+                  value={stats.completedTasks}
+                  detail={
+                    taskCompletionPercent !== null
+                      ? `${taskCompletionPercent}% complete`
+                      : undefined
+                  }
+                />
+              </StatBand>
 
-          <StatSection title="Focus">
-            <StatItem
-              label="Focus time"
-              value={formatFocusMinutes(stats.totalFocusMinutes)}
-            />
-            <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
-          </StatSection>
+              <StatBand title="Focus" bandClass="dashboard-band--focus">
+                <StatItem
+                  label="Focus time"
+                  value={formatFocusMinutes(stats.totalFocusMinutes)}
+                />
+                <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
+              </StatBand>
+            </div>
 
-          <StatSection title="Learning assets">
-            <StatItem label="Flashcards" value={stats.totalFlashcards} />
-          </StatSection>
+            <div className="dashboard-cockpit__row dashboard-cockpit__row--compact">
+              <StatBand title="Learning assets" bandClass="dashboard-band--assets">
+                <StatItem label="Flashcards" value={stats.totalFlashcards} />
+              </StatBand>
 
-          <StatSection title="Trello">
-            <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
-          </StatSection>
+              <StatBand title="Trello" bandClass="dashboard-band--trello">
+                <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
+              </StatBand>
+            </div>
+          </div>
 
-          <section className="section section--compact">
-            <h2 className="section__title section__title--sm">Per course</h2>
+          <section className="section section--compact dashboard-courses">
+            <div className="section__header-row">
+              <h2 className="section__title section__title--sm">Per course</h2>
+              <p className="section__subtitle">Jump into a subject workspace</p>
+            </div>
             {stats.courseStats.length === 0 ? (
-              <FormCard>
+              <div className="dashboard-band dashboard-band--empty">
                 <p className="dashboard-empty-courses">No courses to show yet.</p>
-              </FormCard>
+              </div>
             ) : (
               <ul className="card-list dashboard-course-list">
                 {stats.courseStats.map((course) => (
                   <li key={course.courseId}>
-                    <article className="source-card">
+                    <article className="source-card source-card--subject source-card--dashboard-course">
                       <h3 className="source-card__title">
                         <Link
                           to={`/courses/${course.courseId}`}
@@ -239,10 +251,20 @@ export default function DashboardStub() {
                           {course.courseName}
                         </Link>
                       </h3>
-                      <p className="source-card__meta">
-                        {course.totalTasks} tasks · {course.completedTasks} completed ·{' '}
-                        {course.totalFlashcards} flashcards
-                      </p>
+                      <ul className="source-card__stat-row" aria-label="Course stats">
+                        <li className="source-card__stat">
+                          <span className="source-card__stat-value">{course.totalTasks}</span>
+                          <span className="source-card__stat-label">tasks</span>
+                        </li>
+                        <li className="source-card__stat">
+                          <span className="source-card__stat-value">{course.completedTasks}</span>
+                          <span className="source-card__stat-label">completed</span>
+                        </li>
+                        <li className="source-card__stat">
+                          <span className="source-card__stat-value">{course.totalFlashcards}</span>
+                          <span className="source-card__stat-label">flashcards</span>
+                        </li>
+                      </ul>
                     </article>
                   </li>
                 ))}
