@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import TrelloSyncSection from '../components/trello/TrelloSyncSection.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import { ApiRequestError, listCourses } from '../services/courses.service.js';
 
 export default function TrelloSyncPage() {
@@ -48,22 +49,12 @@ export default function TrelloSyncPage() {
 
   return (
     <main className="page page--workspace page--trello">
-      <header className="page-header page-header--intro">
-        <div className="page-header__intro">
-          <h1>Trello sync</h1>
-          <p className="page-header__lead">
-            Sync selected study tasks to a Trello list.
-          </p>
-          <p className="page-header__note">
-            Credentials are used only for this sync request and are not saved.
-          </p>
-        </div>
-        <nav className="page-header__nav" aria-label="Secondary">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/courses">My courses</Link>
-          <Link to="/tasks">All study tasks</Link>
-        </nav>
-      </header>
+      <PageHeader
+        intro
+        title="Trello sync"
+        lead="Sync selected study tasks to a Trello list."
+        note="Credentials are used only for this sync request and are not saved."
+      />
 
       {coursesLoading && <LoadingState message="Loading courses…" />}
 

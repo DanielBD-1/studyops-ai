@@ -4,6 +4,7 @@ import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
 import { getAdminStats } from '../services/admin.service.js';
@@ -129,12 +130,7 @@ export default function AdminDashboardPage() {
 
   return (
     <main className="page page--workspace page--admin-dashboard">
-      <header className="page-header">
-        <h1>Admin dashboard</h1>
-        <nav className="page-header__nav" aria-label="Secondary">
-          <Link to="/dashboard">Dashboard</Link>
-        </nav>
-      </header>
+      <PageHeader title="Admin dashboard" />
 
       {loading && <LoadingState message="Loading admin stats…" />}
 

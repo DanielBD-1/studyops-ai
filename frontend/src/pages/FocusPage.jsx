@@ -5,6 +5,7 @@ import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import {
   ApiRequestError,
   startFocusSession,
@@ -256,14 +257,12 @@ export default function FocusPage() {
 
   return (
     <main className="page page--workspace page--focus">
-      <header className="page-header">
-        <h1>Focus session</h1>
-        {taskTitle ? <p className="page-header__lead">{taskTitle}</p> : null}
+      <PageHeader title="Focus session" lead={taskTitle || undefined}>
         <nav className="page-header__nav" aria-label="Secondary">
           <Link to={tasksBackPath}>Back to tasks</Link>
           {showCourseBack ? <Link to={`/courses/${courseId}`}>Back to course</Link> : null}
         </nav>
-      </header>
+      </PageHeader>
 
       {phase === 'starting' && <LoadingState message="Starting focus session…" />}
 

@@ -23,12 +23,21 @@ h1,
 h2,
 h3 {
   line-height: var(--line-height-tight);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 h1 {
   font-size: var(--font-size-2xl);
   margin: 0 0 var(--space-6);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
 }
 
 a {

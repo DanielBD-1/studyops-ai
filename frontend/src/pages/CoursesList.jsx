@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import CourseCard from '../components/courses/CourseCard.jsx';
@@ -9,6 +9,7 @@ import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
 import Input from '../components/ui/Input.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import { ApiRequestError, listCourses, createCourse } from '../services/courses.service.js';
 import { createCourseFormSchema } from '../utils/validation.js';
 
@@ -86,13 +87,7 @@ export default function CoursesList() {
 
   return (
     <main className="page page--workspace">
-      <header className="page-header">
-        <h1>My courses</h1>
-        <nav className="page-header__nav" aria-label="Secondary">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/tasks">All study tasks</Link>
-        </nav>
-      </header>
+      <PageHeader title="My courses" />
 
       {!showCreateForm && (
         <p className="section__actions">

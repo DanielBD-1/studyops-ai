@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
+import AppShell from './components/layout/AppShell.jsx';
 import Landing from './pages/Landing.jsx';
 import RegisterPage from './pages/Register.jsx';
 import DashboardStub from './pages/DashboardStub.jsx';
@@ -13,6 +14,17 @@ import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 import AdminRoute from './components/auth/AdminRoute.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 
+/**
+ * @param {{ children: import('react').ReactNode }} props
+ */
+function AuthenticatedPage({ children }) {
+  return (
+    <ProtectedRoute>
+      <AppShell>{children}</AppShell>
+    </ProtectedRoute>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -22,75 +34,75 @@ export default function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <DashboardStub />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/courses"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <CoursesList />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/courses/:id"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <CourseDetail />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/tasks"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <TasksPage />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/flashcards"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <FlashcardsPage />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/trello"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <TrelloSyncPage />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/focus/:taskId"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <FocusPage />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/study-materials/:materialId"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <StudyMaterialDetail />
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <AuthenticatedPage>
               <AdminRoute>
                 <AdminDashboardPage />
               </AdminRoute>
-            </ProtectedRoute>
+            </AuthenticatedPage>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
