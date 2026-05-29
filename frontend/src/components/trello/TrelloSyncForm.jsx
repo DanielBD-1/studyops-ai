@@ -6,10 +6,8 @@ import Input from '../ui/Input.jsx';
  * @param {{
  *   apiKey: string,
  *   token: string,
- *   listId: string,
  *   onApiKeyChange: (value: string) => void,
  *   onTokenChange: (value: string) => void,
- *   onListIdChange: (value: string) => void,
  *   onClearCredentials: () => void,
  *   disabled?: boolean,
  * }} props
@@ -17,10 +15,8 @@ import Input from '../ui/Input.jsx';
 export default function TrelloSyncForm({
   apiKey,
   token,
-  listId,
   onApiKeyChange,
   onTokenChange,
-  onListIdChange,
   onClearCredentials,
   disabled = false,
 }) {
@@ -28,16 +24,14 @@ export default function TrelloSyncForm({
     <FormCard>
       <h2 className="form-card__title">Trello credentials</h2>
       <p className="form-card__hint">
-        Credentials are used only for this sync request and are not saved.
+        Credentials are used only for this session and are not saved.
       </p>
       <div className="trello-sync__fields">
         <TrelloSyncFormFields
           apiKey={apiKey}
           token={token}
-          listId={listId}
           onApiKeyChange={onApiKeyChange}
           onTokenChange={onTokenChange}
-          onListIdChange={onListIdChange}
           disabled={disabled}
         />
       </div>
@@ -54,20 +48,16 @@ export default function TrelloSyncForm({
  * @param {{
  *   apiKey: string,
  *   token: string,
- *   listId: string,
  *   onApiKeyChange: (value: string) => void,
  *   onTokenChange: (value: string) => void,
- *   onListIdChange: (value: string) => void,
  *   disabled?: boolean,
  * }} props
  */
 export function TrelloSyncFormFields({
   apiKey,
   token,
-  listId,
   onApiKeyChange,
   onTokenChange,
-  onListIdChange,
   disabled = false,
 }) {
   return (
@@ -89,16 +79,6 @@ export function TrelloSyncFormFields({
         autoComplete="off"
         value={token}
         onChange={onTokenChange}
-        required
-        disabled={disabled}
-      />
-      <Input
-        id="trello-list-id"
-        label="Trello list ID"
-        type="text"
-        autoComplete="off"
-        value={listId}
-        onChange={onListIdChange}
         required
         disabled={disabled}
       />

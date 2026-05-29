@@ -83,6 +83,34 @@ async function request(path, init = {}) {
  */
 
 /**
+ * @typedef {{ id: string, name: string }} TrelloNamedItem
+ */
+
+/**
+ * @param {{ apiKey: string, token: string }} body
+ * @returns {Promise<{ boards: TrelloNamedItem[] }>}
+ */
+export async function fetchTrelloBoards(body) {
+  const data = await request('/api/trello/boards', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return /** @type {{ boards: TrelloNamedItem[] }} */ (data);
+}
+
+/**
+ * @param {{ apiKey: string, token: string, boardId: string }} body
+ * @returns {Promise<{ lists: TrelloNamedItem[] }>}
+ */
+export async function fetchTrelloBoardLists({ apiKey, token, boardId }) {
+  const data = await request(`/api/trello/boards/${encodeURIComponent(boardId)}/lists`, {
+    method: 'POST',
+    body: JSON.stringify({ apiKey, token }),
+  });
+  return /** @type {{ lists: TrelloNamedItem[] }} */ (data);
+}
+
+/**
  * @param {{
  *   apiKey: string,
  *   token: string,
