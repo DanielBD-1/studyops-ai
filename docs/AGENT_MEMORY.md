@@ -1701,3 +1701,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** Backend admin module + integration tests + **`backend/package.json`** `test` script only — **no** frontend, DB/migration, dependency, or **`package-lock`** changes
 **Not implemented (intentional):** full admin aggregate stats API (**Phase 6A-2**); frontend **`/admin`** UI (**Phase 6A-3**); **`api_logs`** / admin logs endpoints
 **Follow-up:** **Phase 6A-2** — backend admin aggregate stats API (separate human approval)
+
+### 2026-05-29 — Phase 6A-2 Backend Admin Aggregate Stats API complete
+
+**Workflow:** Phase 6A-2 Backend Admin Aggregate Stats API
+**ADR refs:** 001 (modular monolith — `backend/src/modules/admin/*`), 003 (Zod unchanged — no new request schemas)
+**Human gates:** `approved — implement Phase 6A-2`; Supervisor Review **approved with notes**; Security Review **no blockers**; `approved — Phase 6A-2 complete`
+**Summary:** Backend-only platform-wide admin aggregate stats — **`GET /api/admin/stats`** on existing **`/api/admin`** router with middleware order **`requireAuth` → `requireAdmin` → getStats**. Returns **aggregate numeric counts only** plus static **`systemHealth.backend: "ok"`** — **no** raw rows, user lists, emails, content, titles, plan JSON, flashcard Q/A, Trello card IDs, or logs. Metrics: **`totalUsers`**, **`totalCourses`**, **`totalStudyMaterials`**, **`totalGeneratedPlans`**, **`totalTasks`**, **`pendingTasks`**, **`completedTasks`**, **`totalFlashcards`**, **`totalFocusMinutes`**, **`completedFocusSessions`**, **`trelloSyncedTasks`**, **`trelloSyncAttemptsToday`**, **`trelloSyncSucceededToday`**, **`trelloSyncFailedToday`**, **`trelloSyncSkippedToday`**. Platform-wide service-role aggregate reads are an **intentional admin-only exception** to the normal user-owned service-role filtering rule because the route is protected by **`requireAuth` + `requireAdmin`**, the response is aggregate-only, and no private row payloads or PII are returned. **No** frontend, DB migration, **`GET /api/admin/logs`**, **`api_logs`**, Gemini metrics, document-service call, Trello API call, role mutation, or admin mutation endpoints.
+**APIs affected:** **`GET /api/admin/stats`** (new)
+**Tests:** **`backend/tests/integration/admin.stats.test.js`**, **`backend/tests/helpers/mockSupabaseAdminStats.js`**; **`backend/package.json`** `test` script only (+admin stats test). **`cd backend && npm run lint`** passed; **`npm test`** **297/297** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers** — no critical or important issues
+**Known gaps (non-blocking):** at larger scale, **`totalFocusMinutes`** can move from in-memory **`duration_minutes`** summation to DB-side **`SUM`**; forbidden-field regression test can later add **`courseId`**, **`materialId`**, **`generatedPlan`**; no dedicated **`admin.service`** unit test (integration coverage accepted)
+**Scope boundary:** Backend admin module + integration tests + **`backend/package.json`** `test` script only — **no** frontend, DB/migration, dependency, or **`package-lock`** changes
+**Not implemented (intentional):** frontend **`/admin`** UI (**Phase 6A-3**); **`api_logs`** / **`GET /api/admin/logs`**; Gemini/system error metrics (no **`api_logs`** table)
+**Follow-up:** **Phase 6A-3** — frontend **`/admin`** UI consuming **`GET /api/admin/stats`**
