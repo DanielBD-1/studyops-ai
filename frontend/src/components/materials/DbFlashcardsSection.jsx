@@ -207,8 +207,8 @@ export default function DbFlashcardsSection({
   }
 
   return (
-    <FormCard title="Saved flashcards">
-      <p className="plan-disclaimer">
+    <FormCard title="Flashcard library" className="flashcard-library">
+      <p className="flashcard-library__intro plan-disclaimer">
         These flashcards are stored in your account and remain available even if you clear
         the generated plan below.
       </p>
@@ -216,7 +216,7 @@ export default function DbFlashcardsSection({
       {loading && <LoadingState message="Loading saved flashcards…" />}
 
       {error && !loading && (
-        <>
+        <div className="flashcard-library__error">
           <ErrorMessage message={error} />
           {onRetry ? (
             <p className="section__actions">
@@ -225,13 +225,13 @@ export default function DbFlashcardsSection({
               </Button>
             </p>
           ) : null}
-        </>
+        </div>
       )}
 
       {!loading && !error && (
         <>
           {!showCreate && editingId === null && (
-            <p className="section__actions">
+            <p className="section__actions flashcard-library__create-cta">
               <Button type="button" variant="primary" onClick={openCreate} disabled={busy}>
                 Create flashcard
               </Button>
@@ -239,14 +239,14 @@ export default function DbFlashcardsSection({
           )}
 
           {flashcards.length === 0 && !showCreate && (
-            <p className="plan-block__body">
+            <p className="flashcard-library__empty plan-block__body">
               No saved flashcards yet. Create a flashcard, or import from your generated plan
               below.
             </p>
           )}
 
           {showCreate && (
-            <div className="section--compact">
+            <div className="flashcard-library__form section--compact">
               <h3 className="plan-block__title">New flashcard</h3>
               <form onSubmit={handleCreate} className="form-stack">
                 <Textarea
@@ -290,16 +290,25 @@ export default function DbFlashcardsSection({
           )}
 
           {flashcards.length > 0 && (
-            <FlashcardStudy flashcards={studyCards} title="Study saved cards" />
+            <div className="flashcard-library__study">
+              <FlashcardStudy
+                flashcards={studyCards}
+                title="Study saved cards"
+                className="flashcard-study--library"
+              />
+            </div>
           )}
 
           {flashcards.length > 0 && (
-            <section className="plan-block" aria-label="Manage saved flashcards">
+            <section
+              className="flashcard-library__manage plan-block"
+              aria-label="Manage saved flashcards"
+            >
               <h3 className="plan-block__title">Your saved cards</h3>
-              <ul className="plan-block__list">
+              <ul className="flashcard-library__list plan-block__list">
                 {flashcards.map((card) =>
                   editingId === card.id ? (
-                    <li key={card.id} className="plan-block__item">
+                    <li key={card.id} className="plan-block__item flashcard-library__item">
                       <form onSubmit={handleUpdate} className="form-stack">
                         <Textarea
                           id={`flashcard-edit-question-${card.id}`}
@@ -344,14 +353,14 @@ export default function DbFlashcardsSection({
                       </form>
                     </li>
                   ) : (
-                    <li key={card.id} className="plan-block__item">
-                      <p className="plan-block__body">
+                    <li key={card.id} className="plan-block__item flashcard-library__item">
+                      <p className="plan-block__body flashcard-library__question">
                         {truncateFlashcardQuestion(card.question)}
                       </p>
                       {Array.isArray(card.tags) && card.tags.length > 0 ? (
                         <p className="plan-block__meta">Tags: {card.tags.join(', ')}</p>
                       ) : null}
-                      <div className="form-row">
+                      <div className="form-row flashcard-library__item-actions">
                         <Button
                           type="button"
                           variant="secondary"
@@ -377,7 +386,7 @@ export default function DbFlashcardsSection({
           )}
 
           {flashcards.length > 0 && !showCreate && editingId === null && (
-            <p className="section__actions">
+            <p className="section__actions flashcard-library__create-cta">
               <Button type="button" variant="primary" onClick={openCreate} disabled={busy}>
                 Add another flashcard
               </Button>
@@ -385,7 +394,7 @@ export default function DbFlashcardsSection({
           )}
 
           {successMessage && (
-            <p className="plan-panel__status">{successMessage}</p>
+            <p className="plan-panel__status plan-panel__status--success">{successMessage}</p>
           )}
           {actionError && <ErrorMessage message={actionError} />}
         </>

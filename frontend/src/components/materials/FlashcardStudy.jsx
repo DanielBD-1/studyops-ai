@@ -11,9 +11,10 @@ import {
  * @param {{
  *   flashcards: Array<{ question: string, answer: string, tags?: string[] }>,
  *   title?: string,
+ *   className?: string,
  * }} props
  */
-export default function FlashcardStudy({ flashcards, title = 'Flashcards' }) {
+export default function FlashcardStudy({ flashcards, title = 'Flashcards', className = '' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
 
@@ -40,18 +41,26 @@ export default function FlashcardStudy({ flashcards, title = 'Flashcards' }) {
     return null;
   }
 
-  return (
-    <section className="flashcard-study plan-block" aria-label="Flashcard study">
-      <h3 className="plan-block__title">{title}</h3>
-      <p className="plan-block__meta">{formatCardCounter(currentIndex, total)}</p>
+  const sectionClass = ['flashcard-study', 'plan-block', className].filter(Boolean).join(' ');
 
-      <article className="plan-block__item">
-        <p className="plan-block__body">
-          <strong>Q:</strong> {card.question}
+  return (
+    <section className={sectionClass} aria-label="Flashcard study">
+      <div className="flashcard-study__header">
+        <h3 className="plan-block__title">{title}</h3>
+        <p className="plan-block__meta flashcard-study__counter">
+          {formatCardCounter(currentIndex, total)}
+        </p>
+      </div>
+
+      <article className="plan-block__item flashcard-study__card">
+        <p className="plan-block__body flashcard-study__question">
+          <span className="flashcard-study__label">Q</span>
+          {card.question}
         </p>
         {revealed ? (
-          <p className="plan-block__body">
-            <strong>A:</strong> {card.answer}
+          <p className="plan-block__body flashcard-study__answer">
+            <span className="flashcard-study__label">A</span>
+            {card.answer}
           </p>
         ) : null}
         {Array.isArray(card.tags) && card.tags.length > 0 ? (
@@ -59,7 +68,7 @@ export default function FlashcardStudy({ flashcards, title = 'Flashcards' }) {
         ) : null}
       </article>
 
-      <div className="form-row">
+      <div className="form-row flashcard-study__actions">
         {!revealed ? (
           <Button type="button" variant="primary" onClick={() => setRevealed(true)}>
             Show answer
