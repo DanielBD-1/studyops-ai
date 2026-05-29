@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **4B-2**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **4C-1**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -26,6 +26,8 @@ This section records **what the repository implements today** (summary only; ali
 - **Trello backend board/list discovery** (Phase **4B-1**) — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; ephemeral `{ apiKey, token }` in body; backend proxies to Trello; returns sanitized `{ boards: [{ id, name }] }` / `{ lists: [{ id, name }] }` only; **no** DB writes; **no** credential storage. **Approved refinement:** two endpoints (lazy list load after board pick) instead of one nested boards+lists response in older PRD examples
 - **Trello frontend board/list picker** (Phase **4B-2**) — **`/trello`**: Load boards → select board → load lists → select list; **`fetchTrelloBoards`** / **`fetchTrelloBoardLists`** call backend discovery endpoints only; manual listId lookup **not** required for main flow; **`syncTasksToTrello`** sends selected list id as `listId`
 - **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker. **Still deferred:** OAuth / Connect Trello (future production improvement); credential storage; board/list persistence; Trello card update/delete; force re-sync
+- **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
+- **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion). **Still deferred:** `/focus/:taskId` UI (**4C-2**); dashboard **`totalFocusMinutes`** (**5B**)
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -42,7 +44,8 @@ This section records **what the repository implements today** (summary only; ali
 | Global **`/tasks`** UI (list, course/status filters, edit/complete/delete, course link) | **Yes** (3A-d — in-memory filters) |
 | Create task on **`/tasks`** (required owned-course dropdown; optional `materialId`; `POST /api/courses/:courseId/tasks`) | **Yes** (3A-e — hidden on Completed filter / no courses) |
 | Material **navigation** from tasks; **filter** tasks by `materialId` | **Deferred** |
-| Start Focus; mark incomplete | **Deferred** |
+| Start Focus backend API (`POST /api/focus`, complete endpoint) | **Yes** (4C-1 — UI **4C-2** still deferred) |
+| Start Focus UI (`/focus/:taskId`); mark incomplete | **Deferred** (4C-2 / future) |
 | Import generated **plan tasks** into **`study_tasks`** (`plan.tasks[]` only; `POST /api/courses/:courseId/tasks`; material-linked; no dedupe/`source='plan'`) | **Yes** (3A-f on `/study-materials/:materialId`) |
 | Import generated **plan flashcards** into **`public.flashcards`** | **Yes** (3B-d on `/study-materials/:materialId` — sequential create; plan not cleared; no dedupe/`source='plan'`) |
 | Material-detail **manual flashcard CRUD** (create, edit, delete saved rows) | **Yes** (3B-e on `/study-materials/:materialId`) |
@@ -60,6 +63,9 @@ This section records **what the repository implements today** (summary only; ali
 | Per-row sync status `skipped` (e.g. already synced) | **Yes** (4A-0 schema + 4A-1 API) |
 | `POST /api/trello/boards` + `POST /api/trello/boards/:boardId/lists` (backend discovery) | **Yes** (4B-1 — sanitized `{ id, name }`; no persistence) |
 | Frontend Trello board/list picker on `/trello` | **Yes** (4B-2 — Load boards, board/list dropdowns) |
+| Table **`focus_sessions`** + RLS | **Yes** (4C-0 applied on Supabase) |
+| Backend **`POST /api/focus`** + **`POST /api/focus/:sessionId/complete`** | **Yes** (4C-1) |
+| Frontend **`/focus/:taskId`** focus timer UI | **Deferred** (4C-2) |
 
 ### Architecture and env (unchanged intent)
 
