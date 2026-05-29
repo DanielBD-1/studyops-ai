@@ -1569,4 +1569,11 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** **Frontend only** — no backend, DB/migration, document-service, Gemini, dependency, or lockfile changes
 **Not implemented (intentional):** OAuth / Connect Trello; credential storage; board/list persistence; Trello card update/delete; force re-sync
 **Known UX notes (not security blockers):** After sync, board/list dropdown labels may remain while apiKey/token clear; re-entering credentials without **Load boards** may reuse prior `selectedListId` — Security Review: operational/UX only. Optional hardening: clear `selectedListId` after sync or require fresh board load after credential clear.
-**Follow-up:** Manual smoke test of full picker flow (Load boards → board → list → sync) with real Trello credentials.
+**Follow-up:** Manual smoke test — **passed** (see below).
+
+### 2026-05-29 — Phase 4B Trello board/list picker manual smoke test passed
+
+**Workflow:** `approved — document Phase 4B smoke test passed`
+**Context:** Phase **4B-2** implemented, reviewed, merged to **main**; CI green.
+**Summary:** Manual end-to-end smoke on protected **`/trello`** with real Trello credentials — **passed**. Verified: page loads for authenticated user; manual **listId** input removed; **Load boards** → board selection loads lists → list selection; sync creates Trello card; duplicate sync of same task returns **skipped** / “Already synced to Trello”; **apiKey/token** cleared after sync. Browser **Network**: only StudyOps backend calls (`POST /api/trello/boards`, `POST /api/trello/boards/:boardId/lists`, `POST /api/trello/sync`) — **no** `api.trello.com`. **Console**: no Trello credentials logged. **localStorage/sessionStorage**: no Trello apiKey/token (Supabase auth session in localStorage expected, not Trello-related).
+**Scope boundary:** Documentation only — no code changes in this step.
