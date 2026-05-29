@@ -1540,3 +1540,18 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Pitfalls:** Do not treat **4A-3** as permission to change credential handling or add `api.trello.com` calls. Scoped CSS must stay under Trello class prefixes.
 **Known UX notes (unchanged):** Duplicate credential-not-saved copy (page + form); courses-load failure still gates sync section; manual Trello smoke still recommended.
 **Follow-up:** Optional tokenize hardcoded status/hover colors; optional courses retry; commit **4A-2** + **4A-3** frontend together or separate polish commit per human preference.
+
+### 2026-05-29 — Phase 4B-1 backend Trello board/list discovery complete
+
+**Workflow:** Phase 4B-1 backend Trello board/list discovery
+**ADR refs:** 001 (modular monolith `modules/trello`); 003 (Zod `trelloBoardsBodySchema`, `trelloBoardListsBodySchema`, `trelloBoardIdParamSchema`); 004 (no credential persistence); 005 (manual credentials in POST body — discovery uses same ephemeral pattern as sync)
+**Human gates:** `approved — implement Phase 4B-1`; Supervisor Review **approved with notes**; Security Review **no blockers**; `approved — Phase 4B-1 complete`
+**Summary:** Backend-only Trello discovery proxy — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**, both behind existing **`requireAuth`** on `/api/trello`. Body: `{ apiKey, token }` (strict Zod; no `userId`, no `listId`). Backend calls Trello REST (`GET /members/me/boards`, `GET /boards/:boardId/lists`) via native `fetch`; returns sanitized **`{ boards: [{ id, name }] }`** or **`{ lists: [{ id, name }] }`** only (open items, sorted by name, max 500). **No** DB/Supabase reads or writes on discovery paths; **no** credential persistence or board/list metadata storage. **`POST /api/trello/sync`** unchanged. Approved refinement vs older PRD nested boards+lists example: **two endpoints** with lazy list load after board selection (simpler, safer, more efficient for MVP).
+**Files:** `backend/src/clients/trello.client.js` (`getBoards`, `getBoardLists`, shared discovery fetch + logging); `backend/src/shared/validation/trello.schema.js`; `backend/src/modules/trello/*`; integration + unit tests (mocked Trello only)
+**APIs affected:** `POST /api/trello/boards` (new); `POST /api/trello/boards/:boardId/lists` (new)
+**Tests:** `cd backend && npm run lint` passed; `cd backend && npm test` passed — **235** tests, **0** failures (no live Trello in CI)
+**Security:** Credentials in POST body only; never stored, logged, or returned; full Trello URL/query string and raw Trello body never logged or returned; discovery does not use `service_role` / Supabase
+**Scope boundary:** **Backend only** — no frontend, DB/migration, document-service, Gemini, docs (until this entry), dependency, or lockfile changes
+**Not implemented (intentional):** Frontend board/list picker (**4B-2**); OAuth; credential storage; board/list persistence; Trello card update/delete; force re-sync
+**Known UX note (not security):** Rare 404 on `/members/me/boards` may surface a less ideal message (“Trello list not found”) — acceptable for MVP; optional follow-up.
+**Follow-up:** Phase **4B-2** frontend board/list picker on `/trello` (replace manual `listId` paste; call these endpoints only).

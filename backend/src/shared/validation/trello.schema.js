@@ -7,10 +7,29 @@ const trelloCredentialSchema = (label) =>
     .min(1, `${label} is required`)
     .max(128, `${label} must be at most 128 characters`);
 
+const trelloCredentialsFields = {
+  apiKey: trelloCredentialSchema('API key'),
+  token: trelloCredentialSchema('Token'),
+};
+
+export const trelloBoardsBodySchema = z.object(trelloCredentialsFields).strict();
+
+export const trelloBoardListsBodySchema = z.object(trelloCredentialsFields).strict();
+
+export const trelloBoardIdParamSchema = z
+  .object({
+    boardId: z
+      .string()
+      .trim()
+      .min(1, 'Board ID is required')
+      .max(64, 'Board ID must be at most 64 characters')
+      .regex(/^[a-zA-Z0-9]+$/, 'Invalid board id'),
+  })
+  .strict();
+
 export const trelloSyncBodySchema = z
   .object({
-    apiKey: trelloCredentialSchema('API key'),
-    token: trelloCredentialSchema('Token'),
+    ...trelloCredentialsFields,
     listId: z
       .string()
       .trim()

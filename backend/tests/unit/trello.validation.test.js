@@ -1,15 +1,77 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { trelloSyncBodySchema } from '../../src/shared/validation/trello.schema.js';
+import {
+  trelloBoardIdParamSchema,
+  trelloBoardListsBodySchema,
+  trelloBoardsBodySchema,
+  trelloSyncBodySchema,
+} from '../../src/shared/validation/trello.schema.js';
 
-const VALID_BODY = {
+const VALID_CREDENTIALS = {
   apiKey: 'key',
   token: 'token',
+};
+
+const VALID_BODY = {
+  ...VALID_CREDENTIALS,
   listId: 'list123',
   taskIds: ['11111111-1111-4111-8111-111111111111'],
 };
 
 describe('trello.validation', () => {
+  it('boards schema accepts valid credentials', () => {
+    const parsed = trelloBoardsBodySchema.safeParse(VALID_CREDENTIALS);
+    assert.equal(parsed.success, true);
+  });
+
+  it('boards schema rejects missing apiKey', () => {
+    const parsed = trelloBoardsBodySchema.safeParse({ token: 'token' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('boards schema rejects empty credentials', () => {
+    const parsed = trelloBoardsBodySchema.safeParse({ apiKey: '  ', token: '' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('boards schema rejects unknown fields', () => {
+    const parsed = trelloBoardsBodySchema.safeParse({
+      ...VALID_CREDENTIALS,
+      listId: 'list',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('board lists body schema rejects unknown fields', () => {
+    const parsed = trelloBoardListsBodySchema.safeParse({
+      ...VALID_CREDENTIALS,
+      boardId: 'board1',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('boardId param schema rejects empty boardId', () => {
+    const parsed = trelloBoardIdParamSchema.safeParse({ boardId: '   ' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('boardId param schema rejects too-long boardId', () => {
+    const parsed = trelloBoardIdParamSchema.safeParse({
+      boardId: 'a'.repeat(65),
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('boardId param schema rejects invalid characters', () => {
+    const parsed = trelloBoardIdParamSchema.safeParse({ boardId: 'board-id!' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('boardId param schema accepts valid boardId', () => {
+    const parsed = trelloBoardIdParamSchema.safeParse({ boardId: 'abc123XYZ' });
+    assert.equal(parsed.success, true);
+  });
+
   it('accepts valid sync body', () => {
     const parsed = trelloSyncBodySchema.safeParse(VALID_BODY);
     assert.equal(parsed.success, true);

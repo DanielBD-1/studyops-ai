@@ -1,9 +1,63 @@
-import { createCard, trelloClientErrorMessage } from '../../clients/trello.client.js';
+import {
+  createCard,
+  getBoardLists,
+  getBoards,
+  trelloClientErrorMessage,
+} from '../../clients/trello.client.js';
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 
 const SYNC_TASK_COLUMNS = 'id, title, description, tags, trello_card_id';
 const MAX_CARD_DESC_LENGTH = 16_000;
+
+/** @typedef {'boards' | 'lists'} TrelloDiscoveryContext */
+
+/**
+ * @param {{ ok: false, code: string }} result
+ * @param {TrelloDiscoveryContext} context
+ * @returns {never}
+ */
+function throwTrelloDiscoveryFailure(result, context) {
+  const message = trelloClientErrorMessage(
+    /** @type {Parameters<typeof trelloClientErrorMessage>[0]} */ (result.code),
+    context
+  );
+
+  switch (result.code) {
+    case 'TRELLO_AUTH':
+      throw new ApiError('TRELLO_AUTH_ERROR', message, 401);
+    case 'TRELLO_RATE_LIMIT':
+      throw new ApiError('TRELLO_RATE_LIMIT', message, 429);
+    case 'TRELLO_BOARD_NOT_FOUND':
+      throw new ApiError('TRELLO_BOARD_NOT_FOUND', message, 404);
+    case 'TRELLO_TIMEOUT':
+      throw new ApiError('TRELLO_ERROR', message, 504);
+    default:
+      throw new ApiError('TRELLO_ERROR', message, 502);
+  }
+}
+
+/**
+ * @param {{ apiKey: string, token: string }} input
+ */
+export async function listTrelloBoards({ apiKey, token }) {
+  const result = await getBoards({ apiKey, token });
+  if (!result.ok) {
+    throwTrelloDiscoveryFailure(result, 'boards');
+  }
+  return { boards: result.boards };
+}
+
+/**
+ * @param {{ apiKey: string, token: string, boardId: string }} input
+ */
+export async function listTrelloBoardLists({ apiKey, token, boardId }) {
+  const result = await getBoardLists({ apiKey, token, boardId });
+  if (!result.ok) {
+    throwTrelloDiscoveryFailure(result, 'lists');
+  }
+  return { lists: result.lists };
+}
 
 /**
  * @param {{ description: string, tags: string[] | null }} task
