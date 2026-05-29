@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **5C**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **5C.1**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C, 5C.1)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -31,7 +31,8 @@ This section records **what the repository implements today** (summary only; ali
 - **Focus Sessions frontend UI** (Phase **4C-2**) — protected **`/focus/:taskId`**; **Start Focus** on pending tasks; fixed **25**-minute display countdown; complete sends **`{ completedTask }` only**; **no** pause/resume, duration picker, or browser storage
 - **Focus Sessions manual smoke** (Phase **4C-3**) — **passed** (**2026-05-29**): Start Focus from pending tasks; complete without/with marking task complete; course page flow; network and console clean. **Focus Sessions MVP complete** through **4C-0**–**4C-3**
 - **Dashboard backend stats API** (Phase **5B**) — **`GET /api/dashboard/stats`** (`requireAuth`); user-owned aggregate counts including **`totalFocusMinutes`** (completed focus sessions only), **`totalGeneratedPlans`** (count only — no plan JSON), **`trelloSyncedTasks`** (DB count only — no Trello API calls)
-- **Dashboard frontend UI** (Phase **5C**) — protected **`/dashboard`** consumes **`GET /api/dashboard/stats`** via backend only (Bearer JWT; **no** direct Supabase stats queries); displays aggregate stats + **`courseStats[]`**; read-only; fetch on mount + manual **Try again**; **no** `DashboardContext`/cross-page auto-refresh in this phase. **Still deferred:** admin dashboard; **`DashboardContext`/cross-page refresh** (PRD §12.5)
+- **Dashboard frontend UI** (Phase **5C**) — protected **`/dashboard`** consumes **`GET /api/dashboard/stats`** via backend only (Bearer JWT; **no** direct Supabase stats queries); displays aggregate stats + **`courseStats[]`**; read-only; fetch on mount + manual **Try again**
+- **Dashboard cross-page refresh** (Phase **5C.1**) — **invalidation-only** **`DashboardContext`**: **`refreshStats()`** after successful stat-changing mutations; **`DashboardStub`** keeps local stats state and refetches via existing **`GET /api/dashboard/stats`** when mounted (manual **Refresh stats** + silent refresh); coalesces duplicate notifications; **not** a global stats cache in context. **Still deferred:** polling; WebSockets; **`BroadcastChannel`**; **`localStorage`/`sessionStorage`** cross-tab sync; visibility/focus refetch; admin dashboard
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -74,8 +75,9 @@ This section records **what the repository implements today** (summary only; ali
 | Focus Sessions manual smoke (**4C-3**) | **Yes** — passed **2026-05-29**; MVP complete through DB + backend + frontend + smoke |
 | Backend **`GET /api/dashboard/stats`** (aggregate user-owned stats) | **Yes** (5B — counts only; no plan JSON/content/credentials) |
 | Dashboard **`totalFocusMinutes`** (backend stat) | **Yes** (5B — completed sessions only) |
-| Student dashboard **frontend UI** (`/dashboard`) | **Yes** (5C — consumes **5B** stats API; read-only; no cross-page refresh) |
-| **`DashboardContext`/cross-page dashboard auto-refresh** | **Deferred** (PRD §12.5 — mount fetch + manual **Try again** only in **5C**) |
+| Student dashboard **frontend UI** (`/dashboard`) | **Yes** (5C — consumes **5B** stats API; read-only; mount fetch + **Try again** + **Refresh stats**) |
+| **`DashboardContext`/cross-page dashboard refresh after mutations** | **Yes** (5C.1 — invalidation-only **`refreshStats()`**; stats remain local to **`DashboardStub`**; **not** a global stats cache) |
+| Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** | **Deferred** — **5C.1** implements PRD §12.5 manual refetch-after-mutations only |
 | Admin dashboard | **Deferred** |
 
 ### Architecture and env (unchanged intent)

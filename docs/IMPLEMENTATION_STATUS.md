@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 5C (Dashboard frontend UI). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), and **Dashboard frontend UI** (Phase **5C**) are documented below.
+**Last aligned:** Phase 5C.1 (Dashboard cross-page refresh). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), and **Dashboard cross-page refresh** (Phase **5C.1**) are documented below.
 
 ---
 
@@ -562,7 +562,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 | **Trello** | `trelloSyncedTasks` (count only — **no** card IDs) |
 | **Per course** | `courseStats[]`: `courseName`, `totalTasks`, `completedTasks`, `totalFlashcards`; link to **`/courses/:courseId`** |
 
-**Behavior:** Fetch on mount; **`LoadingState`** while loading; generic error + **Try again**; **`AUTH_REQUIRED`** → logout + redirect; empty account shows zero stats + CTA to **`/courses`**. **Read-only** — **no** POST/PATCH/DELETE; **no** polling; **no** `DashboardContext`/cross-page refresh wiring.
+**Behavior (5C baseline):** Fetch on mount; **`LoadingState`** while loading; generic error + **Try again**; **`AUTH_REQUIRED`** → logout + redirect; empty account shows zero stats + CTA to **`/courses`**. **Read-only** — **no** POST/PATCH/DELETE; **no** polling. Cross-page/manual refresh wiring shipped in **5C.1** (below).
 
 **Data minimization (UI):** Aggregate counts and per-course names/counts only — **no** study material **`content`**, generated **`plan`** JSON, task titles/descriptions, Trello credentials/card IDs, or raw API error payloads. Course names rendered as React text — **no** `dangerouslySetInnerHTML`.
 
@@ -570,9 +570,36 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
 
-**Not in 5C:** `DashboardContext`/cross-page auto-refresh (PRD §12.5 — deferred); admin dashboard; chart library; dashboard styling polish pass beyond minimal layout CSS.
+**Not in 5C:** cross-page auto-refresh (added in **5C.1**); admin dashboard; chart library; dashboard styling polish pass beyond minimal layout CSS.
 
 **Implementation files:** `frontend/src/services/dashboard.service.js`, `frontend/src/utils/dashboard-format.js`, `frontend/src/pages/DashboardStub.jsx`, `frontend/src/styles/layout.css`, `frontend/tests/unit/dashboard.service.test.js`, `frontend/tests/unit/dashboard-format.test.js`; **`frontend/package.json`** `test` script only.
+
+---
+
+## Implemented — Dashboard cross-page refresh (Phase 5C.1)
+
+**Frontend only** — invalidation-only cross-page freshness after stat-changing mutations. **No** backend, database, migration, or API changes. **Not** a global stats cache — **`DashboardContext`** does **not** store dashboard stats and does **not** fetch stats.
+
+| Aspect | Detail |
+|--------|--------|
+| **Notifier** | `dashboardRefreshNotifier.js` — **`refreshStats()`** coalesces duplicate calls before microtask flush; **`subscribe(listener)`** returns unsubscribe |
+| **Context** | `DashboardContext.jsx` — exposes **`refreshStats`** + **`subscribeToRefresh`** only (invalidation-only; no stats in context) |
+| **Provider** | `DashboardProvider` in `main.jsx` inside **`AuthProvider`** — does not weaken route protection |
+| **Dashboard page** | `DashboardStub.jsx` keeps local **`stats`/`loading`/`error`**; fetch only via **`getDashboardStats()`** → **`GET /api/dashboard/stats`**; **Refresh stats** button (manual silent refresh); subscribes for silent refresh when mounted and initial load succeeded |
+| **Wiring** | **`refreshStats()`** after successful: create/update/delete course; create/delete material; generate/clear plan; import plan tasks/flashcards (once per batch); create/complete/delete task; create/delete flashcard; Trello sync when **`summary.success > 0`**; focus session complete |
+| **Excluded** | Flashcard **update** (counts unchanged); failed/skipped Trello sync; material content save without stat change |
+
+**Constraints:** **No** polling; **no** WebSockets; **no** **`BroadcastChannel`**; **no** **`localStorage`/`sessionStorage`** cross-tab sync; **no** visibility/focus refetch; **no** direct Supabase stats queries; **no** `service_role`; dashboard refresh remains read-only **`GET`**.
+
+**Checks:** `cd frontend && npm run lint` passed (**0** errors; **3** `react-refresh` warnings on context files); `npm test` (**186** tests, **0** failures); `npm run build` passed.
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
+
+**Not in 5C.1:** global stats cache in context; polling; WebSockets; cross-tab sync; admin dashboard; chart library.
+
+**Known gaps (non-blocking):** subscription effect re-subscribes when **`stats`/`loading`** change; silent refresh during error UI may update stats without clearing error; boundary test label could be clearer.
+
+**Implementation files:** `frontend/src/context/dashboardRefreshNotifier.js`, `frontend/src/context/DashboardContext.jsx`, `frontend/src/main.jsx`, `frontend/src/pages/DashboardStub.jsx`, mutation call sites listed above, `frontend/tests/unit/dashboard-context.test.js`; **`frontend/package.json`** `test` script only.
 
 ---
 
@@ -723,7 +750,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | Route | Purpose |
 |-------|---------|
 | `/`, `/register` | Auth |
-| `/dashboard` | **Student dashboard** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** backend + **5C** frontend UI); read-only; fetch on mount + **Try again** |
+| `/dashboard` | **Student dashboard** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** backend + **5C** UI + **5C.1** refresh); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere |
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
@@ -742,7 +769,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
-- **`DashboardContext`/cross-page dashboard auto-refresh** (PRD §12.5 — **`/dashboard`** fetches on mount only in **5C**; manual **Try again**; no global refetch after task/focus/Trello mutations)
+- **Dashboard polling / WebSockets / cross-tab sync / visibility refetch** — **5C.1** ships invalidation-only manual/cross-page refresh only (PRD §12.5 intent); **no** polling, WebSockets, **`BroadcastChannel`**, or browser storage sync
 - Admin dashboard and logs
 - Production deployment strategy
 - **`DESIGN.md` v2** (Phase 2I-c) and **frontend styling pass** (Phase 2J) are **complete** — presentation only; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`)

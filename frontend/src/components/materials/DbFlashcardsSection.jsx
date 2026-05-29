@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import { ApiRequestError } from '../../services/courses.service.js';
 import {
   buildCreateFlashcardBody,
@@ -43,6 +44,7 @@ export default function DbFlashcardsSection({
   handleAuthError,
   disabled = false,
 }) {
+  const { refreshStats } = useDashboardRefresh();
   const [showCreate, setShowCreate] = useState(false);
   const [createQuestion, setCreateQuestion] = useState('');
   const [createAnswer, setCreateAnswer] = useState('');
@@ -127,6 +129,7 @@ export default function DbFlashcardsSection({
       cancelCreate();
       setSuccessMessage('Flashcard saved.');
       await onMutated();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -189,6 +192,7 @@ export default function DbFlashcardsSection({
       }
       setSuccessMessage('Flashcard deleted.');
       await onMutated();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {

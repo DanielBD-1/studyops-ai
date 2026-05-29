@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import {
   ApiRequestError,
   listAllTasks,
@@ -27,6 +28,7 @@ import Textarea from '../ui/Textarea.jsx';
  */
 export default function GlobalTasksSection({ courses, handleAuthError }) {
   const navigate = useNavigate();
+  const { refreshStats } = useDashboardRefresh();
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
@@ -274,6 +276,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         setStatusFilter('pending');
       }
       await loadTasks({ courseFilter: createdCourseId, statusFilter: nextStatusFilter });
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -336,6 +339,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     try {
       await completeTask(taskId);
       await loadTasks();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -357,6 +361,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     try {
       await deleteTask(task.id);
       await loadTasks();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
@@ -107,6 +108,7 @@ export default function FocusPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { refreshStats } = useDashboardRefresh();
 
   /** @type {{ taskTitle?: string, courseId?: string, returnTo?: string } | null} */
   const navState = location.state ?? null;
@@ -227,6 +229,7 @@ export default function FocusPage() {
       setCompletedSession(result.session);
       setCompletedTask(result.task ?? null);
       setPhase('done');
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
 

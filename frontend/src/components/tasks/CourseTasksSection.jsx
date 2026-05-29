@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import {
   ApiRequestError,
   listCourseTasks,
@@ -25,6 +26,7 @@ import Textarea from '../ui/Textarea.jsx';
  * }} props
  */
 export default function CourseTasksSection({ courseId, materials, handleAuthError }) {
+  const { refreshStats } = useDashboardRefresh();
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
@@ -167,6 +169,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       setCreateMaterialId('');
       setShowCreate(false);
       await loadTasks();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -229,6 +232,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     try {
       await completeTask(taskId);
       await loadTasks();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -250,6 +254,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     try {
       await deleteTask(task.id);
       await loadTasks();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {

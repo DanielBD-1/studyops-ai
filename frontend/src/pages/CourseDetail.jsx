@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import MaterialCard from '../components/materials/MaterialCard.jsx';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -22,6 +23,7 @@ import { createStudyMaterialFormSchema, updateCourseFormSchema } from '../utils/
 export default function CourseDetail() {
   const { id } = useParams();
   const { logout } = useAuth();
+  const { refreshStats } = useDashboardRefresh();
   const navigate = useNavigate();
 
   const [course, setCourse] = useState(
@@ -133,6 +135,7 @@ export default function CourseDetail() {
       const data = await updateCourse(id, parsed.data);
       setCourse(data.course);
       setTitle(data.course.title);
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -154,6 +157,7 @@ export default function CourseDetail() {
     setDeleting(true);
     try {
       await deleteCourse(id);
+      refreshStats();
       navigate('/courses');
     } catch (err) {
       if (await handleAuthError(err)) return;
@@ -189,6 +193,7 @@ export default function CourseDetail() {
       setMaterialContent('');
       setMaterialSourceType('manual');
       setShowCreateMaterial(false);
+      refreshStats();
       navigate(`/study-materials/${data.material.id}`);
     } catch (err) {
       if (await handleAuthError(err)) return;

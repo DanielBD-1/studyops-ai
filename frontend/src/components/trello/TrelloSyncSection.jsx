@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import { listAllTasks } from '../../services/tasks.service.js';
 import {
   ApiRequestError,
@@ -27,6 +28,7 @@ import LoadingState from '../ui/LoadingState.jsx';
  * }} props
  */
 export default function TrelloSyncSection({ courses, handleAuthError }) {
+  const { refreshStats } = useDashboardRefresh();
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
@@ -237,6 +239,9 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
       });
       setSummary(data.summary);
       setResults(data.results);
+      if (data.summary.success > 0) {
+        refreshStats();
+      }
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError) {

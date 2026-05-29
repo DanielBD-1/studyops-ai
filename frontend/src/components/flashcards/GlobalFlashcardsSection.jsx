@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import { ApiRequestError } from '../../services/courses.service.js';
 import {
   createCourseFlashcard,
@@ -32,6 +33,7 @@ import Textarea from '../ui/Textarea.jsx';
  * }} props
  */
 export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
+  const { refreshStats } = useDashboardRefresh();
   const [flashcards, setFlashcards] = useState(
     /** @type {import('../../services/flashcards.service.js').Flashcard[]} */ ([])
   );
@@ -321,6 +323,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
         materialFilter: nextMaterialFilter,
         materials: materialsForFilters,
       });
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -397,6 +400,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
       }
       setSuccessMessage('Flashcard deleted.');
       await loadFlashcards();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {

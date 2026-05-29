@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import CourseCard from '../components/courses/CourseCard.jsx';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -13,6 +14,7 @@ import { createCourseFormSchema } from '../utils/validation.js';
 
 export default function CoursesList() {
   const { logout } = useAuth();
+  const { refreshStats } = useDashboardRefresh();
   const navigate = useNavigate();
   const [courses, setCourses] = useState(/** @type {import('../services/courses.service.js').Course[]} */ ([]));
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,7 @@ export default function CoursesList() {
       setTitle('');
       setShowCreateForm(false);
       await loadCourses();
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       setCreateError(err instanceof Error ? err.message : 'Failed to create course');
