@@ -189,15 +189,11 @@ grant select, insert, update, delete on table public.material_generated_plans to
 
 ## Applying this migration (human gates)
 
-This file is a **draft**. Do **not** assume it has been run until documented in `docs/AGENT_MEMORY.md` after human apply + verification.
+1. **Draft created** — `approved — implement Phase 2L-a DB schema and RLS` (complete).
+2. **Applied on Supabase** — human ran `supabase/migrations/004_material_generated_plans.sql` in SQL Editor on **2026-05-23**.
+3. **Verified** — Supervisor + Security Review completed; documented in `docs/AGENT_MEMORY.md`.
 
-1. **Draft created** — `approved — implement Phase 2L-a DB schema and RLS`.
-2. **Apply to Supabase** — separate approval, e.g. `approved — apply material generated plans migration`, before SQL Editor apply.
-3. **Verify** — checklist below.
-
-Do **not** run Supabase CLI apply or connect to production in an agent session unless explicitly directed.
-
-**Local syntax check (optional, no DB):** Review SQL in editor; if `psql` is available, dry-run parsing is not standard — human review + apply in Supabase SQL Editor is the expected path.
+Do **not** re-apply this migration on an environment where `public.material_generated_plans` already exists.
 
 ---
 

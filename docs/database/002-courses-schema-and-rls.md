@@ -1,6 +1,6 @@
 # 002 — Courses Schema and RLS (Phase 1E)
 
-**Status:** Draft — **not applied** to any Supabase project yet.  
+**Status:** **Applied manually** on Supabase (Phase 1E complete; catalog + behavioral verification passed on **2026-05-20**).
 **Migration file:** `supabase/migrations/002_courses.sql`  
 **Prerequisite:** `001_profiles.sql` applied and verified  
 **PRD reference:** Section 9 (`courses`), Section 7.2 (create course), Section 9.5 (permissions), Section 10.4 (title validation)
@@ -107,11 +107,11 @@ grant select, insert, update, delete on table public.courses to service_role;
 
 ## Applying this migration (human gates)
 
-This file is a **draft**. Do **not** assume it has been run until documented in `docs/AGENT_MEMORY.md`.
+1. **Draft created** — `approved — create courses migration draft` (complete).
+2. **Applied on Supabase** — human ran `supabase/migrations/002_courses.sql` in SQL Editor on **2026-05-20**.
+3. **Verified** — catalog + behavioral probes; documented in `docs/AGENT_MEMORY.md`.
 
-1. **Draft created** — `approved — create courses migration draft` (when this doc exists).
-2. **Apply to Supabase** — separate approval, e.g. `approved — apply courses migration`, before SQL Editor / CLI apply.
-3. **Verify** — checklist below.
+Do **not** re-apply this migration on an environment where `public.courses` already exists.
 
 ---
 
