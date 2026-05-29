@@ -1739,3 +1739,20 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Tests:** none (docs-only; no lint/test/build run per phase scope)
 **Scope boundary:** `docs/database/001–004` + `docs/AGENT_MEMORY.md` only — no SQL, migrations, backend, frontend, tests, packages, or CI changed
 **Reviews:** Security Review not required (docs-only)
+
+### 2026-05-29 — Phase 7A Hardening audit complete
+
+**Workflow:** Phase 7A — Hardening audit (read-only)
+**Summary:** Read-only repository audit after Phases 6A-1 through 6A-3. Ran automated checks only — **`npm run lint`**, **`npm test`**, **`npm run build`** (frontend) — all green. **No files changed** during audit. Verdict: **Stable with notes** (non-blocking gaps documented in audit report; no code fixes in this phase).
+**Scope boundary:** Audit only — no application code, SQL, migrations, packages, tests, or CI changed
+**Reviews:** Security Review not required (read-only; no diff)
+
+### 2026-05-29 — Phase 7C Markdown docs consistency update complete
+
+**Workflow:** Phase 7C — Markdown docs consistency update
+**Summary:** Docs-only alignment after Phases 6A, 7A, and 7B. Updated **`AGENTS.md`**, **`SECURITY.md`**, **`docs/PRD.md`**, **`DESIGN.md`**, **`docs/workflows/document-processing-workflow.md`**, **`SKILLS.md`**, **`docs/IMPLEMENTATION_STATUS.md`**, and supporting optional corrections to match current implementation through **6A-3**. Fixed stale “tasks/flashcards deferred”, admin deferred, dashboard stub, and document-processing workflow deferred wording.
+**APIs affected:** none (documentation only)
+**Tests:** none (docs-only; no lint/test/build run per phase scope)
+**Scope boundary:** Allowed markdown docs only — **no** code, SQL, migrations, packages, package-lock, tests, or CI changed
+**Reviews:** **Security Review required** — **`SECURITY.md`** trust-boundary documentation changed (admin aggregate stats exception). Supervisor Review required.
+**Not changed:** ADRs, application code, database migrations, governance workflows
