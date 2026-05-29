@@ -130,4 +130,4 @@ GitHub Actions runs the same lint → test → build steps on **Node.js 22**.
 | [CONTRIBUTING.md](CONTRIBUTING.md) | PR workflow, reviews, lint |
 | [SECURITY.md](SECURITY.md) | Secrets, keys, Security Review triggers |
 | [AGENTS.md](AGENTS.md) · [CLAUDE.md](CLAUDE.md) · [SKILLS.md](SKILLS.md) | Agent roles and rules |
-| [DESIGN.md](DESIGN.md) | UI guidance for approved frontend phases only (styling pass not started) |
+| [DESIGN.md](DESIGN.md) | UI/UX presentation guidance (styling applied Phase **2J**, refined Phase **8A**; further polish requires approval) |

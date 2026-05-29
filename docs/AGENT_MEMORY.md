@@ -1769,3 +1769,11 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Manual smoke:** **Passed** — login/register, dashboard, courses, study material generate/plan/import, tasks, flashcards, Trello sync (credentials clear as before), focus timer/complete, admin stats for admin / student forbidden; console and network clean (no direct document-service/Gemini/Trello API from browser)
 **Scope boundary:** **`frontend/src/styles/**`**, shared UI components, pages, and scoped feature components — docs unchanged except this memory entry
 **Follow-up:** branch **`phase-8a-ui-polish`** ready for commit/push after final **`git status`** check
+
+### 2026-05-30 — Phase 8B Post-UI docs & design-reference alignment (complete)
+
+**Workflow:** Phase 8B — docs-only alignment after **2J**/**8A**
+**Summary:** Updated **`README.md`**, **`DESIGN.md`**, **`STITCH_BRIEF.md`**, **`SCREENSHOT_INDEX.md`**, **`IMPLEMENTATION_STATUS.md`**, **`006-flashcards-schema-and-rls.md`** — stale pre-**2J**/pre-**8A** wording reconciled; **`STITCH_BRIEF`** reframed as historical/advisory; dashboard screenshot index corrected; **`DESIGN.md`** visual direction preserved. Post–Supervisor Review cleanup (**S1**–**S3**): **`DESIGN.md`** §6 LoadingState parenthetical aligned with §8.2; header metadata blank line; **`006-flashcards-schema-and-rls.md`** Field reasoning points to superseded/current-state note.
+**Scope boundary:** Docs-only — **no** application code, screenshots, packages, CI, or SQL changed
+**Reviews:** Supervisor Review **approved with notes** — no critical or important issues; Security Review **not required** (docs-only; **`SECURITY.md`** unchanged)
+**Follow-up:** branch **`phase-8b-post-ui-docs-design-reference-alignment`** ready for commit/push after final **`git status`** check

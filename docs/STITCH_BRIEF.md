@@ -1,24 +1,26 @@
 # STITCH_BRIEF.md — StudyOps AI (Phase 2I)
 
-**Status:** Design discovery input for human-run Stitch sessions  
-**Last updated:** 2026-05-20  
-**Purpose:** Prepare a human-reviewed design workflow. This file does **not** change product scope, APIs, or application code.
+**Status:** **Historical / advisory** — Phase 2I Stitch design-discovery input (not current product scope)
+**Last updated:** 2026-05-30 (Phase **8B** reframe)
+**Purpose:** Preserve the original Stitch session brief that helped derive **`DESIGN.md` v2** direction. This file does **not** change product scope, APIs, or application code. **Current built state:** **`docs/IMPLEMENTATION_STATUS.md`**.
+
+> **Read this first:** Phase **2J** styling and Phase **8A** UI polish are **complete**. Tasks, flashcards, Trello sync, focus sessions, dashboard stats, and admin aggregate UI are **implemented** — but this brief must **not** be used to add new features. Use **`IMPLEMENTATION_STATUS.md`** for product truth and **`DESIGN.md`** for presentation direction.
 
 ---
 
-## 1. Purpose
+## 1. Purpose (historical — Phase 2I)
 
-StudyOps AI has a **functional MVP skeleton** (auth, courses, study materials, **persisted latest** AI study-plan per material). Visual design uses plain CSS (Phase 2J). Phase **2I** captures:
+StudyOps AI had a **functional MVP skeleton** when this brief was written (auth, courses, study materials, **persisted latest** AI study-plan per material). Phase **2I** captured:
 
 - A curated brief for **Google Stitch** (or equivalent design tooling)
 - A **screenshot checklist** for humans to capture the live app (`docs/design/SCREENSHOT_INDEX.md`)
-- Direction for a future **`DESIGN.md` v2** — created **only after** human review of Stitch outputs
+- Direction that informed **`DESIGN.md` v2** after human review of Stitch outputs
 
-**This phase does not:**
+**Phase 2I did not** (by itself):
 
-- Apply CSS or styling to `frontend/`
+- Apply CSS or styling to `frontend/` (that followed in **2J** and **8A**)
 - Merge Stitch-generated React/HTML into the repository
-- Update `DESIGN.md` until a separate human-approved step
+- Replace **`DESIGN.md`** automatically from Stitch output
 
 ---
 
@@ -28,9 +30,9 @@ StudyOps AI has a **functional MVP skeleton** (auth, courses, study materials, *
 |----------|------|
 | **`docs/PRD.md`** | Product intent and future MVP features |
 | **`docs/IMPLEMENTATION_STATUS.md`** | **What is built today** — routes, APIs, deferred work |
-| **`DESIGN.md` (current)** | Phase 1G UI guidance; **stale** for study materials + generate — principles still useful |
-| **`docs/STITCH_BRIEF.md` (this file)** | Stitch session input only — **not** product scope |
-| **Stitch mockups** | **Concept only — not implemented** until a styling pass is explicitly approved |
+| **`DESIGN.md` (current)** | **Presentation / UX direction** — v2 complete; styled in **2J**, polished in **8A** |
+| **`docs/STITCH_BRIEF.md` (this file)** | **Historical** Stitch session input — **not** product scope |
+| **Stitch mockups** | **Concept only — not implemented**; informed **`DESIGN.md`**; further styling requires explicit approval |
 
 When Stitch output conflicts with `IMPLEMENTATION_STATUS`, **ignore the mockup feature** and keep layout/visual language only.
 
@@ -50,15 +52,17 @@ When Stitch output conflicts with `IMPLEMENTATION_STATUS`, **ignore the mockup f
 | **Density** | Medium — readable long-form study material; clear hierarchy |
 | **Trust** | Honest loading/empty/error states; no fake metrics |
 
-**User:** Student (single-user workspace; no admin console in scope).
+**User:** Student primary; **admin aggregate stats UI** now exists on **`/admin`** (platform counts only). Admin **logs** / **user management** remain deferred.
 
-**Today’s workflow:** Register/login → courses → course detail → create/edit material → **Generate study plan** → **latest plan persisted** per material → reload on refresh → **Clear** removes saved plan. Read-only plain-text display.
+**Today’s workflow (at time of brief):** Register/login → courses → course detail → create/edit material → **Generate study plan** → **latest plan persisted** per material → reload on refresh → **Clear** removes saved plan. Read-only plain-text display.
+
+**Since this brief:** Tasks, flashcards, Trello sync, focus sessions, dashboard stats, and admin aggregate UI were implemented in later phases — see **`IMPLEMENTATION_STATUS.md`**.
 
 ---
 
-## 4. Implemented routes (design only these)
+## 4. Routes at time of brief (design focus for Stitch)
 
-From `docs/IMPLEMENTATION_STATUS.md`:
+From `docs/IMPLEMENTATION_STATUS.md` **when Phase 2I ran** — Stitch mockups targeted these screens. Additional routes (**`/tasks`**, **`/flashcards`**, **`/trello`**, **`/focus/:taskId`**, **`/admin`**) were added later and styled in **2J**/**8A**; they are **not** in the original Stitch deliverable list below.
 
 | Route | Screen | Notes |
 |-------|--------|--------|
@@ -101,29 +105,31 @@ Humans capture screenshots per `docs/design/SCREENSHOT_INDEX.md`. Stitch should 
 
 ---
 
-## 6. Screens explicitly out of scope
+## 6. Out of scope for original Stitch session (historical)
 
-Do **not** design or mock:
+When Phase **2I** ran, Stitch was asked **not** to mock these — they were **not yet built** or were explicitly deferred. **Do not** use this section to infer that implemented screens today must remain unstyled.
 
-- Task management UI (`study_tasks`)
-- Flashcard management UI (beyond read-only list inside generated plan display)
-- Trello connect/sync UI
-- Admin dashboard, logs, cross-user views
-- Real dashboard analytics, charts, KPI cards, streaks
+Do **not** use this brief to design or add **new** product features:
+
+- Task management UI (`study_tasks`) — **now implemented**; see **`DESIGN.md`** §7.14
+- Flashcard management UI — **now implemented**; see **`DESIGN.md`** §7.15
+- Trello connect/sync UI — **now implemented** (manual MVP); see **`DESIGN.md`** §7.16
+- Admin dashboard — **aggregate stats UI implemented**; logs/user management **deferred**; see **`DESIGN.md`** §7.18
+- Real dashboard analytics, charts, KPI cards, streaks — still **out of scope**
 - Multi-plan **library** or plan **history** UI (only **one latest** plan per material exists)
 - Course-level paste-generate page (`POST /api/courses/:courseId/generate` with client `studyText`)
 - Deployment, billing, settings beyond logout
-- Sidebar navigation to unbuilt modules (`/tasks`, `/flashcards`, `/trello`, `/focus`, `/admin`)
+- Sidebar navigation hub to unbuilt modules
 - Social feed, gamification, leaderboards
 
 Label any decorative “future hint” in mockups: **concept only — not implemented**.
 
 ---
 
-## 7. Current UI constraints (code reality)
+## 7. UI constraints at time of brief (code reality — superseded partly by 2J/8A)
 
-- **Stack:** React (Vite), React Router, inline/minimal styles on pages and `components/ui/*`
-- **No design token system yet** — Stitch proposes tokens; implementation is a **later phase**
+- **Stack:** React (Vite), React Router; presentation uses **`frontend/src/styles/tokens.css`** and shared UI components (Phase **2J**, refined **8A**)
+- **Design token system:** **Implemented** in **`frontend/src/styles/tokens.css`** — values align with **`DESIGN.md`** §5
 - **Existing components** (style these conceptually, do not output production code):
 
 | Component | Location | Role |
@@ -141,7 +147,7 @@ Label any decorative “future hint” in mockups: **concept only — not implem
 | `LoginForm` / `RegisterForm` | `components/auth/*` | Auth forms |
 | `ProtectedRoute` | `components/auth/ProtectedRoute.jsx` | Auth gate |
 
-- **Pages:** `Landing`, `Register`, `DashboardStub`, `CoursesList`, `CourseDetail`, `StudyMaterialDetail`
+- **Pages (2I-era names):** `Landing`, `Register`, `DashboardStub`, `CoursesList`, `CourseDetail`, `StudyMaterialDetail` — live routes now include **`/tasks`**, **`/flashcards`**, **`/trello`**, **`/focus/:taskId`**, **`/admin`** (see **`IMPLEMENTATION_STATUS.md`**)
 - **Security:** Render user titles and material text as **plain text** (no `dangerouslySetInnerHTML`)
 
 ---
@@ -279,18 +285,20 @@ Before updating `DESIGN.md` v2:
 
 ---
 
-## 16. Future workflow (after this brief)
+## 16. Workflow after this brief (historical — largely complete)
 
-1. Human captures screenshots → `docs/design/screenshots/` per `SCREENSHOT_INDEX.md`
-2. Human runs Stitch with this brief + screenshots + `IMPLEMENTATION_STATUS` excerpt
-3. Human reviews mockups against §14 checklist
-4. Human approves direction → **DESIGN.md v2** authored in a separate step (not automatic from Stitch)
-5. **Frontend styling pass** only after: `approved — apply DESIGN styling pass` (or equivalent Phase 2J gate)
-6. Cursor/agents **must not** apply styling until that explicit approval
+1. Human captures screenshots → `docs/design/screenshots/` per `SCREENSHOT_INDEX.md` — **14 captured**; **`15-processing-with-ai.png`** still **pending**
+2. Human runs Stitch with this brief + screenshots + `IMPLEMENTATION_STATUS` excerpt — **done (Phase 2I)**
+3. Human reviews mockups against §14 checklist — **done**
+4. Human approves direction → **`DESIGN.md` v2** authored — **done (Phase 2I-c)**
+5. **Frontend styling** — **done (Phase 2J)**; **UI polish (Phase 8A)**
+6. **Further styling** still requires explicit approval (e.g. `approved — apply DESIGN styling pass`); Cursor/agents must not expand product scope from this brief
 
 ---
 
-## 17. Appendix — paste-ready Stitch prompt block
+## 17. Appendix — paste-ready Stitch prompt block (historical)
+
+**Historical reference** — Phase 2I session input. Product scope has grown since; do **not** treat OUT OF SCOPE lines as “must not exist today.” Cross-check **`IMPLEMENTATION_STATUS.md`** before any new design work.
 
 Copy the block below into Stitch (attach screenshots from `docs/design/screenshots/` when available):
 
@@ -333,8 +341,8 @@ Use fake placeholder data only. No secrets or real user content.
 
 - `docs/design/SCREENSHOT_INDEX.md` — capture checklist
 - `docs/IMPLEMENTATION_STATUS.md` — built vs deferred
-- `DESIGN.md` — current Phase 1G guidance (update after review, not during 2I)
-- `AGENTS.md` — approval gates (`approved — apply DESIGN styling pass`)
+- `DESIGN.md` — presentation / UX direction (v2; styled **2J**, polished **8A**)
+- `AGENTS.md` — approval gates (further styling requires explicit approval)
 
 ---
 
@@ -346,3 +354,4 @@ Use fake placeholder data only. No secrets or real user content.
 | 2026-05-20 | Security hardening: Stitch upload limits, screenshot crop checklist |
 | 2026-05-22 | Screenshot filename alignment pointer; §5 table matches `SCREENSHOT_INDEX.md` |
 | 2026-05-22 | Optional mobile filename: `06-courses-list-mobile.png` (avoids `15-` clash with pending processing) |
+| 2026-05-30 | **Phase 8B** — reframe as historical/advisory; note **2J**/**8A** styling and implemented tasks/flashcards/Trello/focus/admin/dashboard stats |

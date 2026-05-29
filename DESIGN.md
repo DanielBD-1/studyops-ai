@@ -1,7 +1,8 @@
 # DESIGN.md — StudyOps AI (v2)
 
-**Status:** Phase 2I-c UI/UX specification (documentation only)  
-**Last updated:** 2026-05-22  
+**Status:** Phase 2I-c UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**
+
+**Last updated:** 2026-05-30 (Phase **8B** docs alignment)
 **Supersedes:** Phase 1G `DESIGN.md` (2026-05-20)
 
 ---
@@ -13,7 +14,7 @@
 | **`docs/PRD.md`** | Product intent and future MVP features |
 | **`docs/IMPLEMENTATION_STATUS.md`** | **What is built today** — routes, APIs, deferred work |
 | **`DESIGN.md` (this file)** | **Presentation and UX only** — does not change scope, APIs, database, or security |
-| **`docs/STITCH_BRIEF.md`** | Stitch session input (advisory); reviewed direction informed v2 |
+| **`docs/STITCH_BRIEF.md`** | **Historical** Stitch session input (Phase 2I — advisory); informed v2; **not** current product scope |
 | **Stitch mockups / exports** | **Inspiration only** — not source of truth; never merge HTML/React into the repo |
 
 **Stitch review:** Human-approved **NotebookLM-inspired** visual direction (academic study workspace, source-first, calm productivity). StudyOps is **not** a NotebookLM clone—borrow principles and feeling, not branding, layout identity, or NotebookLM-only features.
@@ -24,14 +25,19 @@
 
 ## 1. Purpose and scope
 
-This document defines how the **implemented** StudyOps AI frontend should look and behave when a future **styling pass** is approved. It applies to:
+This document defines how the **implemented** StudyOps AI frontend should look and behave. **Styling was applied in Phase 2J** and **refined in Phase 8A**; further presentation changes require explicit human approval. It applies to:
 
 - Auth (`/`, `/register`)
 - Student dashboard with functional stats UI (`/dashboard`)
 - Courses (`/courses`, `/courses/:id`)
 - Study materials (`/study-materials/:materialId`) including **Generate study plan** and **load/clear latest saved plan**
+- Tasks (`/tasks`, course-level task UI on `/courses/:id`)
+- Flashcards (`/flashcards`, saved flashcards on material detail)
+- Trello sync (`/trello`)
+- Focus sessions (`/focus/:taskId`)
+- Admin aggregate stats (`/admin`)
 
-**Out of this document’s authority:** New routes or features beyond what **`docs/IMPLEMENTATION_STATUS.md`** lists as built; deployment; backend changes; saved-plan **library** or plan **history** UI. **Note:** Tasks, flashcards, Trello, focus, admin aggregate stats, and dashboard analytics **are implemented** — this file guides **presentation only** for those screens when a styling pass is approved, not product scope.
+**Out of this document’s authority:** New routes or features beyond what **`docs/IMPLEMENTATION_STATUS.md`** lists as built; deployment; backend changes; saved-plan **library** or plan **history** UI. **Note:** Tasks, flashcards, Trello, focus, admin aggregate stats, and dashboard analytics **are implemented** — this file guides **presentation only** for those screens, not product scope.
 
 **Goal:** A **NotebookLM-inspired academic study workspace**—clean, Google-like productivity, source-first, modern AI study cockpit—without clinical aesthetics or scope creep.
 
@@ -86,7 +92,7 @@ Earlier briefs referenced Notion/Linear/Raycast **principles**; v2 primary visua
 
 - **Text:** Charcoal / near-black (`--color-text`); secondary copy muted (`--color-text-muted`).
 - **Primary accent:** Calm blue or muted indigo (`--color-primary`) for primary actions and links.
-- **AI zones only:** Very soft blue/lavender tint (`--color-primary-subtle`) for Generate block and (concept-only) generated plan card—**not** full-page gradients.
+- **AI zones only:** Very soft blue/lavender tint (`--color-primary-subtle`) for Generate block and generated plan card—**not** full-page gradients.
 - **Danger:** Restrained red for delete (`--color-danger`).
 - **Avoid:** Medical/clinical teal, excessive neon, dark hacker-terminal default theme.
 
@@ -102,21 +108,21 @@ Earlier briefs referenced Notion/Linear/Raycast **principles**; v2 primary visua
 ### Iconography
 
 - **No Material Icons** or icon font libraries unless separately approved.
-- Prefer text labels, native controls, and minimal inline SVG added in styling pass with approval.
+- Prefer text labels, native controls, and minimal inline SVG (added in Phase 2J/8A).
 
 ---
 
 ## 4. Layout and app chrome
 
-### Authenticated shell (styling pass)
+### Authenticated shell
 
-Optional **minimal top bar** (recommended for consistency):
+Optional **minimal top bar** (implemented in Phase 2J; refined in 8A):
 
 - App name / wordmark (text)
 - Link: **Courses** (or “My courses”)
 - **Log out**
 
-**Do not add:** Sidebar navigation to `/tasks`, `/flashcards`, `/trello`, `/admin`, settings beyond logout, Search Library, Source Drawer, AI Sidebar as product features.
+**Do not add:** Sidebar navigation hub, Search Library, Source Drawer, AI Sidebar as **new** product features. Top-level links to implemented routes (e.g. from **`/dashboard`**) are fine.
 
 ### Content width
 
@@ -132,13 +138,13 @@ Optional **minimal top bar** (recommended for consistency):
 - **Auth:** Centered `FormCard` on canvas.
 - **Lists:** Vertical stack of cards with consistent gap (`--space-4`–`--space-6`).
 - **Course detail:** Title/edit card → materials list → add material form (inline) → danger zone separated.
-- **Material detail:** Back link → `h1` title → edit card → generate section → (concept) plan → danger zone.
+- **Material detail:** Back link → `h1` title → edit card → generate section → saved plan (when present) → danger zone.
 
 ---
 
 ## 5. Design tokens (framework-agnostic CSS variables)
 
-Define in a future `frontend/src/styles/tokens.css` (or equivalent)—**spec only here**, no implementation in Phase 2I-c.
+**Implemented** in `frontend/src/styles/tokens.css` (Phase **2J**; values refined in **8A**). Token names and target values below remain **design guidance** for future polish.
 
 ```css
 :root {
@@ -195,13 +201,13 @@ Define in a future `frontend/src/styles/tokens.css` (or equivalent)—**spec onl
 
 - Use plain CSS or CSS modules—**not** Tailwind unless separately approved.
 - No `@import` from Google Fonts CDN unless separately approved.
-- Map existing inline styles in pages/components to these tokens gradually in the styling pass.
+- Map inline styles in pages/components to these tokens incrementally when further polish is approved.
 
 ---
 
 ## 6. Component guidance
 
-Map to existing React components under `frontend/src/components/`. Styling pass updates presentation only—**no behavior or API changes**.
+Map to existing React components under `frontend/src/components/`. Updates are **presentation only**—**no behavior or API changes**.
 
 ### Button (`components/ui/Button.jsx`)
 
@@ -240,7 +246,7 @@ Map to existing React components under `frontend/src/components/`. Styling pass 
 ### LoadingState (`components/ui/LoadingState.jsx`)
 
 - Muted text or minimal skeleton; preserve layout to avoid shift.
-- Copy: “Loading courses…”, “Loading study material…”, “Processing with AI…” (concept for generate).
+- Copy: “Loading courses…”, “Loading study material…”, “Processing with AI…” (implemented for generate loading — see §8.2).
 
 ### EmptyState (`components/ui/EmptyState.jsx`)
 
@@ -391,13 +397,43 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 - Material: “Study material not found” + “may have been deleted” + back link.
 - **404** messaging—not “access denied” (backend uses neutral 404 for wrong owner).
 
+### 7.14 Tasks — global and course (`/tasks`, `/courses/:id`)
+
+- **Filter toolbar:** Course + status filters (in-memory); consistent with dashboard stat-tile aesthetic from **8A**.
+- **Task list:** Card or row stack on white surface; pending vs completed visually distinct (muted completed).
+- **Actions:** Create, edit pending, mark complete, delete — primary/secondary/danger button variants per §6.
+- **Start Focus:** Visible on **pending** tasks only; links to **`/focus/:taskId`**.
+
+### 7.15 Flashcards — global and material (`/flashcards`, material detail)
+
+- **Saved flashcards:** Card list with course/material context; filter toolbar on global page.
+- **Study mode:** Flip/reveal on `--color-surface`; calm, readable question/answer typography.
+- **CRUD:** Inline create/edit forms in `FormCard`; import-from-plan remains on material detail only.
+
+### 7.16 Trello sync (`/trello`)
+
+- **Credentials:** Ephemeral fields only — never persisted; clear after sync attempt.
+- **Board/list picker:** Sequential Load boards → select board → select list; loading/error states per §6.
+- **Task selection + results:** Checkbox list (max 50); per-task sync summary (`success` / `skipped` / `failed`).
+
+### 7.17 Focus session (`/focus/:taskId`)
+
+- **Timer panel:** Centered countdown (25-minute display); calm accent, not gamified.
+- **Complete flow:** Primary complete action; optional “mark task complete” checkbox; success copy uses backend **`durationMinutes`**.
+
+### 7.18 Admin aggregate stats (`/admin`)
+
+- **Scope:** Platform-wide **aggregate counts only** — no emails, content, plan JSON, or raw rows.
+- **Presentation:** Stat tiles consistent with student dashboard; **`· Admin`** suffix on page heading only.
+- **Access:** **`AdminRoute`** is UX-only; backend **`requireAdmin`** remains authoritative.
+
 ---
 
-## 8. Concept-only screens (pending screenshots — not implemented as new features)
+## 8. Pending screenshot — processing state (feature implemented; capture pending)
 
 **Do not fabricate PNGs.** **`11-generated-plan-visible.png`** is **captured** (see `docs/design/screenshots/`). **`15-processing-with-ai.png`** remains pending per `SCREENSHOT_INDEX.md`.
 
-### 8.1 Generated plan visible (**screenshot captured — feature implemented**)
+### 8.1 Generated plan visible (**implemented — screenshot captured**)
 
 **Reference file:** `11-generated-plan-visible.png` (Phase 2K-c)
 
@@ -409,12 +445,12 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 - Copy: saved as **latest** plan for this material; AI output is **untrusted reference**.
 - **Refresh** reloads saved plan from backend when one exists.
 
-### 8.2 Processing with AI (**concept-only**)
+### 8.2 Processing with AI (**implemented UI — screenshot pending**)
 
 **Pending file:** `15-processing-with-ai.png`
 
 - While `generating`: disable button; show `LoadingState`—“Processing with AI…”
-- Optional subtle pulse on loading text only (styling pass)—no full-screen overlay.
+- Optional subtle pulse on loading text only—no full-screen overlay.
 - On success: reveal plan per §8.1; on error: `ErrorMessage` with safe mapped message.
 
 ---
@@ -435,9 +471,9 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 
 ---
 
-## 10. Motion and animation (styling pass only — not Phase 2I-c)
+## 10. Motion and animation
 
-Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect `prefers-reduced-motion: reduce`.
+Applied in Phase **2J** and refined in **8A**. Further motion changes require explicit approval. Respect `prefers-reduced-motion: reduce`.
 
 | Pattern | Guidance |
 |---------|----------|
@@ -445,7 +481,7 @@ Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect
 | Card hover | `shadow-sm` → `shadow-md` |
 | Button press | Slight darken or scale 0.98 |
 | Generate loading | Gentle pulse on loading label only |
-| Plan reveal | Short fade-in when plan appears (after screenshot 11 exists) |
+| Plan reveal | Short fade-in when plan appears |
 
 **Avoid:** Parallax, heavy neon animations, distracting looped gradients.
 
@@ -459,7 +495,7 @@ Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect
 - **`:focus-visible`** ring using `--color-focus-ring` (≥3:1 contrast).
 - Touch targets **≥44px** height on primary actions.
 - Errors: text + color (not color-only).
-- Delete: accessible confirm (upgrade from `window.confirm` in styling pass optional).
+- Delete: accessible confirm (upgrade from `window.confirm` optional in future polish).
 - Generated plan lists: semantic `ul`/`ol`; task items not interactive checkboxes.
 - Material `Textarea`: comfortable contrast on white surface (body text ≥4.5:1).
 
@@ -491,23 +527,24 @@ Apply only after `approved — apply DESIGN styling pass` (or Phase 2J). Respect
 
 ## 14. Explicitly out of scope (design)
 
-Do **not** design or implement UI for:
+Do **not** design or implement **new product features** beyond current **`docs/IMPLEMENTATION_STATUS.md`**:
 
-- **New** task/flashcard/Trello/focus/admin **features** beyond current **`IMPLEMENTATION_STATUS`**
 - Admin **logs**, user list, role management, Gemini error metrics UI
 - Charts, KPI widgets, streaks, or fake progress rings on dashboard/course pages
 - Saved generated plan library or “plan history”
 - Client “save plan” UI or POST of plan JSON
-- Normalized **task/flashcard table** management UI
 - Course-level paste-generate page with client `studyText`
 - Source **upload** UI, file picker, or drive connectors
 - Audio overview, citations panel, notebook sharing
 - Search Library, Source Drawer, Recent Sources, Drafting Space
 - AI Sidebar as a permanent product navigation feature
 - Footer links (Privacy, Terms, Help Center) unless separately approved
-- Sidebar links to `/tasks`, `/flashcards`, `/trello`, `/focus`, `/admin`
+- Permanent sidebar navigation **hub** (multi-module app shell beyond minimal top bar)
 - Social feed, gamification, leaderboards
 - Dark “hacker terminal” default theme or medical/clinical teal palette
+- Trello OAuth, stored credentials, PDF upload, payments, polling/WebSockets
+
+**Implemented screens** (tasks, flashcards, Trello, focus, admin aggregate stats) **may** receive presentation polish per this document — do **not** treat them as design-forbidden.
 
 Label any future mock: **concept only — not implemented**.
 
@@ -533,39 +570,39 @@ Label any future mock: **concept only — not implemented**.
 | Situation | Allowed |
 |-----------|---------|
 | **Phase 2I-c** — authoring/updating this file | Yes (documentation only) |
-| **Planning / Stitch / screenshots** | Use `STITCH_BRIEF.md` + `SCREENSHOT_INDEX.md`; this file is output of 2I-c |
-| **Frontend styling pass** | Yes — after explicit human approval: `approved — apply DESIGN styling pass` or `approved — implement Phase 2J Frontend Styling` |
+| **Planning / Stitch / screenshots** | Use `STITCH_BRIEF.md` (historical) + `SCREENSHOT_INDEX.md`; this file is output of 2I-c |
+| **Frontend styling (2J / 8A)** | **Complete** — further CSS/presentation changes require explicit approval |
 | **Functional feature work** | Follow `IMPLEMENTATION_STATUS` for behavior; use this file only for presentation |
 | **Scope expansion** | **Never** — PRD + human approval required |
 
 **Gates:**
 
-- Updating **`DESIGN.md` v2`** required `approved — implement Phase 2I-c DESIGN.md v2`.
-- Applying CSS/tokens to components requires a **separate** styling approval.
+- Updating **`DESIGN.md` v2`** required `approved — implement Phase 2I-c DESIGN.md v2` (historical).
+- Applying CSS/tokens beyond **2J**/**8A** requires a **separate** styling approval (e.g. `approved — apply DESIGN styling pass`).
 
 ---
 
-## 17. Styling implementation guide (future Phase 2J)
+## 17. Styling implementation guide (Phase 2J — complete; 8A polish applied)
 
-When styling is approved:
+**Historical reference** — styling was applied as follows (do not re-run without approval):
 
-1. Add `frontend/src/styles/tokens.css` (or equivalent) from §5; import once in app entry (e.g. `main.jsx`).
-2. Restyle in order: `components/ui/*` → `CourseCard` / `MaterialCard` → `GeneratedPlanSection` → pages.
-3. Replace inline styles with token-based classes or CSS modules incrementally—**no big-bang** unless reviewed.
-4. Optional minimal **top app bar** per §4—no feature sidebar.
-5. Keep all routes, API calls, validation, and generate behavior **unchanged**.
+1. Added `frontend/src/styles/tokens.css` from §5; imported once in app entry (e.g. `main.jsx`).
+2. Restyled in order: `components/ui/*` → `CourseCard` / `MaterialCard` → `GeneratedPlanSection` → pages → tasks/flashcards/Trello/focus/admin (**8A**).
+3. Replaced inline styles with token-based classes or CSS modules incrementally.
+4. Minimal **top app bar** per §4 — no feature sidebar.
+5. Kept all routes, API calls, validation, and generate behavior **unchanged**.
 6. Run `npm run lint`, `npm test`, `npm run build` in `frontend/`; `check-all.ps1` if touching multiple packages.
 7. Compare visuals to `docs/design/screenshots/` and this document—not to Stitch exports.
 8. Re-run **Security Review** if changing how plan/content is rendered or auth surfaces.
 
-**Forbidden in styling pass:** New dependencies (Tailwind, icon fonts, Google Fonts) without approval; persistence UI; Stitch code merge.
+**Forbidden in future polish:** New dependencies (Tailwind, icon fonts, Google Fonts) without approval; persistence UI; Stitch code merge.
 
 ---
 
 ## 18. Related documents
 
 - `docs/IMPLEMENTATION_STATUS.md` — built vs deferred
-- `docs/STITCH_BRIEF.md` — Stitch advisory input (Phase 2I-a)
+- `docs/STITCH_BRIEF.md` — historical Stitch advisory input (Phase 2I-a; not product scope)
 - `docs/design/SCREENSHOT_INDEX.md` — screenshot filenames (captured vs pending)
 - `docs/AGENT_MEMORY.md` — phase history
 - `docs/PRD.md` — product intent
@@ -579,4 +616,5 @@ When styling is approved:
 | Date | Change |
 |------|--------|
 | 2026-05-20 | Initial DESIGN.md for Phase 1G Courses Frontend UI guidance |
-| 2026-05-22 | **v2** — NotebookLM-inspired study workspace spec; materials + generate; tokens; concept-only plan/processing; styling pass guide (Phase 2I-c) |
+| 2026-05-22 | **v2** — NotebookLM-inspired study workspace spec; materials + generate; tokens; generated plan + processing sections; styling guide (Phase 2I-c) |
+| 2026-05-30 | **Phase 8B** — align wording with **2J**/**8A** implementation; tokens.css exists; §7.14–7.18 for implemented screens; §14 reframed (new features vs presentation) |
