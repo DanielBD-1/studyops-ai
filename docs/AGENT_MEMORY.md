@@ -1756,3 +1756,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** Allowed markdown docs only — **no** code, SQL, migrations, packages, package-lock, tests, or CI changed
 **Reviews:** **Security Review required** — **`SECURITY.md`** trust-boundary documentation changed (admin aggregate stats exception). Supervisor Review required.
 **Not changed:** ADRs, application code, database migrations, governance workflows
+
+### 2026-05-29 — Phase 8A UI polish pass complete
+
+**Workflow:** Phase 8A — UI/UX polish pass
+**ADR refs:** none (presentation-only; no architecture change)
+**Human gates:** `approved — implement Phase 8A`; Supervisor Review **approved with notes**; post-review cosmetic cleanup applied
+**Summary:** Frontend-only UI/CSS/className/markup polish across auth, dashboard, courses, study materials, tasks, flashcards, Trello, focus, and admin — modern study-cockpit presentation per **`DESIGN.md`** v2 principles (warm canvas, card elevation, stat tiles, filter toolbars, focus timer panel, loading/error/empty states). **No** backend, API, DB/migration, package, **`package-lock`**, CI, or test-infra changes intended. **No** behavior, auth, data-fetching, or validation changes intended. Post–Supervisor Review fix: scoped admin heading suffix **`· Admin`** to **`page--admin-dashboard`** on **`AdminDashboardPage`** only (forbidden **`AdminRoute`** screen no longer shows **“Admin · Admin”**).
+**APIs affected:** none
+**Tests:** no test changes; **`cd frontend && npm run lint`** passed (**0** errors, **2** pre-existing warnings); **`npm test`** **190/190** passed; **`npm run build`** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes** — no critical or important issues; Security Review **not required** beyond lightweight spot-check judgment (auth/admin logic and sensitive boundaries unchanged)
+**Manual smoke:** **Passed** — login/register, dashboard, courses, study material generate/plan/import, tasks, flashcards, Trello sync (credentials clear as before), focus timer/complete, admin stats for admin / student forbidden; console and network clean (no direct document-service/Gemini/Trello API from browser)
+**Scope boundary:** **`frontend/src/styles/**`**, shared UI components, pages, and scoped feature components — docs unchanged except this memory entry
+**Follow-up:** branch **`phase-8a-ui-polish`** ready for commit/push after final **`git status`** check

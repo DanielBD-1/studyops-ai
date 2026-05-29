@@ -41,7 +41,7 @@ export default function FlashcardStudy({ flashcards, title = 'Flashcards' }) {
   }
 
   return (
-    <section className="plan-block" aria-label="Flashcard study">
+    <section className="flashcard-study plan-block" aria-label="Flashcard study">
       <h3 className="plan-block__title">{title}</h3>
       <p className="plan-block__meta">{formatCardCounter(currentIndex, total)}</p>
 

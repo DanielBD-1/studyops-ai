@@ -185,7 +185,7 @@
 
 .trello-task-list__label--selected {
   background: var(--color-primary-subtle);
-  border-color: #b8c4f0;
+  border-color: var(--color-primary-border);
 }
 
 .trello-task-list__checkbox {

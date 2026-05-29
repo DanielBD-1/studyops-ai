@@ -404,7 +404,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
 
   return (
     <section className="section">
-      <div className="form-row">
+      <div className="filter-toolbar">
         <label htmlFor="global-tasks-course-filter" className="field">
           Course
           <select
@@ -422,20 +422,20 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
             ))}
           </select>
         </label>
-      </div>
 
-      <div className="form-row">
-        {STATUS_FILTERS.map((f) => (
-          <Button
-            key={f.value}
-            type="button"
-            variant={statusFilter === f.value ? 'primary' : 'secondary'}
-            onClick={() => handleStatusFilterChange(f.value)}
-            disabled={busy}
-          >
-            {f.label}
-          </Button>
-        ))}
+        <div className="filter-toolbar__segment">
+          {STATUS_FILTERS.map((f) => (
+            <Button
+              key={f.value}
+              type="button"
+              variant={statusFilter === f.value ? 'primary' : 'secondary'}
+              onClick={() => handleStatusFilterChange(f.value)}
+              disabled={busy}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {canShowCreate && !showCreate && !loading && !error && (

@@ -36,7 +36,7 @@ export default function GeneratedPlanSection({
 }) {
   if (!plan || typeof plan.summary !== 'string') {
     return (
-      <FormCard title="Generated study plan" ai>
+      <FormCard title="Generated study plan" ai plan>
         <p className="plan-block__body">Could not display plan.</p>
       </FormCard>
     );
@@ -48,7 +48,7 @@ export default function GeneratedPlanSection({
 
   return (
     <div className="plan-fade-in">
-      <FormCard title="Generated study plan" ai>
+      <FormCard title="Generated study plan" ai plan>
         <p className="plan-disclaimer">
           AI-generated — saved as the latest plan for this material. Reference only; verify
           before you study.

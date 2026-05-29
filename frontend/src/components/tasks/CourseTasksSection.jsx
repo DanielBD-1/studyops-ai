@@ -284,7 +284,8 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     <section className="section">
       <h2 className="section__title">Study tasks</h2>
 
-      <div className="form-row">
+      <div className="filter-toolbar filter-toolbar--segmented">
+        <div className="filter-toolbar__segment">
         {FILTERS.map((f) => (
           <Button
             key={f.value}
@@ -296,6 +297,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
             {f.label}
           </Button>
         ))}
+        </div>
       </div>
 
       {loading && <LoadingState message="Loading study tasks…" />}

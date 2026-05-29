@@ -416,7 +416,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
 
   return (
     <FormCard title="Saved flashcards library">
-      <div className="form-row">
+      <div className="filter-toolbar">
         <label htmlFor="global-flashcards-course-filter" className="field">
           Course
           <select
