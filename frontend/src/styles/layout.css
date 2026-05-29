@@ -580,6 +580,53 @@
   margin-top: var(--space-10);
 }
 
+/* Study material workspace */
+.page--material-detail .page-header__lead {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.material-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.material-workspace__editor {
+  margin-bottom: var(--space-2);
+}
+
+.material-workspace__editor .section__header-row {
+  margin-bottom: var(--space-4);
+}
+
+.material-workspace__library {
+  padding-top: var(--space-2);
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.material-workspace__generate {
+  margin-top: var(--space-8);
+}
+
+.material-workspace__plan {
+  padding-top: var(--space-2);
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.material-workspace__plan .section__header-row {
+  margin-bottom: var(--space-4);
+}
+
+.material-workspace__danger {
+  margin-top: var(--space-10);
+}
+
 .dashboard-course-list {
   list-style: none;
   padding: 0;

@@ -1805,3 +1805,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** Nine frontend files only — **no** **`StudyMaterialDetail.jsx`**, **`GeneratedPlanSection.jsx`**, **`DbFlashcardsSection.jsx`**, **`FlashcardStudy.jsx`**, AI/generate/import/clear logic, backend/API/DB/package/CI/services/context, route/auth/data-fetching/validation changes. **No** **`dangerouslySetInnerHTML`**, **`service_role`**, direct Supabase table reads, or console logs/debug JSON.
 **Not touched (intentional):** global **`/tasks`**, **`/flashcards`**, Trello, Focus, Admin redesign; **`PageHeader`** consumed from **8C-1** (component file unchanged in this phase)
 **Follow-up:** **Phase 8C-2B** **not started** — should cover **`StudyMaterialDetail`** + Generated Plan / AI zones later. Branch **`phase-8c-2a-dashboard-courses-course-detail`** ready for commit/push after final **`git status`** check
+
+### 2026-05-30 — Phase 8C-2B Study Material Detail and AI Zones UI upgrade complete
+
+**Workflow:** Phase 8C-2B — Study Material Detail and AI Zones UI upgrade
+**ADR refs:** none (presentation-only; no architecture change)
+**Human gates:** Supervisor Review **approved with notes** (no critical or important issues); lightweight Security spot-check **no blockers**; manual smoke **passed**
+**Summary:** Frontend presentation-only upgrade for **`/study-materials/:materialId`**, **`StudyMaterialDetail.jsx`**, **`GeneratedPlanSection.jsx`**, **`DbFlashcardsSection.jsx`**, **`FlashcardStudy.jsx`**, and scoped CSS in **`frontend/src/styles/layout.css`** + **`components.css`**. Study material detail has stronger workspace/**`PageHeader`**/editor presentation. Saved flashcards have clearer library/study visual separation. Generate AI panel has stronger visual treatment. Generated plan has premium read-only output styling. Import tasks/import flashcards/clear plan UI improved. Section order preserved: editor → saved flashcards → generate AI panel → generated plan → danger zone. **No** backend/API/DB/package/CI/services/context changes. **No** Dashboard/Courses/CourseDetail files touched. **No** behavior/auth/data-fetching/validation changes. Generate request body remains **`{}`**. Generated plan/material/flashcards render as React text nodes only — **no** **`dangerouslySetInnerHTML`**, raw JSON rendering, console logs/debug JSON, **`service_role`**, or direct Supabase/Gemini/document-service calls.
+**APIs affected:** none
+**Tests:** no test changes; **`cd frontend && npm run lint`** passed (**0** errors, **2** pre-existing warnings); **`npm test`** **190/190** passed; **`npm run build`** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security spot-check **no blockers**
+**Manual smoke:** **Passed** — material editor, dirty state, generate body **`{}`**, plan display, import tasks, import flashcards, clear plan, saved flashcards CRUD/study, delete material, **375px** mobile, console/network clean
+**Scope boundary:** Six frontend files only — **no** backend, document-service, Supabase, API, DB/migration, package, **`package-lock`**, or CI changes
+**Security boundaries preserved:** generate remains backend-mediated with empty body; import/clear remain backend-mediated; auth/route protection unchanged
+**Follow-up:** branch **`phase-8c-2b-study-material-ai-zones`** ready for commit/push after final **`git status`** check

@@ -36,7 +36,7 @@ export default function GeneratedPlanSection({
 }) {
   if (!plan || typeof plan.summary !== 'string') {
     return (
-      <FormCard title="Generated study plan" ai plan>
+      <FormCard title="Generated study plan" ai plan className="plan-output">
         <p className="plan-block__body">Could not display plan.</p>
       </FormCard>
     );
@@ -46,28 +46,33 @@ export default function GeneratedPlanSection({
   const tasks = Array.isArray(plan.tasks) ? plan.tasks : [];
   const flashcards = Array.isArray(plan.flashcards) ? plan.flashcards : [];
 
+  const showImportToolbar =
+    (tasks.length > 0 && onImport) || (flashcards.length > 0 && onImportFlashcards);
+
   return (
     <div className="plan-fade-in">
-      <FormCard title="Generated study plan" ai plan>
-        <p className="plan-disclaimer">
-          AI-generated — saved as the latest plan for this material. Reference only; verify
-          before you study.
-        </p>
-        {savedAt ? (
-          <p className="plan-saved-at">
-            Last saved: {new Date(savedAt).toLocaleString()}
+      <FormCard title="Generated study plan" ai plan className="plan-output">
+        <header className="plan-output__header">
+          <p className="plan-disclaimer">
+            AI-generated — saved as the latest plan for this material. Reference only; verify
+            before you study.
           </p>
-        ) : null}
+          {savedAt ? (
+            <p className="plan-saved-at">
+              Last saved: {new Date(savedAt).toLocaleString()}
+            </p>
+          ) : null}
+        </header>
 
-        <section className="plan-block">
+        <section className="plan-block plan-block--summary">
           <h3 className="plan-block__title">Summary</h3>
-          <p className="plan-block__body">{plan.summary}</p>
+          <p className="plan-block__body plan-block__body--summary">{plan.summary}</p>
         </section>
 
         {keyTopics.length > 0 && (
           <section className="plan-block">
             <h3 className="plan-block__title">Key topics</h3>
-            <ul className="plan-block__list">
+            <ul className="plan-block__list plan-block__list--topics">
               {keyTopics.map((topic) => (
                 <li key={topic}>{topic}</li>
               ))}
@@ -76,50 +81,55 @@ export default function GeneratedPlanSection({
         )}
 
         {plan.difficulty && (
-          <section className="plan-block">
+          <section className="plan-block plan-block--inline">
             <h3 className="plan-block__title">Difficulty</h3>
             <p className="plan-block__body plan-block__body--capitalize">{plan.difficulty}</p>
           </section>
         )}
 
-        {(tasks.length > 0 && onImport) || (flashcards.length > 0 && onImportFlashcards) ? (
-          <p className="section__actions">
-            {tasks.length > 0 && onImport ? (
-              <Button
-                type="button"
-                variant="primary"
-                onClick={onImport}
-                disabled={importDisabled || importing || importingFlashcards}
-              >
-                {importing ? 'Importing…' : 'Import tasks to course'}
-              </Button>
-            ) : null}
-            {flashcards.length > 0 && onImportFlashcards ? (
-              <Button
-                type="button"
-                variant="primary"
-                onClick={onImportFlashcards}
-                disabled={importFlashcardsDisabled || importing || importingFlashcards}
-              >
-                {importingFlashcards ? 'Importing…' : 'Import flashcards to library'}
-              </Button>
-            ) : null}
+        {showImportToolbar ? (
+          <div className="plan-import-toolbar" aria-label="Import from plan">
+            <p className="plan-import-toolbar__label">Import to your workspace</p>
+            <div className="plan-import-toolbar__actions">
+              {tasks.length > 0 && onImport ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={onImport}
+                  disabled={importDisabled || importing || importingFlashcards}
+                >
+                  {importing ? 'Importing…' : 'Import tasks to course'}
+                </Button>
+              ) : null}
+              {flashcards.length > 0 && onImportFlashcards ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={onImportFlashcards}
+                  disabled={importFlashcardsDisabled || importing || importingFlashcards}
+                >
+                  {importingFlashcards ? 'Importing…' : 'Import flashcards to library'}
+                </Button>
+              ) : null}
+            </div>
             {importing && importProgress ? (
-              <span className="plan-panel__status"> {importProgress}</span>
+              <p className="plan-panel__status plan-panel__status--progress">{importProgress}</p>
             ) : null}
             {importingFlashcards && importFlashcardsProgress ? (
-              <span className="plan-panel__status"> {importFlashcardsProgress}</span>
+              <p className="plan-panel__status plan-panel__status--progress">
+                {importFlashcardsProgress}
+              </p>
             ) : null}
-          </p>
+          </div>
         ) : null}
 
         {tasks.length > 0 && (
-          <section className="plan-block">
+          <section className="plan-block plan-block--tasks">
             <h3 className="plan-block__title">Tasks</h3>
-            <ol className="plan-block__list">
+            <ol className="plan-block__list plan-block__list--tasks">
               {tasks.map((task, index) => (
-                <li key={`${task.title}-${index}`} className="plan-block__item">
-                  <strong>{task.title}</strong>
+                <li key={`${task.title}-${index}`} className="plan-block__item plan-task-item">
+                  <strong className="plan-task-item__title">{task.title}</strong>
                   {task.description ? (
                     <p className="plan-block__body">{task.description}</p>
                   ) : null}
@@ -143,9 +153,15 @@ export default function GeneratedPlanSection({
           </section>
         )}
 
-        {flashcards.length > 0 && <FlashcardStudy flashcards={flashcards} />}
+        {flashcards.length > 0 && (
+          <FlashcardStudy
+            flashcards={flashcards}
+            title="Plan flashcards"
+            className="flashcard-study--plan"
+          />
+        )}
 
-        <div className="form-row">
+        <footer className="plan-output__footer">
           <Button
             variant="secondary"
             onClick={onClear}
@@ -153,7 +169,7 @@ export default function GeneratedPlanSection({
           >
             {clearing ? 'Clearing…' : 'Clear plan'}
           </Button>
-        </div>
+        </footer>
       </FormCard>
     </div>
   );

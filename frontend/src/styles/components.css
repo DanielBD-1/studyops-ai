@@ -293,7 +293,11 @@
 .plan-block__meta,
 .plan-block__list,
 .flashcard-study,
-.ai-panel {
+.flashcard-library,
+.plan-output,
+.plan-import-toolbar,
+.ai-panel,
+.material-workspace__editor-card {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -441,25 +445,218 @@
 .ai-panel {
   margin-top: var(--space-6);
   padding: var(--space-6);
-  background: var(--color-primary-subtle);
+  background: linear-gradient(
+    165deg,
+    var(--color-primary-subtle) 0%,
+    rgba(238, 240, 251, 0.65) 100%
+  );
   border: 1px solid var(--color-primary-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
+.ai-panel__header {
+  margin-bottom: var(--space-4);
+}
+
+.ai-panel__title,
 .ai-panel .section__title--sm {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-2);
   font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
+}
+
+.ai-panel__lead {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
 }
 
 .ai-panel__hint {
   color: var(--color-text-muted);
   margin: 0 0 var(--space-3);
   font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.ai-panel__hint--warning {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary);
+}
+
+.ai-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .ai-panel__loading {
+  margin-top: var(--space-3);
+}
+
+.ai-panel__loading--active {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-primary-border);
+  border-radius: var(--radius-md);
+}
+
+/* Material editor workspace */
+.material-workspace__editor-card {
+  border-left: 3px solid var(--color-border-strong);
+  margin-bottom: 0;
+}
+
+.material-workspace__editor-card .form-card__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.material-workspace__unsaved-hint {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+}
+
+.material-workspace__editor-form .field__textarea--reading {
+  min-height: 16rem;
+  font-size: var(--font-size-base);
+}
+
+.material-workspace__editor-actions {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Flashcard library */
+.flashcard-library {
+  margin-bottom: 0;
+  border-left: 3px solid var(--color-primary-border);
+}
+
+.flashcard-library__intro {
+  margin-bottom: var(--space-4);
+}
+
+.flashcard-library__empty {
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.flashcard-library__form {
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.flashcard-library__study {
+  margin-bottom: var(--space-4);
+}
+
+.flashcard-library__manage {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.flashcard-library__list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.flashcard-library__item {
+  margin-bottom: 0;
+}
+
+.flashcard-library__question {
+  font-weight: var(--font-weight-medium);
+}
+
+.flashcard-library__item-actions {
+  margin-top: var(--space-2);
+}
+
+/* Generated plan output */
+.plan-output {
+  margin-bottom: 0;
+}
+
+.plan-output .form-card__title {
+  font-size: var(--font-size-lg);
+}
+
+.plan-output__header {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-primary-border);
+}
+
+.plan-output__footer {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.plan-import-toolbar {
+  margin: var(--space-5) 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-import-toolbar__label {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.plan-import-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.plan-panel__status--loading,
+.plan-panel__status--progress {
+  margin-top: var(--space-2);
+}
+
+.plan-panel__status--success {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-success-subtle);
+  border: 1px solid #a8d4b8;
+  border-radius: var(--radius-md);
+}
+
+.plan-panel__error,
+.plan-panel__feedback {
   margin-top: var(--space-3);
 }
 
@@ -486,6 +683,60 @@
   line-height: var(--line-height-body);
 }
 
+.plan-block__body--summary {
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.plan-block--summary {
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.plan-block--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+}
+
+.plan-block--inline .plan-block__title {
+  margin-bottom: 0;
+}
+
+.plan-block__list--topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+}
+
+.plan-block__list--topics li {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+}
+
+.plan-block__list--tasks {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.plan-task-item__title {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-base);
+}
+
 .plan-block__body--capitalize {
   text-transform: capitalize;
 }
@@ -509,6 +760,74 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+}
+
+.flashcard-study__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.flashcard-study__header .plan-block__title {
+  margin-bottom: 0;
+}
+
+.flashcard-study__counter {
+  margin: 0;
+}
+
+.flashcard-study__card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-bg-subtle);
+  border-style: dashed;
+}
+
+.flashcard-study__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  margin-right: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
+.flashcard-study__question,
+.flashcard-study__answer {
+  font-size: var(--font-size-lg);
+}
+
+.flashcard-study__answer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.flashcard-study__actions {
+  padding-top: var(--space-2);
+}
+
+.flashcard-study--library {
+  border-left: 3px solid var(--color-primary-border);
+}
+
+.flashcard-study--plan {
+  border-left: 3px solid var(--color-primary);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface) 0%,
+    rgba(238, 240, 251, 0.35) 100%
+  );
 }
 
 .flashcard-study .plan-block__item {

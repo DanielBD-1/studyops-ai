@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useDashboardRefresh } from '../context/DashboardContext.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
@@ -449,7 +450,7 @@ export default function StudyMaterialDetail() {
 
   if (loading) {
     return (
-      <main className="page page--reading">
+      <main className="page page--reading page--material-detail material-workspace">
         <LoadingState message="Loading study material…" />
       </main>
     );
@@ -457,7 +458,7 @@ export default function StudyMaterialDetail() {
 
   if (notFound) {
     return (
-      <main className="page page--reading">
+      <main className="page page--reading page--material-detail material-workspace">
         <h1 className="page__title--tight">Study material not found</h1>
         <p className="not-found__text">This study material may have been deleted.</p>
         <Link to="/courses">Back to courses</Link>
@@ -467,7 +468,7 @@ export default function StudyMaterialDetail() {
 
   if (error || !material) {
     return (
-      <main className="page page--reading">
+      <main className="page page--reading page--material-detail material-workspace">
         <ErrorMessage message={error ?? 'Failed to load study material'} />
         <Button variant="secondary" onClick={loadMaterial}>
           Try again
@@ -478,6 +479,8 @@ export default function StudyMaterialDetail() {
       </main>
     );
   }
+
+  const sourceTypeLabel = sourceType === 'paste' ? 'Pasted text' : 'Manual entry';
 
   const showPlanSection = planLoading || plan != null || planLoadError != null;
 
@@ -499,60 +502,84 @@ export default function StudyMaterialDetail() {
     !hasUnsavedChanges;
 
   return (
-    <main className="page page--reading">
-      <p className="back-link">
-        <Link to={`/courses/${material.courseId}`}>← Back to course</Link>
-      </p>
+    <main className="page page--reading page--material-detail material-workspace">
+      <PageHeader
+        intro
+        title={material.title}
+        lead="Study material workspace"
+        note={`Source: ${sourceTypeLabel}. Edit your text, generate an AI study plan, and manage saved flashcards.`}
+        backTo={{
+          to: `/courses/${material.courseId}`,
+          label: '← Back to course',
+        }}
+      />
 
-      <h1 className="page__title--tight">{material.title}</h1>
+      <section className="material-workspace__editor" aria-label="Edit study material">
+        <div className="section__header-row">
+          <h2 className="section__title">Source document</h2>
+          <p className="section__subtitle">Reading and editing workspace</p>
+        </div>
+        <FormCard title="Edit study material" className="material-workspace__editor-card">
+          {hasUnsavedChanges && (
+            <p className="material-workspace__unsaved-hint" role="status">
+              Unsaved changes
+            </p>
+          )}
+          <form onSubmit={handleSave} className="form-stack material-workspace__editor-form">
+            <Input
+              id="material-title-edit"
+              label="Title"
+              value={title}
+              onChange={setTitle}
+              required
+            />
+            <label htmlFor="material-source-type" className="field">
+              Source type
+              <select
+                id="material-source-type"
+                value={sourceType}
+                onChange={(e) =>
+                  setSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
+                }
+                className="field__select"
+              >
+                <option value="manual">Manual entry</option>
+                <option value="paste">Pasted text</option>
+              </select>
+            </label>
+            <Textarea
+              id="material-content-edit"
+              label="Study material"
+              value={content}
+              onChange={setContent}
+              rows={12}
+              reading
+              required
+            />
+            {saveError && <ErrorMessage message={saveError} />}
+            <div className="material-workspace__editor-actions">
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={saving || deleting || generating || importingAny}
+              >
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
+            </div>
+          </form>
+        </FormCard>
+      </section>
 
-      <FormCard title="Edit study material">
-        <form onSubmit={handleSave} className="form-stack">
-          <Input
-            id="material-title-edit"
-            label="Title"
-            value={title}
-            onChange={setTitle}
-            required
-          />
-          <label htmlFor="material-source-type" className="field">
-            Source type
-            <select
-              id="material-source-type"
-              value={sourceType}
-              onChange={(e) =>
-                setSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
-              }
-              className="field__select"
-            >
-              <option value="manual">Manual entry</option>
-              <option value="paste">Pasted text</option>
-            </select>
-          </label>
-          <Textarea
-            id="material-content-edit"
-            label="Study material"
-            value={content}
-            onChange={setContent}
-            rows={12}
-            reading
-            required
-          />
-          {saveError && <ErrorMessage message={saveError} />}
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={saving || deleting || generating || importingAny}
-          >
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
-        </form>
-      </FormCard>
-
-      <section className="section--compact" aria-labelledby="saved-flashcards-heading">
-        <h2 id="saved-flashcards-heading" className="visually-hidden">
-          Saved flashcards
-        </h2>
+      <section
+        className="section material-workspace__library"
+        aria-labelledby="saved-flashcards-heading"
+      >
+        <div className="section__header-row">
+          <h2 id="saved-flashcards-heading" className="section__title">
+            Saved flashcards
+          </h2>
+          <p className="section__subtitle">Your flashcard library for this material</p>
+        </div>
         <DbFlashcardsSection
           courseId={material.courseId}
           materialId={materialId}
@@ -571,45 +598,65 @@ export default function StudyMaterialDetail() {
           <ErrorMessage message={importFlashcardsError} />
         )}
         {importFlashcardsSuccess && (
-          <p className="plan-panel__status">{importFlashcardsSuccess}</p>
+          <p className="plan-panel__status plan-panel__status--success">
+            {importFlashcardsSuccess}
+          </p>
         )}
       </section>
 
-      <section className="ai-panel" aria-labelledby="generate-heading">
-        <h2 id="generate-heading" className="section__title--sm">
-          Generate study plan
-        </h2>
+      <section
+        className="ai-panel material-workspace__generate"
+        aria-labelledby="generate-heading"
+      >
+        <div className="ai-panel__header">
+          <h2 id="generate-heading" className="ai-panel__title">
+            Generate study plan
+          </h2>
+          <p className="ai-panel__lead">
+            Uses your last saved material to build a summary, tasks, and flashcards.
+          </p>
+        </div>
         {hasUnsavedChanges && (
-          <p className="ai-panel__hint">
+          <p className="ai-panel__hint ai-panel__hint--warning" role="status">
             Save changes before generating — generation uses your last saved material.
           </p>
         )}
         {generateError && <ErrorMessage message={generateError} />}
-        <Button variant="primary" disabled={generateDisabled} onClick={handleGenerate}>
-          {generating ? 'Processing with AI…' : 'Generate study plan'}
-        </Button>
+        <div className="ai-panel__actions">
+          <Button variant="primary" disabled={generateDisabled} onClick={handleGenerate}>
+            {generating ? 'Processing with AI…' : 'Generate study plan'}
+          </Button>
+        </div>
         {generating && (
-          <div className="ai-panel__loading">
+          <div className="ai-panel__loading ai-panel__loading--active" aria-live="polite">
             <LoadingState message="Processing with AI…" />
           </div>
         )}
       </section>
 
       {showPlanSection && (
-        <section className="section--compact" aria-labelledby="saved-plan-heading">
-          <h2 id="saved-plan-heading" className="visually-hidden">
-            Saved generated plan
-          </h2>
+        <section
+          className="section material-workspace__plan"
+          aria-labelledby="saved-plan-heading"
+        >
+          <div className="section__header-row">
+            <h2 id="saved-plan-heading" className="section__title">
+              Generated study plan
+            </h2>
+            <p className="section__subtitle">Latest AI output for this material</p>
+          </div>
           {planLoading && (
-            <p className="plan-panel__status">Loading saved plan…</p>
+            <p className="plan-panel__status plan-panel__status--loading">
+              Loading saved plan…
+            </p>
           )}
           {planLoadError && !planLoading && (
-            <>
+            <div className="plan-panel__error">
               <ErrorMessage message={planLoadError} />
               <Button variant="secondary" onClick={loadSavedPlan} disabled={planLoading}>
                 Try again
               </Button>
-            </>
+            </div>
           )}
           {plan && !planLoading && (
             <GeneratedPlanSection
@@ -632,20 +679,26 @@ export default function StudyMaterialDetail() {
               importFlashcardsProgress={importFlashcardsProgress}
             />
           )}
-          {importError && plan && !planLoading && <ErrorMessage message={importError} />}
+          {importError && plan && !planLoading && (
+            <div className="plan-panel__feedback">
+              <ErrorMessage message={importError} />
+            </div>
+          )}
           {importSuccess && plan && !planLoading && (
-            <p className="plan-panel__status">
+            <p className="plan-panel__status plan-panel__status--success">
               {importSuccess}{' '}
               <Link to={`/courses/${material.courseId}`}>View tasks on course</Link>
             </p>
           )}
           {clearError && plan && !planLoading && (
-            <ErrorMessage message={clearError} />
+            <div className="plan-panel__feedback">
+              <ErrorMessage message={clearError} />
+            </div>
           )}
         </section>
       )}
 
-      <section className="danger-zone">
+      <section className="danger-zone material-workspace__danger">
         <h2 className="danger-zone__title">Danger zone</h2>
         {deleteError && <ErrorMessage message={deleteError} />}
         <Button
