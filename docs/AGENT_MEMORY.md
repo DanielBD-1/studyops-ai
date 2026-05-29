@@ -1777,3 +1777,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** Docs-only — **no** application code, screenshots, packages, CI, or SQL changed
 **Reviews:** Supervisor Review **approved with notes** — no critical or important issues; Security Review **not required** (docs-only; **`SECURITY.md`** unchanged)
 **Follow-up:** branch **`phase-8b-post-ui-docs-design-reference-alignment`** ready for commit/push after final **`git status`** check
+
+### 2026-05-30 — Phase 8C-1 Global shell and design system complete
+
+**Workflow:** Phase 8C-1 — Global shell and design system
+**ADR refs:** 001 (frontend → Express backend only; modular monolith unchanged), 003 (no new validation surfaces)
+**Human gates:** `approved — implement Phase 8C-1`; Supervisor Review **approved with notes** (no critical/important issues); lightweight Security spot-check **no blockers**; manual smoke **passed**
+**Summary:** Frontend-only global shell and design-system pass. **`AppShell`** with sticky top bar (brand, main nav, logout) wraps authenticated routes via **`AuthenticatedPage`** (`ProtectedRoute` → **`AppShell`** → page content). Auth pages (**`/`**, **`/register`**) remain **outside** the shell. Design tokens and global layout/auth visual polish in **`frontend/src/styles/tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`**. **`PageHeader`** shared across workspace pages. **`/admin`** route structure unchanged: **`ProtectedRoute` → `AppShell` → `AdminRoute` → `AdminDashboardPage`**; student direct **`/admin`** still shows neutral **“Admin access required”** inside the shell. **Admin** nav link remains **UX-only** (`user?.role === 'admin'`); backend **`requireAuth` + `requireAdmin`** on **`GET /api/admin/stats`** unchanged.
+**APIs affected:** none
+**Tests:** no test changes; **`cd frontend && npm run lint`** passed (**0** errors, **2** pre-existing warnings); **`npm test`** **190/190** passed; **`npm run build`** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security spot-check **no blockers**
+**Manual smoke:** **Passed** — shell/nav on authenticated routes; auth pages without shell; admin stats + student forbidden inside shell; long unbroken flashcard/plan text no longer overflows cards after CSS-only smoke fix
+**Post-smoke fix (CSS only):** **`frontend/src/styles/components.css`**, **`frontend/src/styles/layout.css`** — `overflow-wrap: anywhere`, `word-break: break-word`, `min-width: 0` on card/study surfaces and shell content; **no** behavior, auth, API, or data-fetching changes
+**Scope boundary:** **`frontend/**`** presentation only — **no** backend, document-service, Supabase, API, DB/migration, package, **`package-lock`**, or CI changes
+**Follow-up:** branch **`phase-8c-1-global-shell-design-system`** ready for commit/push after final **`git status`** check

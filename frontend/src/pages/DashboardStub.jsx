@@ -4,6 +4,7 @@ import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
@@ -135,11 +136,6 @@ export default function DashboardStub() {
     });
   }, [subscribeToRefresh, stats, loading, runSilentRefresh]);
 
-  async function handleLogout() {
-    await logout();
-    navigate('/');
-  }
-
   const taskCompletionPercent =
     stats && formatTaskCompletionPercent(stats.completedTasks, stats.totalTasks);
 
@@ -147,16 +143,7 @@ export default function DashboardStub() {
 
   return (
     <main className="page page--workspace">
-      <header className="page-header">
-        <h1>Dashboard</h1>
-        <nav className="page-header__nav" aria-label="Secondary">
-          <Link to="/courses">My courses</Link>
-          <Link to="/tasks">All study tasks</Link>
-          <Link to="/flashcards">All flashcards</Link>
-          <Link to="/trello">Trello sync</Link>
-          {user?.role === 'admin' && <Link to="/admin">Admin</Link>}
-        </nav>
-      </header>
+      <PageHeader title="Dashboard" />
 
       {user && (
         <p className="page__lead">
@@ -264,12 +251,6 @@ export default function DashboardStub() {
           </section>
         </>
       )}
-
-      <p className="dashboard-actions">
-        <Button variant="secondary" onClick={handleLogout}>
-          Log out
-        </Button>
-      </p>
     </main>
   );
 }

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import GlobalFlashcardsSection from '../components/flashcards/GlobalFlashcardsSection.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import PageHeader from '../components/layout/PageHeader.jsx';
 import { ApiRequestError, listCourses } from '../services/courses.service.js';
 
 export default function FlashcardsPage() {
@@ -49,14 +50,7 @@ export default function FlashcardsPage() {
 
   return (
     <main className="page page--workspace">
-      <header className="page-header">
-        <h1>All saved flashcards</h1>
-        <nav className="page-header__nav" aria-label="Secondary">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/courses">My courses</Link>
-          <Link to="/tasks">All study tasks</Link>
-        </nav>
-      </header>
+      <PageHeader title="All saved flashcards" />
 
       {coursesLoading && <LoadingState message="Loading courses…" />}
 

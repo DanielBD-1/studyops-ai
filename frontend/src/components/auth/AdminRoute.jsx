@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import LoadingState from '../ui/LoadingState.jsx';
+import PageHeader from '../layout/PageHeader.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 export default function AdminRoute({ children }) {
@@ -12,10 +13,7 @@ export default function AdminRoute({ children }) {
   if (user?.role !== 'admin') {
     return (
       <main className="page page--workspace">
-        <header className="page-header">
-          <h1>Admin</h1>
-        </header>
-        <p className="page__lead">Admin access required</p>
+        <PageHeader title="Admin" lead="Admin access required" />
         <p>
           <Link to="/dashboard">Back to dashboard</Link>
         </p>
