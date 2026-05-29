@@ -10,6 +10,8 @@ import FlashcardsPage from './pages/FlashcardsPage.jsx';
 import TrelloSyncPage from './pages/TrelloSyncPage.jsx';
 import FocusPage from './pages/FocusPage.jsx';
 import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
+import AdminRoute from './components/auth/AdminRoute.jsx';
+import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 
 export default function App() {
   return (
@@ -78,6 +80,16 @@ export default function App() {
           element={
             <ProtectedRoute>
               <StudyMaterialDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminDashboardPage />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
