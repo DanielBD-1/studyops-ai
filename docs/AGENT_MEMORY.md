@@ -1791,3 +1791,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Post-smoke fix (CSS only):** **`frontend/src/styles/components.css`**, **`frontend/src/styles/layout.css`** — `overflow-wrap: anywhere`, `word-break: break-word`, `min-width: 0` on card/study surfaces and shell content; **no** behavior, auth, API, or data-fetching changes
 **Scope boundary:** **`frontend/**`** presentation only — **no** backend, document-service, Supabase, API, DB/migration, package, **`package-lock`**, or CI changes
 **Follow-up:** branch **`phase-8c-1-global-shell-design-system`** ready for commit/push after final **`git status`** check
+
+### 2026-05-30 — Phase 8C-2A Dashboard, Courses, and Course Detail UI upgrade complete
+
+**Workflow:** Phase 8C-2A — Dashboard, Courses, and Course Detail UI upgrade
+**ADR refs:** none (presentation-only; no architecture change)
+**Human gates:** Supervisor Review **approved with notes** (no critical or important issues); Security Review **not required** (presentation-only); manual smoke **passed**
+**Summary:** Frontend presentation-only upgrade for **`/dashboard`**, **`/courses`**, **`/courses/:id`**, **`CourseCard`**, **`MaterialCard`**, **`CourseTasksSection`** (markup/classes), **`TaskCard`** (optional **`className`** only), and scoped CSS in **`frontend/src/styles/layout.css`** + **`components.css`**. Dashboard uses cockpit-style grouping and refreshed stat presentation (**existing metrics only** — no charts, KPI hub, streaks, or invented stats). Courses list uses stronger workspace presentation and subject-style cards. Course detail uses workspace **`PageHeader`**, document-shelf presentation, material cards, and improved course task section styling. Danger zone and all primary actions (refresh stats, create course/material, save, delete, task filters/CRUD, Start Focus) remain visible and behaviorally unchanged.
+**APIs affected:** none
+**Tests:** no test changes; **`cd frontend && npm run lint`** passed (**0** errors, **2** pre-existing warnings); **`npm test`** **190/190** passed; **`npm run build`** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security Review **not required**
+**Manual smoke:** **Passed** — dashboard stats load/refresh, empty CTA → **`/courses`**, per-course links → **`/courses/:id`**; courses list/create/cancel/open; course edit/save, create material → **`/study-materials/:id`**, materials list links, course tasks filters/create/edit/complete/delete/Start Focus, delete course with confirm; **375px** no horizontal scroll; console and network clean
+**Scope boundary:** Nine frontend files only — **no** **`StudyMaterialDetail.jsx`**, **`GeneratedPlanSection.jsx`**, **`DbFlashcardsSection.jsx`**, **`FlashcardStudy.jsx`**, AI/generate/import/clear logic, backend/API/DB/package/CI/services/context, route/auth/data-fetching/validation changes. **No** **`dangerouslySetInnerHTML`**, **`service_role`**, direct Supabase table reads, or console logs/debug JSON.
+**Not touched (intentional):** global **`/tasks`**, **`/flashcards`**, Trello, Focus, Admin redesign; **`PageHeader`** consumed from **8C-1** (component file unchanged in this phase)
+**Follow-up:** **Phase 8C-2B** **not started** — should cover **`StudyMaterialDetail`** + Generated Plan / AI zones later. Branch **`phase-8c-2a-dashboard-courses-course-detail`** ready for commit/push after final **`git status`** check

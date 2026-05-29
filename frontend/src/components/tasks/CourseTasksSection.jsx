@@ -281,10 +281,13 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
   );
 
   return (
-    <section className="section">
-      <h2 className="section__title">Study tasks</h2>
+    <section className="section course-workspace__tasks">
+      <div className="section__header-row">
+        <h2 className="section__title">Study tasks</h2>
+        <p className="section__subtitle">Track work for this course</p>
+      </div>
 
-      <div className="filter-toolbar filter-toolbar--segmented">
+      <div className="filter-toolbar filter-toolbar--segmented course-workspace__task-filters">
         <div className="filter-toolbar__segment">
         {FILTERS.map((f) => (
           <Button
@@ -333,7 +336,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       )}
 
       {!loading && !error && tasks.length > 0 && (
-        <div className="card-list">
+        <div className="card-list course-task-list">
           {tasks.map((task) =>
             editingTaskId === task.id ? (
               <FormCard key={task.id} title="Edit study task">
@@ -430,6 +433,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
                 }
                 focusReturnTo={`/courses/${courseId}`}
                 disabled={busy}
+                className="source-card--course-context"
               />
             )
           )}

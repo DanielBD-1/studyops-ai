@@ -5,7 +5,10 @@ import { Link } from 'react-router-dom';
  */
 export default function CourseCard({ course }) {
   return (
-    <article className="source-card">
+    <article className="source-card source-card--subject">
+      <div className="source-card__header">
+        <span className="source-card__pill">Subject</span>
+      </div>
       <h2 className="source-card__title">
         <Link to={`/courses/${course.id}`} className="source-card__link">
           {course.title}

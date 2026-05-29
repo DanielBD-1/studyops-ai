@@ -14,6 +14,7 @@ import Button from '../ui/Button.jsx';
  *   courseLabel?: { courseId: string, title: string } | null,
  *   focusReturnTo?: string | null,
  *   disabled: boolean,
+ *   className?: string,
  * }} props
  */
 export default function TaskCard({
@@ -28,6 +29,7 @@ export default function TaskCard({
   courseLabel,
   focusReturnTo,
   disabled,
+  className,
 }) {
   const isCompleted = task.status === 'completed';
 
@@ -35,6 +37,7 @@ export default function TaskCard({
     'source-card',
     'source-card--task',
     isCompleted && 'source-card--completed',
+    className,
   ]
     .filter(Boolean)
     .join(' ');
