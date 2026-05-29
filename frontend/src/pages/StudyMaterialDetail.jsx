@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
@@ -42,6 +43,7 @@ import { updateStudyMaterialFormSchema } from '../utils/validation.js';
 export default function StudyMaterialDetail() {
   const { materialId } = useParams();
   const { logout } = useAuth();
+  const { refreshStats } = useDashboardRefresh();
   const navigate = useNavigate();
 
   const [material, setMaterial] = useState(
@@ -258,6 +260,7 @@ export default function StudyMaterialDetail() {
       setPlan(data.plan);
       setSavedAt(data.savedAt);
       setClearError(null);
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -308,6 +311,7 @@ export default function StudyMaterialDetail() {
         setImportFlashcardsSuccess(`Imported ${result.imported} saved flashcards.`);
         setImportFlashcardsProgress(null);
         await loadDbFlashcards();
+        refreshStats();
         return;
       }
 
@@ -324,6 +328,7 @@ export default function StudyMaterialDetail() {
           `Imported ${result.imported} of ${result.total} flashcards before an error. You can try again, but duplicates may be created.`
         );
         await loadDbFlashcards();
+        refreshStats();
       }
       setImportFlashcardsProgress(null);
     } finally {
@@ -366,6 +371,7 @@ export default function StudyMaterialDetail() {
       if (result.success) {
         setImportSuccess(`Imported ${result.imported} study tasks.`);
         setImportProgress(null);
+        refreshStats();
         return;
       }
 
@@ -381,6 +387,7 @@ export default function StudyMaterialDetail() {
         setImportError(
           `Imported ${result.imported} of ${result.total} tasks before an error. You can try again, but duplicates may be created.`
         );
+        refreshStats();
       }
       setImportProgress(null);
     } finally {
@@ -397,6 +404,7 @@ export default function StudyMaterialDetail() {
       await deleteGeneratedPlan(materialId);
       setPlan(null);
       setSavedAt(null);
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (isGeneratedPlanNotFound(err)) {
@@ -425,6 +433,7 @@ export default function StudyMaterialDetail() {
     setDeleting(true);
     try {
       await deleteMaterial(materialId);
+      refreshStats();
       navigate(`/courses/${material.courseId}`);
     } catch (err) {
       if (await handleAuthError(err)) return;

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
 import {
@@ -41,12 +42,24 @@ function StatSection({ title, children }) {
 
 export default function DashboardStub() {
   const { user, logout } = useAuth();
+  const { subscribeToRefresh } = useDashboardRefresh();
   const navigate = useNavigate();
   const [stats, setStats] = useState(
     /** @type {import('../services/dashboard.service.js').DashboardStats | null} */ (null)
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(/** @type {string | null} */ (null));
+  const [refreshing, setRefreshing] = useState(false);
+  const mountedRef = useRef(true);
+  const silentRefreshInFlightRef = useRef(false);
+  const pendingSilentRefreshRef = useRef(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleAuthError = useCallback(
     async (err) => {
@@ -60,24 +73,67 @@ export default function DashboardStub() {
     [logout, navigate]
   );
 
-  const loadStats = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadStats = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      } else {
+        setRefreshing(true);
+      }
 
-    try {
-      const data = await getDashboardStats();
-      setStats(data);
-    } catch (err) {
-      if (await handleAuthError(err)) return;
-      setError('Could not load dashboard stats. Please try again.');
-    } finally {
-      setLoading(false);
+      try {
+        const data = await getDashboardStats();
+        if (!mountedRef.current) return;
+        setStats(data);
+      } catch (err) {
+        if (!mountedRef.current) return;
+        if (await handleAuthError(err)) return;
+        if (!silent) {
+          setError('Could not load dashboard stats. Please try again.');
+        }
+      } finally {
+        if (mountedRef.current) {
+          if (!silent) {
+            setLoading(false);
+          } else {
+            setRefreshing(false);
+          }
+        }
+      }
+    },
+    [handleAuthError]
+  );
+
+  const runSilentRefresh = useCallback(async () => {
+    if (silentRefreshInFlightRef.current) {
+      pendingSilentRefreshRef.current = true;
+      return;
     }
-  }, [handleAuthError]);
+
+    silentRefreshInFlightRef.current = true;
+    try {
+      await loadStats({ silent: true });
+    } finally {
+      silentRefreshInFlightRef.current = false;
+      if (pendingSilentRefreshRef.current) {
+        pendingSilentRefreshRef.current = false;
+        await runSilentRefresh();
+      }
+    }
+  }, [loadStats]);
 
   useEffect(() => {
     loadStats();
   }, [loadStats]);
+
+  useEffect(() => {
+    return subscribeToRefresh(() => {
+      if (stats !== null && !loading) {
+        runSilentRefresh();
+      }
+    });
+  }, [subscribeToRefresh, stats, loading, runSilentRefresh]);
 
   async function handleLogout() {
     await logout();
@@ -112,7 +168,7 @@ export default function DashboardStub() {
       {!loading && error && (
         <>
           <ErrorMessage message={error} />
-          <Button variant="secondary" onClick={loadStats}>
+          <Button variant="secondary" onClick={() => loadStats()}>
             Try again
           </Button>
         </>
@@ -120,6 +176,16 @@ export default function DashboardStub() {
 
       {!loading && !error && stats && (
         <>
+          <p className="section__actions">
+            <Button
+              variant="secondary"
+              disabled={refreshing}
+              onClick={() => runSilentRefresh()}
+            >
+              {refreshing ? 'Refreshing…' : 'Refresh stats'}
+            </Button>
+          </p>
+
           {isEmptyAccount && (
             <section className="dashboard-empty-cta">
               <p className="dashboard-empty-cta__text">
