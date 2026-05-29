@@ -421,6 +421,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
                     ? materialTitleById.get(task.materialId) ?? null
                     : null
                 }
+                focusReturnTo={`/courses/${courseId}`}
                 disabled={busy}
               />
             )

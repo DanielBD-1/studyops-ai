@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 4C-1 (backend Focus Sessions API). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), and **backend Focus Sessions API** (Phase **4C-1**) are documented below.
+**Last aligned:** Phase 4C-2 (frontend Focus Sessions UI). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), and **frontend Focus Sessions UI** (Phase **4C-2**) are documented below.
 
 ---
 
@@ -63,7 +63,7 @@ Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `ques
 
 **`trello_sync_logs` (Phase 4A-0):** Append-only per-task Trello sync attempt log (`user_id`, `task_id`, `status` = `success` \| `failed` \| `skipped`, optional `trello_card_id`, optional sanitized `error_message` max 500). **No** credential columns (ADR 004). RLS: `authenticated` **SELECT** own rows; **`service_role` SELECT + INSERT**; owner trigger on INSERT. Table **applied and verified** on Supabase on **2026-05-26** (see `docs/database/007-trello-sync-logs-schema-and-rls.md`). **`study_tasks.trello_card_id`** is updated by **`POST /api/trello/sync`** (Phase **4A-1**) on successful card creation; still **omitted** from task GET/PATCH API responses. **Trello sync + board/list picker (4A + 4B):** end-to-end on **`/trello`** — Load boards → select board/list → sync tasks; **manually smoke-tested** (Phase **4B** picker flow, **2026-05-29**).
 
-**`focus_sessions` (Phases 4C-0 + 4C-1):** Per-task Pomodoro-style focus session rows (`user_id`, `course_id`, `task_id`, `duration_minutes`, `completed_task`, `started_at`, `ended_at`). **4C-0:** table + RLS + ownership trigger (see `docs/database/008-focus-sessions-schema-and-rls.md`; **applied and verified** on Supabase **2026-05-29**). **4C-1 backend API:** `POST /api/focus` (start for owned **pending** task; body `{ taskId, durationMinutes? }` default **25**, int **5–120**); `POST /api/focus/:sessionId/complete` (body `{ completedTask }`; server-side actual minutes from `started_at` / `ended_at`, clamped **1 … min(120, session ceiling)**; optional task completion via existing `completeTask`). **`duration_minutes`:** provisional **session ceiling** while `ended_at IS NULL`; **actual completed minutes** after complete. **No** task description or material content on start load; session responses camelCase. Wrong-owner → neutral **404**; already completed session → **409**. **Known MVP note (SEC-1):** session row is closed before `completeTask`; rare DB failure after session update may leave task **pending** while session is ended (user can still `POST /api/tasks/:taskId/complete`). **Not implemented:** `/focus/:taskId` UI (Phase **4C-2**); manual smoke (Phase **4C-3**); dashboard **`totalFocusMinutes`** (Phase **5B** — sum `duration_minutes` where `ended_at IS NOT NULL`).
+**`focus_sessions` (Phases 4C-0 + 4C-1 + 4C-2):** Per-task Pomodoro-style focus session rows (`user_id`, `course_id`, `task_id`, `duration_minutes`, `completed_task`, `started_at`, `ended_at`). **4C-0:** table + RLS + ownership trigger (see `docs/database/008-focus-sessions-schema-and-rls.md`; **applied and verified** on Supabase **2026-05-29**). **4C-1 backend API:** `POST /api/focus` (start for owned **pending** task; body `{ taskId, durationMinutes? }` default **25**, int **5–120**); `POST /api/focus/:sessionId/complete` (body `{ completedTask }`; server-side actual minutes from `started_at` / `ended_at`, clamped **1 … min(120, session ceiling)**; optional task completion via existing `completeTask`). **4C-2 frontend UI:** protected **`/focus/:taskId`**; **Start Focus** on **pending** tasks (`/tasks`, `/courses/:id`); frontend → backend only via **`focus.service.js`**; fixed **25**-minute **display-only** countdown; complete sends **`{ completedTask }` only**; success uses backend **`session.durationMinutes`**; **no** pause/resume, duration picker, or browser storage. **`duration_minutes`:** provisional **session ceiling** while `ended_at IS NULL`; **actual completed minutes** after complete. **No** task description or material content on start load; session responses camelCase. Wrong-owner → neutral **404**; already completed session → **409**. **Known MVP note (SEC-1):** session row is closed before `completeTask`; rare DB failure after session update may leave task **pending** while session is ended (user can still `POST /api/tasks/:taskId/complete`). **Not implemented:** manual smoke (Phase **4C-3**); dashboard **`totalFocusMinutes`** (Phase **5B** — sum `duration_minutes` where `ended_at IS NOT NULL`).
 
 **Not created yet:** `api_logs` admin table, etc. (PRD future scope). **Plan task import** (3A-f) copies `plan.tasks[]` into `study_tasks` only.
 
@@ -141,7 +141,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 **Ownership / errors:** Wrong-owner or missing course → **`404`** “Course not found”. Wrong-owner or missing task → **`404`** “Task not found”. Responses do **not** expose other users’ task existence.
 
-**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. Dashboard metrics, admin, or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**). Focus: **`POST /api/focus`** + **`POST /api/focus/:sessionId/complete`** implemented (Phase **4C-1**); **`/focus/:taskId` UI** pending **4C-2**. Trello sync: **`POST /api/trello/sync`** (Phase **4A-1**) + frontend **`/trello`** page (Phases **4A-2** + **4A-3** UI polish).
+**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. Dashboard metrics, admin, or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**). Focus: **`POST /api/focus`** + **`POST /api/focus/:sessionId/complete`** + **`/focus/:taskId` UI** implemented (Phases **4C-1** + **4C-2**); manual smoke pending **4C-3**; dashboard **`totalFocusMinutes`** pending **5B**. Trello sync: **`POST /api/trello/sync`** (Phase **4A-1**) + frontend **`/trello`** page (Phases **4A-2** + **4A-3** UI polish).
 
 ---
 
@@ -469,6 +469,31 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 ---
 
+## Implemented — Focus Sessions frontend UI (Phase 4C-2)
+
+**Frontend only** — protected **`/focus/:taskId`**; **`focus.service.js`** → StudyOps backend only (Bearer JWT via existing auth pattern); **no** direct Supabase table access, **no** external APIs, **no** `localStorage` / `sessionStorage`.
+
+| Route / entry | Behavior |
+|---------------|----------|
+| **`/focus/:taskId`** | Protected route; auto-starts session via **`POST /api/focus`** once per visit (fixed **25** minutes); display-only countdown; **Complete session** via **`POST /api/focus/:sessionId/complete`** with body **`{ completedTask }` only**; optional **Mark task as complete** checkbox; success message uses backend **`session.durationMinutes`** |
+| **Start Focus** (pending tasks) | Link on **`TaskCard`** from **`/tasks`** (returns to **`/tasks`**) and **`/courses/:id`** (returns to **`/courses/:courseId`**); hidden on completed tasks; non-clickable when card is busy |
+
+**MVP constraints:** **No** pause/resume; **no** duration picker; client timer is **display-only** (backend is source of truth for credited minutes).
+
+**S1 fix:** Module-level in-flight **`Promise` Map** keyed by **`taskId:durationMinutes`** dedupes duplicate **`POST /api/focus`** on remount/Strict Mode; entries removed in **`finally`**.
+
+**Checks:** `cd frontend && npm run lint` passed (pre-existing AuthContext warning); `npm test` (**174** tests, **0** failures); `npm run build` passed.
+
+**Reviews:** Initial Supervisor Review changes requested (S1); S1 fixed; Targeted Supervisor Re-review **approved with notes**; Security Review **no blockers**.
+
+**Known gaps (non-blocking):** No automated test for promise-map dedupe; no component test for Start Focus hidden on completed tasks or busy-state span; **`returnTo`** validated with **`startsWith('/')`** only.
+
+**Not in 4C-2:** Manual smoke (**4C-3**); dashboard **`totalFocusMinutes`** (**5B**); pause/resume; duration picker.
+
+**Implementation files:** `frontend/src/pages/FocusPage.jsx`, `frontend/src/services/focus.service.js`, `frontend/src/App.jsx`, `frontend/src/components/tasks/TaskCard.jsx`, `frontend/src/components/tasks/CourseTasksSection.jsx`, `frontend/src/components/tasks/GlobalTasksSection.jsx`.
+
+---
+
 ## Implemented — Flashcards backend API (Phase 3B-c)
 
 Manual **`public.flashcards`** CRUD via the main backend only (not document-service, not direct Supabase from the browser). All routes **`requireAuth`**; service-role queries always filter by authenticated **`user_id`**.
@@ -622,9 +647,10 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
 | `/flashcards` | **All saved flashcards** — **course + material filters** (in-memory), **create** (required course, optional material), list, **study filtered** cards, **edit/delete**; links to course/material |
 | `/trello` | **Trello sync** — apiKey/token (not stored); **Load boards** → board/list picker (**4B-2**); task selection (max 50); sync via backend only (`/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync`); credentials cleared after sync attempt; UI polished (**4A-3**) |
+| `/focus/:taskId` | **Focus session** — auto-start via **`POST /api/focus`**; fixed **25**-minute display countdown; complete via **`POST /api/focus/:sessionId/complete`** (`{ completedTask }` only); optional mark task complete; **Start Focus** entry from pending tasks on **`/tasks`** and **`/courses/:id`** (**4C-2**) |
 | `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks`, **saved DB flashcards** (list, study, **manual create/edit/delete**), **import plan flashcards** to library, and **generated-plan** flashcard study UI (`plan.flashcards`, flip/reveal) |
 
-**Not implemented:** `/courses/:id/generate`, `/focus/:taskId`, `/admin` (PRD future).
+**Not implemented:** `/courses/:id/generate`, `/admin` (PRD future).
 
 ---
 
@@ -636,7 +662,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
 - Student dashboard analytics (real metrics)
 - Admin dashboard and logs
-- **`/focus/:taskId` UI** and Start Focus entry points (Phase **4C-2**); focus manual smoke (**4C-3**); dashboard **`totalFocusMinutes`** (**5B**) — backend focus API **4C-1** complete; **`focus_sessions`** table **4C-0** applied (**2026-05-29**)
+- Focus manual smoke (**4C-3**); dashboard **`totalFocusMinutes`** (**5B**) — database **4C-0**, backend API **4C-1**, and frontend UI **4C-2** complete; **`focus_sessions`** table **4C-0** applied (**2026-05-29**)
 - Production deployment strategy
 - **`DESIGN.md` v2** (Phase 2I-c) and **frontend styling pass** (Phase 2J) are **complete** — presentation only; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`)
 - Pre-commit secret scanning (optional future)

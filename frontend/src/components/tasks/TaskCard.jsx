@@ -12,6 +12,7 @@ import Button from '../ui/Button.jsx';
  *   deleting: boolean,
  *   materialLabel: string | null,
  *   courseLabel?: { courseId: string, title: string } | null,
+ *   focusReturnTo?: string | null,
  *   disabled: boolean,
  * }} props
  */
@@ -25,6 +26,7 @@ export default function TaskCard({
   deleting,
   materialLabel,
   courseLabel,
+  focusReturnTo,
   disabled,
 }) {
   const isCompleted = task.status === 'completed';
@@ -53,6 +55,20 @@ export default function TaskCard({
       <div className="form-row">
         {!isCompleted && (
           <>
+            {disabled || editing || completing || deleting ? (
+              <span aria-disabled="true">Start Focus</span>
+            ) : (
+              <Link
+                to={`/focus/${task.id}`}
+                state={{
+                  taskTitle: task.title,
+                  courseId: task.courseId,
+                  returnTo: focusReturnTo ?? '/tasks',
+                }}
+              >
+                Start Focus
+              </Link>
+            )}
             <Button
               type="button"
               variant="secondary"
