@@ -1687,3 +1687,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers** (no ownership weakening; no content/plan selected in ownership query; no raw PostgREST errors exposed)
 **Scope boundary:** Backend service + tests only — **no** frontend, DB/migration/RLS, auth, package, or dependency changes
 **Pitfalls:** **`assertMaterialOwnedForFlashcards`** still uses inline select string (optional DRY follow-up only)
+
+### 2026-05-29 — Phase 6A-1 Admin Authorization Foundation complete
+
+**Workflow:** Phase 6A-1 Admin Authorization Foundation
+**ADR refs:** 001 (modular monolith — `backend/src/modules/admin/*`), 003 (Zod unchanged — no new request schemas)
+**Human gates:** `approved — implement Phase 6A-1`; Supervisor Review **approved with notes**; Security Review **no blockers**; `approved — Phase 6A-1 complete`
+**Summary:** Backend admin authorization foundation only — **`requireAdmin`** middleware loads **`profiles.role`** from DB for **`req.user.id`** (after **`requireAuth`**); **does not** trust frontend, JWT role claims, or client-supplied role. Mounted **`/api/admin`** router with middleware order **`requireAuth` → `requireAdmin` → handler**. Minimal protected endpoint **`GET /api/admin/access-check`** returns only **`{ admin: true }`** — no email, userId, profile object, stats, logs, or cross-user data. **401 `AUTH_REQUIRED`** for missing/invalid token; **403 `FORBIDDEN`** / `"Admin access required"` for authenticated student or missing profile (same generic response — no enumeration); **200** for verified admin. **`req.user.role = 'admin'`** attached only after DB verification. No frontend **`/admin`** route/UI; no full admin stats; no **`GET /api/admin/stats`** or **`GET /api/admin/logs`**; no user list; no role mutation API; no DB/migration/RLS changes (**`profiles.role`** already exists).
+**APIs affected:** **`GET /api/admin/access-check`** (new)
+**Tests:** **`backend/tests/integration/admin.auth.test.js`**, **`backend/tests/helpers/mockSupabaseAdmin.js`**; **`backend/package.json`** `test` script only (+admin auth test). **`cd backend && npm run lint`** passed; **`npm test`** **290/290** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers** — no critical or important issues
+**Known gaps (non-blocking):** integration test for valid JWT + missing profile → **403**; isolated **`requireAdmin`** unit tests
+**Scope boundary:** Backend admin module + integration tests + **`backend/package.json`** `test` script only — **no** frontend, DB/migration, dependency, or **`package-lock`** changes
+**Not implemented (intentional):** full admin aggregate stats API (**Phase 6A-2**); frontend **`/admin`** UI (**Phase 6A-3**); **`api_logs`** / admin logs endpoints
+**Follow-up:** **Phase 6A-2** — backend admin aggregate stats API (separate human approval)
