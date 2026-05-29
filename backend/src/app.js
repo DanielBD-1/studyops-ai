@@ -9,6 +9,7 @@ import flashcardsRoutes from './modules/flashcards/flashcards.routes.js';
 import trelloRoutes from './modules/trello/trello.routes.js';
 import focusRoutes from './modules/focus/focus.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
+import adminRoutes from './modules/admin/admin.routes.js';
 import { ApiError } from './shared/errors/ApiError.js';
 import { sendError } from './shared/utils/response.js';
 
@@ -35,6 +36,7 @@ app.use('/api/flashcards', flashcardsRoutes);
 app.use('/api/trello', trelloRoutes);
 app.use('/api/focus', focusRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((err, _req, res, next) => {
   if (res.headersSent) {
