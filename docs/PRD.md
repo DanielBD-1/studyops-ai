@@ -7,9 +7,9 @@
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **4A-2**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **4B-1**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2)
+### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1)
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -22,8 +22,9 @@ This section records **what the repository implements today** (summary only; ali
 - **Flashcards frontend integration** (Phases **3B-d** + **3B-e** + **3B-f** + **3B-g**) — material-detail saved list, plan import, manual CRUD; **global `/flashcards`** page (create with required course + optional material, list, study, course/material filters, edit/delete); course-level management and advanced study still deferred
 - **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
 - **Trello backend sync API** (Phase **4A-1**) — `POST /api/trello/sync` with manual `{ apiKey, token, listId, taskIds }` in body; native `fetch` Trello client; per-task `results[]` with `status` enum `success` \| `failed` \| `skipped` (approved refinement vs PRD boolean `success` example); updates `study_tasks.trello_card_id` on success; appends `trello_sync_logs` for owned tasks; **credentials never stored**
-- **Trello frontend sync UI** (Phase **4A-2**) — protected **`/trello`**; user enters apiKey/token/listId, selects owned tasks (max 50), frontend calls **`POST /api/trello/sync`** only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
-- **Trello manual sync MVP (end-to-end):** 4A-0 logs table + 4A-1 backend + 4A-2 frontend. **Still deferred:** OAuth; boards/lists fetch (`POST /api/trello/boards`); credential storage; Trello card update/delete; force re-sync
+- **Trello frontend sync UI** (Phase **4A-2** + **4A-3** polish) — protected **`/trello`**; user enters apiKey/token/listId (manual listId until **4B-2** picker), selects owned tasks (max 50), frontend calls **`POST /api/trello/sync`** only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
+- **Trello backend board/list discovery** (Phase **4B-1**) — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; ephemeral `{ apiKey, token }` in body; backend proxies to Trello; returns sanitized `{ boards: [{ id, name }] }` / `{ lists: [{ id, name }] }` only; **no** DB writes; **no** credential storage. **Approved refinement:** two endpoints (lazy list load after board pick) instead of one nested boards+lists response in older PRD examples
+- **Trello manual sync MVP (end-to-end):** 4A-0 logs table + 4A-1 backend + 4A-2/4A-3 frontend. **Still deferred:** OAuth; **frontend** board/list picker (**4B-2**); credential storage; board/list persistence; Trello card update/delete; force re-sync
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
 
 ### Approved refinement vs §9 / §6.5 below
@@ -56,7 +57,8 @@ This section records **what the repository implements today** (summary only; ali
 | Trello sync **`POST /api/trello/sync`** (manual apiKey/token/listId; per-task `status` results) | **Yes** (4A-1 backend) |
 | Trello sync **UI** (`/trello`, clear credentials after sync) | **Yes** (4A-2 — frontend calls backend only) |
 | Per-row sync status `skipped` (e.g. already synced) | **Yes** (4A-0 schema + 4A-1 API) |
-| `POST /api/trello/boards` (fetch boards/lists) | **Deferred** |
+| `POST /api/trello/boards` + `POST /api/trello/boards/:boardId/lists` (backend discovery) | **Yes** (4B-1 — sanitized `{ id, name }`; no persistence) |
+| Frontend Trello board/list picker on `/trello` | **Deferred** (4B-2) |
 
 ### Architecture and env (unchanged intent)
 
@@ -511,12 +513,12 @@ The Document Processing Microservice is separated because Gemini processing has 
 
 ### 7.6 Trello Sync
 
-**Implemented (Phases 4A-1 + 4A-2):** Protected **`/trello`** page; manual apiKey/token/listId; task checkboxes; frontend → **`POST /api/trello/sync`** only; results with `status` `success` \| `failed` \| `skipped` and summary counts; credentials cleared from React state after sync (not persisted). **Not implemented:** Fetch Boards/lists picker; OAuth; stored credentials.
+**Implemented (Phases 4A-1 + 4A-2 + 4A-3 + 4B-1 backend):** Protected **`/trello`** page; manual apiKey/token/listId (**listId** until **4B-2** picker); task checkboxes; frontend → **`POST /api/trello/sync`** only (never `api.trello.com`); results with `status` `success` \| `failed` \| `skipped` and summary counts; credentials cleared from React state after sync (not persisted). **Backend (4B-1):** **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`** — ephemeral credentials in body; sanitized board/list `{ id, name }` arrays; no DB persistence. **Not implemented in UI:** board/list dropdown picker (**4B-2**); OAuth; stored credentials.
 
 - Student opens Trello integration screen
 - Student enters Trello API key and token (not saved for MVP)
 - Student enters Trello List ID manually (required for MVP)
-- Optional: Student can fetch boards/lists by clicking "Fetch Boards" (if implemented)
+- Optional: Student selects board and list from picker (**4B-2** frontend; backend **4B-1** provides `POST /api/trello/boards` then `POST /api/trello/boards/:boardId/lists`)
 - Student selects study tasks to sync (checkboxes)
 - Student clicks "Sync to Trello"
 - Frontend sends: `POST /api/trello/sync` with `{ apiKey, token, listId, taskIds: [...] }` in body
@@ -1004,11 +1006,19 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 - Credentials are NOT persisted
 - **Frontend:** Route **`/trello`** — credential form, task selection, results display; calls this endpoint only; clears credentials after sync attempt; never calls `api.trello.com` directly
 
-**POST /api/trello/boards** - Fetch Trello boards (optional for MVP) — **deferred**
+**POST /api/trello/boards** - Fetch Trello boards (**implemented** — Phase **4B-1**)
+
+- Body: `{ apiKey, token }` (strict Zod; unknown fields rejected)
+- Note: Credentials in body, NOT in query params; NOT persisted
+- Returns: `{ boards: [{ id, name }] }` — open boards only, sorted by name, max 500
+- **Frontend:** Not wired on `/trello` until **4B-2**; frontend must call this backend route only (never Trello directly)
+
+**POST /api/trello/boards/:boardId/lists** - Fetch lists for a board (**implemented** — Phase **4B-1**)
 
 - Body: `{ apiKey, token }`
-- Note: Credentials in body, NOT in query params
-- Returns: `{ boards: [...] }`
+- Path: `boardId` — alphanumeric, 1–64 chars
+- Returns: `{ lists: [{ id, name }] }` — open lists only, sorted by name, max 500
+- **Approved refinement:** Separate from boards endpoint (lazy load after board selection) instead of one nested boards+lists payload in older PRD examples
 
 ---
 
@@ -1282,14 +1292,14 @@ For MVP, Trello credentials are **NOT stored in database**.
 - Frontend can temporarily store in component state during session
 - Clear warning: "Credentials are not saved, you'll need them again next time"
 
-### Optional: Fetch Boards/Lists
+### Board/list discovery (implemented backend — Phase 4B-1)
 
-If time permits, implement `POST /api/trello/boards`:
+**Implemented** as two backend proxy endpoints (not one nested response):
 
-- Accepts credentials in request body (NOT query params)
-- Returns list of boards with their lists
-- User can select list from UI
-- Still not persisting credentials
+- **`POST /api/trello/boards`** — `{ apiKey, token }` → `{ boards: [{ id, name }] }`
+- **`POST /api/trello/boards/:boardId/lists`** — `{ apiKey, token }` → `{ lists: [{ id, name }] }`
+
+Credentials in request body only (NOT query params); **not** persisted; frontend calls backend only. **Frontend picker** on `/trello` is **Phase 4B-2** (replaces manual listId paste).
 
 ### Post-MVP: Encrypted Storage
 

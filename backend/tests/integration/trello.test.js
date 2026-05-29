@@ -27,6 +27,13 @@ const SYNC_BODY = {
   taskIds: [OWN_TASK_ID],
 };
 
+const BOARDS_BODY = {
+  apiKey: 'secret-api-key',
+  token: 'secret-token',
+};
+
+const BOARD_ID = 'boardABC123';
+
 function listen(server) {
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => resolve(server));
@@ -256,6 +263,187 @@ describe('trello API integration', () => {
 
     assert.equal(statusCode, 200);
     assert.equal(body.data.results[0].error, 'Trello list not found');
+  });
+
+  it('POST /api/trello/boards returns 401 without Authorization', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
+      method: 'POST',
+      body: BOARDS_BODY,
+    });
+    assert.equal(statusCode, 401);
+    assert.equal(body.error.code, 'AUTH_REQUIRED');
+  });
+
+  it('POST /api/trello/boards rejects invalid body', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
+      method: 'POST',
+      headers: auth,
+      body: { apiKey: '', token: 'secret-token' },
+    });
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('POST /api/trello/boards rejects unknown fields', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
+      method: 'POST',
+      headers: auth,
+      body: { ...BOARDS_BODY, listId: 'x' },
+    });
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('POST /api/trello/boards maps Trello 401 to sanitized error', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: 'invalid key' }),
+    }));
+
+    const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
+      method: 'POST',
+      headers: auth,
+      body: BOARDS_BODY,
+    });
+
+    assert.equal(statusCode, 401);
+    assert.equal(body.success, false);
+    assert.equal(body.error.message, 'Trello authentication failed');
+    assert.equal(JSON.stringify(body).includes('invalid key'), false);
+    assertNoTrelloCredentialsInValue(body);
+  });
+
+  it('POST /api/trello/boards maps Trello 429 to sanitized error', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: false,
+      status: 429,
+      json: async () => ({}),
+    }));
+
+    const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
+      method: 'POST',
+      headers: auth,
+      body: BOARDS_BODY,
+    });
+
+    assert.equal(statusCode, 429);
+    assert.equal(body.error.message, 'Trello rate limit reached');
+    assertNoTrelloCredentialsInValue(body);
+  });
+
+  it('POST /api/trello/boards returns sanitized boards only', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => [
+        { id: 'b2', name: 'Beta', closed: false, url: 'https://trello.com/b/b2' },
+        { id: 'b1', name: 'Alpha', closed: false, memberships: [] },
+        { id: 'b3', name: 'Closed', closed: true },
+      ],
+    }));
+
+    const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
+      method: 'POST',
+      headers: auth,
+      body: BOARDS_BODY,
+    });
+
+    assert.equal(statusCode, 200);
+    assert.equal(body.success, true);
+    assert.deepEqual(body.data.boards, [
+      { id: 'b1', name: 'Alpha' },
+      { id: 'b2', name: 'Beta' },
+    ]);
+    assert.equal(body.data.apiKey, undefined);
+    assert.equal(body.data.token, undefined);
+    assert.equal(JSON.stringify(body).includes('memberships'), false);
+    assert.equal(JSON.stringify(body).includes('secret-api-key'), false);
+    assertNoTrelloCredentialsInValue(body);
+  });
+
+  it('POST /api/trello/boards/:boardId/lists returns 401 without Authorization', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/trello/boards/${BOARD_ID}/lists`,
+      {
+        method: 'POST',
+        body: BOARDS_BODY,
+      }
+    );
+    assert.equal(statusCode, 401);
+    assert.equal(body.error.code, 'AUTH_REQUIRED');
+  });
+
+  it('POST /api/trello/boards/:boardId/lists rejects invalid boardId', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/boards/ /lists`, {
+      method: 'POST',
+      headers: auth,
+      body: BOARDS_BODY,
+    });
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('POST /api/trello/boards/:boardId/lists rejects invalid lists body', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/trello/boards/${BOARD_ID}/lists`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: { apiKey: 'k' },
+      }
+    );
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('POST /api/trello/boards/:boardId/lists maps Trello 404 to board not found', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    }));
+
+    const { statusCode, body } = await request(
+      `${base()}/api/trello/boards/${BOARD_ID}/lists`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: BOARDS_BODY,
+      }
+    );
+
+    assert.equal(statusCode, 404);
+    assert.equal(body.error.message, 'Trello board not found');
+    assertNoTrelloCredentialsInValue(body);
+  });
+
+  it('POST /api/trello/boards/:boardId/lists returns sanitized lists only', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => [
+        { id: 'l2', name: 'In Progress', closed: false, pos: 2 },
+        { id: 'l1', name: 'To Do', closed: false },
+      ],
+    }));
+
+    const { statusCode, body } = await request(
+      `${base()}/api/trello/boards/${BOARD_ID}/lists`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: BOARDS_BODY,
+      }
+    );
+
+    assert.equal(statusCode, 200);
+    assert.deepEqual(body.data.lists, [
+      { id: 'l2', name: 'In Progress' },
+      { id: 'l1', name: 'To Do' },
+    ]);
+    assert.equal(JSON.stringify(body).includes('secret-token'), false);
+    assertNoTrelloCredentialsInValue(body);
   });
 
   it('POST /api/trello/sync maps Trello 429 to rate limit message', async () => {
