@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 6A-2 (Backend admin aggregate stats API). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), and **backend admin aggregate stats API** (Phase **6A-2**) are documented below.
+**Last aligned:** Phase 6A-3 (Frontend admin dashboard UI). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
 
 ---
 
@@ -78,6 +78,7 @@ Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `ques
 - Profiles via `auth.users` + `public.profiles` (RLS own-row SELECT); **`profiles.role`** is source of truth for admin (`student` default; admin promotion manual only)
 - **Admin authorization (Phase 6A-1):** backend **`requireAdmin`** middleware verifies **`profiles.role === 'admin'`** from DB — see [Admin authorization foundation](#implemented--admin-authorization-foundation-phase-6a-1) below
 - **Admin aggregate stats (Phase 6A-2):** **`GET /api/admin/stats`** — platform-wide aggregate counts only; protected by **`requireAuth` + `requireAdmin`** — see [Admin aggregate stats API](#implemented--admin-aggregate-stats-api-phase-6a-2) below
+- **Admin dashboard UI (Phase 6A-3):** protected **`/admin`** consumes **`GET /api/admin/stats`** via **`admin.service.js`** — see [Admin dashboard UI](#implemented--admin-dashboard-ui-phase-6a-3) below
 
 ---
 
@@ -629,7 +630,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
 
-**Not in 6A-1:** full admin aggregate stats API (shipped in **6A-2**); frontend **`/admin`** UI (**Phase 6A-3**); **`GET /api/admin/logs`** / **`api_logs`** table; user list; role mutation endpoints; cross-user aggregate queries.
+**Not in 6A-1:** full admin aggregate stats API (shipped in **6A-2**); frontend **`/admin`** UI (shipped in **6A-3**); **`GET /api/admin/logs`** / **`api_logs`** table; user list; role mutation endpoints; cross-user aggregate queries.
 
 **Known gaps (non-blocking):** integration test for valid JWT + missing profile → **403**; isolated **`requireAdmin`** unit tests.
 
@@ -664,11 +665,51 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
 
-**Not in 6A-2:** frontend **`/admin`** UI (**Phase 6A-3**); **`GET /api/admin/logs`** / **`api_logs`** table; Gemini/system error metrics (deferred — no **`api_logs`** table); user list; role mutation endpoints.
+**Not in 6A-2:** frontend **`/admin`** UI (shipped in **6A-3**); **`GET /api/admin/logs`** / **`api_logs`** table; Gemini/system error metrics (deferred — no **`api_logs`** table); user list; role mutation endpoints.
 
 **Known gaps (non-blocking):** at larger scale, **`totalFocusMinutes`** can move to DB-side **`SUM`**; forbidden-field regression test can add **`courseId`**, **`materialId`**, **`generatedPlan`**; no dedicated **`admin.service`** unit test (integration coverage accepted).
 
 **Implementation files:** `backend/src/modules/admin/admin.service.js`, `admin.controller.js`, `admin.routes.js`, `backend/tests/integration/admin.stats.test.js`, `backend/tests/helpers/mockSupabaseAdminStats.js`; **`backend/package.json`** `test` script only.
+
+---
+
+## Implemented — Admin dashboard UI (Phase 6A-3)
+
+**Frontend only** — protected **`/admin`** route; consumes existing **`GET /api/admin/stats`** (**6A-2** backend). **No backend, DB migration, dependency, or `package-lock` change** in this phase.
+
+| Route | Nesting | Purpose |
+|-------|---------|---------|
+| `/admin` | **`ProtectedRoute` → `AdminRoute` → `AdminDashboardPage`** | Platform-wide **aggregate** admin stats (read-only) |
+
+**Route protection (UX vs security):**
+
+- **`ProtectedRoute`** — unauthenticated users redirect to **`/`**
+- **`AdminRoute`** — if **`user?.role !== 'admin'`**, shows neutral **“Admin access required”** + link to dashboard; **`AdminDashboardPage` does not mount**
+- **`AdminRoute` does not call the backend** — UX guard only; **`requireAuth` + `requireAdmin`** on **`GET /api/admin/stats`** remains the **real authorization boundary**
+
+**API consumption:**
+
+- **`admin.service.js`** → **`getAdminStats()`** → **`GET /api/admin/stats`** via **`apiFetch`** + session Bearer token (Supabase browser client for **`access_token` only**)
+- **Does not** call **`GET /api/admin/access-check`**, document-service, Gemini, Trello API, or direct Supabase table reads
+- **No** **`service_role`** in frontend
+
+**Displayed data (aggregate-only):** platform overview (**`totalUsers`**, **`totalCourses`**, **`totalStudyMaterials`**, **`totalGeneratedPlans`**), tasks, focus, flashcards, Trello today sync metrics, **`systemHealth.backend`** as safe health text — **no** emails, user IDs, user lists, course/material names, study text, plan JSON, flashcard Q/A, Trello card IDs, credentials, logs, raw JSON, or API response dumps
+
+**UI states:** loading; success (all-zero stats valid); **403 `FORBIDDEN`** → **“Admin access required”**; **`AUTH_REQUIRED`** → existing logout/redirect; **5xx / `DATABASE_ERROR`** → generic **“Could not load admin stats. Please try again.”** + **Try again**; manual **Refresh stats** (no polling)
+
+**Dashboard nav:** **`/dashboard`** shows **Admin** link only when **`user?.role === 'admin'`** (UX only — not security)
+
+**Checks:** `cd frontend && npm run lint` passed (**0** errors, **2** pre-existing warnings); `npm test` (**190** tests, **0** failures); `npm run build` passed.
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
+
+**Manual smoke test (passed, 2026-05-29):** Admin user accesses **`/admin`** and sees aggregate stat sections; **Admin** link on **`/dashboard`** for admin only; student has no link and direct **`/admin`** shows **“Admin access required”**; browser calls **`GET /api/admin/stats`** only — **no** direct Supabase table reads for admin stats; console clean (no token, **Authorization** header, or full response dump); **`/dashboard`** regression OK.
+
+**Not in 6A-3:** **`/admin/logs`**; user list; role management; **`GET /api/admin/logs`** / **`api_logs`** table; Gemini/system error metrics UI
+
+**Known gaps (non-blocking):** **SEC-6A3-1** — silent refresh after admin demotion may leave previously loaded aggregate stats visible until forbidden state is set (backend still blocks new fetches); optional extract duplicated **`StatItem`** / **`StatSection`**; optional reduce layered loading UX
+
+**Implementation files:** `frontend/src/App.jsx`, `frontend/src/components/auth/AdminRoute.jsx`, `frontend/src/pages/AdminDashboardPage.jsx`, `frontend/src/pages/DashboardStub.jsx` (Admin nav link), `frontend/src/services/admin.service.js`, `frontend/tests/unit/admin.service.test.js`; **`frontend/package.json`** `test` script only.
 
 ---
 
@@ -821,7 +862,8 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | Route | Purpose |
 |-------|---------|
 | `/`, `/register` | Auth |
-| `/dashboard` | **Student dashboard** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** backend + **5C** UI + **5C.1** refresh); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere |
+| `/dashboard` | **Student dashboard** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** backend + **5C** UI + **5C.1** refresh); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere; **Admin** nav link when **`user?.role === 'admin'`** |
+| `/admin` | **Admin dashboard** — platform-wide aggregate stats from **`GET /api/admin/stats`** (**6A-2** backend + **6A-3** UI); **`ProtectedRoute` → `AdminRoute` → `AdminDashboardPage`**; read-only; fetch on mount + **Try again** + **Refresh stats**; **manual smoke test passed** (2026-05-29) |
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
@@ -830,7 +872,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | `/focus/:taskId` | **Focus session** — auto-start via **`POST /api/focus`**; fixed **25**-minute display countdown; complete via **`POST /api/focus/:sessionId/complete`** (`{ completedTask }` only); optional mark task complete; **Start Focus** entry from pending tasks on **`/tasks`** and **`/courses/:id`** (**4C-2**) |
 | `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks`, **saved DB flashcards** (list, study, **manual create/edit/delete**), **import plan flashcards** to library, and **generated-plan** flashcard study UI (`plan.flashcards`, flip/reveal) |
 
-**Not implemented:** `/courses/:id/generate`, `/admin` frontend UI (**Phase 6A-3** — backend admin APIs in **6A-1** + **6A-2** only).
+**Not implemented:** `/courses/:id/generate`.
 
 ---
 
@@ -841,7 +883,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
 - **Dashboard polling / WebSockets / cross-tab sync / visibility refetch** — **5C.1** ships invalidation-only manual/cross-page refresh only (PRD §12.5 intent); **no** polling, WebSockets, **`BroadcastChannel`**, or browser storage sync
-- **Frontend `/admin` UI** (**Phase 6A-3**); **`api_logs`** table and **`GET /api/admin/logs`**; Gemini/system error metrics for admin dashboard (deferred — no **`api_logs`** table; backend admin stats **6A-2** ships DB-derived aggregates only — **`GET /api/admin/access-check`** + **`GET /api/admin/stats`**)
+- **`api_logs`** table and **`GET /api/admin/logs`**; admin **user list** / **role management** UI; Gemini/system error metrics for admin dashboard (deferred — no **`api_logs`** table; **`/admin`** ships aggregate stats UI only — **`GET /api/admin/access-check`** + **`GET /api/admin/stats`**)
 - Production deployment strategy
 - **`DESIGN.md` v2** (Phase 2I-c) and **frontend styling pass** (Phase 2J) are **complete** — presentation only; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`)
 - Pre-commit secret scanning (optional future)

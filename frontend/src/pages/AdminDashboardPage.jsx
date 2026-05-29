@@ -5,9 +5,8 @@ import ErrorMessage from '../components/ui/ErrorMessage.jsx';
 import FormCard from '../components/ui/FormCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useDashboardRefresh } from '../context/DashboardContext.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
-import { getDashboardStats } from '../services/dashboard.service.js';
+import { getAdminStats } from '../services/admin.service.js';
 import {
   formatFocusMinutes,
   formatTaskCompletionPercent,
@@ -40,19 +39,28 @@ function StatSection({ title, children }) {
   );
 }
 
-export default function DashboardStub() {
-  const { user, logout } = useAuth();
-  const { subscribeToRefresh } = useDashboardRefresh();
+/**
+ * @param {string} backendStatus
+ * @returns {string}
+ */
+function formatBackendHealth(backendStatus) {
+  if (backendStatus === 'ok') {
+    return 'Backend: OK';
+  }
+  return `Backend: ${backendStatus}`;
+}
+
+export default function AdminDashboardPage() {
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(
-    /** @type {import('../services/dashboard.service.js').DashboardStats | null} */ (null)
+    /** @type {import('../services/admin.service.js').AdminStats | null} */ (null)
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(/** @type {string | null} */ (null));
+  const [forbidden, setForbidden] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const mountedRef = useRef(true);
-  const silentRefreshInFlightRef = useRef(false);
-  const pendingSilentRefreshRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -78,19 +86,26 @@ export default function DashboardStub() {
       if (!silent) {
         setLoading(true);
         setError(null);
+        setForbidden(false);
       } else {
         setRefreshing(true);
       }
 
       try {
-        const data = await getDashboardStats();
+        const data = await getAdminStats();
         if (!mountedRef.current) return;
         setStats(data);
       } catch (err) {
         if (!mountedRef.current) return;
         if (await handleAuthError(err)) return;
+        if (err instanceof ApiRequestError && err.code === 'FORBIDDEN') {
+          if (!silent) {
+            setForbidden(true);
+          }
+          return;
+        }
         if (!silent) {
-          setError('Could not load dashboard stats. Please try again.');
+          setError('Could not load admin stats. Please try again.');
         }
       } finally {
         if (mountedRef.current) {
@@ -105,66 +120,32 @@ export default function DashboardStub() {
     [handleAuthError]
   );
 
-  const runSilentRefresh = useCallback(async () => {
-    if (silentRefreshInFlightRef.current) {
-      pendingSilentRefreshRef.current = true;
-      return;
-    }
-
-    silentRefreshInFlightRef.current = true;
-    try {
-      await loadStats({ silent: true });
-    } finally {
-      silentRefreshInFlightRef.current = false;
-      if (pendingSilentRefreshRef.current) {
-        pendingSilentRefreshRef.current = false;
-        await runSilentRefresh();
-      }
-    }
-  }, [loadStats]);
-
   useEffect(() => {
     loadStats();
   }, [loadStats]);
 
-  useEffect(() => {
-    return subscribeToRefresh(() => {
-      if (stats !== null && !loading) {
-        runSilentRefresh();
-      }
-    });
-  }, [subscribeToRefresh, stats, loading, runSilentRefresh]);
-
-  async function handleLogout() {
-    await logout();
-    navigate('/');
-  }
-
   const taskCompletionPercent =
     stats && formatTaskCompletionPercent(stats.completedTasks, stats.totalTasks);
-
-  const isEmptyAccount = stats?.totalCourses === 0;
 
   return (
     <main className="page page--workspace">
       <header className="page-header">
-        <h1>Dashboard</h1>
+        <h1>Admin dashboard</h1>
         <nav className="page-header__nav" aria-label="Secondary">
-          <Link to="/courses">My courses</Link>
-          <Link to="/tasks">All study tasks</Link>
-          <Link to="/flashcards">All flashcards</Link>
-          <Link to="/trello">Trello sync</Link>
-          {user?.role === 'admin' && <Link to="/admin">Admin</Link>}
+          <Link to="/dashboard">Dashboard</Link>
         </nav>
       </header>
 
-      {user && (
-        <p className="page__lead">
-          Signed in as <strong>{user.email}</strong>
-        </p>
-      )}
+      {loading && <LoadingState message="Loading admin stats…" />}
 
-      {loading && <LoadingState message="Loading dashboard…" />}
+      {!loading && forbidden && (
+        <>
+          <p className="page__lead">Admin access required</p>
+          <p>
+            <Link to="/dashboard">Back to dashboard</Link>
+          </p>
+        </>
+      )}
 
       {!loading && error && (
         <>
@@ -175,30 +156,21 @@ export default function DashboardStub() {
         </>
       )}
 
-      {!loading && !error && stats && (
+      {!loading && !error && !forbidden && stats && (
         <>
           <p className="section__actions">
             <Button
               variant="secondary"
               disabled={refreshing}
-              onClick={() => runSilentRefresh()}
+              onClick={() => loadStats({ silent: true })}
             >
               {refreshing ? 'Refreshing…' : 'Refresh stats'}
             </Button>
           </p>
 
-          {isEmptyAccount && (
-            <section className="dashboard-empty-cta">
-              <p className="dashboard-empty-cta__text">
-                You have not created any courses yet. Start by adding a course to organize your
-                study materials.
-              </p>
-              <Link to="/courses">Go to My courses</Link>
-            </section>
-          )}
-
-          <StatSection title="Overview">
-            <StatItem label="Courses" value={stats.totalCourses} />
+          <StatSection title="Platform overview">
+            <StatItem label="Total users" value={stats.totalUsers} />
+            <StatItem label="Total courses" value={stats.totalCourses} />
             <StatItem label="Study materials" value={stats.totalStudyMaterials} />
             <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
           </StatSection>
@@ -231,45 +203,26 @@ export default function DashboardStub() {
 
           <StatSection title="Trello">
             <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
+            <StatItem
+              label="Sync attempts today (UTC)"
+              value={stats.trelloSyncAttemptsToday}
+            />
+            <StatItem
+              label="Succeeded today (UTC)"
+              value={stats.trelloSyncSucceededToday}
+            />
+            <StatItem label="Failed today (UTC)" value={stats.trelloSyncFailedToday} />
+            <StatItem label="Skipped today (UTC)" value={stats.trelloSyncSkippedToday} />
           </StatSection>
 
-          <section className="section section--compact">
-            <h2 className="section__title section__title--sm">Per course</h2>
-            {stats.courseStats.length === 0 ? (
-              <FormCard>
-                <p className="dashboard-empty-courses">No courses to show yet.</p>
-              </FormCard>
-            ) : (
-              <ul className="card-list dashboard-course-list">
-                {stats.courseStats.map((course) => (
-                  <li key={course.courseId}>
-                    <article className="source-card">
-                      <h3 className="source-card__title">
-                        <Link
-                          to={`/courses/${course.courseId}`}
-                          className="source-card__link"
-                        >
-                          {course.courseName}
-                        </Link>
-                      </h3>
-                      <p className="source-card__meta">
-                        {course.totalTasks} tasks · {course.completedTasks} completed ·{' '}
-                        {course.totalFlashcards} flashcards
-                      </p>
-                    </article>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <StatSection title="System health">
+            <StatItem
+              label="Status"
+              value={formatBackendHealth(stats.systemHealth.backend)}
+            />
+          </StatSection>
         </>
       )}
-
-      <p className="dashboard-actions">
-        <Button variant="secondary" onClick={handleLogout}>
-          Log out
-        </Button>
-      </p>
     </main>
   );
 }
