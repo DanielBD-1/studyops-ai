@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase 5B (backend Dashboard Stats API). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), and **backend Dashboard Stats API** (Phase **5B**) are documented below.
+**Last aligned:** Phase 5C (Dashboard frontend UI). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), and **Dashboard frontend UI** (Phase **5C**) are documented below.
 
 ---
 
@@ -141,7 +141,7 @@ Manual **`study_tasks`** management via the main backend only (not document-serv
 
 **Ownership / errors:** Wrong-owner or missing course → **`404`** “Course not found”. Wrong-owner or missing task → **`404`** “Task not found”. Responses do **not** expose other users’ task existence.
 
-**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. Admin dashboard or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**). Dashboard: **`GET /api/dashboard/stats`** implemented (Phase **5B**); dashboard **frontend UI** still pending. Focus Sessions MVP complete (Phases **4C-0**–**4C-3**). Trello sync: **`POST /api/trello/sync`** (Phase **4A-1**) + frontend **`/trello`** page (Phases **4A-2** + **4A-3** UI polish).
+**Not implemented (API):** `GET /api/tasks/:id` (PRD) — intentionally deferred. Admin dashboard or **batch** plan-import endpoint (frontend uses repeated create in **3A-f**). Dashboard: **`GET /api/dashboard/stats`** (Phase **5B**) consumed by **`/dashboard`** frontend UI (Phase **5C**). Focus Sessions MVP complete (Phases **4C-0**–**4C-3**). Trello sync: **`POST /api/trello/sync`** (Phase **4A-1**) + frontend **`/trello`** page (Phases **4A-2** + **4A-3** UI polish).
 
 ---
 
@@ -541,9 +541,38 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Known MVP notes:** ~13 parallel DB round-trips per request (acceptable for MVP).
 
-**Not in 5B:** Dashboard **frontend UI** (stub **`/dashboard`** unchanged); admin dashboard; **`GET /api/courses/:id`** course stats stub still returns zeros.
+**Not in 5B:** Dashboard **frontend UI** (shipped in **5C**); admin dashboard; **`GET /api/courses/:id`** course stats stub still returns zeros.
 
 **Implementation files:** `backend/src/modules/dashboard/*`, `backend/src/app.js`.
+
+---
+
+## Implemented — Dashboard frontend UI (Phase 5C)
+
+**Frontend only** — protected **`/dashboard`** (`DashboardStub.jsx`) consumes **`GET /api/dashboard/stats`** via **`dashboard.service.js`** (Bearer JWT through existing **`apiFetch`** pattern; **no** direct Supabase stats queries; **no** `service_role`; **no** Trello/Gemini/document-service calls).
+
+**Visible sections:**
+
+| Section | Displayed fields |
+|---------|------------------|
+| **Overview** | `totalCourses`, `totalStudyMaterials`, `totalGeneratedPlans` |
+| **Tasks** | `totalTasks`, `pendingTasks`, `completedTasks` (+ completion % when `totalTasks > 0`) |
+| **Focus** | `totalFocusMinutes` (formatted), `completedFocusSessions` |
+| **Learning assets** | `totalFlashcards` |
+| **Trello** | `trelloSyncedTasks` (count only — **no** card IDs) |
+| **Per course** | `courseStats[]`: `courseName`, `totalTasks`, `completedTasks`, `totalFlashcards`; link to **`/courses/:courseId`** |
+
+**Behavior:** Fetch on mount; **`LoadingState`** while loading; generic error + **Try again**; **`AUTH_REQUIRED`** → logout + redirect; empty account shows zero stats + CTA to **`/courses`**. **Read-only** — **no** POST/PATCH/DELETE; **no** polling; **no** `DashboardContext`/cross-page refresh wiring.
+
+**Data minimization (UI):** Aggregate counts and per-course names/counts only — **no** study material **`content`**, generated **`plan`** JSON, task titles/descriptions, Trello credentials/card IDs, or raw API error payloads. Course names rendered as React text — **no** `dangerouslySetInnerHTML`.
+
+**Checks:** `cd frontend && npm run lint` passed (one pre-existing `AuthContext.jsx` warning); `npm test` (**181** tests, **0** failures); `npm run build` passed.
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
+
+**Not in 5C:** `DashboardContext`/cross-page auto-refresh (PRD §12.5 — deferred); admin dashboard; chart library; dashboard styling polish pass beyond minimal layout CSS.
+
+**Implementation files:** `frontend/src/services/dashboard.service.js`, `frontend/src/utils/dashboard-format.js`, `frontend/src/pages/DashboardStub.jsx`, `frontend/src/styles/layout.css`, `frontend/tests/unit/dashboard.service.test.js`, `frontend/tests/unit/dashboard-format.test.js`; **`frontend/package.json`** `test` script only.
 
 ---
 
@@ -694,7 +723,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 | Route | Purpose |
 |-------|---------|
 | `/`, `/register` | Auth |
-| `/dashboard` | Stub landing — **`GET /api/dashboard/stats`** backend API implemented (**5B**); real dashboard UI still pending |
+| `/dashboard` | **Student dashboard** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** backend + **5C** frontend UI); read-only; fetch on mount + **Try again** |
 | `/courses` | Course list + create |
 | `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
 | `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
@@ -713,7 +742,7 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
-- Student dashboard **frontend UI** (real metrics display on **`/dashboard`** — backend **`GET /api/dashboard/stats`** implemented in **5B**)
+- **`DashboardContext`/cross-page dashboard auto-refresh** (PRD §12.5 — **`/dashboard`** fetches on mount only in **5C**; manual **Try again**; no global refetch after task/focus/Trello mutations)
 - Admin dashboard and logs
 - Production deployment strategy
 - **`DESIGN.md` v2** (Phase 2I-c) and **frontend styling pass** (Phase 2J) are **complete** — presentation only; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`)
