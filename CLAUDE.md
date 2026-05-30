@@ -6,7 +6,7 @@ Instructions for Claude (and Claude Code) in this repository. **AGENTS.md** and 
 
 ## Session Start Checklist
 
-1. Read `docs/IMPLEMENTATION_STATUS.md` — what is built vs deferred (especially APIs and generate route).
+1. Read `docs/IMPLEMENTATION_STATUS.md` — what is built vs deferred (especially APIs and generate route); note **operating constraints** (Free Tier, cost gates, Gemini quota).
 2. Read `docs/AGENT_MEMORY.md` for phase history and pitfalls.
 3. Read `docs/PRD.md` sections relevant to the task (future MVP scope).
 4. Read `AGENTS.md` (roles, approval phrases, off-limits, DoD).
@@ -26,6 +26,8 @@ Instructions for Claude (and Claude Code) in this repository. **AGENTS.md** and 
 ## Behavioral Rules
 
 - **MVP only:** Do not add PDF upload, OAuth, payments, polling, Redux, or credential storage unless the human explicitly expands scope.
+- **Minimal cost:** Do not add paid APIs, new subscriptions, paid storage tiers, or other cost-increasing architecture without explicit human approval (see `AGENTS.md` and `IMPLEMENTATION_STATUS` operating constraints).
+- **Planning ≠ implementation:** Do not write application code or apply migrations until the human gives **`approved — implement Phase X`** (or equivalent)—planning approval alone is insufficient.
 - **No packages without approval:** Do not run `npm install` or add dependencies without human approval (see AGENTS.md).
 - **No app scaffolding unless tasked:** Context layer exists first; implementation follows approved workflows.
 - **Prefer small diffs:** One workflow step per PR when possible.

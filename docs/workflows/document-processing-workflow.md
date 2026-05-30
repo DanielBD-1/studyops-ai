@@ -35,6 +35,17 @@ End-to-end: document-service Gemini + Zod, backend generate, **persist** materia
 
 ---
 
+## Gemini usage & quota
+
+- Treat HTTP **429** / `GEMINI_RATE_LIMIT` as **quota exhaustion**, not necessarily an application defect.
+- **No retry loops** around Generate or `POST /process` (including live smoke).
+- Call Gemini only on **explicit user Generate** (or human-approved live smoke). Do **not** add background, on-load, debounced, or automatic `/process` calls without approval.
+- **CI and unit tests** must **mock** Gemini — no live API in automated runs.
+
+Operating constraints: `docs/IMPLEMENTATION_STATUS.md` § Operating constraints (cost & quotas).
+
+---
+
 ## Deferred (requires separate approval)
 
 - [ ] `POST /api/courses/:courseId/generate` with client `{ studyText }` (PRD §9) — **deferred**

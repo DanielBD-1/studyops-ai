@@ -39,7 +39,9 @@ Do **not** invent autonomous multi-agent delegation. Use the roles below. **Proc
 |--------|--------|
 | `approved — begin Phase X planning only` | Planning Agent only — stop after plan |
 | `approved — implement Phase X` | Implementation allowed per plan |
-| `approved — Phase X complete` | Documentation Agent may update `AGENT_MEMORY.md` |
+| `approved — Phase X complete` | Documentation Agent may update docs per `.claude/agents/documentation-agent.md` |
+
+**Planning approval is not implementation approval.** Only `approved — implement Phase X` (or an equivalent explicit implement phrase) authorizes application code, migrations, or changes beyond a planning deliverable.
 
 **Standard pipeline:**
 
@@ -53,7 +55,7 @@ Human goal
 → Security Review Agent (if required)
 → Human final judgment
 → CI (GitHub Actions)
-→ Documentation Agent updates AGENT_MEMORY after approved — Phase X complete
+→ Documentation Agent updates relevant docs after approved — Phase X complete
 ```
 
 Pre-commit hooks for lint/secrets are **not** installed yet; run lint locally and rely on CI.
@@ -90,6 +92,8 @@ Before implementing any feature that touches architecture, validation, Trello, o
 - Full microservices for every module, GDPR/data retention tooling
 - Docker/production deployment strategy, load testing/APM
 - Redux, WebSockets, optimistic dashboard updates, credential persistence
+
+**Cost & external services (out of scope without approval):** Paid third-party APIs, new SaaS subscriptions, paid storage tiers, or other **cost-increasing** dependencies — same explicit approval gate as new npm packages. Assume **Free Tier / minimal-cost** operation unless the human approves otherwise (see `docs/IMPLEMENTATION_STATUS.md` § Operating constraints).
 
 ---
 
@@ -166,15 +170,17 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 
 ## Implementation Rules
 
-1. **Modular monolith:** Backend modules under `backend/src/modules/` — no separate deployable services except `document-service`.
-2. **Gemini:** Only `document-service` calls Gemini (`GEMINI_API_KEY` there only); backend uses `DOCUMENT_SERVICE_URL` and `POST /process`; frontend calls `POST /api/study-materials/:materialId/generate` (empty body `{}`) and load/clear via `GET`/`DELETE` `.../generated-plan` — **one latest plan per material** persisted after backend validation (no client `plan` POST).
-3. **Zod:** Validate env, request bodies, and Gemini output per ADR 003.
-4. **API format:** `{ success, data|error, meta }` per PRD Section 8.5.
-5. **Ownership:** Every query filters by authenticated user; admin is explicit exception for logs/stats.
-6. **Trello:** Credentials in POST body only; never persist; clear from frontend state after sync.
-7. **Dashboard:** Manual refetch after mutations—no polling/WebSockets.
-8. **Tests:** Mock external APIs; no live Gemini/Trello in CI.
-9. **Lint:** Run `npm run lint` in `backend/`, `document-service/`, and `frontend/` before claiming work complete. CI runs the same commands after `npm ci`. Use `npm run lint:fix` only for mechanical fixes you review; do not add new ESLint plugins or change rule severity without human approval.
+0. **Before coding:** Read `docs/IMPLEMENTATION_STATUS.md`, the phase workflow, and applicable ADRs; cite ADR compliance in the plan/PR. `docs/PRD.md` is product intent — built state lives in `IMPLEMENTATION_STATUS`.
+1. **One phase per branch/PR:** One approved scope per branch; no unrelated bundles (see `CONTRIBUTING.md`).
+2. **Modular monolith:** Backend modules under `backend/src/modules/` — no separate deployable services except `document-service`.
+3. **Gemini:** Only `document-service` calls Gemini (`GEMINI_API_KEY` there only); backend uses `DOCUMENT_SERVICE_URL` and `POST /process`; frontend calls `POST /api/study-materials/:materialId/generate` (empty body `{}`) and load/clear via `GET`/`DELETE` `.../generated-plan` — **one latest plan per material** persisted after backend validation (no client `plan` POST). Quota/429 and call discipline: `docs/workflows/document-processing-workflow.md` § Gemini usage & quota.
+4. **Zod:** Validate env, request bodies, and Gemini output per ADR 003.
+5. **API format:** `{ success, data|error, meta }` per PRD Section 8.5.
+6. **Ownership:** Every query filters by authenticated user; admin is explicit exception for logs/stats.
+7. **Trello:** Credentials in POST body only; never persist; clear from frontend state after sync.
+8. **Dashboard:** Manual refetch after mutations—no polling/WebSockets.
+9. **Tests:** Mock external APIs; no live Gemini/Trello in CI.
+10. **Lint:** Run `npm run lint` in `backend/`, `document-service/`, and `frontend/` before claiming work complete. CI runs the same commands after `npm ci`. Use `npm run lint:fix` only for mechanical fixes you review; do not add new ESLint plugins or change rule severity without human approval.
 
 ---
 
@@ -192,7 +198,7 @@ A feature or phase item is **done** only when **all** apply:
 - [ ] Security review completed if auth, Trello, Gemini, admin, or env touched
 - [ ] Human gave final judgment on the change
 - [ ] CI green on PR
-- [ ] `docs/AGENT_MEMORY.md` updated if behavior, APIs, or conventions changed
+- [ ] Relevant docs updated per `.claude/agents/documentation-agent.md` (always append `AGENT_MEMORY` when behavior/APIs/conventions changed; touch `IMPLEMENTATION_STATUS`, `README`, etc. only when that phase affected them)
 
 ---
 
