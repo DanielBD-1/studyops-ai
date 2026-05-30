@@ -53,10 +53,15 @@ export default function TrelloBoardListPicker({
     lists.length === 0;
 
   return (
-    <FormCard>
-      <h2 className="form-card__title">Board and list</h2>
+    <FormCard className="trello-workspace__step trello-workspace__step--destination">
+      <p className="trello-workspace__step-label" aria-hidden="true">
+        Step 2
+      </p>
+      <h2 className="form-card__title" id="trello-step-destination">
+        Choose board and list
+      </h2>
       <p className="form-card__hint">
-        Load your Trello boards, choose a board, then choose the list where cards will be created.
+        Load your Trello boards, select a board, then pick the list where new cards will be created.
       </p>
 
       <div className="trello-picker">
@@ -78,7 +83,7 @@ export default function TrelloBoardListPicker({
         )}
 
         {showEmptyBoards && (
-          <p className="trello-picker__empty" role="status">
+          <p className="trello-picker__empty trello-picker__status" role="status">
             No open boards found for these credentials.
           </p>
         )}
@@ -116,7 +121,7 @@ export default function TrelloBoardListPicker({
         )}
 
         {showEmptyLists && (
-          <p className="trello-picker__empty" role="status">
+          <p className="trello-picker__empty trello-picker__status" role="status">
             No open lists found on this board.
           </p>
         )}

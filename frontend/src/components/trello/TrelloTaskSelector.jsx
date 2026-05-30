@@ -26,8 +26,13 @@ export default function TrelloTaskSelector({
   const overLimit = selectedTaskIds.size > TRELLO_SYNC_MAX_TASKS;
 
   return (
-    <FormCard>
-      <h2 className="form-card__title">Select tasks</h2>
+    <FormCard className="trello-workspace__step trello-workspace__step--tasks">
+      <p className="trello-workspace__step-label" aria-hidden="true">
+        Step 3
+      </p>
+      <h2 className="form-card__title" id="trello-step-tasks">
+        Select tasks to sync
+      </h2>
       {tasks.length === 0 ? (
         <EmptyState message="No study tasks yet. Create tasks on a course or the All study tasks page." />
       ) : (
@@ -44,7 +49,7 @@ export default function TrelloTaskSelector({
             <p className="trello-sync__selection-count" aria-live="polite">
               <span className="trello-sync__selection-count-value">{selectedTaskIds.size}</span>
               {' '}
-              selected · max {TRELLO_SYNC_MAX_TASKS}
+              of {TRELLO_SYNC_MAX_TASKS} max selected
             </p>
           </div>
           {overLimit && (

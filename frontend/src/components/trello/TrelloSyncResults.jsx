@@ -19,9 +19,30 @@ export default function TrelloSyncResults({ summary, results, taskTitleById }) {
   const rows = mapTrelloSyncResultsForDisplay(results, taskTitleById);
 
   return (
-    <FormCard>
-      <h2 className="form-card__title">Sync results</h2>
-      <p className="trello-sync-results__summary">{buildTrelloSyncSummaryText(summary)}</p>
+    <FormCard className="trello-workspace__step trello-workspace__step--results">
+      <p className="trello-workspace__step-label" aria-hidden="true">
+        Step 5
+      </p>
+      <h2 className="form-card__title" id="trello-step-results">
+        Sync results
+      </h2>
+      <div className="trello-sync-results__summary-band" role="status">
+        <p className="trello-sync-results__summary">{buildTrelloSyncSummaryText(summary)}</p>
+        <ul className="trello-sync-results__stats" aria-label="Sync summary counts">
+          <li className="trello-sync-results__stat trello-sync-results__stat--success">
+            <span className="trello-sync-results__stat-value">{summary.success}</span>
+            <span className="trello-sync-results__stat-label">Succeeded</span>
+          </li>
+          <li className="trello-sync-results__stat trello-sync-results__stat--skipped">
+            <span className="trello-sync-results__stat-value">{summary.skipped}</span>
+            <span className="trello-sync-results__stat-label">Skipped</span>
+          </li>
+          <li className="trello-sync-results__stat trello-sync-results__stat--failed">
+            <span className="trello-sync-results__stat-value">{summary.failed}</span>
+            <span className="trello-sync-results__stat-label">Failed</span>
+          </li>
+        </ul>
+      </div>
       <ul className="trello-sync-results">
         {rows.map((row) => (
           <li
