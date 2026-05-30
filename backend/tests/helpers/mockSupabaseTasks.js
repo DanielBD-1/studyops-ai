@@ -110,6 +110,11 @@ export function resetTasksMockOverrides() {
   taskMockOverrides = {};
 }
 
+/** Matches DB index: lower(trim(title)) */
+function normalizePlanImportTaskTitle(title) {
+  return String(title).trim().toLowerCase();
+}
+
 /**
  * @returns {typeof tasks}
  */
@@ -126,6 +131,8 @@ function resolveTasksSelect(state) {
     if (state.filters.user_id && t.user_id !== state.filters.user_id) return false;
     if (state.filters.course_id && t.course_id !== state.filters.course_id) return false;
     if (state.filters.status && t.status !== state.filters.status) return false;
+    if (state.filters.source && t.source !== state.filters.source) return false;
+    if (state.filters.material_id && t.material_id !== state.filters.material_id) return false;
     return true;
   });
 
@@ -149,6 +156,31 @@ function resolveTasksSelect(state) {
 function resolveTasksInsert(state) {
   if (taskMockOverrides.taskInsertError) {
     return { data: null, error: taskMockOverrides.taskInsertError };
+  }
+
+  if (
+    state.insert.source === 'plan' &&
+    state.insert.material_id &&
+    state.insert.user_id
+  ) {
+    const duplicate = tasks.find(
+      (t) =>
+        t.user_id === state.insert.user_id &&
+        t.material_id === state.insert.material_id &&
+        t.source === 'plan' &&
+        normalizePlanImportTaskTitle(t.title) ===
+          normalizePlanImportTaskTitle(state.insert.title)
+    );
+    if (duplicate) {
+      return {
+        data: null,
+        error: {
+          code: '23505',
+          message:
+            'duplicate key value violates unique constraint "study_tasks_plan_import_dedupe_idx"',
+        },
+      };
+    }
   }
 
   const suffix = String(nextTaskNumericId++).padStart(12, '0');

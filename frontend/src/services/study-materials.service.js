@@ -165,3 +165,45 @@ export async function generateMaterial(materialId) {
     data
   );
 }
+
+/**
+ * @typedef {{
+ *   imported: number,
+ *   skipped: number,
+ *   failed: number,
+ *   total: number,
+ * }} PlanImportSummary
+ */
+
+/**
+ * @param {string} materialId
+ * @param {{ tasks: Array<{
+ *   title: string,
+ *   estimatedMinutes: number,
+ *   description?: string,
+ *   priority?: 'low' | 'medium' | 'high',
+ * }> }} body
+ */
+export async function importPlanTasks(materialId, body) {
+  const data = await request(`/api/study-materials/${materialId}/import/tasks`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return /** @type {{ summary: PlanImportSummary }} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ * @param {{ flashcards: Array<{
+ *   question: string,
+ *   answer: string,
+ *   tags?: string[],
+ * }> }} body
+ */
+export async function importPlanFlashcards(materialId, body) {
+  const data = await request(`/api/study-materials/${materialId}/import/flashcards`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return /** @type {{ summary: PlanImportSummary }} */ (data);
+}

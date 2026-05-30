@@ -9,8 +9,13 @@ export const PLAN_FLASHCARD_IMPORT_VALIDATION_ERROR =
  *   question: string,
  *   answer: string,
  *   tags?: string[],
- *   materialId: string,
- * }} CreateFlashcardBody
+ * }} ImportPlanFlashcardItem
+ * @typedef {{
+ *   imported: number,
+ *   skipped: number,
+ *   failed: number,
+ *   total: number,
+ * }} PlanImportSummary
  */
 
 /**
@@ -32,72 +37,136 @@ function normalizePlanTags(value) {
 
 /**
  * @param {StudyPlan['flashcards'][number]} planFlashcard
- * @param {string} materialId
- * @returns {CreateFlashcardBody}
+ * @returns {ImportPlanFlashcardItem}
  */
-export function mapPlanFlashcardToCreateBody(planFlashcard, materialId) {
+export function mapPlanFlashcardToImportItem(planFlashcard) {
   const question = typeof planFlashcard.question === 'string' ? planFlashcard.question.trim() : '';
   const answer = typeof planFlashcard.answer === 'string' ? planFlashcard.answer.trim() : '';
   const tags = normalizePlanTags(planFlashcard.tags);
 
-  /** @type {CreateFlashcardBody} */
-  const body = {
+  /** @type {ImportPlanFlashcardItem} */
+  const item = {
     question,
     answer,
-    materialId,
   };
 
   if (tags) {
-    body.tags = tags;
+    item.tags = tags;
   }
 
-  return body;
+  return item;
+}
+
+/**
+ * @deprecated Use mapPlanFlashcardToImportItem for plan import API payloads.
+ * @param {StudyPlan['flashcards'][number]} planFlashcard
+ * @param {string} materialId
+ */
+export function mapPlanFlashcardToCreateBody(planFlashcard, materialId) {
+  return {
+    ...mapPlanFlashcardToImportItem(planFlashcard),
+    materialId,
+  };
+}
+
+/**
+ * @param {StudyPlan | null | undefined} plan
+ * @returns {{ success: true, flashcards: ImportPlanFlashcardItem[] } | { success: false, error: string }}
+ */
+export function buildValidatedPlanFlashcardsImportPayload(plan) {
+  if (!plan || !Array.isArray(plan.flashcards) || plan.flashcards.length === 0) {
+    return { success: false, error: PLAN_FLASHCARD_IMPORT_VALIDATION_ERROR };
+  }
+
+  /** @type {ImportPlanFlashcardItem[]} */
+  const flashcards = [];
+
+  for (const planFlashcard of plan.flashcards) {
+    const candidate = mapPlanFlashcardToImportItem(planFlashcard);
+    const parsed = createFlashcardFormSchema.safeParse({
+      ...candidate,
+      materialId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    });
+    if (!parsed.success) {
+      return { success: false, error: PLAN_FLASHCARD_IMPORT_VALIDATION_ERROR };
+    }
+
+    /** @type {ImportPlanFlashcardItem} */
+    const item = {
+      question: parsed.data.question,
+      answer: parsed.data.answer,
+    };
+    if (parsed.data.tags !== undefined) {
+      item.tags = parsed.data.tags;
+    }
+    flashcards.push(item);
+  }
+
+  return { success: true, flashcards };
 }
 
 /**
  * @param {StudyPlan | null | undefined} plan
  * @param {string} materialId
- * @returns {{ success: true, bodies: CreateFlashcardBody[] } | { success: false, error: string }}
+ * @returns {{ success: true, bodies: Array<ImportPlanFlashcardItem & { materialId: string }> } | { success: false, error: string }}
  */
 export function buildValidatedFlashcardImportBodies(plan, materialId) {
-  if (!plan || !Array.isArray(plan.flashcards) || plan.flashcards.length === 0) {
-    return { success: false, error: PLAN_FLASHCARD_IMPORT_VALIDATION_ERROR };
+  const validated = buildValidatedPlanFlashcardsImportPayload(plan);
+  if (!validated.success) {
+    return validated;
   }
 
-  /** @type {CreateFlashcardBody[]} */
-  const bodies = [];
-
-  for (const planFlashcard of plan.flashcards) {
-    const candidate = mapPlanFlashcardToCreateBody(planFlashcard, materialId);
-    const parsed = createFlashcardFormSchema.safeParse(candidate);
-    if (!parsed.success) {
-      return { success: false, error: PLAN_FLASHCARD_IMPORT_VALIDATION_ERROR };
-    }
-
-    /** @type {CreateFlashcardBody} */
-    const body = {
-      question: parsed.data.question,
-      answer: parsed.data.answer,
-      materialId: parsed.data.materialId,
-    };
-    if (parsed.data.tags !== undefined) {
-      body.tags = parsed.data.tags;
-    }
-    bodies.push(body);
-  }
-
-  return { success: true, bodies };
+  return {
+    success: true,
+    bodies: validated.flashcards.map((flashcard) => ({ ...flashcard, materialId })),
+  };
 }
 
 /**
- * @param {string} courseId
- * @param {CreateFlashcardBody[]} bodies
- * @param {(courseId: string, body: CreateFlashcardBody) => Promise<unknown>} createFlashcard
- * @param {(current: number, total: number) => void} [onProgress]
+ * @param {PlanImportSummary} summary
+ * @returns {string}
+ */
+export function formatPlanFlashcardImportSummaryMessage(summary) {
+  const parts = [`Imported ${summary.imported} saved flashcards.`];
+
+  if (summary.skipped > 0) {
+    parts.push(`Skipped ${summary.skipped} already imported.`);
+  }
+  if (summary.failed > 0) {
+    parts.push(`${summary.failed} could not be imported.`);
+  }
+
+  return parts.join(' ');
+}
+
+/**
+ * @param {string} materialId
+ * @param {ImportPlanFlashcardItem[]} flashcards
+ * @param {(materialId: string, body: { flashcards: ImportPlanFlashcardItem[] }) => Promise<{ summary: PlanImportSummary }>} importPlanFlashcards
  * @returns {Promise<
- *   | { success: true, imported: number }
- *   | { success: false, imported: number, total: number, error: unknown }
+ *   | { success: true, summary: PlanImportSummary }
+ *   | { success: false, summary?: PlanImportSummary, error: unknown }
  * >}
+ */
+export async function importPlanFlashcardsFromPlan(
+  materialId,
+  flashcards,
+  importPlanFlashcards
+) {
+  try {
+    const result = await importPlanFlashcards(materialId, { flashcards });
+    const summary = result.summary;
+    if (summary.failed > 0 && summary.imported === 0 && summary.skipped === 0) {
+      return { success: false, summary, error: new Error('Failed to import flashcards') };
+    }
+    return { success: true, summary };
+  } catch (err) {
+    return { success: false, error: err };
+  }
+}
+
+/**
+ * @deprecated Use importPlanFlashcardsFromPlan with the material import API.
  */
 export async function importPlanFlashcardsSequentially(
   courseId,
@@ -105,21 +174,13 @@ export async function importPlanFlashcardsSequentially(
   createFlashcard,
   onProgress
 ) {
-  const total = bodies.length;
-  let imported = 0;
-
-  for (let index = 0; index < bodies.length; index += 1) {
-    if (onProgress) {
-      onProgress(index + 1, total);
-    }
-
-    try {
-      await createFlashcard(courseId, bodies[index]);
-      imported += 1;
-    } catch (err) {
-      return { success: false, imported, total, error: err };
-    }
-  }
-
-  return { success: true, imported };
+  void courseId;
+  void createFlashcard;
+  void onProgress;
+  return {
+    success: false,
+    imported: 0,
+    total: bodies.length,
+    error: new Error('Sequential plan flashcard import is no longer supported'),
+  };
 }
