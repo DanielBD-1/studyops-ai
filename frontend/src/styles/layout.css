@@ -637,6 +637,106 @@
   box-shadow: var(--elevation-1);
 }
 
+/* Trello workspace */
+.page--trello .page-header__lead {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.page--trello .page-header__intro {
+  flex: 1 1 auto;
+  min-width: min(100%, 28rem);
+}
+
+.page--trello .page-header__intro h1 {
+  margin: 0 0 var(--space-2);
+}
+
+.page--trello .page-header__note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  color: var(--color-text-subtle);
+}
+
+.trello-workspace__main {
+  margin-top: var(--space-2);
+}
+
+.trello-sync {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.trello-sync__form,
+.trello-workspace__flow {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.trello-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.trello-picker__load {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.trello-picker__field {
+  margin: 0;
+}
+
+.trello-picker__lists-loading {
+  margin: 0;
+}
+
+.trello-sync__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.trello-sync__submit {
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-8);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-1);
+}
+
+.trello-sync__submit-actions {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.trello-sync__error-block {
+  margin-bottom: var(--space-6);
+}
+
+.trello-sync__error-block .trello-sync__actions {
+  margin-top: var(--space-4);
+}
+
+.trello-workspace__step .form-card,
+.trello-workspace__step.form-card {
+  margin-bottom: var(--space-5);
+}
+
 /* Study material workspace */
 .page--material-detail .page-header__lead {
   margin: 0;
@@ -924,5 +1024,47 @@
   .page--flashcards .flashcard-library__item-actions .btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .page--trello .page-header--intro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page--trello .page-header__nav {
+    padding-top: 0;
+  }
+
+  .trello-sync__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .trello-sync__submit {
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .trello-sync__submit-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trello-sync__actions .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .trello-task-list {
+    max-height: none;
+  }
+
+  .trello-sync-results__stats {
+    flex-direction: column;
+  }
+
+  .trello-sync-results__stat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 }

@@ -48,12 +48,12 @@ export default function TrelloSyncPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace page--trello">
+    <main className="page page--workspace page--trello trello-workspace">
       <PageHeader
         intro
         title="Trello sync"
-        lead="Sync selected study tasks to a Trello list."
-        note="Credentials are used only for this sync request and are not saved."
+        lead="Connect with your Trello credentials, choose a destination list, and sync study tasks as cards."
+        note="Credentials are used only for this session's requests — they are never saved or stored."
       />
 
       {coursesLoading && <LoadingState message="Loading courses…" />}

@@ -268,22 +268,23 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
   );
 
   return (
-    <div className="trello-sync">
-      {tasksLoading && <LoadingState message="Loading study tasks…" />}
+    <div className="trello-workspace__main">
+      <div className="trello-sync">
+        {tasksLoading && <LoadingState message="Loading study tasks…" />}
 
-      {!tasksLoading && tasksError && (
-        <div className="trello-sync__error-block">
-          <ErrorMessage message={tasksError} />
-          <div className="trello-sync__actions">
-            <Button variant="secondary" onClick={loadTasks}>
-              Try again
-            </Button>
+        {!tasksLoading && tasksError && (
+          <div className="trello-sync__error-block">
+            <ErrorMessage message={tasksError} />
+            <div className="trello-sync__actions">
+              <Button variant="secondary" onClick={loadTasks}>
+                Try again
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {!tasksLoading && !tasksError && (
-        <form className="trello-sync__form" onSubmit={handleSubmit} noValidate>
+        {!tasksLoading && !tasksError && (
+          <form className="trello-sync__form trello-workspace__flow" onSubmit={handleSubmit} noValidate>
           <TrelloSyncForm
             apiKey={apiKey}
             token={token}
@@ -328,15 +329,27 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
             </div>
           )}
 
-          <div className="trello-sync__submit">
-            <Button type="submit" disabled={submitDisabled}>
-              {syncing ? 'Syncing…' : 'Sync to Trello'}
-            </Button>
+          <div className="trello-workspace__step trello-workspace__step--sync trello-sync__submit">
+            <p className="trello-workspace__step-label" aria-hidden="true">
+              Step 4
+            </p>
+            <h2 className="trello-workspace__step-title" id="trello-step-sync">
+              Sync to Trello
+            </h2>
+            <p className="trello-workspace__step-hint">
+              Creates one Trello card per selected task in your chosen list.
+            </p>
+            <div className="trello-sync__submit-actions">
+              <Button type="submit" disabled={submitDisabled}>
+                {syncing ? 'Syncing…' : 'Sync to Trello'}
+              </Button>
+            </div>
           </div>
         </form>
-      )}
+        )}
 
-      <TrelloSyncResults summary={summary} results={results} taskTitleById={taskTitleById} />
+        <TrelloSyncResults summary={summary} results={results} taskTitleById={taskTitleById} />
+      </div>
     </div>
   );
 }
