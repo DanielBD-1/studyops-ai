@@ -1819,3 +1819,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Scope boundary:** Six frontend files only — **no** backend, document-service, Supabase, API, DB/migration, package, **`package-lock`**, or CI changes
 **Security boundaries preserved:** generate remains backend-mediated with empty body; import/clear remain backend-mediated; auth/route protection unchanged
 **Follow-up:** branch **`phase-8c-2b-study-material-ai-zones`** ready for commit/push after final **`git status`** check
+
+### 2026-05-30 — Phase 8C-3A Tasks and Focus UI upgrade complete
+
+**Workflow:** Phase 8C-3A — Tasks and Focus UI upgrade
+**ADR refs:** none (presentation-only; no architecture change)
+**Human gates:** Supervisor Review **approved with notes** (no critical or important issues); Security Review **not required** (presentation-only; no auth/Trello/Admin/security boundary touched); manual smoke **passed**
+**Summary:** Frontend presentation-only upgrade for **`/tasks`**, **`/focus/:taskId`**, **`TasksPage.jsx`**, **`FocusPage.jsx`**, **`GlobalTasksSection.jsx`**, **`TaskCard.jsx`**, and scoped CSS in **`frontend/src/styles/layout.css`** + **`components.css`**. Tasks page has stronger workspace/**`PageHeader`** presentation. Global task list has improved section hierarchy, filter toolbar styling, task list spacing, and create area. Task cards have improved pending/completed styling, status/priority pills, and styled Start Focus link (**`Link`** target **`/focus/:taskId`** and navigation **`state`** unchanged). Focus page has stronger focus workspace, timer surface, task context block, and completion-state presentation. Focus timer/session logic unchanged. **No** Flashcards/Trello/Admin/backend/API/DB/package/CI/services/context/**`AppShell`**/routing/auth changes. **No** behavior/data-fetching/validation changes. **No** **`dangerouslySetInnerHTML`**, raw JSON rendering, console logs/debug JSON, **`service_role`**, or direct Supabase calls.
+**APIs affected:** none
+**Tests:** no test changes; **`cd frontend && npm run lint`** passed (**0** errors, **2** pre-existing warnings); **`npm test`** **190/190** passed; **`npm run build`** passed; **`git diff --check`** clean
+**Reviews:** Supervisor Review **approved with notes**; Security Review **not required**
+**Manual smoke:** **Passed** — **`/tasks`** load; course/status filters; create/edit/complete/delete task; Start Focus → **`/focus/:taskId`** with correct task context/back navigation; timer start/countdown/complete session; mark task complete from focus flow; **375px** no horizontal scroll; task/focus actions usable; console and network clean
+**Scope boundary:** Six frontend files only — **no** Flashcards/Trello/Admin, backend, document-service, Supabase, API, DB/migration, package, **`package-lock`**, or CI changes
+**Follow-up:** branch **`phase-8c-3a-tasks-focus`** ready for commit/push after final **`git status`** check

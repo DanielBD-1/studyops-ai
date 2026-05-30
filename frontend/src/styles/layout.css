@@ -225,7 +225,9 @@
 
 .page--dashboard .page-header__lead,
 .page--courses .page-header__lead,
-.page--course-detail .page-header__lead {
+.page--course-detail .page-header__lead,
+.page--tasks .page-header__lead,
+.page--focus .page-header__lead {
   margin: 0;
   font-size: var(--font-size-base);
   line-height: var(--line-height-body);
@@ -580,6 +582,38 @@
   margin-top: var(--space-10);
 }
 
+/* Tasks workspace */
+.task-workspace__main {
+  margin-top: var(--space-2);
+}
+
+.task-workspace__main .section__header-row {
+  margin-bottom: var(--space-4);
+}
+
+.task-workspace__filters {
+  margin-bottom: var(--space-5);
+}
+
+.task-workspace__toolbar {
+  margin-bottom: var(--space-5);
+}
+
+.task-workspace__create .form-card {
+  border-color: var(--color-border);
+  box-shadow: var(--elevation-1);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card-list.task-list .source-card {
+  margin-bottom: 0;
+}
+
 /* Study material workspace */
 .page--material-detail .page-header__lead {
   margin: 0;
@@ -637,30 +671,95 @@
 }
 
 /* Focus session */
-.page--focus .focus-panel {
+.focus-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.focus-workspace__nav {
+  margin-top: var(--space-2);
+}
+
+.focus-workspace__loading {
+  margin-top: var(--space-6);
+}
+
+.focus-context {
   margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-1);
+}
+
+.focus-context__label {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.focus-context__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.focus-error {
+  margin-top: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-1);
+}
+
+.page--focus .focus-panel {
+  margin-top: var(--space-6);
   padding: var(--space-8) var(--space-6);
   text-align: center;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--elevation-2);
+}
+
+.focus-timer-surface {
+  margin: 0 auto var(--space-6);
+  padding: var(--space-6) var(--space-4);
+  max-width: 20rem;
+  background: linear-gradient(
+    165deg,
+    var(--color-primary-subtle) 0%,
+    rgba(238, 240, 251, 0.5) 100%
+  );
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
 }
 
 .focus-timer {
   margin: 0 0 var(--space-2);
-  font-size: clamp(2.5rem, 8vw, 4rem);
-  font-weight: 600;
+  font-size: clamp(2.75rem, 10vw, 4.5rem);
+  font-weight: var(--font-weight-semibold);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   line-height: 1;
   color: var(--color-primary);
 }
 
 .focus-panel__hint {
-  margin: 0 0 var(--space-6);
+  margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
 }
 
 .focus-panel__checkbox {
@@ -687,14 +786,32 @@
 }
 
 .focus-done {
-  padding: var(--space-6);
+  margin-top: var(--space-6);
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
   background: var(--color-success-subtle);
   border: 1px solid #a8d4b8;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
 }
 
-.focus-done p {
+.focus-done__headline {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+}
+
+.focus-done__summary {
   margin: 0 0 var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.focus-done__task {
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .focus-done p:last-child {
@@ -736,5 +853,41 @@
 
   .app-shell__actions {
     margin-left: 0;
+  }
+
+  .task-card__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task-card__actions .link-btn,
+  .task-card__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .focus-panel__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .focus-panel__actions .link-btn,
+  .focus-panel__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-toolbar__segment {
+    width: 100%;
+  }
+
+  .filter-toolbar__segment .btn {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 }

@@ -256,18 +256,33 @@ export default function FocusPage() {
   const tasksBackPath = returnTo.startsWith('/') ? returnTo : '/tasks';
 
   return (
-    <main className="page page--workspace page--focus">
-      <PageHeader title="Focus session" lead={taskTitle || undefined}>
-        <nav className="page-header__nav" aria-label="Secondary">
+    <main className="page page--workspace page--focus focus-workspace">
+      <PageHeader
+        intro
+        title="Focus session"
+        lead="Stay on one task — a calm 25-minute timer with optional completion when you finish."
+      >
+        <nav className="page-header__nav focus-workspace__nav" aria-label="Secondary">
           <Link to={tasksBackPath}>Back to tasks</Link>
           {showCourseBack ? <Link to={`/courses/${courseId}`}>Back to course</Link> : null}
         </nav>
       </PageHeader>
 
-      {phase === 'starting' && <LoadingState message="Starting focus session…" />}
+      {taskTitle ? (
+        <div className="focus-context" aria-label="Task context">
+          <p className="focus-context__label">Working on</p>
+          <p className="focus-context__title">{taskTitle}</p>
+        </div>
+      ) : null}
+
+      {phase === 'starting' && (
+        <div className="focus-workspace__loading">
+          <LoadingState message="Starting focus session…" />
+        </div>
+      )}
 
       {phase === 'start-error' && (
-        <section aria-live="polite">
+        <section className="focus-error" aria-live="polite">
           <ErrorMessage
             message={
               startErrorMessage ??
@@ -276,23 +291,27 @@ export default function FocusPage() {
                 : 'Could not start focus session.')
             }
           />
-          <div className="form-row">
+          <div className="form-row focus-panel__actions">
             {startErrorKind === 'network' ? (
               <Button type="button" variant="secondary" onClick={retryStart}>
                 Try again
               </Button>
             ) : null}
-            <Link to="/tasks">Go to all tasks</Link>
+            <Link className="link-btn link-btn--secondary" to="/tasks">
+              Go to all tasks
+            </Link>
           </div>
         </section>
       )}
 
       {phase === 'active' && session && (
         <section className="focus-panel" aria-live="polite">
-          <p className="focus-timer">{formatCountdown(secondsLeft)}</p>
-          <p className="focus-panel__hint">
-            {session.durationMinutes}-minute focus timer
-          </p>
+          <div className="focus-timer-surface">
+            <p className="focus-timer">{formatCountdown(secondsLeft)}</p>
+            <p className="focus-panel__hint">
+              {session.durationMinutes}-minute focus timer
+            </p>
+          </div>
 
           <label className="focus-panel__checkbox">
             <input
@@ -321,16 +340,23 @@ export default function FocusPage() {
 
       {phase === 'done' && completedSession && (
         <section className="focus-done" aria-live="polite">
-          <p>
-            Session complete. You focused for {completedSession.durationMinutes} minute
+          <p className="focus-done__headline">Session complete</p>
+          <p className="focus-done__summary">
+            You focused for {completedSession.durationMinutes} minute
             {completedSession.durationMinutes === 1 ? '' : 's'}.
           </p>
           {completedTask ? (
-            <p>Task marked complete: {completedTask.title}</p>
+            <p className="focus-done__task">Task marked complete: {completedTask.title}</p>
           ) : null}
           <div className="focus-panel__actions">
-            <Link to={tasksBackPath}>Back to tasks</Link>
-            {showCourseBack ? <Link to={`/courses/${courseId}`}>Back to course</Link> : null}
+            <Link className="link-btn link-btn--secondary" to={tasksBackPath}>
+              Back to tasks
+            </Link>
+            {showCourseBack ? (
+              <Link className="link-btn link-btn--secondary" to={`/courses/${courseId}`}>
+                Back to course
+              </Link>
+            ) : null}
           </div>
         </section>
       )}
