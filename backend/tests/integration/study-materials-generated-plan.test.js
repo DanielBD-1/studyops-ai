@@ -170,8 +170,13 @@ describe('study material generated plan API', () => {
     assert.equal(body.error.message, 'Generated plan not found');
   });
 
-  it('DELETE returns deleted true and removes plan', async () => {
+  it('DELETE returns deleted true and removes active plan only', async () => {
     await persistPlanForOwnMaterial();
+    await request(generateUrl(OWN_MATERIAL_ID), { method: 'POST', headers: auth });
+
+    const beforeDelete = getMockGeneratedPlans();
+    assert.equal(beforeDelete.length, 2);
+    assert.equal(beforeDelete.filter((p) => p.is_active).length, 1);
 
     const { statusCode, body } = await request(planUrl(OWN_MATERIAL_ID), {
       method: 'DELETE',
@@ -180,7 +185,8 @@ describe('study material generated plan API', () => {
 
     assert.equal(statusCode, 200);
     assert.equal(body.data.deleted, true);
-    assert.equal(getMockGeneratedPlans().length, 0);
+    assert.equal(getMockGeneratedPlans().length, 1);
+    assert.equal(getMockGeneratedPlans()[0].is_active, false);
   });
 
   it('DELETE second time returns 404', async () => {
@@ -297,9 +303,9 @@ describe('POST /generate persistence', () => {
     assert.equal(getMockGeneratedPlans().length, 0);
   });
 
-  it('returns DATABASE_ERROR when upsert fails', async () => {
+  it('returns DATABASE_ERROR when activate RPC fails', async () => {
     setStudyMaterialsMockOverrides({
-      generatedPlanUpsertError: { code: 'XX000', message: 'upsert failed' },
+      generatedPlanRpcError: { code: 'XX000', message: 'rpc failed' },
     });
 
     const { statusCode, body } = await request(generateUrl(OWN_MATERIAL_ID), {
@@ -310,5 +316,122 @@ describe('POST /generate persistence', () => {
     assert.equal(statusCode, 500);
     assert.equal(body.error.code, 'DATABASE_ERROR');
     assert.equal(getMockGeneratedPlans().length, 0);
+  });
+
+  it('first generate creates one active row', async () => {
+    const { statusCode } = await request(generateUrl(OWN_MATERIAL_ID), {
+      method: 'POST',
+      headers: auth,
+    });
+
+    assert.equal(statusCode, 200);
+    const rows = getMockGeneratedPlans();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].is_active, true);
+    assert.equal(rows[0].study_material_id, OWN_MATERIAL_ID);
+  });
+
+  it('second generate creates second row and only newest is active', async () => {
+    await request(generateUrl(OWN_MATERIAL_ID), { method: 'POST', headers: auth });
+    await request(generateUrl(OWN_MATERIAL_ID), { method: 'POST', headers: auth });
+
+    const rows = getMockGeneratedPlans().filter((p) => p.study_material_id === OWN_MATERIAL_ID);
+    assert.equal(rows.length, 2);
+    const activeRows = rows.filter((p) => p.is_active);
+    assert.equal(activeRows.length, 1);
+    assert.equal(activeRows[0].created_at, rows.sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0].created_at);
+  });
+
+  it('generate 12 times never stores more than 10 rows per material', async () => {
+    for (let i = 0; i < 12; i += 1) {
+      const { statusCode } = await request(generateUrl(OWN_MATERIAL_ID), {
+        method: 'POST',
+        headers: auth,
+      });
+      assert.equal(statusCode, 200);
+    }
+
+    const rows = getMockGeneratedPlans().filter((p) => p.study_material_id === OWN_MATERIAL_ID);
+    assert.equal(rows.length, 10);
+    assert.equal(rows.filter((p) => p.is_active).length, 1);
+  });
+
+  it('retention deletes oldest inactive rows first', async () => {
+    for (let i = 0; i < 11; i += 1) {
+      await request(generateUrl(OWN_MATERIAL_ID), { method: 'POST', headers: auth });
+    }
+
+    const rows = getMockGeneratedPlans()
+      .filter((p) => p.study_material_id === OWN_MATERIAL_ID)
+      .sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
+    assert.equal(rows.length, 10);
+    assert.ok(rows.every((p) => p.created_at !== '2026-01-10T00:00:00.000Z'));
+    assert.equal(rows[0].created_at, '2026-01-11T00:00:00.000Z');
+    assert.equal(rows[0].is_active, false);
+  });
+
+  it('retention never deletes active row', async () => {
+    for (let i = 0; i < 12; i += 1) {
+      await request(generateUrl(OWN_MATERIAL_ID), { method: 'POST', headers: auth });
+    }
+
+    const rows = getMockGeneratedPlans().filter((p) => p.study_material_id === OWN_MATERIAL_ID);
+    const active = rows.filter((p) => p.is_active);
+    assert.equal(active.length, 1);
+    assert.equal(active[0].created_at, rows.sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0].created_at);
+  });
+});
+
+describe('generated plan active counts', () => {
+  /** @type {import('node:http').Server} */
+  let server;
+  /** @type {number} */
+  let port;
+
+  before(async () => {
+    server = http.createServer(app);
+    await listen(server);
+    port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+  });
+
+  after(() => new Promise((resolve) => server.close(resolve)));
+
+  afterEach(() => {
+    setSupabaseAdminClientForTests(createStudyMaterialsMockSupabaseClient());
+    resetStudyMaterialsMockOverrides();
+  });
+
+  it('dashboard totalGeneratedPlans counts active rows only', async () => {
+    const { createDashboardMockSupabaseClient, seedDashboardMixedData } = await import(
+      '../helpers/mockSupabaseDashboard.js'
+    );
+    setSupabaseAdminClientForTests(createDashboardMockSupabaseClient());
+    seedDashboardMixedData();
+
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.totalGeneratedPlans, 1);
+
+    setSupabaseAdminClientForTests(createStudyMaterialsMockSupabaseClient());
+  });
+
+  it('admin totalGeneratedPlans counts active rows only', async () => {
+    const { createAdminStatsMockSupabaseClient, seedAdminStatsPopulatedPlatform } = await import(
+      '../helpers/mockSupabaseAdminStats.js'
+    );
+    setSupabaseAdminClientForTests(createAdminStatsMockSupabaseClient());
+    seedAdminStatsPopulatedPlatform();
+
+    const res = await request(`http://127.0.0.1:${port}/api/admin/stats`, {
+      headers: { Authorization: 'Bearer admin-token' },
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.totalGeneratedPlans, 2);
+
+    setSupabaseAdminClientForTests(createStudyMaterialsMockSupabaseClient());
   });
 });

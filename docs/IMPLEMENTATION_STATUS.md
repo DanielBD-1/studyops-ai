@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase **10B** (plan-sourced import dedupe — **2026-05-30**); prior **10C** governance alignment and **9B** post-8C alignment. **Functional MVP** complete through **6A-3** (auth, courses, materials, material-scoped AI generate + persisted latest plan, tasks, flashcards, Trello sync with board/list picker, focus sessions, student dashboard, admin aggregate stats). **Plan import dedupe (10B):** material-scoped import endpoints with **`source='plan'`** and dedupe (migration **009** applied). **Hardening / docs alignment** phases **7A**–**7C** complete (**2026-05-29**). **UI / presentation polish** complete through **8C-3D** (**2026-05-30**): **8A** baseline polish; **8B** design-reference docs alignment; **8C-1** global **`AppShell`** + design system; **8C-2A** dashboard/courses/course detail; **8C-2B** study material detail + AI zones; **8C-3A** tasks + focus; **8C-3B** flashcards; **8C-3C** Trello; **8C-3D** admin. Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Existing design screenshots may predate **8C** visuals unless recaptured (see **`docs/design/SCREENSHOT_INDEX.md`**). Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**, superseded by **10B** import API), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **plan-sourced import dedupe** (Phase **10B**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
+**Last aligned:** Phase **11A-1** (generated plan active history — **2026-05-30**); prior **10B** plan import dedupe, **10C** governance alignment, and **9B** post-8C alignment. **Functional MVP** complete through **6A-3** (auth, courses, materials, material-scoped AI generate + persisted generated plan, tasks, flashcards, Trello sync with board/list picker, focus sessions, student dashboard, admin aggregate stats). **Generated plan history (11A-1):** migration **010** applied manually on Supabase; multiple rows per material with one **`is_active`**; retention max **10** rows per material; GET/DELETE/generate backward compatible; **`totalGeneratedPlans`** counts active rows only. **Plan import dedupe (10B):** material-scoped import endpoints with **`source='plan'`** and dedupe (migration **009** applied). **Hardening / docs alignment** phases **7A**–**7C** complete (**2026-05-29**). **UI / presentation polish** complete through **8C-3D** (**2026-05-30**): **8A** baseline polish; **8B** design-reference docs alignment; **8C-1** global **`AppShell`** + design system; **8C-2A** dashboard/courses/course detail; **8C-2B** study material detail + AI zones; **8C-3A** tasks + focus; **8C-3B** flashcards; **8C-3C** Trello; **8C-3D** admin. Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Existing design screenshots may predate **8C** visuals unless recaptured (see **`docs/design/SCREENSHOT_INDEX.md`**). Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**, superseded by **10B** import API), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **plan-sourced import dedupe** (Phase **10B**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
 
 ---
 
@@ -54,7 +54,7 @@ Never commit real `.env` files. Never document or paste real keys in issues or P
 
 **Applied tables:** `public.profiles`, `public.courses`, `public.study_materials`, `public.material_generated_plans`, `public.study_tasks`, `public.flashcards`, `public.trello_sync_logs`, `public.focus_sessions`
 
-**`material_generated_plans` (Phase 2L-a):** One **latest** validated generated plan per `study_material_id` (`UNIQUE`); `plan` jsonb (object, size-capped); RLS for `authenticated`; **`anon` has no access**; backend writes via **service role** with ownership filters (see `docs/database/004-material-generated-plans-schema-and-rls.md`). **No** plan history, failed-attempt rows, raw Gemini payloads, or duplicated material `content`.
+**`material_generated_plans` (Phases 2L-a + 11A-1):** Multiple validated generated plan rows per `study_material_id` with **`is_active boolean`** — exactly **one active** row per material (partial unique index); inactive history retained up to **10** total rows per material (retention prunes oldest inactive after generate). `plan` jsonb (object, size-capped); RLS for `authenticated` (unchanged from **2L-a**); **`anon` has no access**; backend writes via **service role** + RPC **`activate_material_generated_plan`** with ownership filters (see `docs/database/004-material-generated-plans-schema-and-rls.md`, **`docs/database/010-material-generated-plans-active-history.md`**; migration **010** **applied manually** on Supabase). **No** failed-attempt rows, raw Gemini payloads, duplicated material `content`, history **UI**, or version REST APIs.
 
 **`study_tasks` (Phase 3A-a; source extended in Phase 10B):** Study task rows (`user_id`, `course_id`, optional `material_id`); RLS by `user_id = auth.uid()`; **`anon` has no access**; `source` CHECK **`manual` or `plan`** (Phase **10B** via `009_plan_source_import_dedupe.sql`). Table **applied and verified** on Supabase (see `docs/database/005-study-tasks-schema-and-rls.md`). **Plan import** (Phase **10B**) creates rows with **`source = plan`** via material-scoped import API; manual create remains **`source = manual`**.
 
@@ -115,24 +115,24 @@ Normalized flashcard rows (`user_id`, `course_id`, optional `material_id`, `ques
 
 ---
 
-## Implemented — AI study plan generation (persisted latest plan)
+## Implemented — AI study plan generation (persisted generated plan)
 
-Delivered in phases **2D–2F** (generate orchestration + UI) and **2L-a/b/c** (DB + backend persistence + frontend load/clear). Not the monolithic PRD flow with client paste on the course page.
+Delivered in phases **2D–2F** (generate orchestration + UI), **2L-a/b/c** (DB + backend persistence + frontend load/clear), and **11A-1** (active history + retention). Not the monolithic PRD flow with client paste on the course page.
 
 | Layer | What exists |
 |-------|-------------|
 | **document-service** | `POST /process` — body `{ studyText }` (100–50k chars); Gemini via `GEMINI_API_KEY`; output validated with PRD §8 schema; **internal only** |
-| **backend** | `POST /api/study-materials/:materialId/generate` — body **`{}` strict**; `requireAuth`; ownership before reading saved `content`; one document-service call; **Zod-validates** plan before **UPSERT** to `material_generated_plans`; returns `{ materialId, courseId, plan, savedAt }`. `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` for load/clear. **No** client-supplied plan JSON; **no** raw Gemini storage; **no** failed-generate persistence |
-| **frontend** | **Generate** (`generateMaterial`, body `{}`); **load** saved plan on material detail (`GET`); **Clear** via backend `DELETE`; read-only plain-text display (summary, key topics, difficulty, tasks, flashcards); optional **Last saved** from `savedAt`. **Import plan tasks/flashcards** (Phase **10B**) — batch import via **`POST .../import/tasks`** and **`POST .../import/flashcards`** from visible `plan` (see **10B** section). **No** `localStorage` / `sessionStorage` for plans; **no** direct Supabase plan writes |
+| **backend** | `POST /api/study-materials/:materialId/generate` — body **`{}` strict**; `requireAuth`; ownership before reading saved `content`; one document-service call; **Zod-validates** plan before atomic RPC persist to `material_generated_plans` (Phase **11A-1**); returns `{ materialId, courseId, plan, savedAt }`. `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` for load/clear **active** plan only (GET may include optional **`planId`**). **No** client-supplied plan JSON; **no** raw Gemini storage; **no** failed-generate persistence |
+| **frontend** | **Generate** (`generateMaterial`, body `{}`); **load** saved plan on material detail (`GET`); **Clear** via backend `DELETE`; read-only plain-text display (summary, key topics, difficulty, tasks, flashcards); optional **Last saved** from `savedAt`. **Import plan tasks/flashcards** (Phase **10B**) — batch import via **`POST .../import/tasks`** and **`POST .../import/flashcards`** from visible `plan` (see **10B** section). **No** `localStorage` / `sessionStorage` for plans; **no** direct Supabase plan writes; **no** history UI (Phase **11A-1**) |
 
 **Generate and persistence rules:**
 
 - `materialId` from route only — not from body.
 - Body must not include `studyText`, `content`, `courseId`, `userId`, `plan`, or ownership fields.
 - Backend uses **saved** material `content` after ownership check (user must save edits before generate if form is dirty).
-- **One latest plan per material** — regenerate **replaces** the row; **no** plan history or saved-plan library UI.
+- **One active plan per material** (Phase **11A-1**) — regenerate inserts a new active row; prior active becomes inactive; up to **10** rows per material retained (oldest inactive pruned); **no** history list UI or version REST APIs.
 - Generated `plan` is **untrusted display data** — validated on the backend immediately before DB write; rendered as plain React text in the UI.
-- Missing saved plan → `404` “Generated plan not found” → **empty state** (not a scary error). Wrong-owner/missing material → neutral `404` “Study material not found”.
+- Missing active plan → `404` “Generated plan not found” → **empty state** (not a scary error). Wrong-owner/missing material → neutral `404` “Study material not found”.
 
 **PRD drift (approved refinement):** PRD §9 describes `POST /api/courses/:courseId/generate` with `{ studyText }`. The **implemented** route is material-scoped (above). Course-level paste-generate remains **deferred**. **`public.flashcards` table** (3B-b), **backend API** (3B-c), **material-detail frontend** (3B-d: saved list + plan import; 3B-e: manual create/edit/delete), and **global `/flashcards`** (3B-f: list/study/filter/edit/delete; 3B-g: global create) exist; **bulk create**, course-level management, and advanced study features remain **deferred**.
 
@@ -335,9 +335,34 @@ Material-scoped import of AI-generated **tasks** and **flashcards** from the sav
 
 **Manual smoke:** **Passed** — first import creates rows; re-import skips duplicates; no duplicate rows on re-import; manual task/flashcard create still works; dashboard counts increase only on first import.
 
-**Not in 10B:** plan import on global **`/flashcards`**; import dedupe across materials or for **`source='manual'`** rows; plan history; atomic all-or-nothing batch beyond per-item skip/fail counts.
+**Not in 10B:** plan import on global **`/flashcards`**; import dedupe across materials or for **`source='manual'`** rows; plan history **UI** (DB history added in **11A-1**); atomic all-or-nothing batch beyond per-item skip/fail counts.
 
 ---
+
+## Implemented — Generated plan active history (Phase 11A-1)
+
+DB + backend evolution of **`material_generated_plans`**: multiple rows per material, one **active**, bounded retention. **No** frontend history UI; **no** document-service/Gemini/Trello/PDF/admin-logs/packages/CI changes.
+
+| Aspect | Detail |
+|--------|--------|
+| **Migration** | `supabase/migrations/010_material_generated_plans_active_history.sql` — **applied manually** on Supabase; adds **`is_active`**, drops one-row **`UNIQUE`**, partial unique index (one active per material), RPC **`activate_material_generated_plan`** (**`EXECUTE`** for **`service_role`** only) |
+| **Generate** | **`POST …/generate`** body **`{}`** strict; ownership via **`getOwnedMaterialOrThrow`**; Zod before RPC; RPC deactivates prior active, inserts new active, prunes oldest inactive when count > **10** |
+| **GET / DELETE** | **`GET …/generated-plan`** — active row only; optional additive **`planId`**. **`DELETE …/generated-plan`** — active row only; inactive rows remain until prune |
+| **Stats** | **`GET /api/dashboard/stats`** and **`GET /api/admin/stats`** — **`totalGeneratedPlans`** counts **`is_active = true`** rows only (no plan JSON returned) |
+| **Frontend** | Unchanged — same generate/load/clear flow; compatible with active-only GET |
+
+**Tests:** backend tests passed; frontend lint/test/build passed.
+
+**Reviews:** Security Review **passed**; Supervisor Review pending.
+
+**Manual smoke:** **Passed** after migration **010** apply.
+
+**Not in 11A-1:** history list UI; get-by-id / activate / delete-version endpoints; document-service or Gemini prompt changes; background retention jobs.
+
+**See:** `docs/database/010-material-generated-plans-active-history.md`
+
+---
+
 ## Implemented — Flashcard study UI (Phase 3B-a)
 
 Frontend-only on **`/study-materials/:materialId`** — when `plan.flashcards` exists and length > 0, `GeneratedPlanSection` renders a flip/reveal study UI (`FlashcardStudy`) showing **one card at a time** (question first, **“Show answer”**, answer as plain text), with **Previous/Next** navigation and a **“Card X of N”** counter. Reveal state resets on navigation; current card index resets to `0` when `flashcards` changes. This block reads **only** from generated plan JSON (`material_generated_plans.plan`). **Saved DB flashcards** (Phase **3B-d**) use a separate **Saved flashcards** section and the same `FlashcardStudy` component via **`GET /api/flashcards?materialId=`**. **No** study-progress persistence. Tags are rendered as plain React text metadata (no HTML injection).
@@ -570,7 +595,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Response fields:**
 
-- **`totalCourses`**, **`totalStudyMaterials`**, **`totalGeneratedPlans`**, **`totalTasks`**, **`pendingTasks`**, **`completedTasks`**, **`totalFlashcards`**
+- **`totalCourses`**, **`totalStudyMaterials`**, **`totalGeneratedPlans`** (active generated plans only — Phase **11A-1**), **`totalTasks`**, **`pendingTasks`**, **`completedTasks`**, **`totalFlashcards`**
 - **`totalFocusMinutes`** — sum of **`duration_minutes`** for owned focus sessions where **`ended_at IS NOT NULL`** only (in-progress/abandoned excluded)
 - **`completedFocusSessions`** — count of owned sessions where **`ended_at IS NOT NULL`**
 - **`trelloSyncedTasks`** — count of owned **`study_tasks`** where **`trello_card_id IS NOT NULL`** (DB only — **no** Trello HTTP calls; **no** card IDs returned)
@@ -692,7 +717,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Response (aggregate-only — no raw rows):**
 
-- **`totalUsers`**, **`totalCourses`**, **`totalStudyMaterials`**, **`totalGeneratedPlans`**, **`totalTasks`**, **`pendingTasks`**, **`completedTasks`**, **`totalFlashcards`**, **`totalFocusMinutes`**, **`completedFocusSessions`**, **`trelloSyncedTasks`**, **`trelloSyncAttemptsToday`**, **`trelloSyncSucceededToday`**, **`trelloSyncFailedToday`**, **`trelloSyncSkippedToday`**
+- **`totalUsers`**, **`totalCourses`**, **`totalStudyMaterials`**, **`totalGeneratedPlans`** (active rows only — Phase **11A-1**), **`totalTasks`**, **`pendingTasks`**, **`completedTasks`**, **`totalFlashcards`**, **`totalFocusMinutes`**, **`completedFocusSessions`**, **`trelloSyncedTasks`**, **`trelloSyncAttemptsToday`**, **`trelloSyncSucceededToday`**, **`trelloSyncFailedToday`**, **`trelloSyncSkippedToday`**
 - **`systemHealth.backend`**: static **`"ok"`** (no document-service, Gemini, or Trello health probes)
 
 **Data minimization:** Returns numeric aggregates and static health only — **no** emails, user IDs, profiles, user lists, course/material names, study text, plan JSON, flashcard Q/A, Trello card IDs, credentials, **`api_logs`**, or raw database rows.
@@ -944,7 +969,7 @@ All routes below match `frontend/src/App.jsx`. Protected workspace routes render
 | `/flashcards` | Yes | **All saved flashcards** — filters, create, study, edit/delete; presentation upgraded **8C-3B** |
 | `/trello` | Yes | **Trello sync UI** — manual apiKey/token (not stored); **Load boards** → board/list picker (**4B-2**); task selection (max 50); sync via backend only; credentials cleared after sync attempt; presentation upgraded **8C-3C** — **no OAuth**, **no** stored credentials |
 | `/focus/:taskId` | Yes | **Focus session** — auto-start **`POST /api/focus`**; **25**-minute display countdown; complete **`POST /api/focus/:sessionId/complete`**; presentation upgraded **8C-3A** |
-| `/study-materials/:materialId` | Yes | **Study material workspace** — edit content, **generate** (body **`{}`**), load/clear latest plan, import plan tasks/flashcards, saved DB flashcards CRUD + study, generated-plan flashcard study; AI zones presentation upgraded **8C-2B** |
+| `/study-materials/:materialId` | Yes | **Study material workspace** — edit content, **generate** (body **`{}`**), load/clear **active** plan, import plan tasks/flashcards, saved DB flashcards CRUD + study, generated-plan flashcard study; AI zones presentation upgraded **8C-2B** |
 
 **Not implemented:** `/courses/:id/generate` (course-level paste-generate — deferred).
 
@@ -953,7 +978,7 @@ All routes below match `frontend/src/App.jsx`. Protected workspace routes render
 ## Deferred / not started (requires separate approval)
 
 - Material **navigation** links from task cards; **filtering** tasks by `materialId`; **bulk create** flashcards; **AI/Gemini** flashcard generation on `/flashcards`; **plan import** on **`/flashcards`** (global page); **course-level** flashcard management; known/unknown tracking; spaced repetition; Anki; pagination/rate limiting; **URL-persisted** flashcard filters (in-memory filters shipped in **3B-f**); optional shared CRUD form extraction; link from `/courses` to `/flashcards` ( **`public.flashcards` table + RLS** in **3B-b**; **backend API** in **3B-c**; **material-detail** in **3B-d**–**3B-e** + **plan import dedupe** in **10B**; **global page** in **3B-f**–**3B-g**; **plan JSON study** in **3B-a**; **plan tasks** import in **3A-f** superseded by **10B**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
-- Saved generated **plan library** or plan **history** (only one latest plan per material is stored)
+- Saved generated **plan library** or plan **history UI** / version REST APIs (DB retains up to **10** rows per material with one **active** since **11A-1**; no history list, get-by-id, activate, or delete-version endpoints)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
 - **Dashboard polling / WebSockets / cross-tab sync / visibility refetch** — **5C.1** ships invalidation-only manual/cross-page refresh only (PRD §12.5 intent); **no** polling, WebSockets, **`BroadcastChannel`**, or browser storage sync

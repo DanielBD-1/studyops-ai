@@ -52,7 +52,10 @@ export async function getAdminStats() {
       supabase.from('study_materials').select('id', { count: 'exact', head: true })
     ),
     countExact(
-      supabase.from('material_generated_plans').select('id', { count: 'exact', head: true })
+      supabase
+        .from('material_generated_plans')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true)
     ),
     countExact(supabase.from('study_tasks').select('id', { count: 'exact', head: true })),
     countExact(

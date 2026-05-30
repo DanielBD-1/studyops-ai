@@ -3,6 +3,7 @@ import { processStudyText } from '../../clients/document-service.client.js';
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { parseAndValidateGeneratedPlan } from '../../shared/validation/generated-plan.schema.js';
+import { persistValidatedGeneratedPlan } from './generated-plan-persistence.js';
 
 const studyTextLengthSchema = z
   .string()
@@ -97,12 +98,18 @@ function handleGeneratedPlanError(error) {
  * @param {{ plan: unknown, updated_at: string }} row
  */
 function mapGeneratedPlanResponse(materialId, courseId, row) {
-  return {
+  const response = {
     materialId,
     courseId,
     plan: row.plan,
     savedAt: row.updated_at,
   };
+
+  if (typeof row.id === 'string') {
+    return { ...response, planId: row.id };
+  }
+
+  return response;
 }
 
 /**
@@ -317,39 +324,6 @@ function assertStudyTextLength(studyText) {
  * @param {{ processStudyTextFn?: typeof processStudyText }} [options]
  */
 /**
- * @param {string} materialId
- * @param {string} courseId
- * @param {unknown} plan
- * @returns {Promise<string>}
- */
-async function persistValidatedGeneratedPlan(materialId, courseId, plan) {
-  const validatedPlan = parseAndValidateGeneratedPlan(plan);
-
-  const { data, error } = await getSupabaseAdmin()
-    .from('material_generated_plans')
-    .upsert(
-      {
-        study_material_id: materialId,
-        course_id: courseId,
-        plan: validatedPlan,
-      },
-      { onConflict: 'study_material_id' }
-    )
-    .select('updated_at')
-    .single();
-
-  if (error) {
-    throw new ApiError('DATABASE_ERROR', 'Failed to save generated plan', 500);
-  }
-
-  if (data == null || typeof data !== 'object' || typeof data.updated_at !== 'string') {
-    throw new ApiError('DATABASE_ERROR', 'Failed to save generated plan', 500);
-  }
-
-  return /** @type {{ updated_at: string }} */ (data).updated_at;
-}
-
-/**
  * @param {string} userId
  * @param {string} materialId
  */
@@ -358,9 +332,10 @@ export async function getGeneratedPlanByMaterial(userId, materialId) {
 
   const { data, error } = await getSupabaseAdmin()
     .from('material_generated_plans')
-    .select('plan, updated_at')
+    .select('id, plan, updated_at')
     .eq('study_material_id', materialId)
     .eq('course_id', owned.course_id)
+    .eq('is_active', true)
     .single();
 
   if (error) {
@@ -371,7 +346,11 @@ export async function getGeneratedPlanByMaterial(userId, materialId) {
     throw new ApiError('NOT_FOUND', 'Generated plan not found', 404);
   }
 
-  return mapGeneratedPlanResponse(materialId, owned.course_id, /** @type {{ plan: unknown, updated_at: string }} */ (data));
+  return mapGeneratedPlanResponse(
+    materialId,
+    owned.course_id,
+    /** @type {{ id: string, plan: unknown, updated_at: string }} */ (data)
+  );
 }
 
 /**
@@ -386,6 +365,7 @@ export async function deleteGeneratedPlanByMaterial(userId, materialId) {
     .delete()
     .eq('study_material_id', materialId)
     .eq('course_id', owned.course_id)
+    .eq('is_active', true)
     .select('id')
     .single();
 

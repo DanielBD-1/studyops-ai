@@ -35,14 +35,16 @@ let nextMaterialNumericId = 1;
  *   materialDeleteNullSuccess?: boolean,
  *   materialInsertError?: { code: string, message?: string, details?: string } | null,
  *   ownMaterialGenerateContent?: string,
- *   generatedPlanUpsertError?: { code: string, message?: string } | null,
+ *   generatedPlanRpcError?: { code: string, message?: string } | null,
  * }} */
 let mockTestOverrides = {};
 
 let nextGeneratedPlanNumericId = 1;
 
-/** @type {Array<{ id: string, study_material_id: string, course_id: string, plan: unknown, created_at: string, updated_at: string }>} */
+/** @type {Array<{ id: string, study_material_id: string, course_id: string, plan: unknown, is_active: boolean, created_at: string, updated_at: string }>} */
 const generatedPlans = [];
+
+const MAX_MOCK_GENERATED_PLANS_PER_MATERIAL = 10;
 
 /**
  * @param {typeof mockTestOverrides} overrides
@@ -371,6 +373,9 @@ function resolveGeneratedPlansSelect(state) {
     if (state.filters.course_id && p.course_id !== state.filters.course_id) {
       return false;
     }
+    if (state.filters.is_active !== undefined && p.is_active !== state.filters.is_active) {
+      return false;
+    }
     return true;
   });
 
@@ -382,6 +387,12 @@ function resolveGeneratedPlansSelect(state) {
     if (state.selectColumns === 'updated_at') {
       return { data: { updated_at: row.updated_at }, error: null };
     }
+    if (typeof state.selectColumns === 'string' && state.selectColumns.includes('id')) {
+      return {
+        data: { id: row.id, plan: row.plan, updated_at: row.updated_at },
+        error: null,
+      };
+    }
     return { data: { plan: row.plan, updated_at: row.updated_at }, error: null };
   }
 
@@ -389,39 +400,61 @@ function resolveGeneratedPlansSelect(state) {
 }
 
 /**
- * @param {Record<string, unknown>} state
+ * @param {{ p_study_material_id: string, p_course_id: string, p_plan: unknown, p_max_rows?: number }} params
  */
-function resolveGeneratedPlansUpsert(state) {
-  if (mockTestOverrides.generatedPlanUpsertError) {
-    return { data: null, error: mockTestOverrides.generatedPlanUpsertError };
+function resolveActivateMaterialGeneratedPlan(params) {
+  if (mockTestOverrides.generatedPlanRpcError) {
+    return { data: null, error: mockTestOverrides.generatedPlanRpcError };
   }
 
-  const insert = /** @type {{ study_material_id: string, course_id: string, plan: unknown }} */ (
-    state.upsert
-  );
-  const existingIndex = generatedPlans.findIndex(
-    (p) => p.study_material_id === insert.study_material_id
-  );
+  const maxRows = params.p_max_rows ?? MAX_MOCK_GENERATED_PLANS_PER_MATERIAL;
 
-  if (existingIndex === -1) {
-    const suffix = String(nextGeneratedPlanNumericId++).padStart(12, '0');
-    generatedPlans.push({
-      id: `dddddddd-dddd-4ddd-8ddd-${suffix}`,
-      study_material_id: insert.study_material_id,
-      course_id: insert.course_id,
-      plan: insert.plan,
-      created_at: '2026-01-09T00:00:00.000Z',
-      updated_at: '2026-01-10T00:00:00.000Z',
-    });
-  } else {
-    const existing = generatedPlans[existingIndex];
-    existing.course_id = insert.course_id;
-    existing.plan = insert.plan;
-    existing.updated_at = '2026-01-10T00:00:00.000Z';
+  for (const row of generatedPlans) {
+    if (
+      row.study_material_id === params.p_study_material_id &&
+      row.course_id === params.p_course_id &&
+      row.is_active
+    ) {
+      row.is_active = false;
+    }
   }
 
-  const row = generatedPlans.find((p) => p.study_material_id === insert.study_material_id);
-  return { data: { updated_at: row.updated_at }, error: null };
+  const sequence = nextGeneratedPlanNumericId++;
+  const suffix = String(sequence).padStart(12, '0');
+  const createdAt = `2026-01-${String(9 + sequence).padStart(2, '0')}T00:00:00.000Z`;
+  const savedAt = '2026-01-10T00:00:00.000Z';
+  const newRow = {
+    id: `dddddddd-dddd-4ddd-8ddd-${suffix}`,
+    study_material_id: params.p_study_material_id,
+    course_id: params.p_course_id,
+    plan: params.p_plan,
+    is_active: true,
+    created_at: createdAt,
+    updated_at: savedAt,
+  };
+  generatedPlans.push(newRow);
+
+  const materialRows = generatedPlans.filter(
+    (p) =>
+      p.study_material_id === params.p_study_material_id && p.course_id === params.p_course_id
+  );
+  if (materialRows.length > maxRows) {
+    const excess = materialRows.length - maxRows;
+    const inactiveOldestFirst = materialRows
+      .filter((p) => !p.is_active)
+      .sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
+    const idsToDelete = new Set(inactiveOldestFirst.slice(0, excess).map((p) => p.id));
+    for (let i = generatedPlans.length - 1; i >= 0; i -= 1) {
+      if (idsToDelete.has(generatedPlans[i].id)) {
+        generatedPlans.splice(i, 1);
+      }
+    }
+  }
+
+  return {
+    data: [{ plan_id: newRow.id, saved_at: newRow.updated_at }],
+    error: null,
+  };
 }
 
 /**
@@ -431,7 +464,8 @@ function resolveGeneratedPlansDelete(state) {
   const index = generatedPlans.findIndex(
     (p) =>
       p.study_material_id === state.filters.study_material_id &&
-      p.course_id === state.filters.course_id
+      p.course_id === state.filters.course_id &&
+      (state.filters.is_active === undefined || p.is_active === state.filters.is_active)
   );
   if (index === -1) {
     return { data: null, error: { code: 'PGRST116', message: 'not found' } };
@@ -453,11 +487,6 @@ function createGeneratedPlansBuilder() {
       state.selectColumns = columns;
       return builder;
     },
-    upsert(row, _options) {
-      state.upsert = row;
-      state.single = true;
-      return builder;
-    },
     delete() {
       state.delete = true;
       state.single = true;
@@ -473,9 +502,7 @@ function createGeneratedPlansBuilder() {
     },
     then(onFulfilled, onRejected) {
       let result;
-      if (state.upsert) {
-        result = resolveGeneratedPlansUpsert(state);
-      } else if (state.delete) {
+      if (state.delete) {
         result = resolveGeneratedPlansDelete(state);
       } else {
         result = resolveGeneratedPlansSelect(state);
@@ -554,6 +581,12 @@ function createMaterialsBuilder() {
 
 export function createStudyMaterialsMockSupabaseClient() {
   return {
+    rpc(fn, params) {
+      if (fn === 'activate_material_generated_plan') {
+        return Promise.resolve(resolveActivateMaterialGeneratedPlan(params));
+      }
+      return Promise.resolve({ data: null, error: { message: `Unexpected rpc: ${fn}` } });
+    },
     auth: {
       getUser: async (token) => {
         if (token === 'valid-token') {
