@@ -3,7 +3,9 @@ import {
   updateStudyMaterialBodySchema,
   courseIdParamSchema,
   materialIdParamSchema,
+  materialPlanIdParamsSchema,
   generateStudyMaterialBodySchema,
+  activateGeneratedPlanBodySchema,
 } from '../../shared/validation/schemas.js';
 import {
   importPlanTasksBodySchema,
@@ -24,6 +26,12 @@ import {
   importPlanTasksForMaterial,
   importPlanFlashcardsForMaterial,
 } from './plan-import.service.js';
+import {
+  listGeneratedPlansForMaterial,
+  getGeneratedPlanByIdForMaterial,
+  activateGeneratedPlanForMaterial,
+  deleteGeneratedPlanVersionForMaterial,
+} from './generated-plan-history.service.js';
 
 /**
  * @param {import('express').Request} req
@@ -126,11 +134,99 @@ export async function update(req, res, next) {
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
+export async function listGeneratedPlans(req, res, next) {
+  const parsed = materialIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const result = await listGeneratedPlansForMaterial(req.user.id, parsed.data.materialId);
+    sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
+export async function getGeneratedPlanById(req, res, next) {
+  const parsed = materialPlanIdParamsSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const result = await getGeneratedPlanByIdForMaterial(
+      req.user.id,
+      parsed.data.materialId,
+      parsed.data.planId
+    );
+    sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function activateGeneratedPlan(req, res, next) {
+  const paramsParsed = materialPlanIdParamsSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = activateGeneratedPlanBodySchema.safeParse(req.body ?? {});
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const result = await activateGeneratedPlanForMaterial(
+      req.user.id,
+      paramsParsed.data.materialId,
+      paramsParsed.data.planId
+    );
+    sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function deleteGeneratedPlanVersion(req, res, next) {
+  const parsed = materialPlanIdParamsSchema.safeParse(req.params);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+
+  try {
+    const result = await deleteGeneratedPlanVersionForMaterial(
+      req.user.id,
+      parsed.data.materialId,
+      parsed.data.planId
+    );
+    sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res

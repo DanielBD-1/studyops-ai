@@ -36,6 +36,7 @@ let nextMaterialNumericId = 1;
  *   materialInsertError?: { code: string, message?: string, details?: string } | null,
  *   ownMaterialGenerateContent?: string,
  *   generatedPlanRpcError?: { code: string, message?: string } | null,
+ *   reactivatePlanRpcError?: { code: string, message?: string } | null,
  * }} */
 let mockTestOverrides = {};
 
@@ -365,8 +366,40 @@ function createCoursesBuilder() {
 /**
  * @param {Record<string, unknown>} state
  */
+/**
+ * @param {typeof generatedPlans[number]} row
+ * @param {string | undefined} selectColumns
+ */
+function projectGeneratedPlanRow(row, selectColumns) {
+  if (selectColumns === 'updated_at') {
+    return { updated_at: row.updated_at };
+  }
+  if (selectColumns === 'id, is_active') {
+    return { id: row.id, is_active: row.is_active };
+  }
+  if (selectColumns === 'id, created_at, updated_at, is_active') {
+    return {
+      id: row.id,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      is_active: row.is_active,
+    };
+  }
+  if (typeof selectColumns === 'string' && selectColumns.includes('plan')) {
+    return {
+      id: row.id,
+      plan: row.plan,
+      updated_at: row.updated_at,
+    };
+  }
+  return { plan: row.plan, updated_at: row.updated_at };
+}
+
 function resolveGeneratedPlansSelect(state) {
   let rows = generatedPlans.filter((p) => {
+    if (state.filters.id && p.id !== state.filters.id) {
+      return false;
+    }
     if (state.filters.study_material_id && p.study_material_id !== state.filters.study_material_id) {
       return false;
     }
@@ -379,24 +412,25 @@ function resolveGeneratedPlansSelect(state) {
     return true;
   });
 
+  if (state.order?.column === 'created_at') {
+    rows = [...rows].sort((a, b) => {
+      const cmp = a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0;
+      return state.order.ascending ? cmp : -cmp;
+    });
+  }
+
   if (state.single) {
     if (rows.length === 0) {
       return { data: null, error: { code: 'PGRST116', message: 'not found' } };
     }
     const row = rows[0];
-    if (state.selectColumns === 'updated_at') {
-      return { data: { updated_at: row.updated_at }, error: null };
-    }
-    if (typeof state.selectColumns === 'string' && state.selectColumns.includes('id')) {
-      return {
-        data: { id: row.id, plan: row.plan, updated_at: row.updated_at },
-        error: null,
-      };
-    }
-    return { data: { plan: row.plan, updated_at: row.updated_at }, error: null };
+    return { data: projectGeneratedPlanRow(row, state.selectColumns), error: null };
   }
 
-  return { data: rows, error: null };
+  return {
+    data: rows.map((row) => projectGeneratedPlanRow(row, state.selectColumns)),
+    error: null,
+  };
 }
 
 /**
@@ -460,13 +494,67 @@ function resolveActivateMaterialGeneratedPlan(params) {
 /**
  * @param {Record<string, unknown>} state
  */
-function resolveGeneratedPlansDelete(state) {
-  const index = generatedPlans.findIndex(
+/**
+ * @param {{ p_study_material_id: string, p_course_id: string, p_plan_id: string }} params
+ */
+function resolveReactivateMaterialGeneratedPlan(params) {
+  if (mockTestOverrides.reactivatePlanRpcError) {
+    return { data: null, error: mockTestOverrides.reactivatePlanRpcError };
+  }
+
+  const target = generatedPlans.find(
     (p) =>
-      p.study_material_id === state.filters.study_material_id &&
-      p.course_id === state.filters.course_id &&
-      (state.filters.is_active === undefined || p.is_active === state.filters.is_active)
+      p.id === params.p_plan_id &&
+      p.study_material_id === params.p_study_material_id &&
+      p.course_id === params.p_course_id
   );
+
+  if (!target) {
+    return { data: [], error: null };
+  }
+
+  if (target.is_active) {
+    return {
+      data: [{ plan_id: target.id, saved_at: target.updated_at }],
+      error: null,
+    };
+  }
+
+  for (const row of generatedPlans) {
+    if (
+      row.study_material_id === params.p_study_material_id &&
+      row.course_id === params.p_course_id &&
+      row.is_active
+    ) {
+      row.is_active = false;
+    }
+  }
+
+  target.is_active = true;
+
+  return {
+    data: [{ plan_id: target.id, saved_at: target.updated_at }],
+    error: null,
+  };
+}
+
+function resolveGeneratedPlansDelete(state) {
+  const index = generatedPlans.findIndex((p) => {
+    if (state.filters.id && p.id !== state.filters.id) return false;
+    if (
+      state.filters.study_material_id &&
+      p.study_material_id !== state.filters.study_material_id
+    ) {
+      return false;
+    }
+    if (state.filters.course_id && p.course_id !== state.filters.course_id) {
+      return false;
+    }
+    if (state.filters.is_active !== undefined && p.is_active !== state.filters.is_active) {
+      return false;
+    }
+    return true;
+  });
   if (index === -1) {
     return { data: null, error: { code: 'PGRST116', message: 'not found' } };
   }
@@ -494,6 +582,10 @@ function createGeneratedPlansBuilder() {
     },
     eq(column, value) {
       state.filters[column] = value;
+      return builder;
+    },
+    order(column, options) {
+      state.order = { column, ascending: options?.ascending ?? true };
       return builder;
     },
     single() {
@@ -584,6 +676,9 @@ export function createStudyMaterialsMockSupabaseClient() {
     rpc(fn, params) {
       if (fn === 'activate_material_generated_plan') {
         return Promise.resolve(resolveActivateMaterialGeneratedPlan(params));
+      }
+      if (fn === 'reactivate_material_generated_plan') {
+        return Promise.resolve(resolveReactivateMaterialGeneratedPlan(params));
       }
       return Promise.resolve({ data: null, error: { message: `Unexpected rpc: ${fn}` } });
     },
