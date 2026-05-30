@@ -143,7 +143,8 @@
   min-width: 0;
 }
 
-.page--admin-dashboard {
+.page--admin-dashboard,
+.page--admin-forbidden {
   border-top: 3px solid var(--color-admin-accent);
 }
 
@@ -152,6 +153,72 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-admin-accent);
+}
+
+.page--admin-dashboard .page-header__lead,
+.page--admin-forbidden .page-header__lead {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.page--admin-dashboard .page-header__note,
+.page--admin-forbidden .page-header__note {
+  color: var(--color-text-subtle);
+}
+
+.admin-disclaimer {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  background: var(--color-admin-subtle);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  line-height: var(--line-height-body);
+}
+
+.admin-cockpit {
+  margin-top: var(--space-2);
+}
+
+.dashboard-band--admin-overview {
+  border-top: 3px solid var(--color-admin-accent);
+}
+
+.dashboard-band--health {
+  border-top: 3px solid var(--color-border-strong);
+}
+
+.dashboard-band--trello-today {
+  border-top: 3px solid var(--color-primary);
+}
+
+.admin-forbidden-card {
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+}
+
+.admin-forbidden-card__lead {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.admin-forbidden-card__text {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+
+.admin-forbidden-card p:last-child {
+  margin-bottom: 0;
 }
 
 .page--workspace {

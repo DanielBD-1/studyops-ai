@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ui/ErrorMessage.jsx';
-import FormCard from '../components/ui/FormCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import PageHeader from '../components/layout/PageHeader.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -27,15 +26,15 @@ function StatItem({ label, value, detail }) {
 }
 
 /**
- * @param {{ title: string, children: import('react').ReactNode }} props
+ * @param {{ title: string, children: import('react').ReactNode, bandClass?: string }} props
  */
-function StatSection({ title, children }) {
+function StatBand({ title, children, bandClass }) {
+  const bandClasses = ['dashboard-band', bandClass].filter(Boolean).join(' ');
+
   return (
-    <section className="section section--compact">
-      <h2 className="section__title section__title--sm">{title}</h2>
-      <FormCard>
-        <dl className="dashboard-stats">{children}</dl>
-      </FormCard>
+    <section className={bandClasses}>
+      <h2 className="dashboard-band__title">{title}</h2>
+      <dl className="dashboard-stats">{children}</dl>
     </section>
   );
 }
@@ -130,17 +129,37 @@ export default function AdminDashboardPage() {
 
   return (
     <main className="page page--workspace page--admin-dashboard">
-      <PageHeader title="Admin dashboard" />
+      <PageHeader
+        intro
+        title="Admin dashboard"
+        lead="Platform-wide aggregate counts — no individual user data is shown here."
+        note="Counts reflect all users on the platform. Refresh to load the latest totals."
+      >
+        {!loading && !error && !forbidden && stats && (
+          <div className="page-header__actions">
+            <Button
+              variant="secondary"
+              disabled={refreshing}
+              onClick={() => loadStats({ silent: true })}
+            >
+              {refreshing ? 'Refreshing…' : 'Refresh stats'}
+            </Button>
+          </div>
+        )}
+      </PageHeader>
 
       {loading && <LoadingState message="Loading admin stats…" />}
 
       {!loading && forbidden && (
-        <>
-          <p className="page__lead">Admin access required</p>
+        <div className="admin-forbidden-card">
+          <p className="admin-forbidden-card__lead">Admin access required</p>
+          <p className="admin-forbidden-card__text">
+            You do not have permission to view platform admin stats.
+          </p>
           <p>
             <Link to="/dashboard">Back to dashboard</Link>
           </p>
-        </>
+        </div>
       )}
 
       {!loading && error && (
@@ -154,69 +173,72 @@ export default function AdminDashboardPage() {
 
       {!loading && !error && !forbidden && stats && (
         <>
-          <p className="section__actions">
-            <Button
-              variant="secondary"
-              disabled={refreshing}
-              onClick={() => loadStats({ silent: true })}
-            >
-              {refreshing ? 'Refreshing…' : 'Refresh stats'}
-            </Button>
+          <p className="admin-disclaimer" role="note">
+            Aggregate totals only — no emails, content, or individual records are displayed.
           </p>
 
-          <StatSection title="Platform overview">
-            <StatItem label="Total users" value={stats.totalUsers} />
-            <StatItem label="Total courses" value={stats.totalCourses} />
-            <StatItem label="Study materials" value={stats.totalStudyMaterials} />
-            <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
-          </StatSection>
+          <div className="dashboard-cockpit admin-cockpit">
+            <StatBand title="Platform overview" bandClass="dashboard-band--admin-overview">
+              <StatItem label="Total users" value={stats.totalUsers} />
+              <StatItem label="Total courses" value={stats.totalCourses} />
+              <StatItem label="Study materials" value={stats.totalStudyMaterials} />
+              <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
+            </StatBand>
 
-          <StatSection title="Tasks">
-            <StatItem label="Total tasks" value={stats.totalTasks} />
-            <StatItem label="Pending" value={stats.pendingTasks} />
-            <StatItem
-              label="Completed"
-              value={stats.completedTasks}
-              detail={
-                taskCompletionPercent !== null
-                  ? `${taskCompletionPercent}% complete`
-                  : undefined
-              }
-            />
-          </StatSection>
+            <div className="dashboard-cockpit__row">
+              <StatBand title="Tasks" bandClass="dashboard-band--tasks">
+                <StatItem label="Total tasks" value={stats.totalTasks} />
+                <StatItem label="Pending" value={stats.pendingTasks} />
+                <StatItem
+                  label="Completed"
+                  value={stats.completedTasks}
+                  detail={
+                    taskCompletionPercent !== null
+                      ? `${taskCompletionPercent}% complete`
+                      : undefined
+                  }
+                />
+              </StatBand>
 
-          <StatSection title="Focus">
-            <StatItem
-              label="Focus time"
-              value={formatFocusMinutes(stats.totalFocusMinutes)}
-            />
-            <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
-          </StatSection>
+              <StatBand title="Focus" bandClass="dashboard-band--focus">
+                <StatItem
+                  label="Focus time"
+                  value={formatFocusMinutes(stats.totalFocusMinutes)}
+                />
+                <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
+              </StatBand>
+            </div>
 
-          <StatSection title="Learning assets">
-            <StatItem label="Flashcards" value={stats.totalFlashcards} />
-          </StatSection>
+            <div className="dashboard-cockpit__row dashboard-cockpit__row--compact">
+              <StatBand title="Learning assets" bandClass="dashboard-band--assets">
+                <StatItem label="Flashcards" value={stats.totalFlashcards} />
+              </StatBand>
 
-          <StatSection title="Trello">
-            <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
-            <StatItem
-              label="Sync attempts today (UTC)"
-              value={stats.trelloSyncAttemptsToday}
-            />
-            <StatItem
-              label="Succeeded today (UTC)"
-              value={stats.trelloSyncSucceededToday}
-            />
-            <StatItem label="Failed today (UTC)" value={stats.trelloSyncFailedToday} />
-            <StatItem label="Skipped today (UTC)" value={stats.trelloSyncSkippedToday} />
-          </StatSection>
+              <StatBand title="Trello" bandClass="dashboard-band--trello">
+                <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
+              </StatBand>
+            </div>
 
-          <StatSection title="System health">
-            <StatItem
-              label="Status"
-              value={formatBackendHealth(stats.systemHealth.backend)}
-            />
-          </StatSection>
+            <StatBand title="Trello today (UTC)" bandClass="dashboard-band--trello-today">
+              <StatItem
+                label="Sync attempts today (UTC)"
+                value={stats.trelloSyncAttemptsToday}
+              />
+              <StatItem
+                label="Succeeded today (UTC)"
+                value={stats.trelloSyncSucceededToday}
+              />
+              <StatItem label="Failed today (UTC)" value={stats.trelloSyncFailedToday} />
+              <StatItem label="Skipped today (UTC)" value={stats.trelloSyncSkippedToday} />
+            </StatBand>
+
+            <StatBand title="System health" bandClass="dashboard-band--health">
+              <StatItem
+                label="Status"
+                value={formatBackendHealth(stats.systemHealth.backend)}
+              />
+            </StatBand>
+          </div>
         </>
       )}
     </main>
