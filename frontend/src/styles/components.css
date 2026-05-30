@@ -723,6 +723,15 @@
   margin-top: var(--space-2);
 }
 
+.flashcard-library__meta a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.flashcard-library__meta a:hover {
+  text-decoration: underline;
+}
+
 /* Generated plan output */
 .plan-output {
   margin-bottom: 0;
