@@ -82,6 +82,7 @@ export async function getDashboardStats(userId) {
         .from('material_generated_plans')
         .select('id, courses!inner(id)', { count: 'exact', head: true })
         .eq('courses.user_id', userId)
+        .eq('is_active', true)
     ),
     countExact(
       supabase

@@ -5,6 +5,8 @@
 **Prerequisite:** `001_profiles.sql`, `002_courses.sql`, and `003_study_materials.sql` applied and verified  
 **PRD reference:** Section 8 (Gemini output shape), Section 9 (persistence model — latest plan per material implemented in Phases 2L-b/c)
 
+**Supersession (Phase 11A-1):** `010_material_generated_plans_active_history.sql` **applied manually** on Supabase (**2026-05-30**). The one-row-per-material `UNIQUE (study_material_id)` model is replaced by multiple rows with `is_active` and retention. See `docs/database/010-material-generated-plans-active-history.md`.
+
 ---
 
 ## Purpose

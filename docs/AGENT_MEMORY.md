@@ -27,11 +27,13 @@
 
 ---
 
-## Current state as of 2026-05-30 (Phase 10B)
+## Current state as of 2026-05-30 (Phase 11A-1)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
-**Functional MVP:** Complete through **6A-3** (auth, courses, materials, material-scoped generate + persisted latest plan, tasks, flashcards, focus, Trello sync with board/list picker, student dashboard, admin aggregate stats API + UI).
+**Functional MVP:** Complete through **6A-3** (auth, courses, materials, material-scoped generate + persisted generated plan, tasks, flashcards, focus, Trello sync with board/list picker, student dashboard, admin aggregate stats API + UI).
+
+**Generated plan history (DB/backend):** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only; Security Review **passed**; manual smoke **passed**.
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -1926,3 +1928,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Manual smoke:** **Passed** — first import creates rows; re-import skips duplicates; no duplicate rows on re-import; manual task/flashcard create still works; dashboard counts increase only on first import
 **Pitfalls:** Do not trust client for **`source`** or ownership fields; dedupe is **`plan`** + material-scoped only — not global across manual rows or other materials
 **Follow-up:** none
+
+### 2026-05-30 — Phase 11A-1 generated plan active history complete
+
+**Workflow:** Phase 11A-1 — generated plan history DB/backend active compatibility
+**ADR refs:** 001 (modular monolith), 003 (Zod before DB write)
+**Human gates:** `approved — Phase 11A-1 complete`
+**Summary:** Evolved **`public.material_generated_plans`** from one row per material to multiple historical rows with exactly one **`is_active`** row per **`study_material_id`**. Migration **`010_material_generated_plans_active_history.sql`** **applied manually** on Supabase. Generate inserts a new active version via atomic RPC **`activate_material_generated_plan`** (service role only) after Zod validation; prior active row becomes inactive; retention cap **10** rows per material (active + inactive) — prune deletes oldest **inactive** only. **`GET` / `DELETE` …/generated-plan** operate on **active** row only; optional additive **`planId`** on GET. Dashboard/admin **`totalGeneratedPlans`** count **active** rows only. Frontend unchanged (no history UI; no version list/get-by-id/activate/delete-version endpoints). **No** document-service/Gemini prompt/Trello/PDF/admin logs/packages/CI changes.
+**APIs affected:** same routes — **`POST /api/study-materials/:materialId/generate`**, **`GET` / `DELETE` …/generated-plan** (behavior refined); **`GET /api/dashboard/stats`**, **`GET /api/admin/stats`** (count semantics)
+**Tests:** backend tests passed; frontend lint/test/build passed
+**Reviews:** Security Review **passed**; Supervisor Review pending
+**Manual smoke:** **Passed** after migration **010** apply — generate creates new active version; GET returns active only; DELETE removes active only; inactive history retained until prune; dashboard/admin counts reflect active rows only
+**Pitfalls:** Do not expose RPC to clients; do not skip ownership check before RPC; invalid Gemini output must not reach persistence or retention
+**Follow-up:** optional RLS SELECT hardening for inactive rows (Security Review note, non-blocking); plan history **UI** and version REST APIs remain deferred

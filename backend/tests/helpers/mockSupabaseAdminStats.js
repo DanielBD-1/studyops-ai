@@ -118,8 +118,9 @@ export function seedAdminStatsPopulatedPlatform() {
   ];
 
   platformGeneratedPlans = [
-    { id: 'plan-1111-4111-8111-111111111111' },
-    { id: 'plan-2222-4222-8222-222222222222' },
+    { id: 'plan-1111-4111-8111-111111111111', is_active: true },
+    { id: 'plan-2222-4222-8222-222222222222', is_active: true },
+    { id: 'plan-inactive-3333-4333-8333-333333333333', is_active: false },
   ];
 
   platformTasks = [
