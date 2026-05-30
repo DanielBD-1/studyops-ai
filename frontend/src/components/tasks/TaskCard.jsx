@@ -36,40 +36,75 @@ export default function TaskCard({
   const cardClass = [
     'source-card',
     'source-card--task',
+    'task-card',
     isCompleted && 'source-card--completed',
+    isCompleted && 'task-card--completed',
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
+  const priorityPillClass = [
+    'source-card__pill',
+    'source-card__pill--priority',
+    `source-card__pill--priority-${task.priority}`,
+  ].join(' ');
+
+  const focusDisabled = disabled || editing || completing || deleting;
+
   return (
     <article className={cardClass}>
-      <h3 className="source-card__title">{task.title}</h3>
-      {courseLabel ? (
-        <p className="source-card__meta">
-          Course:{' '}
-          <Link to={`/courses/${courseLabel.courseId}`}>{courseLabel.title}</Link>
-        </p>
-      ) : task.courseId ? (
-        <p className="source-card__meta">Course: unavailable</p>
-      ) : null}
-      {isCompleted && <p className="source-card__meta">Status: Completed</p>}
-      {task.description ? (
-        <p className="source-card__meta">{task.description}</p>
-      ) : null}
-      {task.materialId ? (
-        <p className="source-card__meta">Material: {materialLabel ?? 'unavailable'}</p>
-      ) : null}
-      <p className="source-card__meta">
-        Priority: {task.priority} · {task.estimatedMinutes} min
-      </p>
-      <div className="form-row source-card__actions">
+      <div className="source-card__header task-card__header">
+        <span
+          className={
+            isCompleted
+              ? 'source-card__pill source-card__pill--completed'
+              : 'source-card__pill source-card__pill--pending'
+          }
+        >
+          {isCompleted ? 'Completed' : 'Pending'}
+        </span>
+        <span className={priorityPillClass}>{task.priority} priority</span>
+      </div>
+
+      <h3 className="source-card__title task-card__title">{task.title}</h3>
+
+      <ul className="source-card__stat-row task-card__stats" aria-label="Task details">
+        <li className="source-card__stat">
+          <span className="source-card__stat-value">{task.estimatedMinutes}</span>
+          <span className="source-card__stat-label">Minutes</span>
+        </li>
+      </ul>
+
+      <div className="task-card__meta">
+        {courseLabel ? (
+          <p className="source-card__meta">
+            Course:{' '}
+            <Link className="source-card__link" to={`/courses/${courseLabel.courseId}`}>
+              {courseLabel.title}
+            </Link>
+          </p>
+        ) : task.courseId ? (
+          <p className="source-card__meta">Course: unavailable</p>
+        ) : null}
+        {task.description ? (
+          <p className="source-card__meta task-card__description">{task.description}</p>
+        ) : null}
+        {task.materialId ? (
+          <p className="source-card__meta">Material: {materialLabel ?? 'unavailable'}</p>
+        ) : null}
+      </div>
+
+      <div className="form-row source-card__actions task-card__actions">
         {!isCompleted && (
           <>
-            {disabled || editing || completing || deleting ? (
-              <span aria-disabled="true">Start Focus</span>
+            {focusDisabled ? (
+              <span className="link-btn link-btn--secondary link-btn--disabled" aria-disabled="true">
+                Start Focus
+              </span>
             ) : (
               <Link
+                className="link-btn link-btn--secondary"
                 to={`/focus/${task.id}`}
                 state={{
                   taskTitle: task.title,
@@ -83,7 +118,7 @@ export default function TaskCard({
             <Button
               type="button"
               variant="secondary"
-              disabled={disabled || editing || completing || deleting}
+              disabled={focusDisabled}
               onClick={onEdit}
             >
               Edit
@@ -91,7 +126,7 @@ export default function TaskCard({
             <Button
               type="button"
               variant="primary"
-              disabled={disabled || editing || completing || deleting}
+              disabled={focusDisabled}
               onClick={onComplete}
             >
               {completing ? 'Completing…' : 'Mark complete'}

@@ -403,8 +403,13 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     statusFilter === 'all';
 
   return (
-    <section className="section">
-      <div className="filter-toolbar">
+    <section className="section task-workspace__main">
+      <div className="section__header-row">
+        <h2 className="section__title">Task list</h2>
+        <p className="section__subtitle">Filter by course and status, then take action on each task</p>
+      </div>
+
+      <div className="filter-toolbar filter-toolbar--segmented task-workspace__filters">
         <label htmlFor="global-tasks-course-filter" className="field">
           Course
           <select
@@ -439,15 +444,15 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       </div>
 
       {canShowCreate && !showCreate && !loading && !error && (
-        <p className="section__actions">
+        <div className="task-workspace__toolbar">
           <Button variant="primary" onClick={openCreateForm} disabled={busy}>
             Add study task
           </Button>
-        </p>
+        </div>
       )}
 
       {showCreate && canShowCreate && (
-        <div className="section--compact">
+        <div className="section--compact task-workspace__create">
           <FormCard title="Add study task">
             <form onSubmit={handleCreate} className="form-stack">
               <label htmlFor="global-task-course-create" className="field">
@@ -588,7 +593,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       )}
 
       {!loading && !error && tasks.length > 0 && (
-        <div className="card-list">
+        <div className="card-list task-list">
           {tasks.map((task) =>
             editingTaskId === task.id ? (
               <FormCard key={task.id} title="Edit study task">

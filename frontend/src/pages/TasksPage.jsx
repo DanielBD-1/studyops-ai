@@ -49,8 +49,12 @@ export default function TasksPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace">
-      <PageHeader title="All study tasks" />
+    <main className="page page--workspace page--tasks task-workspace">
+      <PageHeader
+        intro
+        title="All study tasks"
+        lead="Review and manage study tasks across your courses — filter, edit, and start focus sessions."
+      />
 
       {coursesLoading && <LoadingState message="Loading courses…" />}
 

@@ -76,6 +76,55 @@
   transform: none;
 }
 
+/* Link styled as button (presentation-only — keeps <Link> semantics) */
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.link-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.link-btn--secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.link-btn--secondary:hover {
+  text-decoration: none;
+  background-color: var(--color-bg-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.link-btn--secondary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(68, 88, 212, 0.15);
+}
+
+.link-btn--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Forms */
 .form-stack {
   display: flex;
@@ -407,11 +456,86 @@
 
 .source-card--task {
   border-left: 3px solid var(--color-primary-border);
+  padding: var(--space-5);
 }
 
-.source-card--task.source-card--completed {
+.source-card--task.source-card--completed,
+.task-card--completed {
   border-left-color: var(--color-border-strong);
-  opacity: 0.92;
+  background: var(--color-bg-subtle);
+  opacity: 1;
+}
+
+.source-card--task.source-card--completed:hover,
+.task-card--completed:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.task-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.source-card__pill--pending {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+
+.source-card__pill--completed {
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
+}
+
+.source-card__pill--priority {
+  text-transform: capitalize;
+}
+
+.source-card__pill--priority-low {
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
+}
+
+.source-card__pill--priority-medium {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+
+.source-card__pill--priority-high {
+  color: var(--color-danger);
+  background: var(--color-danger-subtle);
+  border-color: #e8b4b0;
+}
+
+.task-card__title {
+  margin-bottom: var(--space-3);
+}
+
+.task-card__stats {
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+}
+
+.task-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.task-card__description {
+  line-height: var(--line-height-body);
+}
+
+.task-card__actions {
+  gap: var(--space-2);
 }
 
 .source-card__actions {
