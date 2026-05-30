@@ -27,11 +27,13 @@
 
 ---
 
-## Current state as of 2026-05-30 (Phase 9B)
+## Current state as of 2026-05-30 (Phase 10B)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
 **Functional MVP:** Complete through **6A-3** (auth, courses, materials, material-scoped generate + persisted latest plan, tasks, flashcards, focus, Trello sync with board/list picker, student dashboard, admin aggregate stats API + UI).
+
+**Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
 **Hardening / docs:** **7A**–**7C** complete (**2026-05-29**).
 
@@ -1911,3 +1913,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Tests:** not run (docs-only phase)
 **Reviews:** Supervisor Review required before merge; Security Review **not required** (governance/process docs only; no trust-boundary code changes)
 **Follow-up:** none — agents should treat **`docs/IMPLEMENTATION_STATUS.md`** operating-constraints section and aligned governance docs as authoritative for cost, Gemini discipline, approval gates, and doc-update scope
+
+### 2026-05-30 — Phase 10B plan-sourced import dedupe complete
+
+**Workflow:** Phase 10B — plan-sourced import deduplication for AI-generated tasks and flashcards
+**ADR refs:** 001 (modular monolith), 003 (Zod validation on import bodies)
+**Human gates:** `approved — Phase 10B complete`
+**Summary:** Material-scoped plan import with server-set **`source='plan'`** and dedupe for tasks and flashcards. Migration **`009_plan_source_import_dedupe.sql`** **applied manually** on Supabase. Backend import routes: **`POST /api/study-materials/:materialId/import/tasks`**, **`POST /api/study-materials/:materialId/import/flashcards`** — **`requireAuth`**, ownership via **`getOwnedMaterialOrThrow`**, **`course_id`** from owned material; strict Zod bodies reject client **`source`**, **`userId`**, **`courseId`**, **`materialId`**. Dedupe queries and partial unique indexes scope to same **`user_id`**, same **`material_id`**, **`source='plan'`** only (normalized **`lower(trim(...))`**). Manual create remains **`source='manual'`**; manual duplicates still allowed. Frontend material detail calls import endpoints via **`study-materials.service.js`** (not sequential create). **No** Gemini/document-service/Trello/PDF/plan-history/admin-logs/deployment/CI/package dependency changes.
+**APIs affected:** **`POST /api/study-materials/:materialId/import/tasks`**, **`POST /api/study-materials/:materialId/import/flashcards`**
+**Tests:** backend **`320/320`** passed; frontend lint/test/build passed (**`190/190`**, build pass)
+**Reviews:** Security Review **passed**; Supervisor Review pending
+**Manual smoke:** **Passed** — first import creates rows; re-import skips duplicates; no duplicate rows on re-import; manual task/flashcard create still works; dashboard counts increase only on first import
+**Pitfalls:** Do not trust client for **`source`** or ownership fields; dedupe is **`plan`** + material-scoped only — not global across manual rows or other materials
+**Follow-up:** none

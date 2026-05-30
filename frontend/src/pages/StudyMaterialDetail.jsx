@@ -19,6 +19,8 @@ import {
   generateMaterial,
   getGeneratedPlan,
   deleteGeneratedPlan,
+  importPlanTasks,
+  importPlanFlashcards,
 } from '../services/study-materials.service.js';
 import {
   createCourseFlashcard,
@@ -26,18 +28,20 @@ import {
   listFlashcards,
   updateFlashcard,
 } from '../services/flashcards.service.js';
-import { createCourseTask } from '../services/tasks.service.js';
 import {
   isGeneratedPlanNotFound,
   isStudyMaterialNotFound,
 } from '../utils/generated-plan-errors.js';
 import {
-  buildValidatedFlashcardImportBodies,
-  importPlanFlashcardsSequentially,
+  buildValidatedPlanFlashcardsImportPayload,
+  formatPlanFlashcardImportSummaryMessage,
+  importPlanFlashcardsFromPlan,
 } from '../utils/plan-flashcard-import.js';
 import {
-  buildValidatedImportBodies,
-  importPlanTasksSequentially,
+  buildValidatedPlanTasksImportPayload,
+  buildPlanImportConfirmMessage,
+  formatPlanImportSummaryMessage,
+  importPlanTasksFromPlan,
 } from '../utils/plan-import.js';
 import { updateStudyMaterialFormSchema } from '../utils/validation.js';
 
@@ -283,7 +287,7 @@ export default function StudyMaterialDetail() {
     if (planFlashcards.length === 0) return;
 
     const confirmed = window.confirm(
-      `Import ${planFlashcards.length} flashcards from this plan into your saved library? Importing again may create duplicates.`
+      buildPlanImportConfirmMessage(planFlashcards.length, 'flashcards')
     );
     if (!confirmed) return;
 
@@ -291,7 +295,7 @@ export default function StudyMaterialDetail() {
     setImportFlashcardsSuccess(null);
     setImportFlashcardsProgress(null);
 
-    const validated = buildValidatedFlashcardImportBodies(plan, materialId);
+    const validated = buildValidatedPlanFlashcardsImportPayload(plan);
     if (!validated.success) {
       setImportFlashcardsError(validated.error);
       return;
@@ -299,17 +303,16 @@ export default function StudyMaterialDetail() {
 
     setImportingFlashcards(true);
     try {
-      const result = await importPlanFlashcardsSequentially(
-        material.courseId,
-        validated.bodies,
-        createCourseFlashcard,
-        (current, total) => {
-          setImportFlashcardsProgress(`Importing flashcard ${current} of ${total}…`);
-        }
+      setImportFlashcardsProgress(`Importing ${validated.flashcards.length} flashcards…`);
+
+      const result = await importPlanFlashcardsFromPlan(
+        materialId,
+        validated.flashcards,
+        importPlanFlashcards
       );
 
       if (result.success) {
-        setImportFlashcardsSuccess(`Imported ${result.imported} saved flashcards.`);
+        setImportFlashcardsSuccess(formatPlanFlashcardImportSummaryMessage(result.summary));
         setImportFlashcardsProgress(null);
         await loadDbFlashcards();
         refreshStats();
@@ -318,18 +321,18 @@ export default function StudyMaterialDetail() {
 
       if (await handleAuthError(result.error)) return;
 
-      if (result.imported === 0) {
+      if (result.summary) {
+        setImportFlashcardsError(formatPlanFlashcardImportSummaryMessage(result.summary));
+        if (result.summary.imported > 0) {
+          await loadDbFlashcards();
+          refreshStats();
+        }
+      } else {
         setImportFlashcardsError(
           result.error instanceof Error
             ? result.error.message
             : 'Failed to import flashcards'
         );
-      } else {
-        setImportFlashcardsError(
-          `Imported ${result.imported} of ${result.total} flashcards before an error. You can try again, but duplicates may be created.`
-        );
-        await loadDbFlashcards();
-        refreshStats();
       }
       setImportFlashcardsProgress(null);
     } finally {
@@ -344,7 +347,7 @@ export default function StudyMaterialDetail() {
     if (planTasks.length === 0) return;
 
     const confirmed = window.confirm(
-      `Import ${planTasks.length} tasks from this plan into your study tasks? Importing again may create duplicates.`
+      buildPlanImportConfirmMessage(planTasks.length, 'tasks')
     );
     if (!confirmed) return;
 
@@ -352,7 +355,7 @@ export default function StudyMaterialDetail() {
     setImportSuccess(null);
     setImportProgress(null);
 
-    const validated = buildValidatedImportBodies(plan, materialId);
+    const validated = buildValidatedPlanTasksImportPayload(plan);
     if (!validated.success) {
       setImportError(validated.error);
       return;
@@ -360,17 +363,16 @@ export default function StudyMaterialDetail() {
 
     setImporting(true);
     try {
-      const result = await importPlanTasksSequentially(
-        material.courseId,
-        validated.bodies,
-        createCourseTask,
-        (current, total) => {
-          setImportProgress(`Importing task ${current} of ${total}…`);
-        }
+      setImportProgress(`Importing ${validated.tasks.length} tasks…`);
+
+      const result = await importPlanTasksFromPlan(
+        materialId,
+        validated.tasks,
+        importPlanTasks
       );
 
       if (result.success) {
-        setImportSuccess(`Imported ${result.imported} study tasks.`);
+        setImportSuccess(formatPlanImportSummaryMessage(result.summary, 'tasks'));
         setImportProgress(null);
         refreshStats();
         return;
@@ -378,17 +380,17 @@ export default function StudyMaterialDetail() {
 
       if (await handleAuthError(result.error)) return;
 
-      if (result.imported === 0) {
+      if (result.summary) {
+        setImportError(formatPlanImportSummaryMessage(result.summary, 'tasks'));
+        if (result.summary.imported > 0) {
+          refreshStats();
+        }
+      } else {
         setImportError(
           result.error instanceof Error
             ? result.error.message
             : 'Failed to import study tasks'
         );
-      } else {
-        setImportError(
-          `Imported ${result.imported} of ${result.total} tasks before an error. You can try again, but duplicates may be created.`
-        );
-        refreshStats();
       }
       setImportProgress(null);
     } finally {

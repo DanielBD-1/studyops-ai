@@ -1,14 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  mapPlanTaskToCreateBody,
-  buildValidatedImportBodies,
-  importPlanTasksSequentially,
+  mapPlanTaskToImportItem,
+  buildValidatedPlanTasksImportPayload,
+  formatPlanImportSummaryMessage,
+  buildPlanImportConfirmMessage,
+  importPlanTasksFromPlan,
   PLAN_IMPORT_VALIDATION_ERROR,
 } from '../../src/utils/plan-import.js';
-
-const MATERIAL_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const COURSE_ID = '33333333-3333-4333-8333-333333333333';
 
 const VALID_PLAN_TASK = {
   title: 'Read chapter 1',
@@ -33,57 +32,33 @@ const VALID_PLAN = {
   ],
 };
 
-describe('plan-import mapPlanTaskToCreateBody', () => {
-  it('maps plan task to create body with title, estimatedMinutes, description, priority, materialId', () => {
-    const body = mapPlanTaskToCreateBody(VALID_PLAN_TASK, MATERIAL_ID);
-    assert.equal(body.title, 'Read chapter 1');
-    assert.equal(body.estimatedMinutes, 30);
-    assert.equal(body.description, 'Focus on definitions');
-    assert.equal(body.priority, 'high');
-    assert.equal(body.materialId, MATERIAL_ID);
-    assert.equal(body.difficulty, undefined);
-    assert.equal(body.tags, undefined);
-    assert.equal(body.source, undefined);
-    assert.equal(body.status, undefined);
-    assert.equal(body.courseId, undefined);
-    assert.equal(body.userId, undefined);
-  });
-
-  it('omits empty description', () => {
-    const body = mapPlanTaskToCreateBody(
-      { ...VALID_PLAN_TASK, description: '   ' },
-      MATERIAL_ID
-    );
-    assert.equal(body.description, undefined);
-  });
-
-  it('omits invalid priority', () => {
-    const body = mapPlanTaskToCreateBody(
-      { ...VALID_PLAN_TASK, priority: 'urgent' },
-      MATERIAL_ID
-    );
-    assert.equal(body.priority, undefined);
+describe('plan-import mapPlanTaskToImportItem', () => {
+  it('maps plan task to import item without materialId or source', () => {
+    const item = mapPlanTaskToImportItem(VALID_PLAN_TASK);
+    assert.equal(item.title, 'Read chapter 1');
+    assert.equal(item.estimatedMinutes, 30);
+    assert.equal(item.description, 'Focus on definitions');
+    assert.equal(item.priority, 'high');
+    assert.equal(/** @type {Record<string, unknown>} */ (item).materialId, undefined);
+    assert.equal(/** @type {Record<string, unknown>} */ (item).source, undefined);
   });
 });
 
-describe('plan-import buildValidatedImportBodies', () => {
-  it('validates all tasks before import and returns bodies', () => {
-    const result = buildValidatedImportBodies(VALID_PLAN, MATERIAL_ID);
+describe('plan-import buildValidatedPlanTasksImportPayload', () => {
+  it('validates all tasks before import and returns tasks array', () => {
+    const result = buildValidatedPlanTasksImportPayload(VALID_PLAN);
     assert.equal(result.success, true);
     if (result.success) {
-      assert.equal(result.bodies.length, 1);
-      assert.equal(result.bodies[0].materialId, MATERIAL_ID);
+      assert.equal(result.tasks.length, 1);
+      assert.equal(result.tasks[0].title, 'Read chapter 1');
     }
   });
 
-  it('aborts with zero bodies if any mapped task is invalid', () => {
-    const result = buildValidatedImportBodies(
-      {
-        ...VALID_PLAN,
-        tasks: [{ ...VALID_PLAN_TASK, title: 'ab' }],
-      },
-      MATERIAL_ID
-    );
+  it('aborts with zero tasks if any mapped task is invalid', () => {
+    const result = buildValidatedPlanTasksImportPayload({
+      ...VALID_PLAN,
+      tasks: [{ ...VALID_PLAN_TASK, title: 'ab' }],
+    });
     assert.equal(result.success, false);
     if (!result.success) {
       assert.equal(result.error, PLAN_IMPORT_VALIDATION_ERROR);
@@ -91,59 +66,79 @@ describe('plan-import buildValidatedImportBodies', () => {
   });
 
   it('fails when plan has no tasks', () => {
-    const result = buildValidatedImportBodies({ ...VALID_PLAN, tasks: [] }, MATERIAL_ID);
+    const result = buildValidatedPlanTasksImportPayload({ ...VALID_PLAN, tasks: [] });
     assert.equal(result.success, false);
   });
 });
 
-describe('plan-import importPlanTasksSequentially', () => {
-  it('imports all tasks sequentially on success', async () => {
-    /** @type {Array<{ courseId: string, body: unknown }>} */
-    const calls = [];
-    const bodies = [
-      { title: 'Task one', estimatedMinutes: 30, materialId: MATERIAL_ID },
-      { title: 'Task two', estimatedMinutes: 45, materialId: MATERIAL_ID },
-    ];
+describe('plan-import formatPlanImportSummaryMessage', () => {
+  it('includes imported and skipped counts', () => {
+    const message = formatPlanImportSummaryMessage(
+      { imported: 2, skipped: 1, failed: 0, total: 3 },
+      'tasks'
+    );
+    assert.match(message, /Imported 2 study tasks/);
+    assert.match(message, /Skipped 1 already imported/);
+  });
 
-    const result = await importPlanTasksSequentially(
-      COURSE_ID,
-      bodies,
-      async (courseId, body) => {
-        calls.push({ courseId, body });
+  it('includes failed count when present', () => {
+    const message = formatPlanImportSummaryMessage(
+      { imported: 1, skipped: 0, failed: 1, total: 2 },
+      'tasks'
+    );
+    assert.match(message, /1 could not be imported/);
+  });
+});
+
+describe('plan-import buildPlanImportConfirmMessage', () => {
+  it('mentions skipped duplicates on re-import', () => {
+    const message = buildPlanImportConfirmMessage(3, 'tasks');
+    assert.match(message, /Import 3 tasks/);
+    assert.match(message, /will be skipped/);
+  });
+});
+
+describe('plan-import importPlanTasksFromPlan', () => {
+  it('calls material import API once and returns summary', async () => {
+    /** @type {Array<{ materialId: string, body: unknown }>} */
+    const calls = [];
+    const tasks = [{ title: 'Task one title here', estimatedMinutes: 30 }];
+
+    const result = await importPlanTasksFromPlan(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      tasks,
+      async (materialId, body) => {
+        calls.push({ materialId, body });
+        return { summary: { imported: 1, skipped: 0, failed: 0, total: 1 } };
       }
     );
 
     assert.equal(result.success, true);
-    if (result.success) {
-      assert.equal(result.imported, 2);
-    }
-    assert.equal(calls.length, 2);
-    assert.equal(calls[0].courseId, COURSE_ID);
-    assert.equal(calls[1].courseId, COURSE_ID);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].materialId, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    assert.deepEqual(calls[0].body, { tasks });
   });
 
-  it('stops on first createCourseTask failure and reports partial count', async () => {
-    const bodies = [
-      { title: 'Task one', estimatedMinutes: 30, materialId: MATERIAL_ID },
-      { title: 'Task two', estimatedMinutes: 45, materialId: MATERIAL_ID },
-      { title: 'Task three', estimatedMinutes: 60, materialId: MATERIAL_ID },
-    ];
-
-    let callCount = 0;
-    const result = await importPlanTasksSequentially(COURSE_ID, bodies, async () => {
-      callCount += 1;
-      if (callCount === 2) {
-        throw new Error('Server error');
-      }
-    });
-
-    assert.equal(result.success, false);
-    if (!result.success) {
-      assert.equal(result.imported, 1);
-      assert.equal(result.total, 3);
-      assert.ok(result.error instanceof Error);
-      assert.equal(result.error.message, 'Server error');
+  it('does not use sequential createCourseTask flow', async () => {
+    const result = await importPlanTasksFromPlan(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      [{ title: 'Another valid task', estimatedMinutes: 20 }],
+      async () => ({ summary: { imported: 1, skipped: 0, failed: 0, total: 1 } })
+    );
+    assert.equal(result.success, true);
+    if (result.success) {
+      assert.equal(result.summary.imported, 1);
     }
-    assert.equal(callCount, 2);
+  });
+
+  it('returns error when import API throws', async () => {
+    const result = await importPlanTasksFromPlan(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      [{ title: 'Another valid task', estimatedMinutes: 20 }],
+      async () => {
+        throw new Error('Network error');
+      }
+    );
+    assert.equal(result.success, false);
   });
 });

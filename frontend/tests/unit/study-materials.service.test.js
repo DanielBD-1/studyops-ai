@@ -10,6 +10,8 @@ import {
   generateMaterial,
   getGeneratedPlan,
   deleteGeneratedPlan,
+  importPlanTasks,
+  importPlanFlashcards,
   __setApiFetchForTests,
   __setAccessTokenForTests,
 } from '../../src/services/study-materials.service.js';
@@ -330,5 +332,51 @@ describe('study-materials.service', () => {
         return true;
       }
     );
+  });
+
+  it('importPlanTasks calls POST /api/study-materials/:id/import/tasks', async () => {
+    const body = {
+      tasks: [{ title: 'Valid import task title', estimatedMinutes: 30 }],
+    };
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { summary: { imported: 1, skipped: 0, failed: 0, total: 1 } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await importPlanTasks(MATERIAL_ID, body);
+    assert.deepEqual(data, { summary: { imported: 1, skipped: 0, failed: 0, total: 1 } });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].path, `/api/study-materials/${MATERIAL_ID}/import/tasks`);
+    assert.equal(calls[0].init?.method, 'POST');
+    assert.equal(calls[0].token, TOKEN);
+    assert.equal(calls[0].init?.body, JSON.stringify(body));
+  });
+
+  it('importPlanFlashcards calls POST /api/study-materials/:id/import/flashcards', async () => {
+    const body = {
+      flashcards: [
+        {
+          question: 'What is import testing here?',
+          answer: 'Import testing verifies the flashcard import endpoint.',
+        },
+      ],
+    };
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { summary: { imported: 1, skipped: 0, failed: 0, total: 1 } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await importPlanFlashcards(MATERIAL_ID, body);
+    assert.deepEqual(data, { summary: { imported: 1, skipped: 0, failed: 0, total: 1 } });
+    assert.equal(calls[0].path, `/api/study-materials/${MATERIAL_ID}/import/flashcards`);
+    assert.equal(calls[0].init?.method, 'POST');
   });
 });

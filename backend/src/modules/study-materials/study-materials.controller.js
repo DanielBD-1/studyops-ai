@@ -5,6 +5,10 @@ import {
   materialIdParamSchema,
   generateStudyMaterialBodySchema,
 } from '../../shared/validation/schemas.js';
+import {
+  importPlanTasksBodySchema,
+  importPlanFlashcardsBodySchema,
+} from '../../shared/validation/plan-import.schema.js';
 import { sendSuccess, sendValidationError } from '../../shared/utils/response.js';
 import {
   listMaterials,
@@ -16,6 +20,10 @@ import {
   getGeneratedPlanByMaterial,
   deleteGeneratedPlanByMaterial,
 } from './study-materials.service.js';
+import {
+  importPlanTasksForMaterial,
+  importPlanFlashcardsForMaterial,
+} from './plan-import.service.js';
 
 /**
  * @param {import('express').Request} req
@@ -207,6 +215,66 @@ export async function remove(req, res, next) {
   try {
     await deleteMaterial(req.user.id, parsed.data.materialId);
     sendSuccess(res, { deleted: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function importPlanTasks(req, res, next) {
+  const paramsParsed = materialIdParamSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = importPlanTasksBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const summary = await importPlanTasksForMaterial(
+      req.user.id,
+      paramsParsed.data.materialId,
+      bodyParsed.data.tasks
+    );
+    sendSuccess(res, { summary });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function importPlanFlashcards(req, res, next) {
+  const paramsParsed = materialIdParamSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = importPlanFlashcardsBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const summary = await importPlanFlashcardsForMaterial(
+      req.user.id,
+      paramsParsed.data.materialId,
+      bodyParsed.data.flashcards
+    );
+    sendSuccess(res, { summary });
   } catch (err) {
     next(err);
   }

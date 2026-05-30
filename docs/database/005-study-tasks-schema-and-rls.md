@@ -75,7 +75,7 @@ The **frontend** must **not** write tasks via Supabase client — all access thr
 | `difficulty` | `text` | NOT NULL, DEFAULT `'medium'`, CHECK `easy` \| `medium` \| `hard` | Stored; not editable in 3A-b/c/d |
 | `tags` | `text[]` | NOT NULL, DEFAULT `'{}'`, CHECK `cardinality <= 5` | Stored; not editable in 3A-b/c/d |
 | `status` | `text` | NOT NULL, DEFAULT `'pending'`, CHECK `pending` \| `completed` | |
-| `source` | `text` | NOT NULL, DEFAULT `'manual'`, CHECK **`manual` only** in 3A-a | |
+| `source` | `text` | NOT NULL, DEFAULT `'manual'`, CHECK **`manual` or `plan`** (Phase **10B** via `009_plan_source_import_dedupe.sql`) | `manual` for user-created tasks; `plan` for material-scoped AI plan imports |
 | `trello_card_id` | `text` | NULLABLE | No sync in 3A |
 | `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()` | |
 | `updated_at` | `timestamptz` | NOT NULL, DEFAULT `now()` | `BEFORE UPDATE` trigger |
@@ -88,6 +88,7 @@ The **frontend** must **not** write tasks via Supabase client — all access thr
 | `study_tasks_user_id_status_idx` | `(user_id, status)` | Filter pending/completed |
 | `study_tasks_course_id_created_at_idx` | `(course_id, created_at desc)` | Course task list |
 | `study_tasks_material_id_idx` | `(material_id)` WHERE `material_id is not null` | Material-scoped lookups |
+| `study_tasks_plan_import_dedupe_idx` | `(user_id, material_id, lower(trim(title)))` WHERE `source = 'plan' AND material_id IS NOT NULL` | Phase **10B** — race-safe dedupe for plan imports (trimmed, case-insensitive title per user per material) |
 
 **Triggers:**
 
@@ -222,7 +223,7 @@ Run as an authenticated student (Supabase SQL Editor with JWT, or app after Phas
 | 6 | `service_role` grants | Same four privileges (no `GRANT ALL`) |
 | 7 | Title CHECK | Trim length &lt; 3 or &gt; 200 → constraint error |
 | 8 | `estimated_minutes` CHECK | &lt; 5 or &gt; 480 → constraint error |
-| 9 | `source` CHECK | Value other than `manual` → constraint error |
+| 9 | `source` CHECK | Value not in (`manual`, `plan`) → constraint error (after Phase **10B** via `009_plan_source_import_dedupe.sql`; pre-10B only `manual` allowed) |
 | 10 | User/course trigger | `user_id` not matching `courses.user_id` → trigger error |
 | 11 | Material/course trigger | `material_id` from another course → trigger error |
 | 12 | INSERT own course | Valid row → success |

@@ -11,7 +11,7 @@
 
 Phase 3B-b adds the **database foundation** for DB-backed flashcards by creating `public.flashcards` with:
 - columns matching the generated-plan flashcard data shape (`question`, `answer`, `tags`)
-- `source` restricted to `'manual'` in this phase only
+- `source` restricted to `'manual'` in Phase 3B-b only; Phase **10B** (`009_plan_source_import_dedupe.sql`) adds `'plan'` for material-scoped AI plan imports
 - ownership consistency triggers (user/course, and optional material/course)
 - RLS policies and PostgREST grants for authenticated users
 
@@ -40,7 +40,7 @@ Phase 3B-b adds the **database foundation** for DB-backed flashcards by creating
 | `question` | `text` | CHECK trim **10–500** | Flashcard question |
 | `answer` | `text` | CHECK trim **10–2000** | Flashcard answer |
 | `tags` | `text[]` | NOT NULL default `'{}'`, CHECK `cardinality(tags) <= 5` | Up to 5 tags |
-| `source` | `text` | NOT NULL default `'manual'`, CHECK **`source in ('manual')`** | Only manual allowed in this phase |
+| `source` | `text` | NOT NULL default `'manual'`, CHECK **`source in ('manual', 'plan')`** (Phase **10B** via `009_plan_source_import_dedupe.sql`) | `manual` for user-created flashcards; `plan` for material-scoped AI plan imports |
 | `created_at` | `timestamptz` | NOT NULL default `now()` | |
 | `updated_at` | `timestamptz` | NOT NULL default `now()` | Maintained by trigger |
 
@@ -48,7 +48,7 @@ Phase 3B-b adds the **database foundation** for DB-backed flashcards by creating
 
 - `question` / `answer` length checks mirror the existing generated-plan constraints so later APIs/import validation can remain consistent.
 - `tags` cardinality is constrained to `<= 5` (matches the plan contract).
-- `source = 'manual'` only in **3B-b** schema CHECK: plan-flashcard import and broader `source` values were added in later phases — see superseded note under **Not implemented in Phase 3B-b** above and **`docs/IMPLEMENTATION_STATUS.md`**.
+- `source = 'manual' or 'plan'` (Phase **10B** via `009_plan_source_import_dedupe.sql`): `manual` for user-created flashcards; `plan` for material-scoped AI plan imports with dedupe index `flashcards_plan_import_dedupe_idx` on `(user_id, material_id, lower(trim(question)), lower(trim(answer)))` WHERE `source = 'plan' AND material_id IS NOT NULL` (trimmed, case-insensitive Q+A pair per user per material).
 - `material_id` is **nullable** so course-level cards can exist without a specific material link (and to match `study_tasks`’ optional `material_id` pattern).
 
 ---
@@ -84,7 +84,7 @@ flashcards.material_id → study_materials(id) → study_materials.course_id →
 | `flashcards_question_length` | `char_length(trim(question))` between **10** and **500** |
 | `flashcards_answer_length` | `char_length(trim(answer))` between **10** and **2000** |
 | `flashcards_tags_cardinality` | `cardinality(tags) <= 5` |
-| `flashcards_source_allowed` | `source in ('manual')` |
+| `flashcards_source_allowed` | `source in ('manual', 'plan')` (Phase **10B** via `009_plan_source_import_dedupe.sql`) |
 
 ### Triggers (defense in depth)
 
@@ -188,7 +188,7 @@ Do **not** re-apply this migration on an environment where `public.flashcards` a
 | 6 | Question length CHECK | Insert with too-short/too-long `question` fails |
 | 7 | Answer length CHECK | Insert with too-short/too-long `answer` fails |
 | 8 | Tags cardinality CHECK | Insert with `cardinality(tags) > 5` fails |
-| 9 | Source CHECK | Insert with `source != 'manual'` fails |
+| 9 | Source CHECK | Insert with `source` not in (`'manual'`, `'plan'`) fails (after Phase **10B** apply; pre-10B only `'manual'` allowed) |
 |10 | User/course mismatch trigger | Insert with `flashcards.user_id` != `courses.user_id` fails (trigger) |
 |11 | Material/course mismatch trigger | Insert with material from different course fails (trigger) |
 |12 | User A cannot access User B rows | Authenticated user cannot SELECT/UPDATE/DELETE other user rows (**skipped** in 2026-05-26 apply — no second auth user) |

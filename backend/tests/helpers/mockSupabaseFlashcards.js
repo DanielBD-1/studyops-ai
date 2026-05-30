@@ -82,6 +82,15 @@ const flashcards = [
 
 let nextFlashcardNumericId = 1;
 
+/** Matches DB index: lower(trim(...)) */
+function normalizePlanImportFlashcardText(value) {
+  return String(value).trim().toLowerCase();
+}
+
+function planFlashcardDedupeKey(question, answer) {
+  return `${normalizePlanImportFlashcardText(question)}\0${normalizePlanImportFlashcardText(answer)}`;
+}
+
 /**
  * @returns {typeof flashcards}
  */
@@ -94,6 +103,7 @@ function resolveFlashcardsSelect(state) {
     if (state.filters.id && f.id !== state.filters.id) return false;
     if (state.filters.user_id && f.user_id !== state.filters.user_id) return false;
     if (state.filters.course_id && f.course_id !== state.filters.course_id) return false;
+    if (state.filters.source && f.source !== state.filters.source) return false;
     if (state.filters.material_id !== undefined) {
       if (state.filters.material_id === null && f.material_id !== null) return false;
       if (state.filters.material_id !== null && f.material_id !== state.filters.material_id)
@@ -117,6 +127,31 @@ function resolveFlashcardsSelect(state) {
 }
 
 function resolveFlashcardsInsert(state) {
+  if (
+    state.insert.source === 'plan' &&
+    state.insert.material_id &&
+    state.insert.user_id
+  ) {
+    const duplicate = flashcards.find(
+      (f) =>
+        f.user_id === state.insert.user_id &&
+        f.material_id === state.insert.material_id &&
+        f.source === 'plan' &&
+        planFlashcardDedupeKey(f.question, f.answer) ===
+          planFlashcardDedupeKey(state.insert.question, state.insert.answer)
+    );
+    if (duplicate) {
+      return {
+        data: null,
+        error: {
+          code: '23505',
+          message:
+            'duplicate key value violates unique constraint "flashcards_plan_import_dedupe_idx"',
+        },
+      };
+    }
+  }
+
   const suffix = String(nextFlashcardNumericId++).padStart(12, '0');
   const row = {
     id: `cccccccc-cccc-4ccc-8ccc-${suffix}`,
@@ -158,7 +193,7 @@ function resolveFlashcardsDelete(state) {
   return { data: { id: removed.id }, error: null };
 }
 
-function createFlashcardsBuilder() {
+export function createFlashcardsBuilder() {
   /** @type {Record<string, unknown>} */
   const state = {
     filters: {},
