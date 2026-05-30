@@ -1,15 +1,17 @@
 # PRD — StudyOps AI (Version 2.0)
 
-**Last Updated:** 2026-05-29  
+**Last Updated:** 2026-05-30
 **Status:** Ready for Implementation
 
 ---
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **6A-3**; docs consistency through **7C**). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section records **what the repository implements today** (summary only; aligned through Phase **8C-3D** UI polish and Phase **9B** docs alignment). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C, 5C.1, 6A-1, 6A-2, 6A-3)
+### Built (functional MVP through 6A-3; hardening 7A–7C; UI polish through 8C-3D)
+
+**Functional MVP (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C, 5C.1, 6A-1, 6A-2, 6A-3):**
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
@@ -37,6 +39,35 @@ This section records **what the repository implements today** (summary only; ali
 - **Admin aggregate stats API** (Phase **6A-2**) — **`GET /api/admin/stats`** ( **`requireAuth` + `requireAdmin`** ); platform-wide aggregate counts only; Trello sync today breakdown; static **`systemHealth.backend`**
 - **Admin dashboard UI** (Phase **6A-3**) — protected **`/admin`** consumes **`GET /api/admin/stats`** via backend only; **`AdminRoute`** is UX-only. **Still deferred:** **`GET /api/admin/logs`** / **`api_logs`**; admin user list; role management UI; Gemini/system error metrics
 - **Lint:** ESLint per package; CI runs `npm run lint` before tests (frontend: before build)
+
+**Hardening & docs alignment (7A–7C, complete 2026-05-29):** read-only hardening audit (**7A**); database docs alignment (**7B**); markdown consistency through **6A-3** (**7C**).
+
+**UI presentation polish (8A–8C, complete through 8C-3D, 2026-05-30):**
+
+- **8A** — baseline frontend polish per **`DESIGN.md`** v2 (presentation only)
+- **8B** — docs-only design-reference alignment
+- **8C-1** — global **`AppShell`** (Dashboard, Courses, Tasks, Flashcards, Trello nav; optional Admin link for admins; logout); design tokens + **`PageHeader`**
+- **8C-2A** — **`/dashboard`**, **`/courses`**, **`/courses/:id`** cockpit/workspace presentation
+- **8C-2B** — **`/study-materials/:materialId`** editor + AI zones (generate panel, generated plan, saved flashcards)
+- **8C-3A** — **`/tasks`**, **`/focus/:taskId`**
+- **8C-3B** — **`/flashcards`**
+- **8C-3C** — **`/trello`** step-based sync workspace (manual apiKey/token — **no OAuth**, **no** credential persistence)
+- **8C-3D** — **`/admin`** aggregate stats cockpit (**no** logs, user list, or role management UI)
+
+**Frontend routes (all implemented):** `/`, `/register`, `/dashboard`, `/courses`, `/courses/:id`, `/tasks`, `/flashcards`, `/trello`, `/focus/:taskId`, `/study-materials/:materialId`, `/admin`. Protected workspace routes use **`AppShell`**.
+
+**Backend modules (mounted):** auth, courses, study-materials, tasks, flashcards, trello, focus, dashboard, admin.
+
+### Still deferred (requires separate approval)
+
+- **`GET /api/admin/logs`** / **`api_logs`** table; admin **user list**; **role management** UI; Gemini/system error metrics for admin
+- Trello **OAuth**; **stored** credentials; board/list **persistence**; Trello card update/delete; force re-sync
+- Course-level **`POST /api/courses/:courseId/generate`** with client `studyText`; route **`/courses/:id/generate`**
+- PDF upload/parsing
+- Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** (invalidation-only **5C.1** refresh is implemented)
+- Spaced repetition; advanced flashcard study (known/unknown, Anki); payments
+- Production deployment strategy; observability / APM
+- Further UI styling beyond **8C-3D** (explicit approval required)
 
 ### Approved refinement vs §9 / §6.5 below
 
@@ -83,7 +114,8 @@ This section records **what the repository implements today** (summary only; ali
 | Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** | **Deferred** — **5C.1** implements PRD §12.5 manual refetch-after-mutations only |
 | Admin auth foundation (`requireAdmin`, `GET /api/admin/access-check`) | **Yes** (6A-1) |
 | Admin aggregate stats API (`GET /api/admin/stats`) | **Yes** (6A-2 — aggregate-only; Trello sync today breakdown + `systemHealth.backend`) |
-| Admin dashboard frontend UI (`/admin`) | **Yes** (6A-3 — consumes stats API; no logs/user management) |
+| Admin dashboard frontend UI (`/admin`) | **Yes** (6A-3 — consumes stats API; presentation **8C-3D**; no logs/user management) |
+| Global **`AppShell`** + workspace UI polish (**8C-1**–**8C-3D**) | **Yes** — all protected workspace routes; auth pages outside shell |
 | Admin logs / user list / role management / Gemini admin metrics | **Deferred** — no **`api_logs`** table; **`GET /api/admin/logs`** not implemented |
 
 ### Architecture and env (unchanged intent)

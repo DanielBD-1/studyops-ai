@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase **8B** (Post-UI docs & design-reference alignment — docs-only). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. **Phase 7A** hardening audit completed read-only (**2026-05-29**) — all automated checks green; no files changed; verdict **Stable with notes**. **Phase 7B** DB docs status alignment complete (**2026-05-29**). **Phase 7C** docs-only consistency update (**2026-05-29**). **Phase 8A** UI polish pass complete (**2026-05-29**) — frontend presentation refined per **`DESIGN.md`** v2 (warm canvas, cards, stat tiles, filter toolbars, focus timer panel). **Phase 8B** reconciles **`DESIGN.md`**, **`STITCH_BRIEF.md`**, and **`SCREENSHOT_INDEX.md`** with post-**2J**/**8A** product state; existing screenshots may predate **8A** visuals unless recaptured. Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
+**Last aligned:** Phase **9B** (Post-8C documentation and implementation-status alignment — docs-only, **2026-05-30**). **Functional MVP** complete through **6A-3** (auth, courses, materials, material-scoped AI generate + persisted latest plan, tasks, flashcards, Trello sync with board/list picker, focus sessions, student dashboard, admin aggregate stats). **Hardening / docs alignment** phases **7A**–**7C** complete (**2026-05-29**). **UI / presentation polish** complete through **8C-3D** (**2026-05-30**): **8A** baseline polish; **8B** design-reference docs alignment; **8C-1** global **`AppShell`** + design system; **8C-2A** dashboard/courses/course detail; **8C-2B** study material detail + AI zones; **8C-3A** tasks + focus; **8C-3B** flashcards; **8C-3C** Trello; **8C-3D** admin. Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Existing design screenshots may predate **8C** visuals unless recaptured (see **`docs/design/SCREENSHOT_INDEX.md`**). Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
 
 ---
 
@@ -19,6 +19,10 @@ React frontend (Vite)
 - **ADR 002:** Gemini is called only from `document-service`.
 - **ADR 003:** Zod validates env, requests, and Gemini output shape.
 - Frontend uses the **backend REST API** with Bearer JWT — not service role, not document-service, not Gemini directly.
+
+**Backend modules (mounted in `backend/src/app.js`):** `auth`, `courses`, `study-materials`, `tasks`, `flashcards`, `trello`, `focus`, `dashboard`, `admin`.
+
+**Authenticated UI shell (Phase 8C-1):** Protected routes render inside **`AppShell`** (sticky top bar: brand, main nav — Dashboard, Courses, Tasks, Flashcards, Trello — optional Admin link for admins, logout). Auth routes **`/`** and **`/register`** remain outside the shell.
 
 ---
 
@@ -703,7 +707,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Reviews:** Supervisor Review **approved with notes**; Security Review **no blockers**.
 
-**Manual smoke test (passed, 2026-05-29):** Admin user accesses **`/admin`** and sees aggregate stat sections; **Admin** link on **`/dashboard`** for admin only; student has no link and direct **`/admin`** shows **“Admin access required”**; browser calls **`GET /api/admin/stats`** only — **no** direct Supabase table reads for admin stats; console clean (no token, **Authorization** header, or full response dump); **`/dashboard`** regression OK.
+**Manual smoke test (passed, 2026-05-29):** Admin user accesses **`/admin`** and sees aggregate stat sections; **Admin** link in **`AppShell`** nav for admins across authenticated routes; student has no link and direct **`/admin`** shows **“Admin access required”**; browser calls **`GET /api/admin/stats`** only — **no** direct Supabase table reads for admin stats; console clean (no token, **Authorization** header, or full response dump); **`/dashboard`** regression OK.
 
 **Not in 6A-3:** **`/admin/logs`**; user list; role management; **`GET /api/admin/logs`** / **`api_logs`** table; Gemini/system error metrics UI
 
@@ -857,22 +861,54 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 
 ---
 
+## Implemented — Hardening & docs alignment (Phases 7A–7C)
+
+| Phase | Status | Summary |
+|-------|--------|---------|
+| **7A** | Complete (**2026-05-29**) | Read-only hardening audit — all automated checks green; verdict **Stable with notes**; no application files changed |
+| **7B** | Complete (**2026-05-29**) | Database docs status alignment (`docs/database/*`) |
+| **7C** | Complete (**2026-05-29**) | Docs-only consistency update through **6A-3** |
+
+---
+
+## Implemented — UI presentation polish (Phases 8A–8C)
+
+Presentation-only frontend work per **`DESIGN.md`** v2 — **no** new product features, APIs, database tables, or behavior changes unless noted in phase history.
+
+| Phase | Status | Surfaces |
+|-------|--------|----------|
+| **8A** | Complete (**2026-05-29**) | Baseline polish — warm canvas, cards, stat tiles, filter toolbars, focus timer panel across existing pages |
+| **8B** | Complete (**2026-05-30**) | Docs-only — reconciled **`DESIGN.md`**, **`STITCH_BRIEF.md`**, **`SCREENSHOT_INDEX.md`** with post-**2J**/**8A** state |
+| **8C-1** | Complete (**2026-05-30**) | Global **`AppShell`** + design tokens + **`PageHeader`**; auth pages outside shell |
+| **8C-2A** | Complete (**2026-05-30**) | **`/dashboard`**, **`/courses`**, **`/courses/:id`** — cockpit/workspace presentation |
+| **8C-2B** | Complete (**2026-05-30**) | **`/study-materials/:materialId`** — editor, saved flashcards, generate AI panel, generated plan zones |
+| **8C-3A** | Complete (**2026-05-30**) | **`/tasks`**, **`/focus/:taskId`** — task workspace + focus timer presentation |
+| **8C-3B** | Complete (**2026-05-30**) | **`/flashcards`** — library/study/manage presentation |
+| **8C-3C** | Complete (**2026-05-30**) | **`/trello`** — step-based integration workspace (credentials → board/list → tasks → sync → results); ADR 004/005 unchanged |
+| **8C-3D** | Complete (**2026-05-30**) | **`/admin`** — cockpit-style aggregate stats; **`AdminRoute`** forbidden surface |
+
+**UI polish status:** **Complete** through **8C-3D**. Further styling requires explicit human approval (e.g. `approved — apply DESIGN styling pass`). Design screenshots under `docs/design/screenshots/` may predate **8C** visuals.
+
+---
+
 ## Frontend routes (implemented)
 
-| Route | Purpose |
-|-------|---------|
-| `/`, `/register` | Auth |
-| `/dashboard` | **Student dashboard** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** backend + **5C** UI + **5C.1** refresh); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere; **Admin** nav link when **`user?.role === 'admin'`** |
-| `/admin` | **Admin dashboard** — platform-wide aggregate stats from **`GET /api/admin/stats`** (**6A-2** backend + **6A-3** UI); **`ProtectedRoute` → `AdminRoute` → `AdminDashboardPage`**; read-only; fetch on mount + **Try again** + **Refresh stats**; **manual smoke test passed** (2026-05-29) |
-| `/courses` | Course list + create |
-| `/courses/:id` | Course detail + materials list/create + **manual study tasks** (list, **All/Pending/Completed filters**, create, **edit pending**, optional **link/unlink study material**, complete, delete) |
-| `/tasks` | **All study tasks** across courses — **course + status filters**, **create** (choose owned course; optional material link via lazy `listMaterials`), **edit pending** (incl. `materialId` link/unlink), complete, delete |
-| `/flashcards` | **All saved flashcards** — **course + material filters** (in-memory), **create** (required course, optional material), list, **study filtered** cards, **edit/delete**; links to course/material |
-| `/trello` | **Trello sync** — apiKey/token (not stored); **Load boards** → board/list picker (**4B-2**); task selection (max 50); sync via backend only (`/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync`); credentials cleared after sync attempt; UI polished (**4A-3**) |
-| `/focus/:taskId` | **Focus session** — auto-start via **`POST /api/focus`**; fixed **25**-minute display countdown; complete via **`POST /api/focus/:sessionId/complete`** (`{ completedTask }` only); optional mark task complete; **Start Focus** entry from pending tasks on **`/tasks`** and **`/courses/:id`** (**4C-2**) |
-| `/study-materials/:materialId` | Material detail, edit, **generate**, **load/clear latest saved plan**, **import plan tasks** to `study_tasks`, **saved DB flashcards** (list, study, **manual create/edit/delete**), **import plan flashcards** to library, and **generated-plan** flashcard study UI (`plan.flashcards`, flip/reveal) |
+All routes below match `frontend/src/App.jsx`. Protected workspace routes render inside **`AppShell`** (**8C-1**) except auth pages.
 
-**Not implemented:** `/courses/:id/generate`.
+| Route | Shell | Purpose |
+|-------|-------|---------|
+| `/`, `/register` | No (auth pages) | Login / register |
+| `/dashboard` | Yes | **Student dashboard cockpit** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** + **5C** + **5C.1**); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere; presentation upgraded **8C-2A** |
+| `/admin` | Yes | **Admin aggregate dashboard** — platform-wide stats from **`GET /api/admin/stats`** (**6A-2** + **6A-3**); **`ProtectedRoute` → `AppShell` → `AdminRoute` → `AdminDashboardPage`**; read-only; aggregate counts only — **no** logs, user list, or role management; presentation upgraded **8C-3D**; **Admin** also in **`AppShell`** nav when **`user?.role === 'admin'`** (UX only) |
+| `/courses` | Yes | Course list + create; presentation upgraded **8C-2A** |
+| `/courses/:id` | Yes | **Course workspace** — materials list/create, **manual study tasks** (filters, create, edit pending, material link/unlink, complete, delete); presentation upgraded **8C-2A** |
+| `/tasks` | Yes | **All study tasks** — course + status filters, create, edit pending, complete, delete, **Start Focus**; presentation upgraded **8C-3A** |
+| `/flashcards` | Yes | **All saved flashcards** — filters, create, study, edit/delete; presentation upgraded **8C-3B** |
+| `/trello` | Yes | **Trello sync UI** — manual apiKey/token (not stored); **Load boards** → board/list picker (**4B-2**); task selection (max 50); sync via backend only; credentials cleared after sync attempt; presentation upgraded **8C-3C** — **no OAuth**, **no** stored credentials |
+| `/focus/:taskId` | Yes | **Focus session** — auto-start **`POST /api/focus`**; **25**-minute display countdown; complete **`POST /api/focus/:sessionId/complete`**; presentation upgraded **8C-3A** |
+| `/study-materials/:materialId` | Yes | **Study material workspace** — edit content, **generate** (body **`{}`**), load/clear latest plan, import plan tasks/flashcards, saved DB flashcards CRUD + study, generated-plan flashcard study; AI zones presentation upgraded **8C-2B** |
+
+**Not implemented:** `/courses/:id/generate` (course-level paste-generate — deferred).
 
 ---
 
@@ -883,9 +919,10 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
 - Trello **OAuth**; **stored** credentials; **board/list persistence**; Trello card **update/delete**; **force re-sync**; advanced sync management beyond manual MVP (**4A** sync UI + **4B** board/list picker end-to-end; manual listId paste no longer required)
 - **Dashboard polling / WebSockets / cross-tab sync / visibility refetch** — **5C.1** ships invalidation-only manual/cross-page refresh only (PRD §12.5 intent); **no** polling, WebSockets, **`BroadcastChannel`**, or browser storage sync
-- **`api_logs`** table and **`GET /api/admin/logs`**; admin **user list** / **role management** UI; Gemini/system error metrics for admin dashboard (deferred — no **`api_logs`** table; **`/admin`** ships aggregate stats UI only — **`GET /api/admin/access-check`** + **`GET /api/admin/stats`**)
-- Production deployment strategy
-- **`DESIGN.md` v2** (Phase 2I-c), **frontend styling pass** (Phase 2J), and **UI polish** (Phase 8A) are **complete** — presentation only; further styling requires explicit approval; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`; **`03-dashboard.png`** is a **pre-5C/pre-8A** reference — live **`/dashboard`** shows real stats)
+- **`api_logs`** table and **`GET /api/admin/logs`**; admin **user list** / **role management** UI; Gemini/system error metrics for admin dashboard (deferred — no **`api_logs`** table; **`/admin`** ships **aggregate stats UI only** — **`GET /api/admin/access-check`** + **`GET /api/admin/stats`**)
+- Production deployment strategy; observability / APM; payments
+- PDF upload/parsing; Trello OAuth; stored Trello credentials; real-time dashboard (polling / WebSockets / cross-tab sync); spaced repetition; advanced flashcard study (known/unknown, Anki)
+- Further **UI styling** beyond **8C-3D** requires explicit human approval — **`DESIGN.md` v2**, Phase **2J** styling pass, Phase **8A** polish, and Phase **8C** visual upgrade are **complete**; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`; committed PNGs may predate **8C** — **`03-dashboard.png`** is a **pre-5C/pre-8C** reference)
 - Pre-commit secret scanning (optional future)
 - `eslint-plugin-react` for stricter JSX unused-import lint (optional future)
 

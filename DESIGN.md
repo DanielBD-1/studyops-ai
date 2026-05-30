@@ -1,8 +1,8 @@
 # DESIGN.md — StudyOps AI (v2)
 
-**Status:** Phase 2I-c UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**
+**Status:** Phase 2I-c UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**
 
-**Last updated:** 2026-05-30 (Phase **8B** docs alignment)
+**Last updated:** 2026-05-30 (Phase **9B** docs alignment)
 **Supersedes:** Phase 1G `DESIGN.md` (2026-05-20)
 
 ---
@@ -19,13 +19,13 @@
 
 **Stitch review:** Human-approved **NotebookLM-inspired** visual direction (academic study workspace, source-first, calm productivity). StudyOps is **not** a NotebookLM clone—borrow principles and feeling, not branding, layout identity, or NotebookLM-only features.
 
-**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). **`11-generated-plan-visible.png`** — **captured** (Phase 2K-c). **Pending:** `15-processing-with-ai.png` — do not fabricate.
+**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). **`11-generated-plan-visible.png`** — **captured** (Phase 2K-c). **Pending:** `15-processing-with-ai.png` — do not fabricate. **Visual drift:** committed PNGs may predate Phase **8C** workspace polish (AppShell, cockpit layouts, AI zones) unless recaptured.
 
 ---
 
 ## 1. Purpose and scope
 
-This document defines how the **implemented** StudyOps AI frontend should look and behave. **Styling was applied in Phase 2J** and **refined in Phase 8A**; further presentation changes require explicit human approval. It applies to:
+This document defines how the **implemented** StudyOps AI frontend should look and behave. **Styling was applied in Phase 2J**, **refined in Phase 8A**, and **workspace presentation completed in Phase 8C-1 through 8C-3D** (global **`AppShell`**, design tokens, cockpit layouts on all workspace routes). Further presentation changes require explicit human approval. It applies to:
 
 - Auth (`/`, `/register`)
 - Student dashboard with functional stats UI (`/dashboard`)
@@ -116,13 +116,14 @@ Earlier briefs referenced Notion/Linear/Raycast **principles**; v2 primary visua
 
 ### Authenticated shell
 
-Optional **minimal top bar** (implemented in Phase 2J; refined in 8A):
+Global **`AppShell`** header/nav (implemented in Phase **8C-1**; refined through **8C-3D**):
 
-- App name / wordmark (text)
-- Link: **Courses** (or “My courses”)
+- Brand / app wordmark (text header)
+- Nav links: **Dashboard**, **Courses**, **Tasks**, **Flashcards**, **Trello**
+- **Admin** link when **`user?.role === 'admin'`** (admins only)
 - **Log out**
 
-**Do not add:** Sidebar navigation hub, Search Library, Source Drawer, AI Sidebar as **new** product features. Top-level links to implemented routes (e.g. from **`/dashboard`**) are fine.
+**Do not add:** Sidebar navigation hub, Search Library, Source Drawer, AI Sidebar as **new** product features.
 
 ### Content width
 
