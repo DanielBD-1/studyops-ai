@@ -89,5 +89,15 @@ export const materialIdParamSchema = z
   })
   .strict();
 
+export const materialPlanIdParamsSchema = z
+  .object({
+    materialId: z.string().uuid('Invalid study material id'),
+    planId: z.string().uuid('Invalid generated plan id'),
+  })
+  .strict();
+
 /** POST /api/study-materials/:materialId/generate — no client body fields */
 export const generateStudyMaterialBodySchema = z.object({}).strict();
+
+/** POST .../generated-plans/:planId/activate — no client body fields */
+export const activateGeneratedPlanBodySchema = z.object({}).strict();

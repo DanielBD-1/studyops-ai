@@ -27,13 +27,13 @@
 
 ---
 
-## Current state as of 2026-05-30 (Phase 11A-1)
+## Current state as of 2026-05-30 (Phase 11A-2)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
 **Functional MVP:** Complete through **6A-3** (auth, courses, materials, material-scoped generate + persisted generated plan, tasks, flashcards, focus, Trello sync with board/list picker, student dashboard, admin aggregate stats API + UI).
 
-**Generated plan history (DB/backend):** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only; Security Review **passed**; manual smoke **passed**.
+**Generated plan history (DB/backend):** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only. **11A-2** complete — migration **011** applied manually on Supabase; history REST APIs (list metadata-only, get-by-id, activate inactive, delete inactive); RPC **`reactivate_material_generated_plan`** with ROW_COUNT hardening; Security Review **passed**; manual smoke **passed**; backend **`341/341`** tests. **History UI (11A-3)** still deferred.
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -1940,4 +1940,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Reviews:** Security Review **passed**; Supervisor Review pending
 **Manual smoke:** **Passed** after migration **010** apply — generate creates new active version; GET returns active only; DELETE removes active only; inactive history retained until prune; dashboard/admin counts reflect active rows only
 **Pitfalls:** Do not expose RPC to clients; do not skip ownership check before RPC; invalid Gemini output must not reach persistence or retention
-**Follow-up:** optional RLS SELECT hardening for inactive rows (Security Review note, non-blocking); plan history **UI** and version REST APIs remain deferred
+**Follow-up:** optional RLS SELECT hardening for inactive rows (Security Review note, non-blocking); plan history **UI** (Phase **11A-3**) remains deferred; version REST APIs shipped in **11A-2**
+
+### 2026-05-30 — Phase 11A-2 generated plan history REST API complete
+
+**Workflow:** Phase 11A-2 — generated plan history backend REST API
+**ADR refs:** 001 (modular monolith), 003 (Zod validation on plan read/activate response)
+**Human gates:** `approved — Phase 11A-2 complete` (docs cleanup pending Supervisor Review)
+**Summary:** Backend Generated Plan History API for **`material_generated_plans`**. Migration **`011_reactivate_material_generated_plan.sql`** **applied manually** on Supabase **2026-05-30**. RPC **`reactivate_material_generated_plan(p_study_material_id, p_course_id, p_plan_id)`** — **`SECURITY DEFINER`**, `search_path = public`, **`EXECUTE`** for **`service_role`** only; ROW_COUNT hardening after target activation update (Security Review passed after hardening). **Routes:** **`GET /api/study-materials/:materialId/generated-plans`** (metadata only — no plan JSON); **`GET …/generated-plans/:planId`** (full plan for owned material + matching planId); **`POST …/generated-plans/:planId/activate`** (body **`{}` strict** — no Gemini/document-service, no insert, no retention prune; returns full plan); **`DELETE …/generated-plans/:planId`** (inactive only — active delete → **409**; response `{ deleted, planId }`). **`GET …/generated-plan`** backward compatible (active only). **No** frontend history UI (**11A-3** deferred); **no** document-service/Gemini/Trello/PDF/admin-logs/packages/CI changes.
+**APIs affected:** **`GET /api/study-materials/:materialId/generated-plans`**, **`GET …/generated-plans/:planId`**, **`POST …/generated-plans/:planId/activate`**, **`DELETE …/generated-plans/:planId`**
+**Tests:** backend **`341/341`** passed; frontend lint/test/build passed earlier — no frontend files changed in 11A-2
+**Reviews:** Security Review **passed** (after RPC ROW_COUNT hardening); Supervisor Review pending
+**Manual smoke:** **Passed** — list history works; list metadata only (no plan JSON); get-by-id works; activate inactive works; activate response includes plan; exactly one active after activate; old **`GET …/generated-plan`** returns current active; delete inactive works; delete active returns **409**
+**Pitfalls:** Do not expose RPC to clients; activate must not call Gemini or run retention; list endpoint must not return plan JSON; delete active must return **409**
+**Follow-up:** Phase **11A-3** frontend history UI (deferred); optional RLS SELECT hardening for inactive rows (non-blocking)
