@@ -9,6 +9,19 @@
 1. Append entries to `docs/AGENT_MEMORY.md` using the template in that file.
 2. Update `README.md` setup instructions when env or run commands change (human approval if major).
 3. Ensure API/behavior changes are reflected in memory—not duplicate full PRD.
+4. After `approved — Phase X complete`, update **only docs affected** by that phase (see matrix below)—do not rewrite unrelated files.
+
+### Doc update matrix (relevant files only)
+
+| Always | When also affected by the phase |
+|--------|----------------------------------|
+| Append `docs/AGENT_MEMORY.md` | `docs/IMPLEMENTATION_STATUS.md` — routes, APIs, env, deferred work |
+| | `README.md` — setup/run commands |
+| | `DESIGN.md` — approved UI presentation only |
+| | `docs/database/*.md` — schema/RLS docs matching a migration |
+| | `docs/design/SCREENSHOT_INDEX.md` — screenshot expectations |
+
+Do **not** update `docs/PRD.md`, ADRs, workflows, or governance files (`AGENTS.md`, `CLAUDE.md`, `SKILLS.md`) unless the human explicitly approved that scope.
 
 ---
 
@@ -66,7 +79,7 @@
 
 ## Definition of Done
 
-- [ ] AGENT_MEMORY reflects new behavior
+- [ ] `AGENT_MEMORY` and any other **relevant** docs per matrix reflect the phase (no unrelated file churn)
 - [ ] No secrets in documentation
 - [ ] No contradiction with PRD/ADRs (if conflict, use conflict-resolution workflow)
 

@@ -125,7 +125,7 @@ GitHub Actions runs the same lint → test → build steps on **Node.js 22**.
 
 | Doc | Use for |
 |-----|---------|
-| [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) | **What is built now** (routes, APIs, env, deferred work) |
+| [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) | **What is built now** (routes, APIs, env, deferred work); **operating constraints** (Free Tier, cost gates, Gemini quota) |
 | [docs/PRD.md](docs/PRD.md) | MVP product spec (includes future scope) |
 | [docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md) | Completed phases and pitfalls |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | PR workflow, reviews, lint |

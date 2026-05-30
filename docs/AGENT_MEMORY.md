@@ -1899,3 +1899,15 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Tests:** not run (docs-only phase)
 **Reviews:** Supervisor Review required before merge; Security Review **not required** (no trust-boundary or security policy doc changes)
 **Follow-up:** none — future agents should use **`docs/IMPLEMENTATION_STATUS.md`** as built-state source of truth
+
+### 2026-05-30 — Phase 10C documentation and governance alignment (complete)
+
+**Workflow:** Phase 10C — docs-only governance and operating-constraints alignment
+**ADR refs:** none (docs-only; no architecture change)
+**Human gates:** `approved — Phase 10C complete`
+**Summary:** Docs-only phase documenting operating constraints and governance alignment across project docs. **Operating constraints recorded:** Free Tier / minimal-cost assumption; no paid APIs, services, subscriptions, or storage tiers without explicit human approval; Gemini quota / 429 guidance in document-processing workflow; no retry loops or automatic Gemini calls without approval; PDF upload remains deferred (storage, parsing, security, cost complexity); planning approval is not implementation approval; one focused scope per branch/PR; update only relevant Markdown docs after phases (not every doc on every phase).
+**Files updated:** **`docs/IMPLEMENTATION_STATUS.md`**, **`docs/workflows/document-processing-workflow.md`**, **`CONTRIBUTING.md`**, **`.claude/agents/documentation-agent.md`**, **`README.md`**, **`AGENTS.md`**, **`CLAUDE.md`**, **`docs/AGENT_MEMORY.md`** (this entry).
+**APIs affected:** none
+**Tests:** not run (docs-only phase)
+**Reviews:** Supervisor Review required before merge; Security Review **not required** (governance/process docs only; no trust-boundary code changes)
+**Follow-up:** none — agents should treat **`docs/IMPLEMENTATION_STATUS.md`** operating-constraints section and aligned governance docs as authoritative for cost, Gemini discipline, approval gates, and doc-update scope

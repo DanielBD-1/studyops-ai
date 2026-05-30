@@ -5,9 +5,11 @@ Thank you for contributing. This project uses a **branch-based workflow**, expli
 ## Branch workflow
 
 1. **Create a branch** for each phase or focused change (e.g. `phase-1g-courses-frontend-ui`).
-2. Implement only what is **approved** for that phase (see `docs/IMPLEMENTATION_STATUS.md`, `docs/PRD.md`, and `docs/AGENT_MEMORY.md`).
-3. **Open a pull request** before merging into `main` (or the repository default branch).
-4. Do **not** force-push to shared branches unless a maintainer explicitly requests it.
+2. Keep each phase/PR to **one approved scope** — do not bundle unrelated features, governance edits, or drive-by refactors.
+3. **Before coding**, read `docs/IMPLEMENTATION_STATUS.md` (built today), the phase workflow, and applicable ADRs; use `docs/PRD.md` for product intent, not as a substitute for built-state detail.
+4. Implement only what is **approved** for that phase (see `docs/IMPLEMENTATION_STATUS.md`, `docs/PRD.md`, and `docs/AGENT_MEMORY.md`).
+5. **Open a pull request** before merging into `main` (or the repository default branch).
+6. Do **not** force-push to shared branches unless a maintainer explicitly requests it.
 
 ## Agent-assisted workflow
 
@@ -17,7 +19,9 @@ This repo uses named agent roles (see `AGENTS.md`). Typical phase gates:
 |--------------|---------|
 | `approved — begin Phase X planning only` | Planning report only — no implementation |
 | `approved — implement Phase X` | Implementation per approved plan |
-| `approved — Phase X complete` | May update `docs/AGENT_MEMORY.md` |
+| `approved — Phase X complete` | May update docs per `.claude/agents/documentation-agent.md` |
+
+**Planning approval is not implementation approval.** `approved — begin Phase X planning only` does not authorize application code, migrations, or doc edits beyond the planning deliverable. Implementation requires **`approved — implement Phase X`** (or an equivalent explicit implement phrase).
 
 | Role | Purpose |
 |------|---------|
@@ -93,7 +97,7 @@ Use `.env.example` placeholders locally only.
 
 | Doc | Use for |
 |-----|---------|
-| `docs/IMPLEMENTATION_STATUS.md` | **What is built now** (routes, APIs, env, deferred work) |
+| `docs/IMPLEMENTATION_STATUS.md` | **What is built now** (routes, APIs, env, deferred work); **operating constraints** (Free Tier, Gemini quota, cost gates) |
 | `docs/PRD.md` | MVP product spec (includes future scope) |
 | `AGENTS.md` / `CLAUDE.md` | Agent roles, approvals, Definition of Done |
 | `docs/AGENT_MEMORY.md` | Completed phases, pitfalls, CI notes |
