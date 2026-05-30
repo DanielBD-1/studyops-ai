@@ -12,6 +12,7 @@ import Textarea from '../components/ui/Textarea.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
 import DbFlashcardsSection from '../components/materials/DbFlashcardsSection.jsx';
 import GeneratedPlanSection from '../components/materials/GeneratedPlanSection.jsx';
+import GeneratedPlanHistorySection from '../components/materials/GeneratedPlanHistorySection.jsx';
 import {
   getMaterial,
   updateMaterial,
@@ -19,6 +20,7 @@ import {
   generateMaterial,
   getGeneratedPlan,
   deleteGeneratedPlan,
+  listGeneratedPlans,
   importPlanTasks,
   importPlanFlashcards,
 } from '../services/study-materials.service.js';
@@ -68,6 +70,11 @@ export default function StudyMaterialDetail() {
     /** @type {import('../services/study-materials.service.js').StudyPlan | null} */ (null)
   );
   const [savedAt, setSavedAt] = useState(/** @type {string | null} */ (null));
+  const [planHistory, setPlanHistory] = useState(
+    /** @type {import('../services/study-materials.service.js').GeneratedPlanHistoryItem[]} */ ([])
+  );
+  const [planHistoryLoading, setPlanHistoryLoading] = useState(false);
+  const [planHistoryError, setPlanHistoryError] = useState(/** @type {string | null} */ (null));
   const [planLoading, setPlanLoading] = useState(false);
   const [planLoadError, setPlanLoadError] = useState(/** @type {string | null} */ (null));
   const [generating, setGenerating] = useState(false);
@@ -155,6 +162,30 @@ export default function StudyMaterialDetail() {
     }
   }, [materialId, handleAuthError]);
 
+  const loadPlanHistory = useCallback(async () => {
+    if (!materialId) return;
+
+    setPlanHistoryLoading(true);
+    setPlanHistoryError(null);
+
+    try {
+      const data = await listGeneratedPlans(materialId);
+      setPlanHistory(data.plans);
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (isStudyMaterialNotFound(err)) {
+        setNotFound(true);
+        return;
+      }
+      setPlanHistory([]);
+      setPlanHistoryError(
+        err instanceof Error ? err.message : 'Failed to load plan history'
+      );
+    } finally {
+      setPlanHistoryLoading(false);
+    }
+  }, [materialId, handleAuthError]);
+
   const loadDbFlashcards = useCallback(async () => {
     if (!materialId) return;
 
@@ -198,6 +229,7 @@ export default function StudyMaterialDetail() {
         data.material.sourceType === 'paste' ? 'paste' : 'manual'
       );
       await loadSavedPlan();
+      await loadPlanHistory();
       await loadDbFlashcards();
     } catch (err) {
       if (await handleAuthError(err)) return;
@@ -213,13 +245,25 @@ export default function StudyMaterialDetail() {
     } finally {
       setLoading(false);
     }
-  }, [materialId, handleAuthError, loadSavedPlan, loadDbFlashcards]);
+  }, [materialId, handleAuthError, loadSavedPlan, loadPlanHistory, loadDbFlashcards]);
 
   useEffect(() => {
     setPlan(null);
     setSavedAt(null);
+    setPlanHistory([]);
     loadMaterial();
   }, [loadMaterial]);
+
+  const handleActivePlanUpdated = useCallback(
+    (data) => {
+      setPlan(data.plan);
+      setSavedAt(data.savedAt);
+      setClearError(null);
+      setGenerateError(null);
+      refreshStats();
+    },
+    [refreshStats]
+  );
 
   async function handleSave(event) {
     event.preventDefault();
@@ -266,6 +310,8 @@ export default function StudyMaterialDetail() {
       setSavedAt(data.savedAt);
       setClearError(null);
       refreshStats();
+      await loadPlanHistory();
+      await loadSavedPlan();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -408,11 +454,13 @@ export default function StudyMaterialDetail() {
       setPlan(null);
       setSavedAt(null);
       refreshStats();
+      await loadPlanHistory();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (isGeneratedPlanNotFound(err)) {
         setPlan(null);
         setSavedAt(null);
+        await loadPlanHistory();
         return;
       }
       if (isStudyMaterialNotFound(err)) {
@@ -502,6 +550,14 @@ export default function StudyMaterialDetail() {
     !clearing &&
     !importingAny &&
     !hasUnsavedChanges;
+
+  const historyDisabled =
+    saving || deleting || generating || clearing || importingAny || hasUnsavedChanges;
+
+  const showPlanHistorySection =
+    planHistoryLoading ||
+    planHistoryError != null ||
+    (!planHistoryLoading && planHistoryError == null);
 
   return (
     <main className="page page--reading page--material-detail material-workspace">
@@ -697,6 +753,31 @@ export default function StudyMaterialDetail() {
               <ErrorMessage message={clearError} />
             </div>
           )}
+        </section>
+      )}
+
+      {showPlanHistorySection && (
+        <section
+          className="section material-workspace__plan-history"
+          aria-labelledby="plan-history-heading"
+        >
+          <div className="section__header-row">
+            <h2 id="plan-history-heading" className="section__title">
+              Plan history
+            </h2>
+            <p className="section__subtitle">Previous generated plan versions</p>
+          </div>
+          <GeneratedPlanHistorySection
+            materialId={materialId}
+            plans={planHistory}
+            loading={planHistoryLoading}
+            error={planHistoryError}
+            onRetry={loadPlanHistory}
+            disabled={historyDisabled}
+            onActivated={handleActivePlanUpdated}
+            onMutated={loadPlanHistory}
+            handleAuthError={handleAuthError}
+          />
         </section>
       )}
 

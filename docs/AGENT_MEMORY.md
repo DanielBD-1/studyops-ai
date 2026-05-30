@@ -27,13 +27,13 @@
 
 ---
 
-## Current state as of 2026-05-30 (Phase 11A-2)
+## Current state as of 2026-05-30 (Phase 11A-3)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
 **Functional MVP:** Complete through **6A-3** (auth, courses, materials, material-scoped generate + persisted generated plan, tasks, flashcards, focus, Trello sync with board/list picker, student dashboard, admin aggregate stats API + UI).
 
-**Generated plan history (DB/backend):** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only. **11A-2** complete — migration **011** applied manually on Supabase; history REST APIs (list metadata-only, get-by-id, activate inactive, delete inactive); RPC **`reactivate_material_generated_plan`** with ROW_COUNT hardening; Security Review **passed**; manual smoke **passed**; backend **`341/341`** tests. **History UI (11A-3)** still deferred.
+**Generated plan history:** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only. **11A-2** complete — migration **011** applied manually on Supabase; history REST APIs (list metadata-only, get-by-id, activate inactive, delete inactive); RPC **`reactivate_material_generated_plan`** with ROW_COUNT hardening; Security Review **passed**; manual smoke **passed**; backend **`341/341`** tests. **11A-3** complete — frontend-only **`GeneratedPlanHistorySection`** on material detail; metadata-only history list; lazy Preview for inactive versions; Restore (**Make active**) via activate endpoint (no Gemini); delete inactive with confirm; history refreshes after generate/clear/activate/delete; Security Review **passed**; manual smoke **passed**; frontend lint/test/build passed (**205/205**).
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -1954,3 +1954,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Manual smoke:** **Passed** — list history works; list metadata only (no plan JSON); get-by-id works; activate inactive works; activate response includes plan; exactly one active after activate; old **`GET …/generated-plan`** returns current active; delete inactive works; delete active returns **409**
 **Pitfalls:** Do not expose RPC to clients; activate must not call Gemini or run retention; list endpoint must not return plan JSON; delete active must return **409**
 **Follow-up:** Phase **11A-3** frontend history UI (deferred); optional RLS SELECT hardening for inactive rows (non-blocking)
+
+### 2026-05-30 — Phase 11A-3 generated plan history UI complete
+
+**Workflow:** Phase 11A-3 — frontend Generated Plan History UI
+**ADR refs:** 001 (modular monolith — frontend consumes backend only), 003 (display validated plan from backend responses)
+**Human gates:** `approved — Phase 11A-3 complete` (docs-only update)
+**Summary:** Frontend-only Generated Plan History UI on **`/study-materials/:materialId`**. Consumes Phase **11A-2** REST APIs only — **no** backend, migration, document-service, Gemini, Trello, PDF, admin, or package changes. **`GeneratedPlanHistorySection`** — metadata-only history list (**`listGeneratedPlans`**); **Active** badge on active row; **Previous version** on inactive rows; version heading with Saved/Created metadata; lazy **Preview** for inactive plans only (**`getGeneratedPlanById`** — no bulk full-plan fetch); **Make active** / Restore for inactive via **`activateGeneratedPlan`** (body **`{}` strict** — no Gemini/document-service); **Delete** inactive with confirm (**`deleteGeneratedPlanVersion`**). Active row has no Preview / Make active / Delete. Activate response updates main **Generated study plan** section; history refreshes after generate, clear, activate, and delete. Generate, Clear, Import tasks, and Import flashcards flows preserved. Plain React text rendering only; **no** `localStorage` / `sessionStorage` for history/plans; **no** polling.
+**APIs affected:** none (frontend consumes existing **`GET …/generated-plans`**, **`GET …/generated-plans/:planId`**, **`POST …/generated-plans/:planId/activate`**, **`DELETE …/generated-plans/:planId`**)
+**Tests:** frontend lint passed; **`205/205`** passed; build passed. Backend tests not re-run (backend untouched).
+**Reviews:** Supervisor Review **passed**; Security Review **passed**; UI clarity fix **passed**
+**Manual smoke:** **Passed** — plan history section; Active / Previous version badges; version heading; Make active on one line; Preview inactive; Restore inactive; active plan section updates after restore; exactly one active after restore; delete inactive with confirm; Generate / Clear / Import tasks / Import flashcards still work; console clean; no unexpected Gemini/document-service browser calls
+**Pitfalls:** Do not fetch full plan JSON for every history row on list load; restore must use activate endpoint only (not generate); active row must not expose delete or re-activate actions
+**Follow-up:** optional polish or a new separate phase — not automatically started; optional RLS SELECT hardening for inactive rows (non-blocking, from **11A-2**)

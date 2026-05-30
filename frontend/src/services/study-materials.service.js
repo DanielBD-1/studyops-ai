@@ -81,6 +81,8 @@ async function request(path, init = {}) {
  *     tags: string[],
  *   }>,
  * }} StudyPlan
+ * @typedef {{ planId: string, savedAt: string, createdAt: string, updatedAt: string, isActive: boolean }} GeneratedPlanHistoryItem
+ * @typedef {{ materialId: string, courseId: string, plan: StudyPlan, savedAt: string, planId?: string }} GeneratedPlanDetail
  */
 
 /**
@@ -138,9 +140,56 @@ export async function getGeneratedPlan(materialId) {
   const data = await request(`/api/study-materials/${materialId}/generated-plan`, {
     method: 'GET',
   });
-  return /** @type {{ materialId: string, courseId: string, plan: StudyPlan, savedAt: string }} */ (
-    data
+  return /** @type {GeneratedPlanDetail} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ */
+export async function listGeneratedPlans(materialId) {
+  const data = await request(`/api/study-materials/${materialId}/generated-plans`, {
+    method: 'GET',
+  });
+  return /** @type {{ materialId: string, plans: GeneratedPlanHistoryItem[] }} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ * @param {string} planId
+ */
+export async function getGeneratedPlanById(materialId, planId) {
+  const data = await request(
+    `/api/study-materials/${materialId}/generated-plans/${planId}`,
+    { method: 'GET' }
   );
+  return /** @type {GeneratedPlanDetail & { planId: string }} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ * @param {string} planId
+ */
+export async function activateGeneratedPlan(materialId, planId) {
+  const data = await request(
+    `/api/study-materials/${materialId}/generated-plans/${planId}/activate`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }
+  );
+  return /** @type {GeneratedPlanDetail & { planId: string }} */ (data);
+}
+
+/**
+ * @param {string} materialId
+ * @param {string} planId
+ */
+export async function deleteGeneratedPlanVersion(materialId, planId) {
+  const data = await request(
+    `/api/study-materials/${materialId}/generated-plans/${planId}`,
+    { method: 'DELETE' }
+  );
+  return /** @type {{ deleted: boolean, planId: string }} */ (data);
 }
 
 /**

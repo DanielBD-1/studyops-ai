@@ -4,6 +4,7 @@ import { ApiRequestError } from '../../src/services/courses.service.js';
 import {
   isGeneratedPlanNotFound,
   isStudyMaterialNotFound,
+  isActivePlanDeleteConflict,
 } from '../../src/utils/generated-plan-errors.js';
 
 describe('generated-plan-errors', () => {
@@ -28,5 +29,11 @@ describe('generated-plan-errors', () => {
   it('rejects non-ApiRequestError values', () => {
     assert.equal(isGeneratedPlanNotFound(new Error('Generated plan not found')), false);
     assert.equal(isStudyMaterialNotFound(null), false);
+  });
+
+  it('isActivePlanDeleteConflict matches CONFLICT for active plan delete', () => {
+    const err = new ApiRequestError('CONFLICT', 'Cannot delete the active generated plan');
+    assert.equal(isActivePlanDeleteConflict(err), true);
+    assert.equal(isActivePlanDeleteConflict(new ApiRequestError('NOT_FOUND', 'x')), false);
   });
 });
