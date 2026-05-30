@@ -49,8 +49,12 @@ export default function FlashcardsPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace">
-      <PageHeader title="All saved flashcards" />
+    <main className="page page--workspace page--flashcards flashcards-workspace">
+      <PageHeader
+        intro
+        title="All saved flashcards"
+        lead="Filter your library, study filtered cards, and manage questions across courses and study materials."
+      />
 
       {coursesLoading && <LoadingState message="Loading courses…" />}
 

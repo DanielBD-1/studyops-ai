@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import { ApiRequestError } from '../../services/courses.service.js';
 import {
@@ -20,6 +20,7 @@ import {
 } from '../../utils/flashcard-filters.js';
 import FlashcardStudy from '../materials/FlashcardStudy.jsx';
 import Button from '../ui/Button.jsx';
+import EmptyState from '../ui/EmptyState.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
 import FormCard from '../ui/FormCard.jsx';
 import Input from '../ui/Input.jsx';
@@ -33,6 +34,7 @@ import Textarea from '../ui/Textarea.jsx';
  * }} props
  */
 export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
+  const navigate = useNavigate();
   const { refreshStats } = useDashboardRefresh();
   const [flashcards, setFlashcards] = useState(
     /** @type {import('../../services/flashcards.service.js').Flashcard[]} */ ([])
@@ -75,6 +77,13 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   const busy = creating || savingEdit || deletingId !== null;
   const showMaterialFilter = courseFilter !== 'all' && courses.some((c) => c.id === courseFilter);
   const canShowCreate = courses.length > 0;
+  const showGlobalEmpty =
+    !loading &&
+    !error &&
+    flashcards.length === 0 &&
+    !showCreate &&
+    courseFilter === 'all' &&
+    materialFilter === 'all';
 
   const studyCards = flashcards.map((card) => ({
     question: card.question,
@@ -415,283 +424,336 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   }
 
   return (
-    <FormCard title="Saved flashcards library">
-      <div className="filter-toolbar">
-        <label htmlFor="global-flashcards-course-filter" className="field">
-          Course
-          <select
-            id="global-flashcards-course-filter"
-            value={courseFilter}
-            onChange={(e) => handleCourseFilterChange(e.target.value)}
-            className="field__select"
-            disabled={busy}
-          >
-            <option value="all">All courses</option>
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.title}
-              </option>
-            ))}
-          </select>
-        </label>
+    <section className="section flashcards-workspace__main">
+      <div className="section__header-row">
+        <h2 className="section__title">Flashcard library</h2>
+        <p className="section__subtitle">
+          Filter by course and material, study your selection, then edit or delete cards below
+        </p>
+      </div>
 
-        {showMaterialFilter ? (
-          <label htmlFor="global-flashcards-material-filter" className="field">
-            Study material
+      <FormCard className="flashcard-library">
+        <p className="flashcard-library__intro plan-disclaimer">
+          Saved flashcards stay in your account across courses. You can also create or import
+          cards from a study material page.
+        </p>
+
+        <div className="filter-toolbar flashcards-workspace__filters">
+          <label htmlFor="global-flashcards-course-filter" className="field">
+            Course
             <select
-              id="global-flashcards-material-filter"
-              value={materialFilter}
-              onChange={(e) => handleMaterialFilterChange(e.target.value)}
+              id="global-flashcards-course-filter"
+              value={courseFilter}
+              onChange={(e) => handleCourseFilterChange(e.target.value)}
               className="field__select"
-              disabled={busy || materialsLoading}
+              disabled={busy}
             >
-              <option value="all">All materials in course</option>
-              {materials.map((material) => (
-                <option key={material.id} value={material.id}>
-                  {material.title}
+              <option value="all">All courses</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title}
                 </option>
               ))}
             </select>
           </label>
-        ) : null}
-      </div>
 
-      {canShowCreate && !showCreate && editingId === null && !loading && !error && (
-        <p className="section__actions">
-          <Button type="button" variant="primary" onClick={openCreateForm} disabled={busy}>
-            {flashcards.length === 0 ? 'Create flashcard' : 'Add another flashcard'}
-          </Button>
-        </p>
-      )}
-
-      {showCreate && canShowCreate && (
-        <div className="section--compact">
-          <h3 className="plan-block__title">New flashcard</h3>
-          <form onSubmit={handleCreate} className="form-stack">
-            <label htmlFor="global-flashcard-create-course" className="field">
-              Course
-              <select
-                id="global-flashcard-create-course"
-                value={createCourseId}
-                onChange={(e) => {
-                  setCreateCourseId(e.target.value);
-                  setCreateMaterialId('');
-                  setCreateError(null);
-                }}
-                className="field__select"
-                required
-                disabled={creating || busy}
-              >
-                <option value="">Select a course</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label htmlFor="global-flashcard-create-material" className="field">
+          {showMaterialFilter ? (
+            <label htmlFor="global-flashcards-material-filter" className="field">
               Study material
               <select
-                id="global-flashcard-create-material"
-                value={createMaterialId}
-                onChange={(e) => {
-                  setCreateMaterialId(e.target.value);
-                  setCreateError(null);
-                }}
+                id="global-flashcards-material-filter"
+                value={materialFilter}
+                onChange={(e) => handleMaterialFilterChange(e.target.value)}
                 className="field__select"
-                disabled={
-                  !createCourseId || loadingCreateMaterials || creating || busy
-                }
+                disabled={busy || materialsLoading}
               >
-                <option value="">Not linked to a material</option>
-                {createMaterials.map((material) => (
+                <option value="all">All materials in course</option>
+                {materials.map((material) => (
                   <option key={material.id} value={material.id}>
                     {material.title}
                   </option>
                 ))}
               </select>
             </label>
+          ) : null}
+        </div>
 
-            <Textarea
-              id="global-flashcard-create-question"
-              label="Question"
-              value={createQuestion}
-              onChange={setCreateQuestion}
-              rows={3}
-              required
-            />
-            <Textarea
-              id="global-flashcard-create-answer"
-              label="Answer"
-              value={createAnswer}
-              onChange={setCreateAnswer}
-              rows={4}
-              required
-            />
-            <Input
-              id="global-flashcard-create-tags"
-              label="Tags (comma-separated, optional)"
-              value={createTags}
-              onChange={setCreateTags}
-            />
-            {createError && <ErrorMessage message={createError} />}
-            <div className="form-row">
-              <Button type="submit" variant="primary" disabled={creating || busy}>
-                {creating ? 'Saving…' : 'Save flashcard'}
-              </Button>
+        {canShowCreate && !showCreate && editingId === null && !loading && !error && (
+          <div className="flashcards-workspace__toolbar">
+            <Button type="button" variant="primary" onClick={openCreateForm} disabled={busy}>
+              {flashcards.length === 0 ? 'Create flashcard' : 'Add another flashcard'}
+            </Button>
+          </div>
+        )}
+
+        {showCreate && canShowCreate && (
+          <div className="flashcards-workspace__create">
+            <FormCard title="New flashcard">
+              <form onSubmit={handleCreate} className="form-stack">
+                <label htmlFor="global-flashcard-create-course" className="field">
+                  Course
+                  <select
+                    id="global-flashcard-create-course"
+                    value={createCourseId}
+                    onChange={(e) => {
+                      setCreateCourseId(e.target.value);
+                      setCreateMaterialId('');
+                      setCreateError(null);
+                    }}
+                    className="field__select"
+                    required
+                    disabled={creating || busy}
+                  >
+                    <option value="">Select a course</option>
+                    {courses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label htmlFor="global-flashcard-create-material" className="field">
+                  Study material
+                  <select
+                    id="global-flashcard-create-material"
+                    value={createMaterialId}
+                    onChange={(e) => {
+                      setCreateMaterialId(e.target.value);
+                      setCreateError(null);
+                    }}
+                    className="field__select"
+                    disabled={
+                      !createCourseId || loadingCreateMaterials || creating || busy
+                    }
+                  >
+                    <option value="">Not linked to a material</option>
+                    {createMaterials.map((material) => (
+                      <option key={material.id} value={material.id}>
+                        {material.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <Textarea
+                  id="global-flashcard-create-question"
+                  label="Question"
+                  value={createQuestion}
+                  onChange={setCreateQuestion}
+                  rows={3}
+                  required
+                />
+                <Textarea
+                  id="global-flashcard-create-answer"
+                  label="Answer"
+                  value={createAnswer}
+                  onChange={setCreateAnswer}
+                  rows={4}
+                  required
+                />
+                <Input
+                  id="global-flashcard-create-tags"
+                  label="Tags (comma-separated, optional)"
+                  value={createTags}
+                  onChange={setCreateTags}
+                />
+                {createError && <ErrorMessage message={createError} />}
+                <div className="form-row">
+                  <Button type="submit" variant="primary" disabled={creating || busy}>
+                    {creating ? 'Saving…' : 'Save flashcard'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={creating}
+                    onClick={cancelCreate}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </FormCard>
+          </div>
+        )}
+
+        {loading && <LoadingState message="Loading saved flashcards…" />}
+
+        {error && !loading && (
+          <div className="flashcard-library__error">
+            <ErrorMessage message={error} />
+            <p className="section__actions">
               <Button
                 type="button"
                 variant="secondary"
-                disabled={creating}
-                onClick={cancelCreate}
+                onClick={() => loadFlashcards()}
+                disabled={busy}
               >
-                Cancel
+                Try again
               </Button>
+            </p>
+          </div>
+        )}
+
+        {showGlobalEmpty && courses.length === 0 && (
+          <EmptyState
+            headline="No saved flashcards yet"
+            description="Create a course first, then add flashcards here or from a study material page."
+            actionLabel="Go to courses"
+            onAction={() => navigate('/courses')}
+          />
+        )}
+
+        {showGlobalEmpty && courses.length > 0 && (
+          <EmptyState
+            headline="No saved flashcards yet"
+            description="Create a flashcard for one of your courses, or add cards from a study material page."
+            actionLabel="Create flashcard"
+            onAction={openCreateForm}
+          />
+        )}
+
+        {!loading &&
+          !error &&
+          flashcards.length === 0 &&
+          !showGlobalEmpty &&
+          !showCreate && (
+            <p className="section__meta">No flashcards match the selected filters.</p>
+          )}
+
+        {!loading && !error && flashcards.length > 0 && (
+          <>
+            <div className="flashcard-library__study">
+              <FlashcardStudy
+                flashcards={studyCards}
+                title="Study filtered cards"
+                className="flashcard-study--library"
+              />
             </div>
-          </form>
-        </div>
-      )}
 
-      {loading && <LoadingState message="Loading saved flashcards…" />}
-
-      {error && !loading && (
-        <>
-          <ErrorMessage message={error} />
-          <p className="section__actions">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => loadFlashcards()}
-              disabled={busy}
+            <section
+              className="flashcard-library__manage plan-block"
+              aria-label="Manage saved flashcards"
             >
-              Try again
-            </Button>
-          </p>
-        </>
-      )}
-
-      {!loading && !error && flashcards.length === 0 && !showCreate && (
-        <p className="plan-block__body">
-          No saved flashcards yet. Create a flashcard above, or create or import from a study
-          material page.
-        </p>
-      )}
-
-      {!loading && !error && flashcards.length > 0 && (
-        <>
-          <FlashcardStudy flashcards={studyCards} title="Study filtered cards" />
-
-          <section className="plan-block" aria-label="Manage saved flashcards">
-            <h3 className="plan-block__title">Your saved cards</h3>
-            <ul className="plan-block__list">
-              {flashcards.map((card) =>
-                editingId === card.id ? (
-                  <li key={card.id} className="plan-block__item">
-                    <form onSubmit={handleUpdate} className="form-stack">
-                      <Textarea
-                        id={`global-flashcard-edit-question-${card.id}`}
-                        label="Question"
-                        value={editQuestion}
-                        onChange={setEditQuestion}
-                        rows={3}
-                        required
-                      />
-                      <Textarea
-                        id={`global-flashcard-edit-answer-${card.id}`}
-                        label="Answer"
-                        value={editAnswer}
-                        onChange={setEditAnswer}
-                        rows={4}
-                        required
-                      />
-                      <Input
-                        id={`global-flashcard-edit-tags-${card.id}`}
-                        label="Tags (comma-separated, optional)"
-                        value={editTags}
-                        onChange={setEditTags}
-                      />
-                      {editError && <ErrorMessage message={editError} />}
-                      <div className="form-row">
-                        <Button type="submit" variant="primary" disabled={savingEdit || busy}>
-                          {savingEdit ? 'Saving…' : 'Save changes'}
-                        </Button>
+              <h3 className="plan-block__title">Your saved cards</h3>
+              <ul className="flashcard-library__list plan-block__list">
+                {flashcards.map((card) =>
+                  editingId === card.id ? (
+                    <li key={card.id} className="plan-block__item flashcard-library__item">
+                      <form onSubmit={handleUpdate} className="form-stack">
+                        <Textarea
+                          id={`global-flashcard-edit-question-${card.id}`}
+                          label="Question"
+                          value={editQuestion}
+                          onChange={setEditQuestion}
+                          rows={3}
+                          required
+                        />
+                        <Textarea
+                          id={`global-flashcard-edit-answer-${card.id}`}
+                          label="Answer"
+                          value={editAnswer}
+                          onChange={setEditAnswer}
+                          rows={4}
+                          required
+                        />
+                        <Input
+                          id={`global-flashcard-edit-tags-${card.id}`}
+                          label="Tags (comma-separated, optional)"
+                          value={editTags}
+                          onChange={setEditTags}
+                        />
+                        {editError && <ErrorMessage message={editError} />}
+                        <div className="form-row">
+                          <Button type="submit" variant="primary" disabled={savingEdit || busy}>
+                            {savingEdit ? 'Saving…' : 'Save changes'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={savingEdit}
+                            onClick={cancelEdit}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </li>
+                  ) : (
+                    <li key={card.id} className="plan-block__item flashcard-library__item">
+                      <p className="plan-block__body flashcard-library__question">
+                        {truncateFlashcardQuestion(card.question)}
+                      </p>
+                      {Array.isArray(card.tags) && card.tags.length > 0 ? (
+                        <p className="plan-block__meta">Tags: {card.tags.join(', ')}</p>
+                      ) : null}
+                      <p className="plan-block__meta flashcard-library__meta">
+                        Course:{' '}
+                        {courseTitleById.has(card.courseId) ? (
+                          <Link to={`/courses/${card.courseId}`}>
+                            {courseTitleById.get(card.courseId)}
+                          </Link>
+                        ) : (
+                          'Unknown course'
+                        )}
+                      </p>
+                      <p className="plan-block__meta flashcard-library__meta">
+                        {card.materialId ? (
+                          <>
+                            Material:{' '}
+                            {materialTitleById.has(card.materialId) ? (
+                              <Link to={`/study-materials/${card.materialId}`}>
+                                {materialTitleById.get(card.materialId)}
+                              </Link>
+                            ) : (
+                              <Link to={`/study-materials/${card.materialId}`}>
+                                View study material
+                              </Link>
+                            )}
+                          </>
+                        ) : (
+                          'Not linked to a material'
+                        )}
+                      </p>
+                      <div className="form-row flashcard-library__item-actions">
                         <Button
                           type="button"
                           variant="secondary"
-                          disabled={savingEdit}
-                          onClick={cancelEdit}
+                          disabled={busy || editingId !== null || showCreate}
+                          onClick={() => startEdit(card)}
                         >
-                          Cancel
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="danger"
+                          disabled={busy || deletingId === card.id}
+                          onClick={() => handleDelete(card)}
+                        >
+                          {deletingId === card.id ? 'Deleting…' : 'Delete'}
                         </Button>
                       </div>
-                    </form>
-                  </li>
-                ) : (
-                  <li key={card.id} className="plan-block__item">
-                    <p className="plan-block__body">
-                      {truncateFlashcardQuestion(card.question)}
-                    </p>
-                    {Array.isArray(card.tags) && card.tags.length > 0 ? (
-                      <p className="plan-block__meta">Tags: {card.tags.join(', ')}</p>
-                    ) : null}
-                    <p className="plan-block__meta">
-                      Course:{' '}
-                      {courseTitleById.has(card.courseId) ? (
-                        <Link to={`/courses/${card.courseId}`}>
-                          {courseTitleById.get(card.courseId)}
-                        </Link>
-                      ) : (
-                        'Unknown course'
-                      )}
-                    </p>
-                    <p className="plan-block__meta">
-                      {card.materialId ? (
-                        <>
-                          Material:{' '}
-                          {materialTitleById.has(card.materialId) ? (
-                            <Link to={`/study-materials/${card.materialId}`}>
-                              {materialTitleById.get(card.materialId)}
-                            </Link>
-                          ) : (
-                            <Link to={`/study-materials/${card.materialId}`}>
-                              View study material
-                            </Link>
-                          )}
-                        </>
-                      ) : (
-                        'Not linked to a material'
-                      )}
-                    </p>
-                    <div className="form-row">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || editingId !== null || showCreate}
-                        onClick={() => startEdit(card)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        disabled={busy || deletingId === card.id}
-                        onClick={() => handleDelete(card)}
-                      >
-                        {deletingId === card.id ? 'Deleting…' : 'Delete'}
-                      </Button>
-                    </div>
-                  </li>
-                )
-              )}
-            </ul>
-          </section>
-        </>
-      )}
+                    </li>
+                  )
+                )}
+              </ul>
+            </section>
 
-      {successMessage && <p className="plan-panel__status">{successMessage}</p>}
-      {actionError && <ErrorMessage message={actionError} />}
-    </FormCard>
+            {!showCreate && editingId === null && (
+              <p className="section__actions flashcard-library__create-cta">
+                <Button type="button" variant="primary" onClick={openCreateForm} disabled={busy}>
+                  Add another flashcard
+                </Button>
+              </p>
+            )}
+          </>
+        )}
+
+        {successMessage && (
+          <p className="plan-panel__status plan-panel__status--success">{successMessage}</p>
+        )}
+        {actionError && <ErrorMessage message={actionError} />}
+      </FormCard>
+    </section>
   );
 }

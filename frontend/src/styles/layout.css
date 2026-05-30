@@ -227,7 +227,8 @@
 .page--courses .page-header__lead,
 .page--course-detail .page-header__lead,
 .page--tasks .page-header__lead,
-.page--focus .page-header__lead {
+.page--focus .page-header__lead,
+.page--flashcards .page-header__lead {
   margin: 0;
   font-size: var(--font-size-base);
   line-height: var(--line-height-body);
@@ -614,6 +615,28 @@
   margin-bottom: 0;
 }
 
+/* Flashcards workspace */
+.flashcards-workspace__main {
+  margin-top: var(--space-2);
+}
+
+.flashcards-workspace__main .section__header-row {
+  margin-bottom: var(--space-4);
+}
+
+.flashcards-workspace__filters {
+  margin-bottom: var(--space-5);
+}
+
+.flashcards-workspace__toolbar {
+  margin-bottom: var(--space-5);
+}
+
+.flashcards-workspace__create .form-card {
+  border-color: var(--color-border);
+  box-shadow: var(--elevation-1);
+}
+
 /* Study material workspace */
 .page--material-detail .page-header__lead {
   margin: 0;
@@ -889,5 +912,17 @@
   .filter-toolbar__segment .btn {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .page--flashcards .flashcard-study__actions,
+  .page--flashcards .flashcard-library__item-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page--flashcards .flashcard-study__actions .btn,
+  .page--flashcards .flashcard-library__item-actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
