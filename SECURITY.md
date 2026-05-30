@@ -39,13 +39,14 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 
 - **`POST /process`** on document-service is **internal-only** (backend orchestration). Browsers must not call it directly.
 - **Generate (implemented):** `POST /api/study-materials/:materialId/generate` with strict empty body `{}`. Backend loads saved material `content` only after ownership checks. Frontend must not send `studyText`, `content`, `courseId`, `userId`, or `plan` in the generate body.
-- **Saved plan (implemented):** `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` — frontend loads/clears via backend only; **no** direct Supabase client writes to `material_generated_plans`.
+- **Saved plan (implemented):** `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` — frontend loads/clears **active** plan via backend only; **no** direct Supabase client writes to `material_generated_plans`.
+- **Plan history (implemented — Phases 11A-1/2/3):** Multiple rows per material in `public.material_generated_plans` with exactly one **`is_active`**; history REST APIs — `GET …/generated-plans` (metadata only), `GET …/generated-plans/:planId`, `POST …/generated-plans/:planId/activate` (body `{}` — **no** Gemini), `DELETE …/generated-plans/:planId` (inactive only). Frontend history UI loads metadata list only; full plan fetched on **Preview** for inactive versions; **Restore** uses activate endpoint only.
 
 ## AI output — generated study plans (persisted)
 
-- **One latest validated plan per study material** in `public.material_generated_plans` — **no** plan history table, **no** saved-plan library, **no** raw Gemini response storage, **no** persistence of failed generate attempts.
-- **Backend-only persistence:** service role UPSERT after **Zod** validation of document-service output; ownership via material → course → user before any plan table access (service role bypasses RLS — app must filter).
-- **Frontend:** Load/clear through backend GET/DELETE only; display in React state for rendering — **not** `localStorage` / `sessionStorage`; **never** POST client `plan` JSON to save.
+- **Multiple validated plan rows per study material** in `public.material_generated_plans` — exactly **one active** per material; up to **10** total rows retained (Phase **11A-1**); **no** cross-material saved-plan library, **no** raw Gemini response storage, **no** persistence of failed generate attempts.
+- **Backend-only persistence:** service role writes after **Zod** validation of document-service output; ownership via material → course → user before any plan table access (service role bypasses RLS — app must filter). Generate and history **activate** are separate paths — restore/reactivate **must not** call Gemini.
+- **Frontend:** Load/clear active plan and history through backend REST only; display in React state for rendering — **not** `localStorage` / `sessionStorage` for plans or history; **never** POST client `plan` JSON to save; **no** bulk full-plan fetch on history list load.
 - Treat model output as **untrusted** in the UI — plain **React text** only; **no** `dangerouslySetInnerHTML`.
 - Tasks and flashcards **inside** the plan JSON are **read-only display** — not task/flashcard **management** or Trello sync.
 - Missing saved plan → empty UI (backend `404` “Generated plan not found”). Wrong-owner or missing material → neutral `404` “Study material not found”.

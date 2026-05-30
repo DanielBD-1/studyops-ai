@@ -26,3 +26,17 @@ export function isStudyMaterialNotFound(err) {
     err.message === STUDY_MATERIAL_NOT_FOUND_MESSAGE
   );
 }
+
+const ACTIVE_PLAN_DELETE_CONFLICT_MESSAGE = 'Cannot delete the active generated plan';
+
+/**
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+export function isActivePlanDeleteConflict(err) {
+  return (
+    err instanceof ApiRequestError &&
+    err.code === 'CONFLICT' &&
+    err.message === ACTIVE_PLAN_DELETE_CONFLICT_MESSAGE
+  );
+}

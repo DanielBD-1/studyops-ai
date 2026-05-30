@@ -10,6 +10,10 @@ import {
   generateMaterial,
   getGeneratedPlan,
   deleteGeneratedPlan,
+  listGeneratedPlans,
+  getGeneratedPlanById,
+  activateGeneratedPlan,
+  deleteGeneratedPlanVersion,
   importPlanTasks,
   importPlanFlashcards,
   __setApiFetchForTests,
@@ -20,6 +24,9 @@ const COURSE_ID = '33333333-3333-4333-8333-333333333333';
 const MATERIAL_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const TOKEN = 'test-access-token';
 const VALID_CONTENT = 'a'.repeat(100);
+
+const PLAN_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const PLAN_ID_2 = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 
 const MOCK_PLAN = {
   summary: 'a'.repeat(50),
@@ -253,6 +260,128 @@ describe('study-materials.service', () => {
     assert.equal(calls[0].path, `/api/study-materials/${MATERIAL_ID}/generated-plan`);
     assert.equal(calls[0].init.method, 'DELETE');
     assert.equal(calls[0].token, TOKEN);
+  });
+
+  it('listGeneratedPlans calls GET /api/study-materials/:materialId/generated-plans', async () => {
+    const savedAt = '2026-01-10T00:00:00.000Z';
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: {
+          materialId: MATERIAL_ID,
+          plans: [
+            {
+              planId: PLAN_ID,
+              savedAt,
+              createdAt: '2026-01-09T00:00:00.000Z',
+              updatedAt: savedAt,
+              isActive: true,
+            },
+          ],
+        },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await listGeneratedPlans(MATERIAL_ID);
+    assert.equal(calls[0].path, `/api/study-materials/${MATERIAL_ID}/generated-plans`);
+    assert.equal(calls[0].init.method, 'GET');
+    assert.equal(data.plans.length, 1);
+    assert.equal(data.plans[0].planId, PLAN_ID);
+    assert.equal('plan' in data.plans[0], false);
+  });
+
+  it('getGeneratedPlanById calls GET /api/study-materials/:materialId/generated-plans/:planId', async () => {
+    const savedAt = '2026-01-10T00:00:00.000Z';
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: {
+          materialId: MATERIAL_ID,
+          courseId: COURSE_ID,
+          planId: PLAN_ID,
+          plan: MOCK_PLAN,
+          savedAt,
+        },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await getGeneratedPlanById(MATERIAL_ID, PLAN_ID);
+    assert.equal(
+      calls[0].path,
+      `/api/study-materials/${MATERIAL_ID}/generated-plans/${PLAN_ID}`
+    );
+    assert.equal(calls[0].init.method, 'GET');
+    assert.equal(data.planId, PLAN_ID);
+    assert.deepEqual(data.plan, MOCK_PLAN);
+  });
+
+  it('activateGeneratedPlan POSTs with strict empty body', async () => {
+    const savedAt = '2026-01-10T00:00:00.000Z';
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: {
+          materialId: MATERIAL_ID,
+          courseId: COURSE_ID,
+          planId: PLAN_ID_2,
+          plan: MOCK_PLAN,
+          savedAt,
+        },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await activateGeneratedPlan(MATERIAL_ID, PLAN_ID_2);
+    assert.equal(
+      calls[0].path,
+      `/api/study-materials/${MATERIAL_ID}/generated-plans/${PLAN_ID_2}/activate`
+    );
+    assert.equal(calls[0].init.method, 'POST');
+    assert.equal(calls[0].init.body, JSON.stringify({}));
+    assert.equal(JSON.parse(/** @type {string} */ (calls[0].init.body)).plan, undefined);
+    assert.equal(data.planId, PLAN_ID_2);
+  });
+
+  it('deleteGeneratedPlanVersion calls DELETE and propagates conflict errors', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { deleted: true, planId: PLAN_ID },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await deleteGeneratedPlanVersion(MATERIAL_ID, PLAN_ID);
+    assert.deepEqual(data, { deleted: true, planId: PLAN_ID });
+    assert.equal(
+      calls[0].path,
+      `/api/study-materials/${MATERIAL_ID}/generated-plans/${PLAN_ID}`
+    );
+    assert.equal(calls[0].init.method, 'DELETE');
+
+    __setApiFetchForTests(async () => ({
+      success: false,
+      error: {
+        code: 'CONFLICT',
+        message: 'Cannot delete the active generated plan',
+      },
+      meta: { timestamp: new Date().toISOString() },
+    }));
+
+    await assert.rejects(
+      () => deleteGeneratedPlanVersion(MATERIAL_ID, PLAN_ID),
+      (err) => {
+        assert.ok(err instanceof ApiRequestError);
+        assert.equal(err.code, 'CONFLICT');
+        return true;
+      }
+    );
   });
 
   it('generateMaterial POSTs to /api/study-materials/:materialId/generate with empty body', async () => {
