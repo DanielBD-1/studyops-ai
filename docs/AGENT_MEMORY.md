@@ -27,7 +27,7 @@
 
 ---
 
-## Current state as of 2026-06-01 (Phase B2)
+## Current state as of 2026-06-01 (Phase B3)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -41,7 +41,9 @@
 
 **Phase B1 (global tokens):** **B1** complete (**2026-06-01**) — commit **`ccca764`** (`style: add global tokens and typography rhythm`); CSS-only — global design tokens, typography rhythm, tabular number utility, semantic warning/focus/AI/on-primary tokens; hardcoded global CSS values moved toward tokens in **`tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** React/JSX/backend/API/database/package changes.
 
-**Phase B2 (AppShell + PageHeader + cockpit width):** **B2** complete (**2026-06-01**) — commit **`f2de33f`** (`style: polish shell headers and cockpit widths`); presentation-only — **AppShell** visual polish (nav active/focus, responsive shell inner), **PageHeader** intro grid/layout polish, main hub routes moved **`page--workspace`** → **`page--cockpit`** on dashboard, courses, course detail, tasks, flashcards, Trello, admin, focus. **`AppShell.jsx`** / **`PageHeader.jsx`** / **`StudyMaterialDetail.jsx`** unchanged (material detail already **`page--cockpit`**; inherits global PageHeader CSS). Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package changes; **no** new routes/features/sidebar/chat/mobile-native UI. **B3**, **B4** **not started** — next **B3** pending separate approval.
+**Phase B2 (AppShell + PageHeader + cockpit width):** **B2** complete (**2026-06-01**) — commit **`f2de33f`** (`style: polish shell headers and cockpit widths`); presentation-only — **AppShell** visual polish (nav active/focus, responsive shell inner), **PageHeader** intro grid/layout polish, main hub routes moved **`page--workspace`** → **`page--cockpit`** on dashboard, courses, course detail, tasks, flashcards, Trello, admin, focus. **`AppShell.jsx`** / **`PageHeader.jsx`** / **`StudyMaterialDetail.jsx`** unchanged (material detail already **`page--cockpit`**; inherits global PageHeader CSS). Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package changes; **no** new routes/features/sidebar/chat/mobile-native UI.
+
+**Phase B3 (cards, controls, badges, filters):** **B3** complete (**2026-06-01**) — commit **`e865c09`** (`style: polish cards controls badges and filters`); presentation-only — **card hover policy** (`source-card--navigable` on **`CourseCard`**, **`MaterialCard`**, dashboard per-course cards; task cards excluded — no lift); **static dashboard/admin stat tiles** (dashboard stat hover de-emphasized); **read-only plan/history surfaces** no longer feel editable on hover; **badge/pill consistency** (shared pill base for source cards, plan tasks, plan history, Trello sync status); **segmented filter** visual polish; **button/link-button** CSS consistency (danger focus, link-btn active, disabled unchanged). JSX: className-only **`source-card--navigable`** on three files. Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package/auth/routing/service changes; **no** new routes/features/sidebar/chat/mobile-native UI/charts/gamification. **B4** **not started** — before **B4**, discuss **Visual Direction Breakout** / Base44 design inspiration; current **`DESIGN.md`** / token direction may still be too calm/basic for desired product feel.
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -49,7 +51,7 @@
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B3**–**B4** global styling rollout (B1 tokens + B2 shell/cockpit width complete).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (B1 tokens + B2 shell/cockpit width + B3 cards/controls/badges/filters complete).
 
 ---
 
@@ -2032,3 +2034,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Reviews:** Supervisor Review **Approved with notes**; Security Review **Approved**
 **Pitfalls:** Do not treat B2 as B3/B4; do not change card hover policy, badge/filter system, button system, route transitions, skeletons, or empty/loading/error redesign without separate gates; **`AdminRoute`** forbidden view still **`page--workspace`** (cosmetic only)
 **Follow-up:** **B3** — Card, controls, badges, and filters system — pending separate human approval; **B4** not started
+
+### 2026-06-01 — Phase B3 cards, controls, badges, and filters complete
+
+**Workflow:** Phase B3 — cards, controls, badges, and filters (presentation-only)
+**ADR refs:** none (presentation layer; aligns with **`DESIGN.md`** card and control patterns)
+**Commit:** **`e865c09`** — `style: polish cards controls badges and filters`
+**Prerequisite docs:** Phase A **`dedb35c`**; Phase **12A-1** **`00a76de`**; Phase **B1** **`ccca764`**; Phase **B2** **`f2de33f`**
+**Summary:** Presentation-only card and control polish. **Card hover policy:** hover elevation limited to **`source-card--navigable`** (added className-only on **`CourseCard`**, **`MaterialCard`**, dashboard per-course cards); **`TaskCard`** unchanged — task/completed cards explicitly suppress lift. **Static tiles:** dashboard stat cards no longer elevate on hover. **Read-only surfaces:** plan output, plan history, and plan form cards excluded from “editable” hover border treatment. **Badges/pills:** shared base styles for **`source-card__pill`**, **`plan-task-item__badge`**, **`plan-history__badge`**, **`trello-sync-results__status`**. **Segmented filters:** scoped toolbar segment styling in **`layout.css`**. **Buttons:** danger **`focus-visible`**, link-button active scale; **`.btn:disabled`** / **`.link-btn--disabled`** unchanged. **No** backend, API, database, package, auth, routing, service, or data-fetching changes. **No** filter logic, ownership logic, Trello credential behavior, or admin gating changes. **No** new routes, features, sidebar, chat UI, mobile-native UI, charts, or gamification. **B4** **not started**.
+**Files:** `frontend/src/components/courses/CourseCard.jsx`; `frontend/src/components/materials/MaterialCard.jsx`; `frontend/src/pages/DashboardStub.jsx`; `frontend/src/styles/components.css`; `frontend/src/styles/layout.css`
+**APIs affected:** none
+**Tests:** **`npm run lint`** passed; **`npm test`** **205/205**; **`npm run build`** passed
+**Reviews:** Supervisor Review **Approved with notes**; Security Review **Approved**
+**Pitfalls:** Do not treat B3 as B4; do not change **`TaskCard.jsx`** / **`Button.jsx`** behavior without a separate gate; preserve navigable vs task hover split; do not commit **`frontend/dist/`** build artifacts
+**Follow-up:** Before **B4**, discuss **Visual Direction Breakout** / Base44 design inspiration — current **`DESIGN.md`** and token direction may still be too calm/basic; **B4** pending separate human approval
