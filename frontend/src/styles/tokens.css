@@ -24,6 +24,14 @@
   --color-admin-accent: #5b4d8a;
   --color-admin-subtle: #f3f0f8;
   --color-focus-ring: var(--color-primary);
+  --color-on-primary: #ffffff;
+  --color-warning: #7a5c1e;
+  --color-warning-subtle: #faf6ed;
+  --color-warning-border: #e5d4b0;
+  --color-ai-surface: var(--color-primary-subtle);
+  --color-ai-gradient-end: rgba(238, 240, 251, 0.65);
+  --color-ai-gradient-end-soft: rgba(238, 240, 251, 0.5);
+  --color-ai-gradient-end-faint: rgba(238, 240, 251, 0.35);
   --color-shell-bg: rgba(255, 255, 255, 0.94);
   --color-shell-border: rgba(221, 217, 208, 0.85);
 
@@ -38,10 +46,17 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2rem;
+  --font-size-display: var(--font-size-3xl);
+  --font-size-page-title: var(--font-size-2xl);
+  --font-size-section: var(--font-size-xl);
+  --font-size-card-title: var(--font-size-lg);
+  --font-size-meta: var(--font-size-sm);
   --line-height-body: 1.6;
   --line-height-tight: 1.35;
+  --line-height-display: 1.2;
   --letter-spacing-tight: -0.02em;
   --letter-spacing-brand: -0.03em;
+  --font-tabular: tabular-nums;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -61,6 +76,9 @@
   --shadow-md: 0 4px 12px rgba(26, 26, 26, 0.07), 0 2px 4px rgba(26, 26, 26, 0.04);
   --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.09), 0 4px 8px rgba(26, 26, 26, 0.04);
   --shadow-auth: 0 12px 40px rgba(26, 26, 26, 0.08), 0 4px 12px rgba(26, 26, 26, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(68, 88, 212, 0.25);
+  --shadow-focus-subtle: 0 0 0 3px rgba(68, 88, 212, 0.15);
+  --shadow-focus-field: 0 0 0 3px rgba(68, 88, 212, 0.18);
   --elevation-1: var(--shadow-sm);
   --elevation-2: var(--shadow-md);
   --elevation-3: var(--shadow-lg);
@@ -76,4 +94,7 @@
 
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;
+  --motion-route: 200ms ease;
+  --motion-press: var(--transition-fast);
+  --motion-hover-lift: var(--transition-base);
 }

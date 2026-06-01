@@ -49,7 +49,7 @@ export default function FlashcardsPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace page--flashcards flashcards-workspace">
+    <main className="page page--cockpit page--flashcards flashcards-workspace">
       <PageHeader
         intro
         title="All saved flashcards"

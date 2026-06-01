@@ -48,7 +48,7 @@ export default function TrelloSyncPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace page--trello trello-workspace">
+    <main className="page page--cockpit page--trello trello-workspace">
       <PageHeader
         intro
         title="Trello sync"

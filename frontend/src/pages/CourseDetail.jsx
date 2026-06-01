@@ -212,7 +212,7 @@ export default function CourseDetail() {
 
   if (loading) {
     return (
-      <main className="page page--workspace page--course-detail">
+      <main className="page page--cockpit page--course-detail">
         <LoadingState message="Loading course…" />
       </main>
     );
@@ -220,7 +220,7 @@ export default function CourseDetail() {
 
   if (notFound) {
     return (
-      <main className="page page--workspace page--course-detail">
+      <main className="page page--cockpit page--course-detail">
         <h1 className="page__title--tight">Course not found</h1>
         <p className="not-found__text">This course may have been deleted.</p>
         <Link to="/courses">Back to courses</Link>
@@ -230,7 +230,7 @@ export default function CourseDetail() {
 
   if (error || !course) {
     return (
-      <main className="page page--workspace page--course-detail">
+      <main className="page page--cockpit page--course-detail">
         <ErrorMessage message={error ?? 'Failed to load course'} />
         <Button variant="secondary" onClick={loadCourse}>
           Try again
@@ -243,7 +243,7 @@ export default function CourseDetail() {
   }
 
   return (
-    <main className="page page--workspace page--course-detail course-workspace">
+    <main className="page page--cockpit page--course-detail course-workspace">
       <PageHeader
         intro
         title={course.title}

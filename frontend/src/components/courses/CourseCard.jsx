@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
  */
 export default function CourseCard({ course }) {
   return (
-    <article className="source-card source-card--subject">
+    <article className="source-card source-card--subject source-card--navigable">
       <div className="source-card__header">
         <span className="source-card__pill">Subject</span>
       </div>

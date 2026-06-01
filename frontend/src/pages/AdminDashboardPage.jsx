@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
     stats && formatTaskCompletionPercent(stats.completedTasks, stats.totalTasks);
 
   return (
-    <main className="page page--workspace page--admin-dashboard">
+    <main className="page page--cockpit page--admin-dashboard">
       <PageHeader
         intro
         title="Admin dashboard"

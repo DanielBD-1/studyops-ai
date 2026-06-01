@@ -2,7 +2,7 @@
 
 **Purpose:** Describe what is **built today** in the repository. For full MVP intent and future features, see `docs/PRD.md`. For phase-by-phase history, see `docs/AGENT_MEMORY.md`.
 
-**Last aligned:** Phase **11A-3** (generated plan history frontend UI — **2026-05-30**); prior **11A-2** history REST API, **11A-1** active history DB, **10B** plan import dedupe, **10C** governance alignment, and **9B** post-8C alignment. **Functional MVP** complete through **6A-3** (auth, courses, materials, material-scoped AI generate + persisted generated plan, tasks, flashcards, Trello sync with board/list picker, focus sessions, student dashboard, admin aggregate stats). **Generated plan history (11A-1 + 11A-2 + 11A-3):** migrations **010** and **011** applied manually on Supabase; multiple rows per material with one **`is_active`**; retention max **10** rows per material; GET/DELETE/generate backward compatible; history list/get-by-id/activate/delete-version REST APIs (**11A-2**); metadata-only history UI with lazy preview, restore, and delete inactive (**11A-3**); **`totalGeneratedPlans`** counts active rows only. **Plan import dedupe (10B):** material-scoped import endpoints with **`source='plan'`** and dedupe (migration **009** applied). **Hardening / docs alignment** phases **7A**–**7C** complete (**2026-05-29**). **UI / presentation polish** complete through **8C-3D** (**2026-05-30**): **8A** baseline polish; **8B** design-reference docs alignment; **8C-1** global **`AppShell`** + design system; **8C-2A** dashboard/courses/course detail; **8C-2B** study material detail + AI zones; **8C-3A** tasks + focus; **8C-3B** flashcards; **8C-3C** Trello; **8C-3D** admin. Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Existing design screenshots may predate **8C** visuals unless recaptured (see **`docs/design/SCREENSHOT_INDEX.md`**). Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**, superseded by **10B** import API), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **plan-sourced import dedupe** (Phase **10B**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
+**Last aligned:** Phase **DOCS-A3** (documentation alignment — **2026-06-02**); documents presentation phases **12A-1**, **B1**–**B3** to match code (commits **`00a76de`**, **`ccca764`**, **`f2de33f`**, **`e865c09`**). Prior **11A-3** (generated plan history frontend UI — **2026-05-30**); **11A-2** history REST API; **11A-1** active history DB; **10B** plan import dedupe; **10C** governance alignment; **9B** post-8C alignment. **Functional MVP** complete through **6A-3** (auth, courses, materials, material-scoped AI generate + persisted generated plan, tasks, flashcards, Trello sync with board/list picker, focus sessions, student dashboard, admin aggregate stats). **Generated plan history (11A-1 + 11A-2 + 11A-3):** migrations **010** and **011** applied manually on Supabase; multiple rows per material with one **`is_active`**; retention max **10** rows per material; GET/DELETE/generate backward compatible; history list/get-by-id/activate/delete-version REST APIs (**11A-2**); metadata-only history UI with lazy preview, restore, and delete inactive (**11A-3**); **`totalGeneratedPlans`** counts active rows only. **Plan import dedupe (10B):** material-scoped import endpoints with **`source='plan'`** and dedupe (migration **009** applied). **Hardening / docs alignment** phases **7A**–**7C** complete (**2026-05-29**). **UI / presentation polish** complete through **8C-3D** (**2026-05-30**) plus **12A-1** material Source | AI cockpit (**2026-06-01**) and **B1**–**B3** global visual tokens / shell / cards (**2026-06-01**): **8A** baseline polish; **8B** design-reference docs alignment; **8C-1** global **`AppShell`** + design system; **8C-2A** dashboard/courses/course detail; **8C-2B** study material detail + AI zones; **8C-3A** tasks + focus; **8C-3B** flashcards; **8C-3C** Trello; **8C-3D** admin; **12A-1** material cockpit layout; **B1** tokens/typography; **B2** shell/cockpit width; **B3** cards/badges/filters. **Production UI values:** warm canvas / calm indigo in **`frontend/src/styles/tokens.css`** — **not** BX-I1 dark/glass (docs-only direction). Application phases **1A–1G** and **2A–2G** are complete unless noted otherwise. Existing design screenshots may predate **8C** visuals unless recaptured (see **`docs/design/SCREENSHOT_INDEX.md`**). Generated plan persistence (Phases **2L-a/b/c**), **`study_tasks` table** (Phase **3A-a**), **`study_tasks` backend API** (Phase **3A-b**), **course-level manual task UI** (Phases **3A-c**–**3A-c.3** on `/courses/:id`), **global manual task UI** (Phases **3A-d**–**3A-e** on `/tasks`), **plan → task import** (Phase **3A-f**, superseded by **10B** import API), **flashcard study UI** (Phase **3B-a**), **`flashcards` DB foundation** (Phase **3B-b**), **flashcards backend API** (Phase **3B-c**), **flashcards frontend integration** (Phase **3B-d**), **flashcards manual CRUD UI** (Phase **3B-e**), **global flashcards page** (Phase **3B-f**), **global create flashcard UI** (Phase **3B-g**), **plan-sourced import dedupe** (Phase **10B**), **`trello_sync_logs` DB foundation** (Phase **4A-0**), **backend Trello sync API** (Phase **4A-1**), **frontend Trello sync page** (Phase **4A-2**), **Trello UI polish** (Phase **4A-3**), **backend Trello board/list discovery** (Phase **4B-1**), **frontend Trello board/list picker** (Phase **4B-2**), **`focus_sessions` DB foundation** (Phase **4C-0**), **backend Focus Sessions API** (Phase **4C-1**), **frontend Focus Sessions UI** (Phase **4C-2**), **Focus Sessions manual smoke** (Phase **4C-3**), **backend Dashboard Stats API** (Phase **5B**), **Dashboard frontend UI** (Phase **5C**), **Dashboard cross-page refresh** (Phase **5C.1**), **admin authorization foundation** (Phase **6A-1**), **backend admin aggregate stats API** (Phase **6A-2**), and **frontend admin dashboard UI** (Phase **6A-3**) are documented below.
 
 ---
 
@@ -40,9 +40,11 @@ React frontend (Vite)
 | Variable / key | Package | Notes |
 |----------------|---------|--------|
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | **backend** | Service role is **backend-only** — never in frontend or `VITE_*` |
+| `SUPABASE_ANON_KEY` | **backend** | Optional in `backend/.env.example`; not exposed via `VITE_*` |
 | `DOCUMENT_SERVICE_URL` | **backend** | Internal URL to document-service (e.g. `http://localhost:3002`) |
 | `FRONTEND_URL` | **backend** | CORS allowlist |
 | `GEMINI_API_KEY` | **document-service** | Required for `POST /process`; never in backend or frontend |
+| `GEMINI_MODEL` | **document-service** | Optional model ID (default `gemini-2.5-flash-lite` in `.env.example`) |
 | `VITE_API_URL` | **frontend** | Backend base URL (e.g. `http://localhost:3001`) |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | **frontend** | Anon key only — session + client auth |
 
@@ -436,7 +438,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 | Migration | `supabase/migrations/006_flashcards.sql` — **applied manually** in Supabase SQL Editor on **2026-05-26** (**Success. No rows returned.**) |
 | Ownership | `user_id` + `course_id` + optional `material_id`; triggers enforce user/course and material/course alignment |
 | RLS | Own-row policies for `authenticated`; `anon` has no grants |
-| `source` | **`manual` only** in DB CHECK (future import may extend) |
+| `source` | **`manual` only** in DB CHECK at phase completion — extended to **`manual` \| `plan`** in migration **009** (Phase **10B**) |
 | Verification | Catalog + behavioral probes passed; cross-user RLS probe **skipped** (no second auth user); test row cleaned (`remaining_test_flashcards = 0`) |
 
 **Reviews:** Supervisor — approved with notes. Security Review — no blockers.
@@ -988,9 +990,87 @@ Manual **`public.flashcards`** CRUD via the main backend only (not document-serv
 
 ---
 
-## Implemented — UI presentation polish (Phases 8A–8C)
+## Implemented — Study material cockpit layout (Phase 12A-1)
 
-Presentation-only frontend work per **`DESIGN.md`** v2 — **no** new product features, APIs, database tables, or behavior changes unless noted in phase history.
+**Frontend/CSS only** on **`/study-materials/:materialId`** — Source | AI split cockpit; **no** backend, API, database, migration, document-service, or package changes.
+
+| Aspect | Detail |
+|--------|--------|
+| **Layout** | **`material-workspace__cockpit`** grid (≥1024px): **Source column** (`material-workspace__cockpit-source`) — editor; **AI column** (`material-workspace__cockpit-ai`) — generate panel → active plan → plan history → imports → plan flashcard study |
+| **Below cockpit** | **`material-workspace__library`** — saved DB flashcards; **`material-workspace__danger`** — delete material |
+| **Responsive** | &lt;1024px: stack Source first, then full AI stack |
+| **Commit** | **`00a76de`** — `feat: add study material cockpit layout` (**2026-06-01**) |
+| **Checks** | `cd frontend && npm run lint`, `npm test` (**205/205**), `npm run build` passed |
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **approved**.
+
+**Not in 12A-1:** BX-I1 dark/glass skin; new routes; sidebar shell; chart UI.
+
+**Implementation files:** `frontend/src/pages/StudyMaterialDetail.jsx`, `frontend/src/styles/layout.css`, `frontend/src/styles/components.css`.
+
+---
+
+## Implemented — Global visual tokens (Phase B1)
+
+**CSS-only** — global design tokens and typography rhythm; **no** React/JSX, backend, API, database, or package changes.
+
+| Aspect | Detail |
+|--------|--------|
+| **Scope** | **`tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`** — semantic tokens (warning, focus, AI, on-primary); tabular numerals; hardcoded global values migrated toward tokens |
+| **Live palette** | Warm canvas / calm indigo primary — **not** BX-I1 dark graphite |
+| **Commit** | **`ccca764`** — `style: add global tokens and typography rhythm` (**2026-06-01**) |
+| **Checks** | `cd frontend && npm run lint`, `npm test` (**205/205**), `npm run build` passed |
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **approved**.
+
+**Not in B1:** Stitch/dark theme; sidebar; chart libraries.
+
+---
+
+## Implemented — AppShell, PageHeader, and cockpit width (Phase B2)
+
+**Presentation-only** — shell/header polish and hub **`page--cockpit`** width; **no** backend, API, database, or package changes.
+
+| Aspect | Detail |
+|--------|--------|
+| **AppShell** | Nav active/focus states; responsive shell inner alignment (`layout.css`) |
+| **PageHeader** | Intro-mode grid layout; mobile stack; scoped lead/note spacing |
+| **Cockpit width** | Hub routes moved **`page--workspace`** → **`page--cockpit`**: **`/dashboard`**, **`/courses`**, **`/courses/:id`**, **`/tasks`**, **`/flashcards`**, **`/trello`**, **`/admin`**, **`/focus/:taskId`** |
+| **Unchanged JSX** | **`AppShell.jsx`**, **`PageHeader.jsx`** — CSS-only; **`StudyMaterialDetail.jsx`** already **`page--cockpit`** (inherits global PageHeader CSS) |
+| **Commit** | **`f2de33f`** — `style: polish shell headers and cockpit widths` (**2026-06-01**) |
+| **Checks** | `cd frontend && npm run lint`, `npm test` (**205/205**), `npm run build` passed |
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **approved**.
+
+**Not in B2:** Sidebar shell; new routes; dark theme.
+
+---
+
+## Implemented — Cards, controls, badges, and filters (Phase B3)
+
+**Presentation-only** — card hover policy, static stat tiles, badge/pill consistency, filter/button polish; **no** backend, API, database, package, auth, routing, or data-fetching changes.
+
+| Aspect | Detail |
+|--------|--------|
+| **Navigable cards** | **`source-card--navigable`** on **`CourseCard`**, **`MaterialCard`**, dashboard per-course cards — hover lift on clickable cards only; **`TaskCard`** excluded |
+| **Static tiles** | Dashboard/admin stat tiles — minimal/no hover lift |
+| **Read-only surfaces** | Plan output, plan history, plan form cards — no “editable” hover treatment |
+| **Badges/pills** | Shared base for source-card pills, plan-task badges, plan-history badges, Trello sync status pills |
+| **Filters / buttons** | Segmented filter toolbar polish; danger **`focus-visible`**; link-button active scale |
+| **Commit** | **`e865c09`** — `style: polish cards controls badges and filters` (**2026-06-01**) |
+| **Checks** | `cd frontend && npm run lint`, `npm test` (**205/205**), `npm run build` passed |
+
+**Reviews:** Supervisor Review **approved with notes**; Security Review **approved**.
+
+**Not in B3:** Charts; gamification; BX-I1 dark/glass; **B4** global rollout (**not started**).
+
+**Implementation files:** `frontend/src/styles/components.css`, `frontend/src/styles/layout.css`; className-only JSX on **`CourseCard`**, **`MaterialCard`**, dashboard course rows.
+
+---
+
+## Implemented — UI presentation polish (Phases 8A–8C, 12A-1, B1–B3)
+
+Presentation-only frontend work per **`DESIGN.md`** v2 — **no** new product features, APIs, database tables, or behavior changes unless noted in phase history. **Live token values:** **`frontend/src/styles/tokens.css`** (warm canvas / calm indigo after **B1**).
 
 | Phase | Status | Surfaces |
 |-------|--------|----------|
@@ -998,13 +1078,17 @@ Presentation-only frontend work per **`DESIGN.md`** v2 — **no** new product fe
 | **8B** | Complete (**2026-05-30**) | Docs-only — reconciled **`DESIGN.md`**, **`STITCH_BRIEF.md`**, **`SCREENSHOT_INDEX.md`** with post-**2J**/**8A** state |
 | **8C-1** | Complete (**2026-05-30**) | Global **`AppShell`** + design tokens + **`PageHeader`**; auth pages outside shell |
 | **8C-2A** | Complete (**2026-05-30**) | **`/dashboard`**, **`/courses`**, **`/courses/:id`** — cockpit/workspace presentation |
-| **8C-2B** | Complete (**2026-05-30**) | **`/study-materials/:materialId`** — editor, saved flashcards, generate AI panel, generated plan zones |
+| **8C-2B** | Complete (**2026-05-30**) | **`/study-materials/:materialId`** — editor, saved flashcards, generate AI panel, generated plan zones (layout refined **12A-1**) |
 | **8C-3A** | Complete (**2026-05-30**) | **`/tasks`**, **`/focus/:taskId`** — task workspace + focus timer presentation |
 | **8C-3B** | Complete (**2026-05-30**) | **`/flashcards`** — library/study/manage presentation |
-| **8C-3C** | Complete (**2026-05-30**) | **`/trello`** — step-based integration workspace (credentials → board/list → tasks → sync → results); ADR 004/005 unchanged |
+| **8C-3C** | Complete (**2026-05-30**) | **`/trello`** — step-based integration workspace (credentials → board/list → tasks → sync → results); ADR 004 unchanged |
 | **8C-3D** | Complete (**2026-05-30**) | **`/admin`** — cockpit-style aggregate stats; **`AdminRoute`** forbidden surface |
+| **12A-1** | Complete (**2026-06-01**) | **`/study-materials/:materialId`** — Source \| AI cockpit split; library + danger bands below |
+| **B1** | Complete (**2026-06-01**) | Global **`tokens.css`** + typography rhythm; semantic token roles |
+| **B2** | Complete (**2026-06-01**) | **`AppShell`** / **`PageHeader`** CSS; hub routes **`page--cockpit`** |
+| **B3** | Complete (**2026-06-01**) | Card hover policy, static stat tiles, badges/pills, segmented filters, button polish |
 
-**UI polish status:** **Complete** through **8C-3D**. Further styling requires explicit human approval (e.g. `approved — apply DESIGN styling pass`). Design screenshots under `docs/design/screenshots/` may predate **8C** visuals.
+**UI polish status:** **Complete** through **B3** (after **8C-3D**). **Phase B4** global styling rollout and **BX-I2+** (dark theme, dashboard hero, charts, course accents **in code**) are **not started** — require explicit human approval after Supervisor Review. **BX-I1** Stitch direction in **`DESIGN.md`** is **documentation only** — not live in **`tokens.css`**. Design screenshots under `docs/design/screenshots/` may predate **8C** / **12A-1** / **B1–B3** visuals.
 
 ---
 
@@ -1015,7 +1099,7 @@ All routes below match `frontend/src/App.jsx`. Protected workspace routes render
 | Route | Shell | Purpose |
 |-------|-------|---------|
 | `/`, `/register` | No (auth pages) | Login / register |
-| `/dashboard` | Yes | **Student dashboard cockpit** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** + **5C** + **5C.1**); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere; presentation upgraded **8C-2A** |
+| `/dashboard` | Yes | **Student dashboard cockpit** — real user-owned stats from **`GET /api/dashboard/stats`** (**5B** + **5C** + **5C.1**); read-only; fetch on mount + **Try again** + **Refresh stats**; silent refresh when mounted after stat-changing actions elsewhere; presentation **8C-2A** + **B2** cockpit width + **B3** stat tiles |
 | `/admin` | Yes | **Admin aggregate dashboard** — platform-wide stats from **`GET /api/admin/stats`** (**6A-2** + **6A-3**); **`ProtectedRoute` → `AppShell` → `AdminRoute` → `AdminDashboardPage`**; read-only; aggregate counts only — **no** logs, user list, or role management; presentation upgraded **8C-3D**; **Admin** also in **`AppShell`** nav when **`user?.role === 'admin'`** (UX only) |
 | `/courses` | Yes | Course list + create; presentation upgraded **8C-2A** |
 | `/courses/:id` | Yes | **Course workspace** — materials list/create, **manual study tasks** (filters, create, edit pending, material link/unlink, complete, delete); presentation upgraded **8C-2A** |
@@ -1023,7 +1107,7 @@ All routes below match `frontend/src/App.jsx`. Protected workspace routes render
 | `/flashcards` | Yes | **All saved flashcards** — filters, create, study, edit/delete; presentation upgraded **8C-3B** |
 | `/trello` | Yes | **Trello sync UI** — manual apiKey/token (not stored); **Load boards** → board/list picker (**4B-2**); task selection (max 50); sync via backend only; credentials cleared after sync attempt; presentation upgraded **8C-3C** — **no OAuth**, **no** stored credentials |
 | `/focus/:taskId` | Yes | **Focus session** — auto-start **`POST /api/focus`**; **25**-minute display countdown; complete **`POST /api/focus/:sessionId/complete`**; presentation upgraded **8C-3A** |
-| `/study-materials/:materialId` | Yes | **Study material workspace** — edit content, **generate** (body **`{}`**), load/clear **active** plan, **plan history** (metadata list, lazy preview, restore, delete inactive — **11A-3**), import plan tasks/flashcards, saved DB flashcards CRUD + study, generated-plan flashcard study; AI zones presentation upgraded **8C-2B** |
+| `/study-materials/:materialId` | Yes | **Study material workspace** — Source \| AI cockpit (**12A-1**); edit content, **generate** (body **`{}`**), load/clear **active** plan, **plan history** (metadata list, lazy preview, restore, delete inactive — **11A-3**), import plan tasks/flashcards, saved DB flashcards CRUD + study, generated-plan flashcard study; AI zones **8C-2B** + **B1**–**B3** polish |
 
 **Not implemented:** `/courses/:id/generate` (course-level paste-generate — deferred).
 
@@ -1040,7 +1124,8 @@ All routes below match `frontend/src/App.jsx`. Protected workspace routes render
 - Production deployment strategy; observability / APM; payments
 - **PDF upload/parsing** — deferred: adds file **storage** cost, a **parsing** pipeline, **size/malware validation**, broader **Security Review** surface, and ongoing cost; **paste-text** study materials remain the MVP path
 - Trello OAuth; stored Trello credentials; real-time dashboard (polling / WebSockets / cross-tab sync); spaced repetition; advanced flashcard study (known/unknown, Anki)
-- Further **UI styling** beyond **8C-3D** requires explicit human approval — **`DESIGN.md` v2**, Phase **2J** styling pass, Phase **8A** polish, and Phase **8C** visual upgrade are **complete**; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`; committed PNGs may predate **8C** — **`03-dashboard.png`** is a **pre-5C/pre-8C** reference)
+- **Phase B4** global visual system rollout — **not started** (requires explicit `approved — implement Phase B4` after Supervisor Review). **Phases 8A–8C**, **12A-1**, and **B1**–**B3** are **complete** — warm canvas in **`tokens.css`**; **BX-I1/BX-I2+** dark/glass/dashboard hero/charts/course accents **in code** are **not approved**
+- Further **UI styling** beyond **B3** / toward **BX-I1** Stitch skin requires explicit human approval — **`DESIGN.md` v2.3** direction is **docs-only** until a gated implementation phase; **`11-generated-plan-visible.png`** **captured** (Phase 2K-c); **`15-processing-with-ai.png`** still **pending** (see `docs/design/SCREENSHOT_INDEX.md`; committed PNGs may predate **8C** / **12A-1** / **B1–B3** — **`03-dashboard.png`** is a **pre-5C/pre-8C** reference)
 - Pre-commit secret scanning (optional future)
 - `eslint-plugin-react` for stricter JSX unused-import lint (optional future)
 
@@ -1085,6 +1170,8 @@ cd frontend && npm run lint && npm test && npm run build
 Or from repo root (after `npm ci` in each package): `.\scripts\check-all.ps1`
 
 **Docs-only PRs** do not require lint/test unless non-doc files are changed.
+
+**Current automated test totals (2026-06-02):** backend **341/341**; frontend **205/205**; document-service **43/43**. Historical phase completion notes may cite earlier counts — re-run `npm test` per package for authoritative totals.
 
 ---
 

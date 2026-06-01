@@ -141,7 +141,7 @@ export default function DashboardStub() {
   const isEmptyAccount = stats?.totalCourses === 0;
 
   return (
-    <main className="page page--workspace page--dashboard">
+    <main className="page page--cockpit page--dashboard">
       <PageHeader
         intro
         title="Dashboard"
@@ -242,7 +242,7 @@ export default function DashboardStub() {
               <ul className="card-list dashboard-course-list">
                 {stats.courseStats.map((course) => (
                   <li key={course.courseId}>
-                    <article className="source-card source-card--subject source-card--dashboard-course">
+                    <article className="source-card source-card--subject source-card--dashboard-course source-card--navigable">
                       <h3 className="source-card__title">
                         <Link
                           to={`/courses/${course.courseId}`}
