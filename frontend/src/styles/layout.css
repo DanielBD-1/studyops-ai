@@ -476,16 +476,11 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--elevation-1);
-  transition:
-    box-shadow var(--transition-fast),
-    border-color var(--transition-fast),
-    transform var(--transition-fast);
 }
 
 .dashboard-stat:hover {
-  border-color: var(--color-border-strong);
-  box-shadow: var(--elevation-2);
-  transform: translateY(-1px);
+  border-color: var(--color-border);
+  box-shadow: var(--elevation-1);
 }
 
 .dashboard-stat__label {
@@ -553,6 +548,45 @@
 
 .filter-toolbar--segmented {
   justify-content: flex-start;
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  flex: 0 1 auto;
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment .btn {
+  box-shadow: none;
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment .btn--secondary {
+  background: transparent;
+  border-color: transparent;
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment .btn--secondary:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment .btn--secondary:focus-visible {
+  box-shadow: var(--shadow-focus-subtle);
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment .btn--primary {
+  box-shadow: var(--elevation-1);
+}
+
+.filter-toolbar--segmented .filter-toolbar__segment .btn--primary:focus-visible {
+  box-shadow: var(--shadow-focus);
 }
 
 .dashboard-empty-cta {
@@ -1225,7 +1259,12 @@
     width: 100%;
   }
 
-  .filter-toolbar__segment .btn {
+  .filter-toolbar--segmented .filter-toolbar__segment {
+    width: 100%;
+  }
+
+  .filter-toolbar__segment .btn,
+  .filter-toolbar--segmented .filter-toolbar__segment .btn {
     flex: 1 1 auto;
     min-width: 0;
   }

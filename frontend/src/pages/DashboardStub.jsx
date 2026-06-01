@@ -242,7 +242,7 @@ export default function DashboardStub() {
               <ul className="card-list dashboard-course-list">
                 {stats.courseStats.map((course) => (
                   <li key={course.courseId}>
-                    <article className="source-card source-card--subject source-card--dashboard-course">
+                    <article className="source-card source-card--subject source-card--dashboard-course source-card--navigable">
                       <h3 className="source-card__title">
                         <Link
                           to={`/courses/${course.courseId}`}

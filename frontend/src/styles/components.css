@@ -68,6 +68,11 @@
 .btn--danger:hover:not(:disabled) {
   background-color: var(--color-danger-hover);
   border-color: var(--color-danger-hover);
+  box-shadow: none;
+}
+
+.btn--danger:focus-visible {
+  box-shadow: var(--shadow-focus);
 }
 
 .btn:disabled {
@@ -119,6 +124,10 @@
   box-shadow: var(--shadow-focus-subtle);
 }
 
+.link-btn:active:not(.link-btn--disabled) {
+  transform: scale(0.98);
+}
+
 .link-btn--disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -150,8 +159,14 @@
     border-color var(--transition-fast);
 }
 
-.form-card:hover {
+.form-card:not(.form-card--plan):not(.plan-output):not(.plan-history):hover {
   border-color: var(--color-border-strong);
+}
+
+.form-card--plan:hover,
+.plan-output:hover,
+.plan-history:hover {
+  border-color: var(--color-border);
 }
 
 .form-card__title {
@@ -371,15 +386,25 @@
   border-radius: var(--radius-md);
   padding: var(--space-4);
   margin-bottom: var(--space-3);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--elevation-1);
   transition:
     box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+    transform var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
-.source-card:hover {
-  box-shadow: var(--shadow-md);
+.source-card--navigable:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--elevation-2);
   transform: translateY(-1px);
+}
+
+.source-card--task:hover,
+.source-card--task.source-card--completed:hover,
+.task-card--completed:hover {
+  transform: none;
+  box-shadow: var(--elevation-1);
+  border-color: var(--color-border);
 }
 
 .source-card--subject {
@@ -404,18 +429,27 @@
   margin-bottom: var(--space-3);
 }
 
-.source-card__pill {
+/* Shared status / metadata pills */
+.source-card__pill,
+.plan-task-item__badge,
+.plan-history__badge,
+.trello-sync-results__status {
   display: inline-flex;
   align-items: center;
   padding: var(--space-1) var(--space-2);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+.source-card__pill {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-primary);
   background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary-border);
-  border-radius: var(--radius-sm);
+  border-color: var(--color-primary-border);
 }
 
 .source-card__pill--document {
@@ -471,10 +505,9 @@
   opacity: 1;
 }
 
-.source-card--task.source-card--completed:hover,
-.task-card--completed:hover {
-  transform: none;
-  box-shadow: var(--shadow-sm);
+.source-card--task.source-card--completed .source-card__title,
+.source-card--task.source-card--completed .task-card__title {
+  color: var(--color-text-muted);
 }
 
 .task-card__header {
@@ -898,7 +931,7 @@
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: 0;
-  box-shadow: var(--elevation-1);
+  box-shadow: none;
 }
 
 .plan-task-item__title {
@@ -922,17 +955,10 @@
 }
 
 .plan-task-item__badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-tight);
   text-transform: capitalize;
   color: var(--color-text-muted);
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-color: var(--color-border);
 }
 
 .plan-task-item__badge--priority-high {
@@ -949,7 +975,7 @@
 
 .plan-task-item__badge--priority-low {
   color: var(--color-text-muted);
-  background: var(--color-surface);
+  background: var(--color-bg-subtle);
   border-color: var(--color-border);
 }
 
@@ -1419,15 +1445,11 @@
 
 .trello-sync-results__status {
   flex-shrink: 0;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
   color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
 }
 
 .trello-sync-results__status--success {
@@ -1438,6 +1460,8 @@
 
 .trello-sync-results__status--skipped {
   color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
 }
 
 .trello-sync-results__status--failed {
@@ -1493,6 +1517,10 @@
   box-shadow: var(--elevation-1);
 }
 
+.plan-history__item:not(.plan-history__item--active) {
+  background: var(--color-bg-subtle);
+}
+
 .plan-history__item--active {
   border-color: var(--color-primary-border);
   background: var(--color-primary-subtle);
@@ -1521,15 +1549,8 @@
 
 .plan-history__badge {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
 }
 
 .plan-history__badge--active {
