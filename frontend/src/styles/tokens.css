@@ -65,6 +65,12 @@
   --color-course-accent-amber: #f59e0b;
   --color-course-accent-rose: #fb7185;
   --color-course-accent-emerald: #34d399;
+  --color-course-accent-amber-subtle: rgba(245, 158, 11, 0.12);
+  --color-course-accent-amber-border: rgba(245, 158, 11, 0.35);
+  --color-course-accent-rose-subtle: rgba(251, 113, 133, 0.12);
+  --color-course-accent-rose-border: rgba(251, 113, 133, 0.35);
+  --color-course-accent-emerald-subtle: rgba(52, 211, 153, 0.12);
+  --color-course-accent-emerald-border: rgba(52, 211, 153, 0.35);
 
   /* Chart palette (values only — no chart UI in BX-I2) */
   --color-chart-track: rgba(51, 65, 85, 0.6);

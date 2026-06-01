@@ -1,11 +1,20 @@
 import { Link } from 'react-router-dom';
+import { getCourseAccentKey } from '../../utils/course-accent.js';
 
 /**
  * @param {{ course: { id: string, title: string, createdAt?: string } }} props
  */
 export default function CourseCard({ course }) {
+  const accentKey = getCourseAccentKey({
+    courseId: course.id,
+    courseTitle: course.title,
+  });
+
   return (
-    <article className="source-card source-card--subject source-card--navigable">
+    <article
+      className="source-card source-card--subject source-card--navigable"
+      data-course-accent={accentKey}
+    >
       <div className="source-card__header">
         <span className="source-card__pill">Subject</span>
       </div>

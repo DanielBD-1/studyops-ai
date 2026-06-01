@@ -12,6 +12,7 @@ import {
   formatFocusMinutes,
   formatTaskCompletionPercent,
 } from '../utils/dashboard-format.js';
+import { getCourseAccentKey } from '../utils/course-accent.js';
 import {
   deriveCoursePendingTasks,
   deriveDashboardRecommendation,
@@ -322,9 +323,16 @@ export default function DashboardStub() {
               <ul className="card-list dashboard-course-list">
                 {stats.courseStats.map((course) => {
                   const pendingTasks = deriveCoursePendingTasks(course);
+                  const accentKey = getCourseAccentKey({
+                    courseId: course.courseId,
+                    courseName: course.courseName,
+                  });
                   return (
                     <li key={course.courseId}>
-                      <article className="source-card source-card--subject source-card--dashboard-course source-card--navigable">
+                      <article
+                        className="source-card source-card--subject source-card--dashboard-course source-card--navigable"
+                        data-course-accent={accentKey}
+                      >
                         <h3 className="source-card__title">
                           <Link
                             to={`/courses/${course.courseId}`}
