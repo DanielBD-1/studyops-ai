@@ -1,5 +1,25 @@
 # AGENT_MEMORY.md — StudyOps AI
 
+## Executive Summary
+
+**Read order for agents and owner:**
+
+1. **`docs/CURRENT_STATE.md`** — where the project is now (phase, suspended work, forbidden assumptions).
+2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
+3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
+
+**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Active docs phase: **DOCS-A1** (source-of-truth cleanup). Functional MVP through **6A-3** + **11A-3** + **B1**–**B3** + **12A-1** — see **`CURRENT_STATE`** and **`IMPLEMENTATION_STATUS`**.
+
+**Major caution — do not proceed until reviewed:**
+
+- **Do not continue BX-I1 implementation** (no `tokens.css`, frontend/CSS, or design rollout) until **DOCS-A1** is **Supervisor Review** approved.
+- **Do not start Phase B4** or **BX-I2+** without explicit human **`approved — implement Phase X`** after that review.
+- **`DESIGN.md` BX-I1** may exist as **documentation only**; doc edits do **not** authorize code.
+
+The **“Current state as of 2026-06-01”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
+
+---
+
 **Purpose:** Durable, append-only session memory for AI agents. Update after merged changes that affect behavior, APIs, or conventions.
 
 **Rules:**

@@ -5,11 +5,24 @@
 
 ---
 
+## How to use this document
+
+**This PRD contains product vision, target MVP requirements, future scope, and features that are not yet built.** Sections below describe the full MVP contract—including routes, APIs, and behaviors that may still be **deferred** in the repository.
+
+**For actual shipped state, use:**
+
+- **`docs/CURRENT_STATE.md`** — short owner/agent starting point (phase gates, suspended work)
+- **`docs/IMPLEMENTATION_STATUS.md`** — authoritative detail on what is built today
+
+Do **not** treat PRD body text alone as proof a feature is live. When PRD and implementation docs disagree on **shipped behavior**, **`IMPLEMENTATION_STATUS`** wins.
+
+---
+
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section records **what the repository implements today** (summary only; aligned through Phase **8C-3D** UI polish and Phase **9B** docs alignment). It does **not** replace MVP sections below (future scope remains valid). Authoritative detail: **`docs/IMPLEMENTATION_STATUS.md`** and phase history in **`docs/AGENT_MEMORY.md`**.
+This section is a **historical summary only** and may lag the latest merged phases (e.g. **11A-3** plan history, **10B** import dedupe, **12A-1** material cockpit, **B1**–**B3** presentation polish). It does **not** replace MVP sections below (future scope remains valid). **Authoritative shipped state:** **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/CURRENT_STATE.md`**; phase history in **`docs/AGENT_MEMORY.md`**.
 
-### Built (functional MVP through 6A-3; hardening 7A–7C; UI polish through 8C-3D)
+### Built (summary — functional MVP through 6A-3 and later phases; see IMPLEMENTATION_STATUS for current detail)
 
 **Functional MVP (phases 1A–1G, 2A–2G, 2L-a/b/c/d, 3A-a/b/c/c.1/c.2/c.3/d/e/f, 3B-a/b/c/d/e/f/g, 4A-0, 4A-1, 4A-2, 4A-3, 4B-1, 4B-2, 4C-0, 4C-1, 4C-2, 4C-3, 5B, 5C, 5C.1, 6A-1, 6A-2, 6A-3):**
 
