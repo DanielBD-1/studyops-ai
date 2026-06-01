@@ -256,7 +256,7 @@ export default function FocusPage() {
   const tasksBackPath = returnTo.startsWith('/') ? returnTo : '/tasks';
 
   return (
-    <main className="page page--workspace page--focus focus-workspace">
+    <main className="page page--cockpit page--focus focus-workspace">
       <PageHeader
         intro
         title="Focus session"

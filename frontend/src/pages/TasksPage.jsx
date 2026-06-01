@@ -49,7 +49,7 @@ export default function TasksPage() {
   }, [loadCourses]);
 
   return (
-    <main className="page page--workspace page--tasks task-workspace">
+    <main className="page page--cockpit page--tasks task-workspace">
       <PageHeader
         intro
         title="All study tasks"

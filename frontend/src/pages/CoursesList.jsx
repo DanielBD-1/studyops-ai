@@ -86,7 +86,7 @@ export default function CoursesList() {
   }
 
   return (
-    <main className="page page--workspace page--courses">
+    <main className="page page--cockpit page--courses">
       <PageHeader
         intro
         title="My courses"

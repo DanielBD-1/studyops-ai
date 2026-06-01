@@ -141,7 +141,7 @@ export default function DashboardStub() {
   const isEmptyAccount = stats?.totalCourses === 0;
 
   return (
-    <main className="page page--workspace page--dashboard">
+    <main className="page page--cockpit page--dashboard">
       <PageHeader
         intro
         title="Dashboard"
