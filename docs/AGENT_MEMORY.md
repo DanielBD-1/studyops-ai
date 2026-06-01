@@ -27,7 +27,7 @@
 
 ---
 
-## Current state as of 2026-06-01 (Phase B1)
+## Current state as of 2026-06-01 (Phase B2)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -39,7 +39,9 @@
 
 **Study material cockpit layout:** **12A-1** complete (**2026-06-01**) — commit **`00a76de`** (`feat: add study material cockpit layout`); presentation-only frontend/CSS on **`/study-materials/:materialId`** — Source | AI split; AI column groups generate, active plan, and plan history; flashcards library and danger zone below cockpit; **`npm run build`** passed; **no** backend/API/database/package changes.
 
-**Phase B1 (global tokens):** **B1** complete (**2026-06-01**) — commit **`ccca764`** (`style: add global tokens and typography rhythm`); CSS-only — global design tokens, typography rhythm, tabular number utility, semantic warning/focus/AI/on-primary tokens; hardcoded global CSS values moved toward tokens in **`tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** React/JSX/backend/API/database/package changes. **B2** (AppShell + PageHeader + cockpit layout width), **B3**, **B4** **not started** — next **B2** pending separate approval.
+**Phase B1 (global tokens):** **B1** complete (**2026-06-01**) — commit **`ccca764`** (`style: add global tokens and typography rhythm`); CSS-only — global design tokens, typography rhythm, tabular number utility, semantic warning/focus/AI/on-primary tokens; hardcoded global CSS values moved toward tokens in **`tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** React/JSX/backend/API/database/package changes.
+
+**Phase B2 (AppShell + PageHeader + cockpit width):** **B2** complete (**2026-06-01**) — commit **`f2de33f`** (`style: polish shell headers and cockpit widths`); presentation-only — **AppShell** visual polish (nav active/focus, responsive shell inner), **PageHeader** intro grid/layout polish, main hub routes moved **`page--workspace`** → **`page--cockpit`** on dashboard, courses, course detail, tasks, flashcards, Trello, admin, focus. **`AppShell.jsx`** / **`PageHeader.jsx`** / **`StudyMaterialDetail.jsx`** unchanged (material detail already **`page--cockpit`**; inherits global PageHeader CSS). Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package changes; **no** new routes/features/sidebar/chat/mobile-native UI. **B3**, **B4** **not started** — next **B3** pending separate approval.
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -47,7 +49,7 @@
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B2**–**B4** global styling rollout (B1 tokens complete).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B3**–**B4** global styling rollout (B1 tokens + B2 shell/cockpit width complete).
 
 ---
 
@@ -2016,3 +2018,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Tests:** **`npm run lint`** passed; **`npm test`** **205/205**; **`npm run build`** passed
 **Pitfalls:** Do not treat B1 as B2; do not change AppShell/PageHeader/cockpit width without a separate B2 gate; preserve existing component behavior and routes
 **Follow-up:** **B2** — AppShell + PageHeader + cockpit layout width — pending separate human approval; **B3** and **B4** not started
+
+### 2026-06-01 — Phase B2 AppShell, PageHeader, and cockpit layout width complete
+
+**Workflow:** Phase B2 — AppShell, PageHeader, and cockpit layout width (presentation-only)
+**ADR refs:** none (presentation layer; aligns with **`DESIGN.md`** v2.1 §4.2–4.3 layout modes)
+**Commit:** **`f2de33f`** — `style: polish shell headers and cockpit widths`
+**Prerequisite docs:** Phase A **`dedb35c`**; Phase **12A-1** **`00a76de`**; Phase **B1** **`ccca764`**
+**Summary:** Presentation-only frontend/layout polish. **AppShell:** visual polish in **`layout.css`** (active nav accent, focus-visible, responsive shell inner alignment). **PageHeader:** intro-mode grid layout (title/lead/note vs actions), mobile stack reset, scoped lead/note spacing. **Cockpit width:** main hub pages moved **`page--workspace`** → **`page--cockpit`** (`--content-max-cockpit` per **`DESIGN.md`**) on **`/dashboard`**, **`/courses`**, **`/courses/:id`**, **`/tasks`**, **`/flashcards`**, **`/trello`**, **`/admin`**, **`/focus/:taskId`**. **No** backend, API, database, or package changes. **No** new routes, features, sidebar, chat UI, or mobile-native UI. **`AppShell.jsx`** and **`PageHeader.jsx`** unchanged. **`StudyMaterialDetail.jsx`** unchanged (already cockpit; global PageHeader CSS applies). **B3** (cards, controls, badges, filters) and **B4** **not started**.
+**Files:** `frontend/src/styles/layout.css`; `frontend/src/pages/DashboardStub.jsx`; `frontend/src/pages/CoursesList.jsx`; `frontend/src/pages/CourseDetail.jsx`; `frontend/src/pages/TasksPage.jsx`; `frontend/src/pages/FlashcardsPage.jsx`; `frontend/src/pages/TrelloSyncPage.jsx`; `frontend/src/pages/AdminDashboardPage.jsx`; `frontend/src/pages/FocusPage.jsx`
+**APIs affected:** none
+**Tests:** **`npm run lint`** passed; **`npm test`** **205/205**; **`npm run build`** passed
+**Reviews:** Supervisor Review **Approved with notes**; Security Review **Approved**
+**Pitfalls:** Do not treat B2 as B3/B4; do not change card hover policy, badge/filter system, button system, route transitions, skeletons, or empty/loading/error redesign without separate gates; **`AdminRoute`** forbidden view still **`page--workspace`** (cosmetic only)
+**Follow-up:** **B3** — Card, controls, badges, and filters system — pending separate human approval; **B4** not started
