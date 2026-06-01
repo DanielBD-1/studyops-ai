@@ -1,39 +1,84 @@
 :root {
-  --color-bg: #f4f2ed;
-  --color-bg-subtle: #ebe8e2;
-  --color-bg-auth: linear-gradient(165deg, #f4f2ed 0%, #eceae4 45%, #e8e5de 100%);
-  --color-surface: #ffffff;
-  --color-surface-raised: #ffffff;
-  --color-border: #ddd9d0;
-  --color-border-strong: #c9c3b8;
-  --color-text: #1a1a1a;
-  --color-text-muted: #5c5c5c;
-  --color-text-subtle: #787878;
-  --color-primary: #4458d4;
-  --color-primary-hover: #3648b8;
-  --color-primary-subtle: #eef0fb;
-  --color-primary-border: #cdd4f4;
-  --color-danger: #b42318;
-  --color-danger-hover: #912018;
-  --color-danger-subtle: #fef3f2;
-  --color-danger-border: #e8b4b0;
-  --color-error: #b42318;
-  --color-success: #0d5c2e;
-  --color-success-subtle: #f0faf4;
-  --color-success-border: #a8d4b8;
-  --color-admin-accent: #5b4d8a;
-  --color-admin-subtle: #f3f0f8;
-  --color-focus-ring: var(--color-primary);
+  /* Canvas & shell */
+  --color-bg: #0b1326;
+  --color-bg-subtle: #131b2e;
+  --color-bg-auth: linear-gradient(165deg, #0b1326 0%, #0f172a 45%, #131b2e 100%);
+  --color-shell-bg: rgba(30, 41, 59, 0.82);
+  --color-shell-border: rgba(51, 65, 85, 0.7);
+
+  /* Glass surfaces */
+  --color-surface: rgba(30, 41, 59, 0.72);
+  --color-surface-raised: rgba(45, 52, 73, 0.88);
+  --color-border: rgba(51, 65, 85, 0.65);
+  --color-border-strong: rgba(66, 71, 84, 0.85);
+  --color-glass-border: rgba(51, 65, 85, 0.75);
+
+  /* Text on dark */
+  --color-text: #dae2fd;
+  --color-text-muted: #c2c6d6;
+  --color-text-subtle: #9aa3b5;
+
+  /* Electric blue primary */
+  --color-primary: #4d8eff;
+  --color-primary-hover: #3a7ae8;
+  --color-primary-subtle: rgba(77, 142, 255, 0.12);
+  --color-primary-border: rgba(77, 142, 255, 0.35);
   --color-on-primary: #ffffff;
-  --color-warning: #7a5c1e;
-  --color-warning-subtle: #faf6ed;
-  --color-warning-border: #e5d4b0;
-  --color-ai-surface: var(--color-primary-subtle);
-  --color-ai-gradient-end: rgba(238, 240, 251, 0.65);
-  --color-ai-gradient-end-soft: rgba(238, 240, 251, 0.5);
-  --color-ai-gradient-end-faint: rgba(238, 240, 251, 0.35);
-  --color-shell-bg: rgba(255, 255, 255, 0.94);
-  --color-shell-border: rgba(221, 217, 208, 0.85);
+  /* Filled controls — darker fills for WCAG AA label contrast with on-primary */
+  --color-primary-fill: #3570e5;
+  --color-primary-fill-hover: #2d62cc;
+  --color-focus-ring: var(--color-primary);
+
+  /* Violet AI accent */
+  --color-ai-accent: #d0bcff;
+  --color-ai-surface: rgba(208, 188, 255, 0.1);
+  --color-ai-gradient-end: rgba(208, 188, 255, 0.22);
+  --color-ai-gradient-end-soft: rgba(208, 188, 255, 0.14);
+  --color-ai-gradient-end-faint: rgba(208, 188, 255, 0.08);
+
+  /* Cyan data accent */
+  --color-data-accent: #4cd7f6;
+
+  /* Semantic states on dark */
+  --color-danger: #f2555a;
+  --color-danger-hover: #d94449;
+  --color-danger-fill: #d63a3f;
+  --color-danger-fill-hover: #c93237;
+  --color-danger-subtle: rgba(242, 85, 90, 0.12);
+  --color-danger-border: rgba(255, 180, 171, 0.35);
+  --color-error: #ffb4ab;
+  --color-success: #34d399;
+  --color-success-subtle: rgba(52, 211, 153, 0.12);
+  --color-success-border: rgba(52, 211, 153, 0.35);
+  --color-warning: #fbbf24;
+  --color-warning-subtle: rgba(251, 191, 36, 0.12);
+  --color-warning-border: rgba(251, 191, 36, 0.35);
+
+  /* Admin accent (readable on dark canvas) */
+  --color-admin-accent: #a78bfa;
+  --color-admin-subtle: rgba(167, 139, 250, 0.1);
+
+  /* Source editor well */
+  --color-editor-surface: #060e20;
+
+  /* Course accent palette (values only — not wired to components in BX-I2) */
+  --color-course-accent-amber: #f59e0b;
+  --color-course-accent-rose: #fb7185;
+  --color-course-accent-emerald: #34d399;
+
+  /* Chart palette (values only — no chart UI in BX-I2) */
+  --color-chart-track: rgba(51, 65, 85, 0.6);
+  --color-chart-fill: rgba(76, 215, 246, 0.5);
+  --color-chart-series-1: #4cd7f6;
+  --color-chart-series-2: #4d8eff;
+  --color-chart-series-3: #f59e0b;
+
+  /* Disabled affordance */
+  --opacity-disabled: 0.55;
+
+  /* Glass blur rhythm */
+  --blur-shell: 12px;
+  --blur-glass: 10px;
 
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-weight-medium: 500;
@@ -72,13 +117,17 @@
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
-  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.05), 0 1px 3px rgba(26, 26, 26, 0.04);
-  --shadow-md: 0 4px 12px rgba(26, 26, 26, 0.07), 0 2px 4px rgba(26, 26, 26, 0.04);
-  --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.09), 0 4px 8px rgba(26, 26, 26, 0.04);
-  --shadow-auth: 0 12px 40px rgba(26, 26, 26, 0.08), 0 4px 12px rgba(26, 26, 26, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(68, 88, 212, 0.25);
-  --shadow-focus-subtle: 0 0 0 3px rgba(68, 88, 212, 0.15);
-  --shadow-focus-field: 0 0 0 3px rgba(68, 88, 212, 0.18);
+
+  /* Dark UI elevation & glow */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.35);
+  --shadow-auth: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-focus: 0 0 0 3px rgba(77, 142, 255, 0.35);
+  --shadow-focus-subtle: 0 0 0 3px rgba(77, 142, 255, 0.22);
+  --shadow-focus-field: 0 0 0 3px rgba(77, 142, 255, 0.28);
+  --glow-primary: 0 0 15px rgba(77, 142, 255, 0.2);
+  --glow-ai: 0 0 15px rgba(208, 188, 255, 0.2);
   --elevation-1: var(--shadow-sm);
   --elevation-2: var(--shadow-md);
   --elevation-3: var(--shadow-lg);

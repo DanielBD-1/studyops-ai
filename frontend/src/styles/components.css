@@ -24,9 +24,9 @@
 }
 
 .btn--primary {
-  background-color: var(--color-primary);
+  background-color: var(--color-primary-fill);
   color: var(--color-on-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-fill);
 }
 
 .btn:focus-visible {
@@ -35,8 +35,8 @@
 }
 
 .btn--primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background-color: var(--color-primary-fill-hover);
+  border-color: var(--color-primary-fill-hover);
   box-shadow: var(--elevation-1);
 }
 
@@ -60,14 +60,14 @@
 }
 
 .btn--danger {
-  background-color: var(--color-danger);
+  background-color: var(--color-danger-fill);
   color: var(--color-on-primary);
-  border-color: var(--color-danger);
+  border-color: var(--color-danger-fill);
 }
 
 .btn--danger:hover:not(:disabled) {
-  background-color: var(--color-danger-hover);
-  border-color: var(--color-danger-hover);
+  background-color: var(--color-danger-fill-hover);
+  border-color: var(--color-danger-fill-hover);
   box-shadow: none;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
   transform: none;
 }
@@ -129,7 +129,7 @@
 }
 
 .link-btn--disabled {
-  opacity: 0.6;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -233,7 +233,7 @@
   font-size: var(--font-size-base);
   line-height: var(--line-height-body);
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-editor-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   transition:
