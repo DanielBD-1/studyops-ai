@@ -8,14 +8,14 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
-**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Docs phases **DOCS-A3** and **BX-I1** complete; **BX-I2** implementation complete (commit **`03ee9df`**). **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** + **BX-I2** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
+**Branch / phase (2026-06-02):** `phase-bx-i3-dashboard-decision-layout`. Docs phases **DOCS-A3** and **BX-I1** complete; **BX-I2** implementation complete (commit **`03ee9df`**); **BX-I3** implementation complete (commit **`bdd6f2a`**). **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** + **BX-I2** + **BX-I3** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
 
 **Major caution — do not proceed without explicit approval:**
 
-- **Phase BX-I2** is **complete** (CSS-only — commit **`03ee9df`**). **Do not** start **BX-I3**, **BX-I4**, **BX-I5**, **B4**, sidebar shell, dashboard hero, charts, course accent wiring, JSX/React presentation refactors, backend/API/database/package changes, or fonts/packages/CDN without explicit human **`approved — implement Phase X`** after Supervisor Review of **each** phase.
-- **BX-I2 completion does not automatically approve** sidebar, dashboard hero, charts, or course accent wiring — those are separate gated phases.
+- **Phase BX-I3** is **complete** (frontend-only — commit **`bdd6f2a`**). **Do not** start **BX-I4**, **BX-I5**, **BX-I6**, **B4**, sidebar shell, chart UI, course accent wiring, material cockpit redesign, backend/API/database/package changes, or fonts/packages/CDN without explicit human **`approved — implement Phase X`** after Supervisor Review of **each** phase.
+- **BX-I3 completion does not automatically approve** sidebar, chart UI, course accent wiring, material cockpit redesign, or backend/API extension — those are separate gated phases.
 
-The **“Current state as of 2026-06-02 (post BX-I2)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
+The **“Current state as of 2026-06-02 (post BX-I3)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
 
 ---
 
@@ -46,7 +46,7 @@ The **“Current state as of 2026-06-02 (post BX-I2)”** section below is a **p
 
 ---
 
-## Current state as of 2026-06-02 (post BX-I2)
+## Current state as of 2026-06-02 (post BX-I3)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -66,15 +66,17 @@ The **“Current state as of 2026-06-02 (post BX-I2)”** section below is a **p
 
 **Phase BX-I2 (dark glass token foundation):** **BX-I2** complete (**2026-06-02**) — commit **`03ee9df`** (`style: add dark glass token foundation`); **CSS-only** — **`frontend/src/styles/tokens.css`**, **`components.css`**, **`layout.css`** only; **no** JSX/React, backend, API, database, package, or docs changes in the implementation commit. Dark graphite / glass global tokens; electric blue primary; violet AI accent; cyan data accent; dark-friendly danger/success/warning; source editor surface; chart/course accent **values only** (not wired into UI). **Filled-button contrast fix:** `--color-primary-fill`, `--color-primary-fill-hover`, `--color-danger-fill`, `--color-danger-fill-hover` for WCAG AA on `.btn--primary` / `.btn--danger`. Supervisor Review **Approved with notes**; Security Review **Approved with limitation** (authenticated visual QA deferred — no valid local test account). **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed. **Not in BX-I2:** sidebar, dashboard hero, charts, course accent wiring, material cockpit structure redesign, **BX-I3** / **BX-I4** / **BX-I5** / **B4**.
 
+**Phase BX-I3 (dashboard decision layout):** **BX-I3** complete (**2026-06-02**) — commit **`bdd6f2a`** (`feat: add dashboard next-up recommendation`); **frontend-only** — **`frontend/src/pages/DashboardStub.jsx`**, **`frontend/src/styles/layout.css`**, **`frontend/src/utils/dashboard-recommendation.js`**, **`frontend/tests/unit/dashboard-format.test.js`** only; **no** backend, API, database, package, **`AppShell`**, route, service, or context changes in the implementation commit. Dashboard **“What should I study next?”** decision hero with **rule-based** next-up recommendation (**not** AI-based); study pulse / task progress bars from existing stats only; enhanced course workload rows with derived pending counts; prior stat bands moved to secondary **At a glance** section; uses existing **`GET /api/dashboard/stats`** only. **No fake metrics added:** no fake AI priority, deadlines/due-soon, weekly focus chart, streaks, health score, next exam/deadline, or specific task/material title in recommendation copy. Supervisor Review **Approved with notes**; Security / Trust Review **Approved with limitation** (authenticated dashboard manual smoke not fully completed — no approved valid local test account). **`npm run lint`** / **`npm test`** (**219/219**, including **14** recommendation unit tests) / **`npm run build`** passed. **Not in BX-I3:** chart library/UI, sidebar shell, course accent wiring, material cockpit structure redesign, **BX-I4** / **BX-I5** / **BX-I6** / **B4**.
+
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
 **Hardening / docs:** **7A**–**7C** complete (**2026-05-29**).
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); sidebar shell / dashboard hero / charts / course accent wiring **in code** (**not started** — **BX-I3+** / **B4**, separate approval each).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); sidebar shell / chart UI / course accent wiring / material cockpit redesign **in code** (**not started** — **BX-I4+** / **B4**, separate approval each).
 
-**Next phase (planning only — human):** Optional **BX-I2 follow-up** — authenticated visual QA when a test account exists (dashboard, courses, material detail / AI panel / plan history / disclaimer, Trello, admin forbidden vs admin dashboard, keyboard focus-visible on authenticated shell). **Do not** automatically start **BX-I3**, **BX-I4**, **BX-I5**, or **B4** — each requires separate planning and explicit **`approved — implement Phase X`**. Charts, dashboard hero layout, course accents in React/CSS, and sidebar shell remain **not built** until separately approved.
+**Next phase (planning only — human):** Optional **BX-I2** and **BX-I3 follow-up** — authenticated visual QA when a test account exists (**BX-I3:** dashboard with data, empty dashboard if possible, hero primary/secondary CTA navigation, refresh stats, study pulse / progress bars, mobile width ~375px, console check for no token/secret/material-content logs). **Do not** automatically start **BX-I4**, **BX-I5**, **BX-I6**, or **B4** — each requires separate planning and explicit **`approved — implement Phase X`**. Next implementation phase is **not automatic**. Charts, course accents in React/CSS, sidebar shell, material cockpit redesign, and backend/API extension remain **not built** until separately approved.
 
 ---
 
@@ -2143,3 +2145,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Implementation:** CSS-only token foundation — **does not** authorize sidebar, dashboard hero, charts, course accent wiring, material cockpit structure redesign, **BX-I3** / **BX-I4** / **BX-I5**, or **B4**
 **Pitfalls:** Do not treat BX-I2 as approval for BX-I3+ or B4; do not wire chart/course accent tokens without separate phase; authenticated visual QA still pending
 **Follow-up:** Authenticated visual QA when a test account exists (dashboard, courses, material detail / AI panel / plan history / disclaimer, Trello, admin forbidden vs admin dashboard, keyboard focus-visible on authenticated shell); plan **BX-I3** / **BX-I4** / **BX-I5** / **B4** separately with explicit implement approval
+
+### 2026-06-02 — Phase BX-I3 dashboard decision layout complete (frontend only)
+
+**Workflow:** Phase BX-I3 — dashboard **“What should I study next?”** decision layout (frontend only)
+**ADR refs:** none (presentation + client-side rule logic only)
+**Commit:** **`bdd6f2a`** — `feat: add dashboard next-up recommendation`
+**Prerequisite:** Phase **BX-I2** **`03ee9df`** (dark glass tokens); Phases **5C** / **5C.1** (dashboard stats UI + refresh); Phases **B1**–**B3** (presentation baseline)
+**Summary:** Decision-first dashboard layout on **`/dashboard`**. **Rule-based** next-up recommendation via **`deriveDashboardRecommendation`** in **`dashboard-recommendation.js`** — **not** AI-based; uses existing **`GET /api/dashboard/stats`** data only. Hero **“What should I study next?”** with honest context copy (*“Based on your pending tasks and active study plans.”*). Study pulse / task progress bars from pending and completed counts only. Enhanced course workload rows with derived pending counts. Prior stat bands moved to secondary **At a glance** section. **No fake metrics:** no fake AI priority, deadlines/due-soon, weekly focus chart, streaks, health score, next exam/deadline, or specific task/material title. **Supervisor Review:** Approved with notes. **Security / Trust Review:** Approved with limitation — authenticated dashboard manual smoke not fully completed (no approved valid local test account).
+**Files changed in commit:** **`frontend/src/pages/DashboardStub.jsx`**, **`frontend/src/styles/layout.css`**, **`frontend/src/utils/dashboard-recommendation.js`**, **`frontend/tests/unit/dashboard-format.test.js`** only — **no** backend, database, package, **`AppShell`**, route, service, or context changes; **no** docs changes in implementation commit
+**APIs affected:** none (consumes existing **`GET /api/dashboard/stats`** only)
+**Tests:** `cd frontend && npm run lint` passed; `npm test` passed (**219/219**, including **14** recommendation unit tests); `npm run build` passed
+**Implementation:** Dashboard decision layout only — **does not** authorize chart library/UI, sidebar shell, course accent wiring, material cockpit structure redesign, backend/API extension, **BX-I4** / **BX-I5** / **BX-I6**, or **B4**
+**Pitfalls:** Do not treat BX-I3 as approval for BX-I4+ or B4; do not describe recommendation as AI-based; do not add fake deadline/streak/health metrics without a gated phase; authenticated dashboard visual QA still pending
+**Follow-up:** Authenticated dashboard visual QA when a test account exists (dashboard with data, empty dashboard if possible, hero primary/secondary CTA navigation, refresh stats, study pulse / progress bars, mobile width ~375px, console check for no token/secret/material-content logs); plan **BX-I4** / **BX-I5** / **BX-I6** / **B4** separately with explicit implement approval — next implementation phase is **not automatic**
