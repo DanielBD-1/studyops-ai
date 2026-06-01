@@ -27,7 +27,7 @@
 
 ---
 
-## Current state as of 2026-06-01 (Phase 12A-1)
+## Current state as of 2026-06-01 (Phase B1)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -37,7 +37,9 @@
 
 **Design direction (docs):** Phase A complete (**2026-06-01**) — commit **`dedb35c`** (`docs: align StudyOps AI design direction`); **`DESIGN.md`** hybrid Source | AI cockpit direction; **`STITCH_BRIEF.md`** / **`SCREENSHOT_INDEX.md`** authority notes. **No** frontend code in Phase A.
 
-**Study material cockpit layout:** **12A-1** complete (**2026-06-01**) — commit **`00a76de`** (`feat: add study material cockpit layout`); presentation-only frontend/CSS on **`/study-materials/:materialId`** — Source | AI split; AI column groups generate, active plan, and plan history; flashcards library and danger zone below cockpit; **`npm run build`** passed; **no** backend/API/database/package changes. **Phase B** (global visual direction rollout) **not started**.
+**Study material cockpit layout:** **12A-1** complete (**2026-06-01**) — commit **`00a76de`** (`feat: add study material cockpit layout`); presentation-only frontend/CSS on **`/study-materials/:materialId`** — Source | AI split; AI column groups generate, active plan, and plan history; flashcards library and danger zone below cockpit; **`npm run build`** passed; **no** backend/API/database/package changes.
+
+**Phase B1 (global tokens):** **B1** complete (**2026-06-01**) — commit **`ccca764`** (`style: add global tokens and typography rhythm`); CSS-only — global design tokens, typography rhythm, tabular number utility, semantic warning/focus/AI/on-primary tokens; hardcoded global CSS values moved toward tokens in **`tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** React/JSX/backend/API/database/package changes. **B2** (AppShell + PageHeader + cockpit layout width), **B3**, **B4** **not started** — next **B2** pending separate approval.
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -45,7 +47,7 @@
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase B global styling.
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B2**–**B4** global styling rollout (B1 tokens complete).
 
 ---
 
@@ -2001,3 +2003,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Tests:** **`npm run build`** passed before commit; frontend tests not re-run in this phase gate (frontend-only presentation)
 **Pitfalls:** Do not treat this as Phase B; do not change backend/history APIs; preserve generate/clear/import/history restore flows; cockpit AI column action stacking applies at **`≥1024px`** and **`≤640px`** only
 **Follow-up:** Supervisor Review; optional manual smoke on material detail; push branch; Phase B remains separately gated
+
+### 2026-06-01 — Phase B1 global tokens and typography rhythm complete
+
+**Workflow:** Phase B1 — global design tokens and typography rhythm (CSS-only)
+**ADR refs:** none (presentation layer; aligns with **`DESIGN.md`** token authority from Phase A)
+**Commit:** **`ccca764`** — `style: add global tokens and typography rhythm`
+**Prerequisite docs:** Phase A **`dedb35c`**; Phase **12A-1** **`00a76de`** (material-detail cockpit preceded global token rollout)
+**Summary:** CSS-only global visual foundation. Global design tokens and typography rhythm; tabular number utility; semantic **warning**, **focus**, **AI**, and **on-primary** tokens; hardcoded global CSS values migrated toward tokens. Touched only **`tokens.css`**, **`base.css`**, **`layout.css`**, **`components.css`**. **No** React/JSX, backend, API, database, or package changes. **B2** (AppShell + PageHeader + cockpit layout width), **B3**, and **B4** **not started**.
+**Files:** `frontend/src/styles/tokens.css`; `frontend/src/styles/base.css`; `frontend/src/styles/layout.css`; `frontend/src/styles/components.css`
+**APIs affected:** none
+**Tests:** **`npm run lint`** passed; **`npm test`** **205/205**; **`npm run build`** passed
+**Pitfalls:** Do not treat B1 as B2; do not change AppShell/PageHeader/cockpit width without a separate B2 gate; preserve existing component behavior and routes
+**Follow-up:** **B2** — AppShell + PageHeader + cockpit layout width — pending separate human approval; **B3** and **B4** not started
