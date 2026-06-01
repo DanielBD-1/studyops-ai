@@ -8,11 +8,11 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
-**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Active docs phase: **DOCS-A1** (source-of-truth cleanup). Functional MVP through **6A-3** + **11A-3** + **B1**–**B3** + **12A-1** — see **`CURRENT_STATE`** and **`IMPLEMENTATION_STATUS`**.
+**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Docs phase **DOCS-A3** complete (alignment after DOCS-A2 audit). Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
 
 **Major caution — do not proceed until reviewed:**
 
-- **Do not continue BX-I1 implementation** (no `tokens.css`, frontend/CSS, or design rollout) until **DOCS-A1** is **Supervisor Review** approved.
+- **Do not continue BX-I1 implementation** (no `tokens.css`, frontend/CSS, or design rollout) until **DOCS-A3** **Supervisor Review** is approved.
 - **Do not start Phase B4** or **BX-I2+** without explicit human **`approved — implement Phase X`** after that review.
 - **`DESIGN.md` BX-I1** may exist as **documentation only**; doc edits do **not** authorize code.
 
@@ -2101,3 +2101,15 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **B4:** **not started** — BX-S does not authorize B4 or Stitch-aligned UI in code
 **Pitfalls:** Do not treat Stitch screenshots or style guide as shipped UI; do not paste Stitch HTML/React into **`frontend/src`**; Stitch reference uses sidebar shell — current app uses top-nav **`AppShell`** until separately approved; do not implement charts without honest API-backed data and separate gates; do not edit **`DESIGN.md`** or **`tokens.css`** under BX-S scope
 **Follow-up:** **Planning only** next — translate Stitch direction into **`DESIGN.md`**, **`tokens.css`**, and separately approved frontend phases; **do not** jump directly into implementation
+
+### 2026-06-02 — Phase DOCS-A3 documentation alignment complete
+
+**Workflow:** Phase DOCS-A3 — documentation alignment after DOCS-A2 audit (documentation only)
+**ADR refs:** none
+**Summary:** Closed DOCS-A2 **Important** gaps without application changes. **`docs/IMPLEMENTATION_STATUS.md`:** updated **Last aligned** to DOCS-A3; added shipped sections for **12A-1** (material Source | AI cockpit), **B1** (global tokens), **B2** (shell/cockpit width), **B3** (cards/badges/filters); extended UI polish table through **B3**; clarified warm **`tokens.css`** vs BX-I1 docs-only direction; env table additions (`SUPABASE_ANON_KEY`, `GEMINI_MODEL`); **3B-b** `source` footnote for migration **009**; frontend routes and deferred list updates; current test totals footnote (backend **341**, frontend **205**, document-service **43**). **`docs/CURRENT_STATE.md`:** DOCS-A1/A2/A3 phase table; Supervisor Review gate on DOCS-A3; forbidden-assumption rows. **`docs/AGENT_MEMORY.md`:** executive summary cross-reference fix.
+**Files:** **`docs/IMPLEMENTATION_STATUS.md`**, **`docs/CURRENT_STATE.md`**, **`docs/AGENT_MEMORY.md`**
+**APIs affected:** none
+**Tests:** none (docs-only); verified counts unchanged from DOCS-A2 audit
+**Implementation:** **none** — **no** `frontend/src`, **`tokens.css`**, backend, database, or package changes
+**Pitfalls:** Do not treat DOCS-A3 doc sync as BX-I1/B4/BX-I2 implement approval; PRD §9 data model and AGENTS built-summary drift remain **Tier 2** (optional, explicit human approval)
+**Follow-up:** Supervisor Review of DOCS-A3; optional Tier 2 PRD/governance refresh if human approves expanded scope

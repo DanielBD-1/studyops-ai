@@ -2,7 +2,7 @@
 
 **Purpose:** Short starting point for the owner and for agents. Read this first, then drill into linked docs.
 
-**Last updated:** 2026-06-02 (Phase **DOCS-A1** — source-of-truth cleanup)
+**Last updated:** 2026-06-02 (Phase **DOCS-A3** — documentation alignment after DOCS-A2 audit)
 
 ---
 
@@ -10,9 +10,9 @@
 
 StudyOps AI is a **functional MVP web app**: React frontend → Express backend → document-service (Gemini) → Supabase Auth + Postgres. CI runs lint, tests, and frontend build on Node.js 22.
 
-**Production UI today:** Warm canvas / calm indigo from `frontend/src/styles/tokens.css` (Phases **8A**, **8C**, **B1**–**B3**). Global **`AppShell`**, cockpit layouts, Source | AI material detail (**12A-1**), generated plan history (**11A-3**).
+**Production UI today:** Warm canvas / calm indigo from `frontend/src/styles/tokens.css` (Phases **8A**, **8C**, **B1**–**B3**). Global **`AppShell`**, cockpit layouts, Source | AI material detail (**12A-1**), generated plan history (**11A-3**). **Not live:** BX-I1 dark/glass Stitch skin (docs-only in `DESIGN.md`).
 
-**Branch (as of DOCS-A1):** `phase-b-global-visual-system`
+**Branch (as of DOCS-A3):** `phase-b-global-visual-system`
 
 ---
 
@@ -20,7 +20,9 @@ StudyOps AI is a **functional MVP web app**: React frontend → Express backend 
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| **DOCS-A1** | **In progress** | Source-of-truth cleanup (this file + `AGENT_MEMORY` / `PRD` clarifications). **Documentation only.** |
+| **DOCS-A1** | **Complete** | Source-of-truth cleanup (CURRENT_STATE, AGENT_MEMORY, PRD clarifications). |
+| **DOCS-A2** | **Complete** | Documentation reality-check audit only — no file changes. |
+| **DOCS-A3** | **Complete** | Closed DOCS-A2 gaps in **`IMPLEMENTATION_STATUS`** + phase pointers. **Documentation only.** |
 | **BX-I1** | **Docs written; suspended** | Stitch visual direction in `DESIGN.md` v2.3 (local uncommitted edits may exist). **Not approved for code.** |
 | **B4** | **Not started** | Global styling rollout — **suspended** until Supervisor Review after docs cleanup. |
 | **BX-I2+** | **Not started** | Dark theme, dashboard hero, charts, course accents **in code** — not approved. |
@@ -42,7 +44,7 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 | **Focus** | 25-min timer MVP; start/complete |
 | **Dashboard** | Aggregate stats; invalidation-only cross-page refresh (**5C.1**) |
 | **Admin** | Aggregate stats only (`/admin`) — no logs, user list, or role UI |
-| **Presentation** | **8C-3D**, **12A-1**, **B1**–**B3** (tokens rhythm, shell/cockpit polish, cards/badges) |
+| **Presentation** | **8C-3D**, **12A-1**, **B1**–**B3** (tokens rhythm, shell/cockpit polish, cards/badges) — detail in **`IMPLEMENTATION_STATUS`** § UI polish / **12A-1** / **B1**–**B3** |
 
 ---
 
@@ -94,12 +96,12 @@ Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` d
 
 | Phase | Gate |
 |-------|------|
-| **DOCS-A1** | Active — finish cleanup; **Supervisor Review** before continuing visual work |
-| **BX-I1 implementation** | **Suspended** — wait for Supervisor Review after DOCS-A1; doc edits alone are not implement approval |
+| **DOCS-A3** | **Complete** — **Supervisor Review** before continuing visual work |
+| **BX-I1 implementation** | **Suspended** — wait for Supervisor Review after DOCS-A3; doc edits alone are not implement approval |
 | **B4** | **Suspended** — not started; requires explicit `approved — implement Phase B4` (or equivalent) after review |
 | **BX-I2+** | **Not approved** — dark theme, dashboard hero, charts, course accents in code |
 
-**Human next step (typical):** Supervisor Review of DOCS-A1 → decide whether to commit `DESIGN.md` BX-I1 delta → plan BX-I2 or B4 with explicit implement approval.
+**Human next step (typical):** Supervisor Review of **DOCS-A3** → decide whether to commit `DESIGN.md` BX-I1 delta → plan BX-I2 or B4 with explicit implement approval.
 
 ---
 
@@ -136,6 +138,8 @@ Do **not** assume without checking **`IMPLEMENTATION_STATUS`** and this file:
 | Dashboard charts / hero / dark theme | **Documented direction only** — warm canvas still in production |
 | B4 or BX-I2 already approved | **Suspended / not started** until human + Supervisor Review |
 | `AGENT_MEMORY` tail entry is current | Read **this file** and **`IMPLEMENTATION_STATUS`** first |
+| DOCS-A3 doc sync = BX-I2/B4 implement approval | Requires **`approved — implement Phase X`** |
+| `IMPLEMENTATION_STATUS` “Last aligned” before **12A-1** / **B1–B3** | Fixed in **DOCS-A3** — if lag recurs, verify code + **`AGENT_MEMORY`** |
 | Screenshots match live UI | Many PNGs **predate 8C / 11A-3 / B1–B3** — trust code + status docs |
 
 **Operating constraints:** Free Tier / minimal cost; no new paid APIs or npm packages without approval; Gemini **429** = quota, not necessarily a bug.
