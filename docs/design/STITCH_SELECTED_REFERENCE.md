@@ -42,7 +42,7 @@ Among the external design tools tested for StudyOps AI, **Stitch** offered the s
 Related context (read-only; not superseded by this selection doc):
 
 - `docs/design/PROTOTYPE_REFERENCES.md` — Phase BX-0 Canvas prototype reference
-- `DESIGN.md` — current product presentation spec (v2.2; Phase BX-1 direction)
+- `DESIGN.md` — current product presentation spec (v2.3; Phase BX-1 + BX-I1 direction)
 - `docs/AGENT_MEMORY.md` — agent session memory and phase gates
 
 ---
@@ -79,7 +79,7 @@ When this direction is later translated into design tokens and UI, preserve thes
 
 ### Charts and data
 
-- **Charts must later use honest data only** — no fabricated KPIs, placeholder metrics in production, or decorative numbers (per `DESIGN.md` v2.2 / BX-1 chart rules).
+- **Charts must later use honest data only** — no fabricated KPIs, placeholder metrics in production, or decorative numbers (per `DESIGN.md` v2.3 / BX-1 chart rules).
 - **No chart libraries or packages** unless separately approved in an implementation gate.
 
 ### Code boundary

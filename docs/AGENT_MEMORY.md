@@ -8,15 +8,14 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
-**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Docs phase **DOCS-A3** complete (alignment after DOCS-A2 audit). Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
+**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Docs phases **DOCS-A3** and **BX-I1** complete. **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction — **docs only**. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
 
-**Major caution — do not proceed until reviewed:**
+**Major caution — do not proceed without explicit approval:**
 
-- **Do not continue BX-I1 implementation** (no `tokens.css`, frontend/CSS, or design rollout) until **DOCS-A3** **Supervisor Review** is approved.
-- **Do not start Phase B4** or **BX-I2+** without explicit human **`approved — implement Phase X`** after that review.
-- **`DESIGN.md` BX-I1** may exist as **documentation only**; doc edits do **not** authorize code.
+- **Phase BX-I1** is **complete** (documentation only — commit **`6041932`**). **Do not** start **BX-I2** (`tokens.css` dark/glass token system), frontend/CSS, sidebar shell, charts, fonts/packages, backend/API changes, or **B4** without explicit human **`approved — implement Phase X`** after Supervisor Review of each phase.
+- **Do not** jump directly from BX-I1 docs into frontend implementation; **plan/approve BX-I2** (`tokens.css`) first.
 
-The **“Current state as of 2026-06-01”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
+The **“Current state as of 2026-06-02 (post BX-I1)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
 
 ---
 
@@ -47,7 +46,7 @@ The **“Current state as of 2026-06-01”** section below is a **point-in-time 
 
 ---
 
-## Current state as of 2026-06-01 (Phase BX-S)
+## Current state as of 2026-06-02 (post BX-I1)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -55,7 +54,7 @@ The **“Current state as of 2026-06-01”** section below is a **point-in-time 
 
 **Generated plan history:** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only. **11A-2** complete — migration **011** applied manually on Supabase; history REST APIs (list metadata-only, get-by-id, activate inactive, delete inactive); RPC **`reactivate_material_generated_plan`** with ROW_COUNT hardening; Security Review **passed**; manual smoke **passed**; backend **`341/341`** tests. **11A-3** complete — frontend-only **`GeneratedPlanHistorySection`** on material detail; metadata-only history list; lazy Preview for inactive versions; Restore (**Make active**) via activate endpoint (no Gemini); delete inactive with confirm; history refreshes after generate/clear/activate/delete; Security Review **passed**; manual smoke **passed**; frontend lint/test/build passed (**205/205**).
 
-**Design direction (docs):** Phase A complete (**2026-06-01**) — commit **`dedb35c`** (`docs: align StudyOps AI design direction`); hybrid Source | AI cockpit direction; **`STITCH_BRIEF.md`** / **`SCREENSHOT_INDEX.md`** authority notes. Phase **BX-1** complete (**2026-06-01**) — commit **`303dc4b`** (`docs: update design direction for ai study cockpit`); **`DESIGN.md` v2.1 → v2.2** — modern AI study command center; decision-first dashboard (“What should I study next?”); honest chart/data-viz rules; course accent identity; AI command panel emphasis; **`docs/design/PROTOTYPE_REFERENCES.md`** (BX-0) as reference-only. Phase **BX-S** complete (**2026-06-01**) — commit **`2b4a881`** (`docs: archive selected stitch visual direction`); **Stitch** selected as preferred **external visual reference only** — darker, bolder AI study command center: deep slate/graphite shell; electric blue/violet/cyan accents; frosted glass cards; strong “What should I study next?” dashboard; useful charts and progress visuals (honest-data rules at implementation time); course accent identity; strong Source | AI cockpit; less beige/indigo, less CRUD/admin-panel feeling. **Archived Stitch reference files:** **`docs/design/STITCH_SELECTED_REFERENCE.md`**, **`docs/design/STITCH_VISUAL_STYLE_GUIDE.md`**, **`docs/design/screenshots/stitch-01-dashboard.png`**, **`docs/design/screenshots/stitch-02-courses.png`**, **`docs/design/screenshots/stitch-03-material-cockpit.png`**. **Boundaries:** Stitch is reference only — **do not** copy Stitch code into **`frontend/src`**; **do not** implement dark theme, sidebar, or charts yet; **do not** edit **`tokens.css`** under BX-S; sidebar/shell redesign and chart implementation require separate human approval (charts may need honest data / separate API phases). **Documentation only** — **no** frontend, **`tokens.css`**, backend, API, database, package, or **B4** changes.
+**Design direction (docs):** Phase A complete (**2026-06-01**) — commit **`dedb35c`** (`docs: align StudyOps AI design direction`); hybrid Source | AI cockpit direction; **`STITCH_BRIEF.md`** / **`SCREENSHOT_INDEX.md`** authority notes. Phase **BX-1** complete (**2026-06-01**) — commit **`303dc4b`** (`docs: update design direction for ai study cockpit`); **`DESIGN.md` v2.1 → v2.2** — modern AI study command center; decision-first dashboard (“What should I study next?”); honest chart/data-viz rules; course accent identity; AI command panel emphasis; **`docs/design/PROTOTYPE_REFERENCES.md`** (BX-0) as reference-only. Phase **BX-S** complete (**2026-06-01**) — commit **`2b4a881`** (`docs: archive selected stitch visual direction`); **Stitch** selected as preferred **external visual reference only** — archived in **`docs/design/STITCH_SELECTED_REFERENCE.md`**, **`docs/design/STITCH_VISUAL_STYLE_GUIDE.md`**, and **`stitch-*.png`** screenshots. Phase **BX-I1** complete (**2026-06-01**) — commit **`6041932`** (`docs: align design with stitch visual direction`); **`DESIGN.md` v2.2 → v2.3** — Stitch-selected presentation codified: **accessible dark graphite / glass** command-center direction; **electric blue** primary, **violet** AI, **cyan** data accents; **course accent** palette; **dashboard decision hub**; stronger **Source | AI** / AI command panel; **top navigation remains MVP**; Stitch **sidebar reference-only** (separate approved shell phase). **Supervisor Review:** Approved with notes. **BX-I1 does not authorize:** **`tokens.css`** edits, frontend/CSS implementation, charts, fonts/packages/CDN, backend/API changes, sidebar implementation, or **B4**. **Boundaries:** Stitch is reference only — **do not** copy Stitch code into **`frontend/src`**.
 
 **Study material cockpit layout:** **12A-1** complete (**2026-06-01**) — commit **`00a76de`** (`feat: add study material cockpit layout`); presentation-only frontend/CSS on **`/study-materials/:materialId`** — Source | AI split; AI column groups generate, active plan, and plan history; flashcards library and danger zone below cockpit; **`npm run build`** passed; **no** backend/API/database/package changes.
 
@@ -71,9 +70,9 @@ The **“Current state as of 2026-06-01”** section below is a **point-in-time 
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (B1 + B2 + B3 complete; BX-1 + BX-S docs only); Stitch-aligned dark theme / sidebar shell / charts / course accents / dashboard hero **in code** (archived in BX-S — requires translation into **`DESIGN.md`** / **`tokens.css`** / separately approved frontend phases; **not** live in production).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); Stitch-aligned dark theme / glass skin / sidebar shell / charts / course accents / dashboard hero **in code** (**not** live — warm **`tokens.css`** remains production truth until **BX-I2+** and separately approved frontend phases).
 
-**Next phase (planning only — human):** Translate selected **Stitch** direction (BX-S) into **`DESIGN.md`**, **`tokens.css`**, and gated frontend implementation phases. **Do not** jump directly into implementation, dark theme, sidebar migration, or charts. Charts, dashboard hero layout, and course accents remain **not built** until explicitly approved. **B4** **not started**.
+**Next phase (planning only — human):** **BX-I2** — plan and approve **`tokens.css`** dark/glass token system (semantic roles per **`DESIGN.md` v2.3**). **Do not** jump directly into frontend implementation, sidebar migration, charts, or **B4**. Charts, dashboard hero layout, and course accents in React/CSS remain **not built** until explicitly approved after BX-I2+ gates.
 
 ---
 
@@ -2113,3 +2112,18 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Implementation:** **none** — **no** `frontend/src`, **`tokens.css`**, backend, database, or package changes
 **Pitfalls:** Do not treat DOCS-A3 doc sync as BX-I1/B4/BX-I2 implement approval; PRD §9 data model and AGENTS built-summary drift remain **Tier 2** (optional, explicit human approval)
 **Follow-up:** Supervisor Review of DOCS-A3; optional Tier 2 PRD/governance refresh if human approves expanded scope
+
+### 2026-06-01 — Phase BX-I1 Stitch visual direction codified in DESIGN.md (docs only)
+
+**Workflow:** Phase BX-I1 — Stitch visual delta in `DESIGN.md` (documentation only)
+**ADR refs:** none (documentation only)
+**Commit:** **`6041932`** — `docs: align design with stitch visual direction`
+**Prerequisite docs:** Phase **BX-S** **`2b4a881`**; Phase **BX-1** **`303dc4b`** (`DESIGN.md` v2.2); Phases **B1**–**B3** (presentation baseline unchanged by BX-I1)
+**Summary:** Updated **`DESIGN.md` v2.2 → v2.3** to align the product presentation spec with the **selected Stitch visual direction** (BX-S reference). Codified **accessible dark graphite / glass** command-center presentation; **electric blue** primary, **violet** AI/command, **cyan** data semantic roles; **course accent** palette; **dashboard as decision hub** (“What should I study next?”); stronger **Source | AI** cockpit and **AI command panel** emphasis. **Top navigation remains MVP** — Stitch sidebar is **reference-only**; sidebar shell migration requires a **separate approved shell phase**. **Supervisor Review:** Approved with notes.
+**Files changed in commit:** **`DESIGN.md`** only — **`frontend/src`**, **`tokens.css`**, backend, database, packages **unchanged**
+**APIs affected:** none
+**Tests:** none (docs-only)
+**Implementation:** **none** — BX-I1 does **not** approve **`tokens.css`** edits, frontend/CSS implementation, charts, fonts/packages/CDN, backend/API changes, sidebar implementation, or **B4**
+**B4:** **not started** — BX-I1 does not authorize B4 or Stitch-aligned UI in code
+**Pitfalls:** Do not treat **`DESIGN.md` v2.3** as approval for BX-I2, dark theme in production, sidebar, charts, or fonts/packages; do not paste Stitch HTML/React into **`frontend/src`**; production UI still uses warm **`tokens.css`** until BX-I2+
+**Follow-up:** **Planning/approval for BX-I2** — `tokens.css` dark/glass token system; **do not** jump directly to frontend implementation; **do not** start **B4**
