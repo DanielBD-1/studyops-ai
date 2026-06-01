@@ -1,10 +1,10 @@
-# DESIGN.md — StudyOps AI (v2.1)
+# DESIGN.md — StudyOps AI (v2.2)
 
-**Status:** Phase **2I-c** UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**; **approved visual direction** codified Phase **A** (docs only)
+**Status:** Phase **2I-c** UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**; **approved visual direction** codified Phase **A** (docs only); **dashboard decision layout, chart rules, course accents, and AI command emphasis** codified Phase **BX-1** (docs only)
 
-**Last updated:** 2026-06-01 (Phase **A** — web-app platform clarification)
+**Last updated:** 2026-06-01 (Phase **BX-1** — direction delta; prototype alignment)
 
-**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20); partial updates through Phase **9B** / **12A-0**
+**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20); partial updates through Phase **9B** / **12A-0**; v2.1 through Phase **A**
 
 ---
 
@@ -17,14 +17,20 @@
 | **`DESIGN.md` (this file)** | **Presentation and UX only** — does not change scope, APIs, database, or security |
 | **`frontend/src/styles/tokens.css`** | **Implementation source of truth** for exact color, spacing, radius, shadow, and layout token **values** |
 | **`docs/STITCH_BRIEF.md`** | **Historical** Stitch session input (Phase 2I — advisory); informed v2; **not** current product scope |
+| **`docs/design/PROTOTYPE_REFERENCES.md`** | **BX-0** Canvas + prototype PNG direction — **reference only**; informs BX-1+ presentation; **not** implementation scope |
 | **Stitch mockups / exports** | **Inspiration only** — not source of truth; never merge HTML/React into the repo |
-| **`docs/design/screenshots/*.png`** | **Reference captures only** — layout/flow hints; may be **outdated** (see `SCREENSHOT_INDEX.md`) |
+| **Canvas prototype (`.canvas.tsx`)** | **Layout/hierarchy reference only** — IDE-managed; **never** copy into `frontend/src` (see `PROTOTYPE_REFERENCES.md`) |
+| **`docs/design/screenshots/*.png`** | **Reference captures only** — layout/flow hints; may be **outdated** (see `SCREENSHOT_INDEX.md`); **`proto-*`** = BX-0 prototype captures when present |
 
 **Platform:** StudyOps AI is a **browser-based web application** (React in the browser). All guidance in this file applies to the **web app UI** only. **Desktop and laptop browsers** are the primary presentation target; smaller viewports are supported through **responsive web layout** in the browser—not a native iOS/Android app, app-store product, or phone-first native experience.
 
-**Approved visual identity (Phase A):** StudyOps AI is a **modern, enjoyable AI study command center for students** — **calm enough for serious studying**, **smart enough to feel AI-powered**, and **polished enough to feel like a real product** rather than a student CRUD app.
+**Approved visual identity (Phase A + BX-1):** StudyOps AI is a **modern AI study command center for students** — **calm enough for serious studying**, **smart enough to feel AI-powered**, and **polished enough to feel like a real product** rather than a student CRUD or admin panel.
 
-It combines a **NotebookLM-style source workspace** (source-first, readable) with **Linear/Raycast-style** command clarity (filters, status, focused actions). **Cursor** informs the **source/editor + AI sidecar** on material detail. **Claude/ChatGPT artifacts** inform **durable AI outputs** (saved plan, bounded history), not open-ended chat.
+The dashboard should answer **“What should I study next?”** before it shows aggregate counts. **Charts and progress visuals** support **student decisions** (what to do, where time went, what is overdue)—not corporate KPI theater. **Course surfaces** carry light **accent identity** so subjects feel distinct without gamified chrome.
+
+It combines a **NotebookLM-style source workspace** (source-first, readable) with **Linear/Raycast-style** command clarity (filters, status, focused actions). **Cursor** informs the **source/editor + AI sidecar** on material detail—the **AI command panel** is a **first-class product surface**, not a sidebar afterthought. **Claude/ChatGPT artifacts** inform **durable AI outputs** (saved plan, bounded history, flashcard study card), not open-ended chat.
+
+**Prototype alignment (BX-0 / BX-1):** `docs/design/PROTOTYPE_REFERENCES.md` and optional `proto-*.png` captures describe richer **student-facing data presentation** than today’s stat-tile-only dashboard. They inform **presentation direction** only until a separately approved implementation phase.
 
 **Design balance:** **trust** · **clarity** · **motivation** · **delight** · **focus** — never sacrifice trust or clarity for decoration; never confuse motivation with gamification.
 
@@ -36,7 +42,9 @@ It combines a **NotebookLM-style source workspace** (source-first, readable) wit
 
 ## 1. Purpose and scope
 
-This document defines how the **implemented** StudyOps AI **web** frontend should look and behave in the browser. Styling was applied in Phase **2J**, refined in Phase **8A**, and workspace presentation completed in Phase **8C-1** through **8C-3D** (`AppShell`, `PageHeader`, cockpit layouts, component families). Phase **A** aligns this spec with the approved hybrid direction and current product state (including **bounded generated plan history**). **Further visual implementation** requires explicit human approval after Supervisor Review of Phase A.
+This document defines how the **implemented** StudyOps AI **web** frontend should look and behave in the browser—and the **approved presentation direction** for the next visual passes. Styling was applied in Phase **2J**, refined in Phase **8A**, and workspace presentation completed in Phase **8C-1** through **8C-3D** (`AppShell`, `PageHeader`, cockpit layouts, component families). Phase **A** aligned this spec with the approved hybrid direction and current product state (including **bounded generated plan history**). Phase **BX-1** adds the **decision-first dashboard**, **honest chart rules**, **course accent identity**, and **AI command-panel emphasis** without changing product scope.
+
+**BX-1 is documentation only.** It does **not** implement charts in React/CSS, add chart libraries, extend dashboard APIs, or start Phase **B4**. **Further visual implementation** (including dashboard charts and course accents in code) requires explicit human approval after Supervisor Review of Phase BX-1.
 
 **Not in scope for this document:** Native mobile apps (iOS/Android), app-store listings or screenshots, bottom-tab native navigation, push notifications, device-specific mobile features, or any design that implies a installable native product. Mobile mentions elsewhere mean **responsive web behavior** only.
 
@@ -62,17 +70,19 @@ It applies to:
 
 ### Official direction
 
-**StudyOps AI is a modern, enjoyable AI study command center for students:** calm enough for serious studying, smart enough to feel AI-powered, and polished enough to feel like a real product rather than a student CRUD app.
+**StudyOps AI is a modern AI study command center for students:** calm enough for serious studying, smart enough to feel AI-powered, and **polished enough to feel like shipping-quality SaaS**—not a student CRUD app, not a generic admin console, and not a BI dashboard.
 
-The product must **not** feel dry, boring, or purely academic. It should feel **innovative**, **modern**, **enjoyable to use**, **motivating**, **smooth**, **student-friendly**, and **polished**—with **slightly playful micro-interactions** that reward progress, never childish chrome.
+The product must **not** feel dry, boring, or purely academic. It should feel **innovative**, **modern**, **enjoyable to use**, **motivating**, **smooth**, **student-friendly**, and **polished**—with **stronger UX hierarchy** (one obvious primary story per screen) and **useful data visualization** where data exists—with **slightly playful micro-interactions** that reward progress, never childish chrome.
+
+**Student-focused, not childish:** approachable copy and calm density for stressed students; **no** mascots, XP, streaks, or cartoon chrome.
 
 ### Design balance
 
 | Pillar | Meaning in StudyOps |
 |--------|---------------------|
 | **Trust** | Honest data, plain disclaimers on AI output, safe errors, no fake metrics |
-| **Clarity** | Obvious hierarchy, one primary action per zone, scannable filters and status |
-| **Motivation** | Progress you can see (tasks completed, plan saved, imports succeeded)—without XP or streaks |
+| **Clarity** | Obvious hierarchy, one primary action per zone, scannable filters and status; dashboard leads with **next action**, not stat grids |
+| **Motivation** | Progress you can see (tasks completed, plan saved, focus minutes, imports succeeded)—without XP, streaks, or fake scores |
 | **Delight** | Satisfying motion, friendly empty states, small wins after generate/complete/import |
 | **Focus** | Reduced noise; stress-lowering layout; source and AI zones stay purposeful |
 
@@ -95,7 +105,8 @@ StudyOps AI is a **source-first learning workspace** where a student organizes *
 | **Enjoyable & smooth** | Transitions, feedback, and interactions feel responsive and intentional |
 | **Motivating** | Visible progress (counts, completion, saved plan) and encouraging copy—no guilt or hype |
 | **Student-friendly** | Approachable language, helpful empty states, forgiving errors |
-| **Polished** | Consistent tokens, card families, cockpit layout—shipping-quality product |
+| **Polished** | Consistent tokens, card families, cockpit layout—**modern product-grade** presentation |
+| **Useful data** | Charts and breakdowns answer real student questions; **honest API-backed** numbers only |
 | **Slightly playful** | Micro-delight on success paths only—never cartoonish |
 | **Command-center clear** | Obvious primary action per zone; filters and status pills scannable (Linear + Raycast) |
 | **Source-first** | Materials feel like documents in a course; editor is the anchor (NotebookLM) |
@@ -130,7 +141,8 @@ Supportive, direct, and **lightly encouraging**—like a capable study partner, 
 | Avoid feeling | Instead aim for |
 |---------------|-----------------|
 | Dry / boring / purely academic | Warm, alive, product-grade |
-| Student-project CRUD | Cockpit workspace + AI command stack |
+| Student-project CRUD / admin panel | Study command center + Source \| AI cockpit |
+| Generic BI / KPI dashboard | Decision-first dashboard + honest charts |
 | Childish / gamified | Polished + subtle delight |
 | Stressful / chaotic | Control, clarity, calm density |
 
@@ -156,7 +168,7 @@ For each inspiration source: what StudyOps **borrows**, what it **must not copy*
 
 | Borrow | Do not copy | StudyOps translation |
 |--------|-------------|----------------------|
-| Dimmed chrome vs bright workspace; **status pills**; **segmented filters**; list scannability | Dark-first UI, issue IDs, cycles/roadmaps, sidebar-as-primary nav | **`filter-toolbar--segmented`** on tasks/flashcards. **`source-card--task`** with pending/completed/priority pills. **`AppShell`** active nav state. **Dashboard/admin** stat tiles flat, not marketing-hover |
+| Dimmed chrome vs bright workspace; **status pills**; **segmented filters**; list scannability | Dark-first UI, issue IDs, cycles/roadmaps, sidebar-as-primary nav | **`filter-toolbar--segmented`** on tasks/flashcards. **`source-card--task`** with pending/completed/priority pills. **`AppShell`** active nav state. **Dashboard:** decision-first hero + honest charts (BX-1); **stat tiles** flat, tertiary—not marketing-hover |
 
 ### 3.4 Raycast
 
@@ -214,22 +226,79 @@ Implemented (`frontend/src/components/layout/PageHeader.jsx`):
 
 ### 4.4 Study material detail — Source | AI split
 
-Flagship **hybrid cockpit** (`StudyMaterialDetail.jsx`):
+Flagship **hybrid cockpit** (`StudyMaterialDetail.jsx`) — **Source | AI** is the product’s signature layout (BX-1 emphasis):
 
 | Zone | DOM / class | Role |
 |------|-------------|------|
-| **Source column** | `material-workspace__cockpit-source` | Edit study material (`material-workspace__editor` + instrument-style `FormCard`) |
-| **AI column** | `material-workspace__cockpit-ai` | Generate panel → active plan → plan history → import toolbars |
-| **Library band** | `material-workspace__library` (full width below cockpit) | Saved DB flashcards |
+| **Source column** | `material-workspace__cockpit-source` | **Source workspace** — edit study material (`material-workspace__editor` + instrument-style `FormCard`); anchor for reading and saving |
+| **AI column** | `material-workspace__cockpit-ai` | **AI command stack** — AI Panel (generate) → **generated plan artifact** (`GeneratedPlanSection`) → **plan history** → **import toolbars** → plan **flashcard study card** when present |
+| **Library band** | `material-workspace__library` (full width below cockpit) | Saved DB flashcards (distinct from plan flashcards) |
 | **Danger zone** | `material-workspace__danger` | Delete material |
 
-**≥1024px:** Two-column grid (`1fr | 1fr`); AI column gets subtle background, border, **3px primary top rule**. **&lt;1024px:** Stack **Source first**, then AI stack (generate before plan output).
+**≥1024px:** Two-column grid (`1fr | 1fr`); AI column gets subtle background, border, **3px primary top rule** so the command stack reads as a **dedicated product surface**. **&lt;1024px:** Stack **Source first**, then full AI stack (generate → plan → history → imports → study card).
+
+**BX-1:** Strengthen visual parity between columns—source is not “the app” with AI attached; both columns are **first-class** (see §6.3, §6.11, §6.6).
 
 ### 4.5 Other layout patterns
 
 - **Auth:** Centered `FormCard` on canvas gradient.
 - **Lists:** Vertical stacks or responsive grids of **Source Cards** with `--space-4`–`--space-6` gaps.
-- **Dashboard / admin:** `dashboard-cockpit` rows of **Stat Tiles** inside **bands**.
+- **Dashboard / admin:** `dashboard-cockpit` rows of **Stat Tiles** inside **bands** today; **BX-1 direction** adds a **decision-first** dashboard hierarchy (§4.6) while keeping stat bands as **secondary/tertiary** support.
+
+### 4.6 Dashboard — decision layout (BX-1 direction)
+
+**Today (implemented):** `/dashboard` uses `page--cockpit`, intro `PageHeader`, and `dashboard-cockpit` **Stat Bands** fed by **`GET /api/dashboard/stats`** — honest counts only (Phase **5B** / **5C**).
+
+**Approved presentation target (not yet implemented in code):** Reorder the dashboard so the **primary story** is *what to do next*, not a wall of numbers.
+
+| Zone | Priority | Role |
+|------|----------|------|
+| **Next-up hero** | **Primary** | Answers **“What should I study next?”** — concrete next action (e.g. pending task, material without active plan, or course needing attention) plus short, honest context; may include a **bounded AI suggestion** only when backed by real product behavior (no fake “AI picked this” without data) |
+| **Study pulse / decision charts** | **Secondary** | Small set of **meaningful** visuals—e.g. weekly focus minutes, tasks done vs pending, course workload mix—each tied to a **student question** (see §4.8) |
+| **Course workload** | **Secondary** | Per-course breakdown: pending tasks, materials, flashcards—extends today’s `source-card--dashboard-course` rows with clearer scan and optional accent (§4.7) |
+| **Deadline timeline** | **Tertiary or deferred** | Scannable upcoming due items **only** when backed by real due-date fields from the API; if not available, **label as future API / deferred**—do not invent dates |
+| **Compact stats (Overview, Focus, Trello, etc.)** | **Tertiary** | Today’s **Stat Tiles** remain valid but **support** the hero—they are **not** the main headline |
+
+**Layout guidance:** Hero spans visual top of cockpit; charts sit in a **study pulse** band (not full-width marketing widgets); stat bands move **below** or **beside** charts as compact support. **Refresh stats** stays in `page-header__actions`.
+
+**Prototype reference:** `docs/design/PROTOTYPE_REFERENCES.md` §3 (`DashboardScreen` tab); optional `proto-01-dashboard-*.png` when captured.
+
+### 4.7 Course identity — accents and states (BX-1 direction)
+
+**Today (implemented):** Courses use `source-card--subject` with shared primary border accent; no per-course color in API.
+
+**Approved presentation target (not yet implemented in code):**
+
+| Pattern | Guidance |
+|---------|----------|
+| **Course accent** | Stable, accessible **accent per course** (border, pill, or header rule)—derived from course id/name hash or a future optional field; must meet contrast rules; **not** neon game colors |
+| **Active vs quiet** | **Active** course (recent activity or open context) reads brighter; **quiet** courses recede (muted border/text)—state from **real** activity signals only |
+| **Plan coverage** | e.g. “% of materials with an active AI plan” **only** when computable from **`totalGeneratedPlans`** / material counts per course; otherwise **future API / deferred**—no fabricated progress rings |
+
+**Do not** add gamified progress rings, fake completion %, or vanity “health scores.”
+
+### 4.8 Data visualization rules (BX-1)
+
+Charts and progress visuals are **presentation direction** in this file until a separately approved implementation phase. They must **help students decide what to study**, not decorate the UI.
+
+| Rule | Requirement |
+|------|-------------|
+| **Student questions** | Every chart answers a concrete question—e.g. *Where did my focus time go this week?* *How much is still pending?* *Which course is overloaded?*—not “analytics for analytics.” |
+| **Honest data** | Use **API-backed** aggregates only (`GET /api/dashboard/stats`, focus session sums, task counts, per-course `courseStats`, etc.). **No** random placeholder series in production. |
+| **No fake KPIs** | No vanity scores, fake productivity index, fabricated trends, or “+N%” without a real time series endpoint. |
+| **No decoration** | No sparklines on stat tiles, no chart junk, no generic admin/BI dashboard patterns. |
+| **Missing data** | If a visual needs fields the API does not expose (e.g. due dates for a timeline, weekly buckets for focus), show **empty state** or label **future API / deferred concept**—do not invent values. |
+| **Libraries** | **No** chart libraries or npm chart packages without **separate human approval** (same gate as Tailwind/fonts). Prefer **CSS/SVG** simple bars or honest tables until approved otherwise. |
+| **Implementation boundary** | **DESIGN.md** may describe charts; **implementing** them in React/CSS is a **later approved phase** (not BX-1, not automatic B4). **Adding API fields** for chart series is a **separate approved product/backend phase**. |
+
+**Candidate visuals (when data exists or API is extended):**
+
+| Visual | Student question | Data source (today or deferred) |
+|--------|------------------|--------------------------------|
+| Weekly focus minutes | *How much did I focus this week?* | **Deferred** — needs time-bucketed focus API; `totalFocusMinutes` is lifetime aggregate only today |
+| Tasks done vs pending | *What’s left on my plate?* | **Today** — `pendingTasks`, `completedTasks`, `totalTasks` on dashboard stats |
+| Course workload distribution | *Which course needs attention?* | **Today** — `courseStats[]` per-course task/flashcard counts; extend with materials/plan coverage when API supports |
+| Deadline timeline | *What’s due soon?* | **Deferred** — tasks have no due-date field in MVP API |
 
 ---
 
@@ -282,23 +351,25 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Use:** Auth forms, create course/material, edit course title, edit material, task create/edit, flashcard create/edit, Trello credential steps.
 
-### 6.3 AI Panel (`ai-panel`)
+### 6.3 AI Panel (`ai-panel`) — AI command panel
 
-**Purpose:** **Command surface** for generation and AI-adjacent actions.
+**Purpose:** **First-class AI command surface** on material detail—the student’s **study command panel** for this material (generate, processing, plan artifact, history)—not a minor form block.
 
-**Structure:** `ai-panel__header` (title + lead), `ai-panel__hint` (warnings), `ai-panel__actions` (primary CTA), `ai-panel__loading` (**Processing Lane** when active).
+**Structure:** `ai-panel__header` (title + lead), `ai-panel__hint` (warnings), `ai-panel__actions` (primary CTA), `ai-panel__loading` (**Processing Lane** when active). Stacks with **GeneratedPlanSection** (artifact), **Plan History**, **Import Toolbar**, and plan **Study Card** in the AI column (§4.4).
 
-**Use:** **Generate study plan** block on material detail. Tint/subtle border distinct from Instrument Cards.
+**Use:** **Generate study plan** on material detail; visually distinct from Instrument Cards (tint, border, cockpit AI column rule at ≥1024px).
 
-**Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column.
+**Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column. AI column should read as **“command stack”** in hierarchy—equal weight to source editor, not an afterthought sidebar.
 
 ### 6.4 Stat Tile (`dashboard-stat` + `dashboard-band`)
 
-**Purpose:** Honest **read-only aggregates** on `/dashboard` and `/admin`.
+**Purpose:** Honest **read-only aggregates** on `/dashboard` and `/admin`—**supporting** detail, not the dashboard’s primary story (§4.6).
 
 **Implementation:** `StatBand` / `StatItem` → `dashboard-band`, `dashboard-stat`.
 
-**Rules:** Real API counts only; **no** charts, sparklines, or decorative KPI theater. Minimal or no hover lift. Admin bands may use `dashboard-band--admin-*` modifiers.
+**Rules:** Real API counts from **`GET /api/dashboard/stats`** / **`GET /api/admin/stats`** only; **no** decorative sparklines, fake deltas, or “+12% vs last week” without a real API series. Minimal or no hover lift. Admin bands may use `dashboard-band--admin-*` modifiers.
+
+**BX-1:** Stat tiles move to **secondary/tertiary** hierarchy when dashboard is redesigned; they do **not** disappear— they **stop leading** the page.
 
 ### 6.5 Task Row Card
 
@@ -369,13 +440,15 @@ Same auth layout as login.
 
 ### 7.3 Student dashboard (`/dashboard`) — `03-dashboard.png` (likely outdated)
 
-**Layout:** `page--cockpit`, `PageHeader` intro, `dashboard-cockpit` bands.
+**Layout (today):** `page--cockpit`, `PageHeader` intro, `dashboard-cockpit` **Stat Bands** + per-course rows.
 
-**Content:** Real stats from **`GET /api/dashboard/stats`** — Overview, Tasks (optional completion %), Focus, Learning assets, Trello sync count, per-course `source-card--dashboard-course` rows.
+**Layout (BX-1 direction — not yet in code):** Decision-first cockpit per §4.6 — **Next-up hero** (“What should I study next?”) → **study pulse** charts (honest data only, §4.8) → **course workload** → optional **deadline timeline** (deferred without due-date API) → **compact stat bands** as tertiary support.
 
-**Not:** Charts, KPI widgets, streaks, Gemini logs. **Refresh stats** in header actions; silent refresh when mounted (**5C.1**).
+**Content (today):** Real stats from **`GET /api/dashboard/stats`** — Overview, Tasks (optional completion % when `totalTasks > 0`), Focus (`totalFocusMinutes`, `completedFocusSessions`), Learning assets, Trello sync count, per-course `source-card--dashboard-course` rows.
 
-**Recapture** `03-dashboard.png` after future visual phases.
+**Not:** Fake KPIs, decorative sparklines, streaks, Gemini logs, random placeholder chart data, generic BI layout. **Refresh stats** in header actions; silent refresh when mounted (**5C.1**).
+
+**Prototype:** `proto-01-dashboard-*.png` when captured (`PROTOTYPE_REFERENCES.md`). **Recapture** `03-dashboard.png` after an approved dashboard visual implementation phase.
 
 ### 7.4 Courses — empty (`/courses`) — `04-courses-empty.png`
 
@@ -389,9 +462,13 @@ Inline/toggled Instrument Card; title only.
 
 **Cockpit** layout; `PageHeader` + **New course**; grid/list of **Source Cards** (`source-card--subject`).
 
+**BX-1 direction:** Per-course **accent identity** and **active vs quiet** states when implemented (§4.7); optional `proto-02-courses-full.png`.
+
 ### 7.7 Course detail (`/courses/:id`) — `07-course-detail-materials.png`
 
-**Workspace/cockpit** subject hub: course title, edit title Instrument Card, **Study materials** as **document Source Cards**, add material form, **course tasks** section (filters, task rows), danger zone separated. **No** fake `stats` stub metrics.
+**Workspace/cockpit** subject hub: course title, edit title Instrument Card, **Study materials** as **document Source Cards**, add material form, **course tasks** section (filters, task rows), danger zone separated. **No** fake `stats` stub metrics (API course stats remain zero stub until a real metrics phase).
+
+**BX-1 direction:** Course header may carry **accent** (§4.7); **plan coverage** indicator only when computable from real material + active-plan counts—otherwise deferred.
 
 ### 7.8 Create material (`/courses/:id`) — `08-create-material-form.png`
 
@@ -399,13 +476,15 @@ Add material Instrument Card: title, source type, large `Textarea`, create/cance
 
 ### 7.9 Study material detail (`/study-materials/:materialId`) — `09`–`12`, `11`, pending `15`
 
-**Cockpit + Source | AI split** (§4.4):
+**Cockpit + Source | AI split** (§4.4) — flagship **AI study command** surface:
 
 - `PageHeader` intro: material title, workspace lead, back to course
 - **Source column:** Edit study material; unsaved hint; Save
-- **AI column:** AI Panel (generate) → active **GeneratedPlanSection** → **Plan History** → import feedback
-- **Library band:** `DbFlashcardsSection` (saved + study)
+- **AI column (command stack):** **AI Panel** (generate) → **generated plan artifact** (`GeneratedPlanSection`) → **plan history** (`GeneratedPlanHistorySection`) → **import toolbars** → plan **flashcard study card** (`FlashcardStudy--plan`) when `plan.flashcards` exist
+- **Library band:** `DbFlashcardsSection` (saved DB flashcards + `FlashcardStudy--library`)
 - **Danger zone:** delete material
+
+**BX-1:** Treat AI column as **first-class command panel** (§6.3)—not a secondary form. **Prototype:** `proto-03-material-cockpit-*.png` when captured.
 
 **Recapture** screenshots after visual polish; **`15-processing-with-ai.png`** when live Generate is approved.
 
@@ -586,7 +665,9 @@ Motion supports **smooth**, **enjoyable** use—not spectacle. Respect `prefers-
 Do **not** design or implement **new product features** beyond **`docs/IMPLEMENTATION_STATUS.md`**:
 
 - Admin **logs**, user list, role management, Gemini error metrics UI
-- Charts, KPI widgets, streaks, fake progress, gamification, confetti
+- **Implementing** dashboard/course charts in React/CSS during BX-1; **chart npm libraries** without separate approval
+- **Placeholder or random** chart data in production UI
+- KPI widgets, streaks, fake progress, **fake productivity scores**, gamification, confetti, mascot UI
 - **Unbounded** plan library, cross-material plan browser, sync badges
 - Client POST of plan JSON; course-level paste-generate with client `studyText`
 - Source **upload**, file picker, drive connectors
@@ -597,12 +678,17 @@ Do **not** design or implement **new product features** beyond **`docs/IMPLEMENT
 - Permanent sidebar **hub** beyond minimal top bar
 - Footer links (Privacy, Terms, Help Center) unless separately approved
 - Dark hacker-terminal default or medical/clinical teal palette
+- **Native mobile / app-store** product scope (responsive web only—see §0)
+- **Canvas prototype code** copied into production (`frontend/src`)
 - Trello OAuth, stored credentials, PDF upload, payments, polling/WebSockets
 - New routes, APIs, tables, or backend changes **justified by this file**
+- **Phase B4** global styling rollout—**not started** by BX-1
 
-**In scope for presentation:** Bounded **plan history** on material detail (**11A-3**); tasks, flashcards, Trello, focus, dashboard, admin polish.
+**In scope for presentation (documented, not necessarily built):** Bounded **plan history** on material detail (**11A-3**); tasks, flashcards, Trello, focus, dashboard, admin polish; **BX-1** direction for decision dashboard, honest charts, course accents, AI command emphasis.
 
-Label future mocks: **concept only — not implemented**.
+**BX-1 boundaries:** This file may **describe** charts and dashboard hierarchy. **Building** them requires later approval. **Dashboard API extensions** (time buckets, due dates, plan coverage per course) require a **separate approved backend/product phase**.
+
+Label future mocks: **concept only — not implemented** or **future API / deferred**.
 
 ---
 
@@ -613,7 +699,10 @@ Label future mocks: **concept only — not implemented**.
 - Do **not** clone inspiration products’ branding, layouts, or exclusive features
 - Do **not** use this file to justify new APIs, tables, or routes
 - Do **not** imply client sends `studyText` on generate
-- Do **not** show fake dashboard stats
+- Do **not** show fake dashboard stats or **fabricated chart series**
+- Do **not** add chart libraries or decorative sparklines without approval
+- Do **not** copy Canvas prototype `.tsx` into `frontend/src`
+- Do **not** treat BX-1 doc updates as approval for **B4** or chart implementation
 - Do **not** add interactive checkboxes on generated tasks in plan display
 - Do **not** treat outdated screenshots as product truth
 - Do **not** add chat UI without separate approval
@@ -624,29 +713,34 @@ Label future mocks: **concept only — not implemented**.
 
 | Situation | Allowed |
 |-----------|---------|
-| **Phase A** — updating this file | Yes (documentation only) |
-| **Planning / Stitch / screenshots** | Historical brief + screenshot index; **this file** is presentation authority |
-| **Phase 2J / 8A / 8C styling** | **Baseline complete** — further CSS/React presentation requires new approval |
-| **Visual Design Direction implementation** | Requires explicit approval (e.g. `approved — implement Visual Design Direction Phase B`) after Supervisor Review of Phase A |
+| **Phase A / BX-1** — updating this file | Yes (documentation only) |
+| **Planning / Stitch / prototype** | Historical brief + `PROTOTYPE_REFERENCES.md` + screenshot index; **this file** is presentation authority |
+| **Phase 2J / 8A / 8C / B1–B3 styling** | **Baseline complete** — further CSS/React presentation requires new approval |
+| **BX-1 direction in code** (dashboard hero, charts, course accents) | Requires explicit approval **after Supervisor Review of BX-1** — **not** implied by BX-1 doc edit |
+| **Chart libraries / new dashboard API fields** | **Separate** explicit approval each |
+| **Phase B4** global styling rollout | **Not started** by BX-1; pending separate gate |
+| **Visual Design Direction implementation** | Requires explicit approval (e.g. `approved — implement … Phase B*`) after Supervisor Review |
 | **Functional feature work** | Follow `IMPLEMENTATION_STATUS`; this file for presentation only |
 | **Scope expansion** | **Never** — PRD + human approval |
 
-**Phase A (this update):** Documentation only. **Stop** after doc changes; wait for **Supervisor Review** before visual implementation.
+**Phase BX-1 (this update):** Documentation only. **Stop** after doc changes; wait for **Supervisor Review** before dashboard charts, course accents in CSS, or **B4**.
 
 ---
 
 ## 17. Styling implementation guide (baseline complete)
 
-Phases **2J**, **8A**, and **8C** established:
+Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 
 1. `frontend/src/styles/tokens.css` — source of truth for values
 2. `components.css`, `layout.css` — Source Cards, AI Panel, cockpit grids, bands
 3. `AppShell`, `PageHeader` on workspace routes
 4. Material **Source | AI** cockpit
 
-**Further presentation work:** Requires explicit approval; compare live UI to this file, not pre-8C PNGs alone.
+**BX-1 (docs only):** Decision-first dashboard hierarchy, chart honesty rules, course accent direction, AI command-panel emphasis—see §4.6–§4.8. **Not yet applied in CSS/React.**
 
-**Forbidden without approval:** New UI libraries; Stitch merge; scope expansion; chat UI.
+**Further presentation work:** Requires explicit approval; compare live UI to this file + `PROTOTYPE_REFERENCES.md`, not pre-8C PNGs alone.
+
+**Forbidden without approval:** New UI libraries (including **chart packages**); Stitch/Canvas merge into `frontend/src`; scope expansion; chat UI; **B4** unless explicitly approved.
 
 ---
 
@@ -655,6 +749,7 @@ Phases **2J**, **8A**, and **8C** established:
 - `docs/IMPLEMENTATION_STATUS.md` — built vs deferred
 - `docs/STITCH_BRIEF.md` — historical Stitch input
 - `docs/design/SCREENSHOT_INDEX.md` — screenshot checklist and drift notes
+- `docs/design/PROTOTYPE_REFERENCES.md` — BX-0 Canvas + prototype capture strategy
 - `docs/AGENT_MEMORY.md` — phase history
 - `docs/PRD.md` — product intent
 - `AGENTS.md` — approval gates
@@ -672,3 +767,4 @@ Phases **2J**, **8A**, and **8C** established:
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
 | 2026-06-01 | **Phase A** — Platform note: browser-based web app only; responsive = web reflow; no native mobile/app-store scope |
+| 2026-06-01 | **Phase BX-1** — Dashboard decision layout (next-up hero, study pulse charts, tertiary stat bands); data visualization rules (honest API-only, no fake KPIs/sparklines/libraries); course accent + active/quiet states; plan coverage deferred; stronger Source \| AI + AI command panel; material cockpit artifact/history/flashcard emphasis; `PROTOTYPE_REFERENCES.md` authority row; BX-1 does not start B4 or chart/API implementation |
