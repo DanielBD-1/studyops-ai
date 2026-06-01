@@ -27,7 +27,7 @@
 
 ---
 
-## Current state as of 2026-05-30 (Phase 11A-3)
+## Current state as of 2026-06-01 (Phase 12A-1)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -35,13 +35,17 @@
 
 **Generated plan history:** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only. **11A-2** complete — migration **011** applied manually on Supabase; history REST APIs (list metadata-only, get-by-id, activate inactive, delete inactive); RPC **`reactivate_material_generated_plan`** with ROW_COUNT hardening; Security Review **passed**; manual smoke **passed**; backend **`341/341`** tests. **11A-3** complete — frontend-only **`GeneratedPlanHistorySection`** on material detail; metadata-only history list; lazy Preview for inactive versions; Restore (**Make active**) via activate endpoint (no Gemini); delete inactive with confirm; history refreshes after generate/clear/activate/delete; Security Review **passed**; manual smoke **passed**; frontend lint/test/build passed (**205/205**).
 
+**Design direction (docs):** Phase A complete (**2026-06-01**) — commit **`dedb35c`** (`docs: align StudyOps AI design direction`); **`DESIGN.md`** hybrid Source | AI cockpit direction; **`STITCH_BRIEF.md`** / **`SCREENSHOT_INDEX.md`** authority notes. **No** frontend code in Phase A.
+
+**Study material cockpit layout:** **12A-1** complete (**2026-06-01**) — commit **`00a76de`** (`feat: add study material cockpit layout`); presentation-only frontend/CSS on **`/study-materials/:materialId`** — Source | AI split; AI column groups generate, active plan, and plan history; flashcards library and danger zone below cockpit; **`npm run build`** passed; **no** backend/API/database/package changes. **Phase B** (global visual direction rollout) **not started**.
+
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
 **Hardening / docs:** **7A**–**7C** complete (**2026-05-29**).
 
-**UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Design screenshots may predate **8C** visuals.
+**UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment.
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase B global styling.
 
 ---
 
@@ -1984,3 +1988,16 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Workflow:** Phase A — DESIGN.md addendum
 **Summary:** Clarified official direction: modern **enjoyable** AI study command center (not dry/CRUD); target audience (stressed, overloaded students); design balance (trust, clarity, motivation, delight, focus); explicit **fun is / fun is not** table (delight without gamification); tone and motion guidance for micro-delight on success paths. **No** code changes.
 **APIs affected:** none
+
+### 2026-06-01 — Phase 12A-1 study material cockpit layout complete
+
+**Workflow:** Phase 12A-1 — study material detail cockpit layout (frontend/CSS)
+**ADR refs:** 001 (modular monolith — frontend consumes backend only), 003 (display validated plan from backend responses)
+**Commit:** **`00a76de`** — `feat: add study material cockpit layout`
+**Prerequisite docs:** Phase A **`dedb35c`** — `docs: align StudyOps AI design direction` (**`DESIGN.md`** Source | AI cockpit direction before this frontend commit)
+**Summary:** Presentation-only frontend/CSS upgrade on **`/study-materials/:materialId`** (**`StudyMaterialDetail.jsx`** and related material components). Material detail uses a **cockpit** layout with **Source | AI** split at **`≥1024px`**: source column (editor/metadata) and AI column (generate panel, active generated plan, plan history). Flashcards library and danger zone remain **below** the cockpit band. Scoped styles in **`layout.css`**, **`components.css`**, **`tokens.css`** (`--content-max-cockpit`, `--color-danger-border`, `--color-success-border`). **No** behavior, API, routing, auth, or data-fetching changes intended. **Phase B** (global visual direction rollout) **not started**.
+**Files:** `frontend/src/pages/StudyMaterialDetail.jsx`; `frontend/src/components/materials/GeneratedPlanSection.jsx`; `frontend/src/components/materials/GeneratedPlanHistorySection.jsx`; `frontend/src/components/materials/DbFlashcardsSection.jsx`; `frontend/src/styles/layout.css`; `frontend/src/styles/components.css`; `frontend/src/styles/tokens.css`
+**APIs affected:** none
+**Tests:** **`npm run build`** passed before commit; frontend tests not re-run in this phase gate (frontend-only presentation)
+**Pitfalls:** Do not treat this as Phase B; do not change backend/history APIs; preserve generate/clear/import/history restore flows; cockpit AI column action stacking applies at **`≥1024px`** and **`≤640px`** only
+**Follow-up:** Supervisor Review; optional manual smoke on material detail; push branch; Phase B remains separately gated
