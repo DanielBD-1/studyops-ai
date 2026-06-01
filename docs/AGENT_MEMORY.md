@@ -8,14 +8,14 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
-**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Docs phases **DOCS-A3** and **BX-I1** complete. **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction — **docs only**. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
+**Branch / phase (2026-06-02):** `phase-b-global-visual-system`. Docs phases **DOCS-A3** and **BX-I1** complete; **BX-I2** implementation complete (commit **`03ee9df`**). **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** + **BX-I2** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
 
 **Major caution — do not proceed without explicit approval:**
 
-- **Phase BX-I1** is **complete** (documentation only — commit **`6041932`**). **Do not** start **BX-I2** (`tokens.css` dark/glass token system), frontend/CSS, sidebar shell, charts, fonts/packages, backend/API changes, or **B4** without explicit human **`approved — implement Phase X`** after Supervisor Review of each phase.
-- **Do not** jump directly from BX-I1 docs into frontend implementation; **plan/approve BX-I2** (`tokens.css`) first.
+- **Phase BX-I2** is **complete** (CSS-only — commit **`03ee9df`**). **Do not** start **BX-I3**, **BX-I4**, **BX-I5**, **B4**, sidebar shell, dashboard hero, charts, course accent wiring, JSX/React presentation refactors, backend/API/database/package changes, or fonts/packages/CDN without explicit human **`approved — implement Phase X`** after Supervisor Review of **each** phase.
+- **BX-I2 completion does not automatically approve** sidebar, dashboard hero, charts, or course accent wiring — those are separate gated phases.
 
-The **“Current state as of 2026-06-02 (post BX-I1)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
+The **“Current state as of 2026-06-02 (post BX-I2)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
 
 ---
 
@@ -46,7 +46,7 @@ The **“Current state as of 2026-06-02 (post BX-I1)”** section below is a **p
 
 ---
 
-## Current state as of 2026-06-02 (post BX-I1)
+## Current state as of 2026-06-02 (post BX-I2)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -64,15 +64,17 @@ The **“Current state as of 2026-06-02 (post BX-I1)”** section below is a **p
 
 **Phase B3 (cards, controls, badges, filters):** **B3** complete (**2026-06-01**) — commit **`e865c09`** (`style: polish cards controls badges and filters`); presentation-only — **card hover policy** (`source-card--navigable` on **`CourseCard`**, **`MaterialCard`**, dashboard per-course cards; task cards excluded — no lift); **static dashboard/admin stat tiles** (dashboard stat hover de-emphasized); **read-only plan/history surfaces** no longer feel editable on hover; **badge/pill consistency** (shared pill base for source cards, plan tasks, plan history, Trello sync status); **segmented filter** visual polish; **button/link-button** CSS consistency (danger focus, link-btn active, disabled unchanged). JSX: className-only **`source-card--navigable`** on three files. Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package/auth/routing/service changes; **no** new routes/features/sidebar/chat/mobile-native UI/charts/gamification. **B4** **not started** (BX-1 updated **`DESIGN.md`** direction only; does not implement B4).
 
+**Phase BX-I2 (dark glass token foundation):** **BX-I2** complete (**2026-06-02**) — commit **`03ee9df`** (`style: add dark glass token foundation`); **CSS-only** — **`frontend/src/styles/tokens.css`**, **`components.css`**, **`layout.css`** only; **no** JSX/React, backend, API, database, package, or docs changes in the implementation commit. Dark graphite / glass global tokens; electric blue primary; violet AI accent; cyan data accent; dark-friendly danger/success/warning; source editor surface; chart/course accent **values only** (not wired into UI). **Filled-button contrast fix:** `--color-primary-fill`, `--color-primary-fill-hover`, `--color-danger-fill`, `--color-danger-fill-hover` for WCAG AA on `.btn--primary` / `.btn--danger`. Supervisor Review **Approved with notes**; Security Review **Approved with limitation** (authenticated visual QA deferred — no valid local test account). **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed. **Not in BX-I2:** sidebar, dashboard hero, charts, course accent wiring, material cockpit structure redesign, **BX-I3** / **BX-I4** / **BX-I5** / **B4**.
+
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
 **Hardening / docs:** **7A**–**7C** complete (**2026-05-29**).
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); Stitch-aligned dark theme / glass skin / sidebar shell / charts / course accents / dashboard hero **in code** (**not** live — warm **`tokens.css`** remains production truth until **BX-I2+** and separately approved frontend phases).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); sidebar shell / dashboard hero / charts / course accent wiring **in code** (**not started** — **BX-I3+** / **B4**, separate approval each).
 
-**Next phase (planning only — human):** **BX-I2** — plan and approve **`tokens.css`** dark/glass token system (semantic roles per **`DESIGN.md` v2.3**). **Do not** jump directly into frontend implementation, sidebar migration, charts, or **B4**. Charts, dashboard hero layout, and course accents in React/CSS remain **not built** until explicitly approved after BX-I2+ gates.
+**Next phase (planning only — human):** Optional **BX-I2 follow-up** — authenticated visual QA when a test account exists (dashboard, courses, material detail / AI panel / plan history / disclaimer, Trello, admin forbidden vs admin dashboard, keyboard focus-visible on authenticated shell). **Do not** automatically start **BX-I3**, **BX-I4**, **BX-I5**, or **B4** — each requires separate planning and explicit **`approved — implement Phase X`**. Charts, dashboard hero layout, course accents in React/CSS, and sidebar shell remain **not built** until separately approved.
 
 ---
 
@@ -2127,3 +2129,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **B4:** **not started** — BX-I1 does not authorize B4 or Stitch-aligned UI in code
 **Pitfalls:** Do not treat **`DESIGN.md` v2.3** as approval for BX-I2, dark theme in production, sidebar, charts, or fonts/packages; do not paste Stitch HTML/React into **`frontend/src`**; production UI still uses warm **`tokens.css`** until BX-I2+
 **Follow-up:** **Planning/approval for BX-I2** — `tokens.css` dark/glass token system; **do not** jump directly to frontend implementation; **do not** start **B4**
+
+### 2026-06-02 — Phase BX-I2 dark glass token foundation complete (CSS only)
+
+**Workflow:** Phase BX-I2 — dark graphite / glass global token foundation (CSS only)
+**ADR refs:** none (presentation only)
+**Commit:** **`03ee9df`** — `style: add dark glass token foundation`
+**Prerequisite:** Phase **BX-I1** **`6041932`** (`DESIGN.md` v2.3); Phases **B1**–**B3** (presentation baseline)
+**Summary:** Replaced warm canvas token values with dark graphite / glass foundation in **`tokens.css`**, **`components.css`**, **`layout.css`** only. Electric blue primary, violet AI accent, cyan data accent, dark-friendly semantic states, source editor surface, chart/course accent token values (not wired into UI). **Filled-button contrast fix:** `--color-primary-fill`, `--color-primary-fill-hover`, `--color-danger-fill`, `--color-danger-fill-hover` for WCAG AA on `.btn--primary` / `.btn--danger`; semantic `--color-primary` / `--color-danger` unchanged for links, borders, alerts, AI surfaces. **Supervisor Review:** Approved with notes. **Security Review:** Approved with limitation — authenticated-route visual smoke not fully completed (no valid local test account).
+**Files changed in commit:** **`frontend/src/styles/tokens.css`**, **`components.css`**, **`layout.css`** only — **no** JSX/React, backend, database, package, or docs changes
+**APIs affected:** none
+**Tests:** `cd frontend && npm run lint` passed; `npm test` passed (**205/205**); `npm run build` passed
+**Implementation:** CSS-only token foundation — **does not** authorize sidebar, dashboard hero, charts, course accent wiring, material cockpit structure redesign, **BX-I3** / **BX-I4** / **BX-I5**, or **B4**
+**Pitfalls:** Do not treat BX-I2 as approval for BX-I3+ or B4; do not wire chart/course accent tokens without separate phase; authenticated visual QA still pending
+**Follow-up:** Authenticated visual QA when a test account exists (dashboard, courses, material detail / AI panel / plan history / disclaimer, Trello, admin forbidden vs admin dashboard, keyboard focus-visible on authenticated shell); plan **BX-I3** / **BX-I4** / **BX-I5** / **B4** separately with explicit implement approval
