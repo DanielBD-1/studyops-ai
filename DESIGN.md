@@ -1,8 +1,8 @@
 # DESIGN.md — StudyOps AI (v2)
 
-**Status:** Phase 2I-c UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**
+**Status:** Phase 2I-c UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**; **StudyMaterialDetail workspace alignment** Phase **12A-0**
 
-**Last updated:** 2026-05-30 (Phase **9B** docs alignment)
+**Last updated:** 2026-06-01 (Phase **12A-0** — workspace / cockpit docs alignment)
 **Supersedes:** Phase 1G `DESIGN.md` (2026-05-20)
 
 ---
@@ -30,16 +30,16 @@ This document defines how the **implemented** StudyOps AI frontend should look a
 - Auth (`/`, `/register`)
 - Student dashboard with functional stats UI (`/dashboard`)
 - Courses (`/courses`, `/courses/:id`)
-- Study materials (`/study-materials/:materialId`) including **Generate study plan** and **load/clear latest saved plan**
+- Study materials (`/study-materials/:materialId`) — **workspace page**: source editing, **Generate study plan**, **active generated plan**, **per-material plan history** (metadata list + lazy preview), flashcard import, and related AI cockpit UI
 - Tasks (`/tasks`, course-level task UI on `/courses/:id`)
 - Flashcards (`/flashcards`, saved flashcards on material detail)
 - Trello sync (`/trello`)
 - Focus sessions (`/focus/:taskId`)
 - Admin aggregate stats (`/admin`)
 
-**Out of this document’s authority:** New routes or features beyond what **`docs/IMPLEMENTATION_STATUS.md`** lists as built; deployment; backend changes; saved-plan **library** or plan **history** UI. **Note:** Tasks, flashcards, Trello, focus, admin aggregate stats, and dashboard analytics **are implemented** — this file guides **presentation only** for those screens, not product scope.
+**Out of this document’s authority:** New routes or features beyond what **`docs/IMPLEMENTATION_STATUS.md`** lists as built; deployment; backend changes; **cross-material / global** saved-plan **library** (plans across materials in one browse UI). **Note:** Tasks, flashcards, Trello, focus, admin aggregate stats, dashboard analytics, and **per-material plan history** on StudyMaterialDetail **are implemented** — this file guides **presentation only** for those screens, not product scope.
 
-**Goal:** A **NotebookLM-inspired academic study workspace**—clean, Google-like productivity, source-first, modern AI study cockpit—without clinical aesthetics or scope creep.
+**Goal:** A **modern web application workspace** and **AI study cockpit**—NotebookLM-inspired academic feel, clean Google-like productivity, source-first, wide enough for real editing and planning—not a narrow reading column or static document viewer. Without clinical aesthetics or scope creep.
 
 ---
 
@@ -47,7 +47,7 @@ This document defines how the **implemented** StudyOps AI frontend should look a
 
 ### Positioning
 
-StudyOps AI is a **source-first learning workspace** where a student organizes **courses** and **study materials** (saved text), then runs **AI-assisted study planning** on saved content. It should feel like a calm place to read, edit, and plan—not a social app, hospital system, or corporate analytics dashboard.
+StudyOps AI is a **modern web app workspace** and **AI study cockpit**: a **source-first learning workspace** where a student organizes **courses** and **study materials** (saved text), edits sources in place, runs **AI-assisted study planning**, reviews an **active plan**, browses **per-material plan history**, and uses tasks, flashcards, and focus flows from the same app shell. It should feel like a calm, capable study desk—not a narrow reading pane, social app, hospital system, or corporate analytics dashboard.
 
 ### Qualities
 
@@ -131,15 +131,21 @@ Global **`AppShell`** header/nav (implemented in Phase **8C-1**; refined through
 |---------|------------------------|
 | Login / Register | ~420px centered (`--content-max-form`) |
 | Dashboard, lists, course detail | ~720px (`--content-max-workspace`) |
-| Study material editor / reading | ~800px (`--content-max-reading`) |
+| **Study material detail (workspace)** | **~1120px** app-shell / cockpit width (`--content-max-cockpit` or equivalent) — **not** a narrow ~800px reading column |
+| Legacy reading token | `--content-max-reading` (~800px) — **do not** cap StudyMaterialDetail at this width |
 
 ### Layout patterns
 
-- **Single column** default on mobile and desktop for MVP screens.
 - **Auth:** Centered `FormCard` on canvas.
-- **Lists:** Vertical stack of cards with consistent gap (`--space-4`–`--space-6`).
+- **Lists and most workspace routes:** Single column; vertical stack of cards with consistent gap (`--space-4`–`--space-6`).
 - **Course detail:** Title/edit card → materials list → add material form (inline) → danger zone separated.
-- **Material detail:** Back link → `h1` title → edit card → generate section → saved plan (when present) → danger zone.
+- **Study material detail (workspace page):**
+  - **Mobile / tablet (&lt;1024px):** **Single column** — source/editor stack, then AI cockpit (generate, active plan, plan history) below.
+  - **Desktop (≥1024px):** **Two-column cockpit** within app-shell width (~1120px):
+    - **Left:** Source / editor area (title, source type, `Textarea`, save, danger zone as today).
+    - **Right:** **AI cockpit** — generate block, **active generated plan**, **plan history** (metadata list; preview on demand).
+  - **Not** a vertical-only “reading document” layout on desktop.
+- **Other routes:** Single column default unless otherwise specified in §7.
 
 ---
 
@@ -194,7 +200,8 @@ Global **`AppShell`** header/nav (implemented in Phase **8C-1**; refined through
   /* Layout */
   --content-max-form: 420px;
   --content-max-workspace: 720px;
-  --content-max-reading: 800px;
+  --content-max-reading: 800px; /* legacy — not for StudyMaterialDetail cockpit */
+  --content-max-cockpit: 1120px; /* StudyMaterialDetail workspace / two-column cockpit */
 }
 ```
 
@@ -268,12 +275,23 @@ Map to existing React components under `frontend/src/components/`. Updates are *
 
 ### GeneratedPlanSection (`components/materials/GeneratedPlanSection.jsx`)
 
+- Displays the **active** generated plan for the material (one active plan per material at a time).
 - Read-only sections: Summary, Key topics, Difficulty, Tasks (ordered list), Flashcards.
 - Plain text for all model strings—**no** `dangerouslySetInnerHTML`.
-- **Clear plan** → secondary button; calls backend **DELETE** (then clears display).
-- Disclaimer (implemented): *“AI-generated — saved as the latest plan for this material. Reference only; verify before you study.”*
-- Optional **Last saved:** plain-text line from `savedAt` (e.g. `toLocaleString()`).
+- **Clear active plan** → secondary button; calls backend to clear **active** display / active row per API contract (then clears UI).
+- Disclaimer (implemented): *“AI-generated — reference only; verify before you study.”* Wording may note **active** plan vs history entries.
+- Optional **Last saved / activated:** plain-text metadata from `savedAt` / `activatedAt` (e.g. `toLocaleString()`).
 - Tasks/flashcards **inside this section** remain **read-only** plain-text display (no inline edit here). **Import** and **CRUD** flows live elsewhere on the material detail page and on **`/tasks`** / **`/flashcards`** (implemented — see **`docs/IMPLEMENTATION_STATUS.md`**).
+
+### Plan history (StudyMaterialDetail — per material only)
+
+- **Scope:** Up to **10 stored plan versions** per material (backend-enforced); **not** a cross-material or global plan library.
+- **History list UI:** **Metadata only** in the list (e.g. version label, timestamps, active badge)—**no** full plan JSON in the list payload or bulk render.
+- **Preview:** **Lazy / user-initiated** — fetch and show full plan content only when the user explicitly previews a version; **no** polling; **no** bulk full-plan fetch for all versions.
+- **Restore:** **Activate** an inactive version via backend **activate** endpoint — **does not** call Gemini or re-generate.
+- **Delete:** **Inactive versions only** — cannot delete the active plan via history delete (use clear/active flow per API).
+- **Storage:** React state / in-memory after fetch only — **no** `localStorage` / `sessionStorage` for plans or history.
+- Plain text rendering for all preview fields—**no** `dangerouslySetInnerHTML`.
 
 ---
 
@@ -356,12 +374,13 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 
 ### 7.9 Study material detail (`/study-materials/:materialId`)
 
-**Screenshot:** `09-study-material-detail.png`
+**Screenshot:** `09-study-material-detail.png` (baseline; live UI uses **workspace / cockpit** layout per §4 — wider shell, desktop two-column)
 
-- **Reading/editing workspace:** ← Back to course; `h1` = material title.
-- **Edit study material** card: title, source type select, large `Textarea`, Save changes.
-- Below: **Generate study plan** section (see §7.10).
-- **Danger zone:** Delete study material (confirm).
+- **Workspace page** (not a narrow reading document): ← Back to course; `h1` = material title; content uses **~1120px** app-shell width on desktop.
+- **Source / editor area:** Edit study material card — title, source type select, large `Textarea`, Save changes; **Danger zone:** Delete study material (confirm).
+- **AI cockpit area** (desktop: right column; mobile: below source): **Generate study plan** (§7.10), **active generated plan** when present (§8.1), **plan history** — metadata list, lazy preview, activate restore, delete inactive only (§6 Plan history).
+- **Flashcards:** Import-from-plan and saved-flashcard UI on this page as implemented (see §7.15).
+- Layout: §4 two-column cockpit on desktop; single column on mobile/tablet.
 
 ### 7.10 Generate study plan action (`/study-materials/:materialId`)
 
@@ -438,13 +457,14 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 
 **Reference file:** `11-generated-plan-visible.png` (Phase 2K-c)
 
-- Render `GeneratedPlanSection` below generate block when a **saved** plan exists (loaded on visit or after Generate).
+- Render `GeneratedPlanSection` in the AI cockpit when an **active** plan exists (loaded on visit or after Generate).
 - Card on `--color-primary-subtle` or white with subtle border.
 - Sections: summary, key topics, difficulty, tasks, flashcards—all **read-only** plain text.
-- **Clear plan** → backend DELETE; idempotent if already cleared.
-- **No** “Save plan”, multi-plan library, sync, or history UI.
-- Copy: saved as **latest** plan for this material; AI output is **untrusted reference**.
-- **Refresh** reloads saved plan from backend when one exists.
+- **One active plan** per material; backend may store **up to 10 versions** per material with **plan history UI** on the same page (metadata list; preview on demand — see §6 Plan history).
+- **Clear active plan** → backend per active/clear contract; idempotent if already cleared.
+- **No** cross-material plan library, “Save plan” client POST of plan JSON, sync badges, or polling.
+- Copy: **active** plan for this material; AI output is **untrusted reference**.
+- **Refresh** reloads **active** plan from backend when one exists; history entries loaded per list/preview APIs only (no bulk full-plan fetch).
 
 ### 8.2 Processing with AI (**implemented UI — screenshot pending**)
 
@@ -464,10 +484,16 @@ Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
 | **Request** | `POST /api/study-materials/:materialId/generate` with body **`{}` strict** |
 | **No client studyText** | UI must **not** send `studyText`, `content`, or paste-upload on generate |
 | **Saved content** | Backend reads **saved** DB `content` after ownership check |
-| **Persisted latest plan** | Backend `material_generated_plans` (one row per material); UI via GET on load; React state for display only—no `localStorage` / `sessionStorage`; no plan history library |
+| **Active plan** | **One active plan** per material; UI shows active plan via GET on load / after generate; React state for display only—no `localStorage` / `sessionStorage` |
+| **Plan versions** | Backend stores **up to 10 versions** per material; **per-material plan history UI** on StudyMaterialDetail only |
+| **History list** | **Metadata only** in list; **no** bulk full-plan fetch for all versions |
+| **History preview** | **Lazy / user-initiated** — fetch full plan body only when user previews a version |
+| **Restore** | **Activate** inactive version via backend — **no** Gemini, **no** re-generate on restore |
+| **History delete** | **Inactive versions only** |
+| **No global library** | **No** cross-material / global browse of all plans across the account |
 | **Untrusted display** | Treat all plan fields as model output; plain text rendering |
-| **Read-only** | No inline edit of tasks/flashcards that implies DB writes |
-| **No saved library** | No list of past plans, no “synced” indicators |
+| **Read-only** | No inline edit of tasks/flashcards in plan display that implies DB writes |
+| **No polling** | No polling or WebSockets for plan/history updates |
 | **document-service** | Not called from frontend; no `GEMINI_API_KEY` in client |
 
 ---
@@ -507,9 +533,12 @@ Applied in Phase **2J** and refined in **8A**. Further motion changes require ex
 | Breakpoint | Behavior |
 |------------|----------|
 | **&lt;640px** | Single column; full-width buttons; padding `var(--space-4)` |
-| **≥640px** | Centered main column at max-width tokens; cards full width within column |
+| **≥640px** | Centered main column at max-width tokens for list/dashboard routes; cards full width within column |
+| **&lt;1024px** (StudyMaterialDetail) | **Single column:** source/editor, then AI cockpit (generate, active plan, plan history) stacked |
+| **≥1024px** (StudyMaterialDetail) | **Two-column cockpit** at **~1120px** max width: source/editor **\|** AI cockpit |
 
 - Avoid horizontal scroll on forms and long titles (wrap; truncate with `title` attribute only if needed).
+- StudyMaterialDetail must **not** remain a narrow ~800px reading column on desktop.
 - Optional `06-courses-list-mobile.png` not required for MVP styling.
 
 ---
@@ -519,7 +548,8 @@ Applied in Phase **2J** and refined in **8A**. Further motion changes require ex
 - **Auth:** Bearer via Supabase session + `apiFetch`—no manual token storage in `localStorage`.
 - **No service role** in frontend; no `VITE_*` service keys.
 - **Ownership:** Never send `user_id`, `userId`, `courseId` in generate body; course id from route for materials create only via URL.
-- **XSS:** Render `course.title`, `material.title`, `material.content`, and all `plan` fields as **React text**—never `dangerouslySetInnerHTML`.
+- **XSS:** Render `course.title`, `material.title`, `material.content`, and all `plan` / history preview fields as **React text**—never `dangerouslySetInnerHTML`.
+- **Plans & history:** No frontend **Gemini** or **document-service** calls; no **polling**; no **bulk full-plan fetch** for all history versions; no **`localStorage` / `sessionStorage`** for active plan or history; restore via **activate** only (no client re-generate).
 - **401:** Existing logout + redirect (`AUTH_REQUIRED`).
 - **Logging:** Do not log material `content`, `plan`, tokens, or `Authorization` in frontend consoles for production hygiene.
 - **Env:** No secrets, API keys, or `.env` values in UI copy or design assets.
@@ -532,7 +562,7 @@ Do **not** design or implement **new product features** beyond current **`docs/I
 
 - Admin **logs**, user list, role management, Gemini error metrics UI
 - Charts, KPI widgets, streaks, or fake progress rings on dashboard/course pages
-- Saved generated plan library or “plan history”
+- **Cross-material / global** saved generated plan library (browse all plans across materials)
 - Client “save plan” UI or POST of plan JSON
 - Course-level paste-generate page with client `studyText`
 - Source **upload** UI, file picker, or drive connectors
@@ -561,6 +591,9 @@ Label any future mock: **concept only — not implemented**.
 - Do **not** show fake dashboard stats or course `stats` stub as real data.
 - Do **not** add checkboxes on generated tasks (implies task DB).
 - Do **not** add “Saved plan” or sync badges.
+- Do **not** design a **global** plan library UI (per-material history on StudyMaterialDetail **is** in scope when implemented).
+- Do **not** bulk-fetch full plan JSON for all history versions; do **not** poll plan/history.
+- Do **not** persist plans or history in `localStorage` / `sessionStorage`.
 - Do **not** weaken auth, RLS, or service boundaries in presentation choices.
 - Do **not** embed external scripts, CDNs for fonts/icons, or env values in design docs/screenshots.
 
@@ -619,3 +652,4 @@ Label any future mock: **concept only — not implemented**.
 | 2026-05-20 | Initial DESIGN.md for Phase 1G Courses Frontend UI guidance |
 | 2026-05-22 | **v2** — NotebookLM-inspired study workspace spec; materials + generate; tokens; generated plan + processing sections; styling guide (Phase 2I-c) |
 | 2026-05-30 | **Phase 8B** — align wording with **2J**/**8A** implementation; tokens.css exists; §7.14–7.18 for implemented screens; §14 reframed (new features vs presentation) |
+| 2026-06-01 | **Phase 12A-0** — workspace alignment: StudyOps as **web app workspace / AI study cockpit**; StudyMaterialDetail **~1120px** two-column cockpit (desktop) / single column (mobile); **active plan** + **per-material plan history** (≤10 versions, metadata list, lazy preview, activate restore, delete inactive); **cross-material plan library** remains out of scope; security rules preserved (plain React text, no client Gemini, no polling, no bulk full-plan fetch, no browser storage for plans) |
