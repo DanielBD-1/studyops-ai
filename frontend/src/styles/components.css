@@ -267,13 +267,13 @@
 .alert--error {
   color: var(--color-error);
   background: var(--color-danger-subtle);
-  border: 1px solid #e8b4b0;
+  border: 1px solid var(--color-danger-border);
 }
 
 .alert--success {
   color: var(--color-success);
   background: var(--color-success-subtle);
-  border: 1px solid #a8d4b8;
+  border: 1px solid var(--color-success-border);
 }
 
 .loading {
@@ -346,7 +346,9 @@
 .plan-output,
 .plan-import-toolbar,
 .ai-panel,
-.material-workspace__editor-card {
+.material-workspace__editor-card,
+.material-workspace__cockpit,
+.material-workspace__cockpit-ai {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -511,7 +513,7 @@
 .source-card__pill--priority-high {
   color: var(--color-danger);
   background: var(--color-danger-subtle);
-  border-color: #e8b4b0;
+  border-color: var(--color-danger-border);
 }
 
 .task-card__title {
@@ -635,6 +637,13 @@
 .material-workspace__editor-card {
   border-left: 3px solid var(--color-border-strong);
   margin-bottom: 0;
+  box-shadow: var(--elevation-2);
+  border-radius: var(--radius-lg);
+}
+
+.material-workspace__cockpit-ai .plan-output,
+.material-workspace__cockpit-ai .plan-history {
+  margin-bottom: 0;
 }
 
 .material-workspace__editor-card .form-card__title {
@@ -674,6 +683,11 @@
 .flashcard-library {
   margin-bottom: 0;
   border-left: 3px solid var(--color-primary-border);
+}
+
+.flashcard-library--material {
+  box-shadow: var(--elevation-2);
+  border-radius: var(--radius-lg);
 }
 
 .flashcard-library__intro {
@@ -784,7 +798,7 @@
   margin-top: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--color-success-subtle);
-  border: 1px solid #a8d4b8;
+  border: 1px solid var(--color-success-border);
   border-radius: var(--radius-md);
 }
 
@@ -864,10 +878,84 @@
   gap: var(--space-3);
 }
 
+.plan-task-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+
+.plan-task-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: 0;
+  box-shadow: var(--elevation-1);
+}
+
 .plan-task-item__title {
   display: block;
-  margin-bottom: var(--space-1);
+  margin-bottom: 0;
   font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.plan-task-item__description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.plan-task-item__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.plan-task-item__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  text-transform: capitalize;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.plan-task-item__badge--priority-high {
+  color: var(--color-danger);
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger-border);
+}
+
+.plan-task-item__badge--priority-medium {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+
+.plan-task-item__badge--priority-low {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.plan-task-item__badge--time,
+.plan-task-item__badge--difficulty {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+
+.plan-task-item__badge--tag {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  text-transform: none;
 }
 
 .plan-block__body--capitalize {
@@ -1244,7 +1332,7 @@
 }
 
 .trello-sync-results__stat--success {
-  border-color: #a8d4b8;
+  border-color: var(--color-success-border);
   background: var(--color-success-subtle);
 }
 
@@ -1257,7 +1345,7 @@
 }
 
 .trello-sync-results__stat--failed {
-  border-color: #e8b4b0;
+  border-color: var(--color-danger-border);
   background: var(--color-danger-subtle);
 }
 
@@ -1328,7 +1416,7 @@
 
 .trello-sync-results__status--success {
   color: var(--color-success);
-  border-color: #a8d4b8;
+  border-color: var(--color-success-border);
   background: var(--color-success-subtle);
 }
 
@@ -1338,7 +1426,7 @@
 
 .trello-sync-results__status--failed {
   color: var(--color-error);
-  border-color: #e8b4b0;
+  border-color: var(--color-danger-border);
   background: var(--color-danger-subtle);
 }
 
@@ -1368,6 +1456,10 @@
   animation: plan-fade-in 200ms ease;
 }
 
+.plan-history--compact .plan-history__intro {
+  margin-bottom: var(--space-4);
+}
+
 .plan-history__list {
   list-style: none;
   margin: 0;
@@ -1378,15 +1470,17 @@
 }
 
 .plan-history__item {
-  padding: var(--space-3);
+  padding: var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  box-shadow: var(--elevation-1);
 }
 
 .plan-history__item--active {
-  border-color: var(--color-primary-muted);
+  border-color: var(--color-primary-border);
   background: var(--color-primary-subtle);
+  box-shadow: var(--elevation-1);
 }
 
 .plan-history__header {
@@ -1411,20 +1505,27 @@
 
 .plan-history__badge {
   flex-shrink: 0;
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   border-radius: var(--radius-sm);
+  border: 1px solid transparent;
 }
 
 .plan-history__badge--active {
-  color: var(--color-success-text, var(--color-text));
-  background: var(--color-success-subtle, var(--color-primary-subtle));
+  color: var(--color-success);
+  background: var(--color-success-subtle);
+  border-color: var(--color-success-border);
 }
 
 .plan-history__badge--inactive {
-  color: var(--color-text-muted, var(--color-text));
-  background: var(--color-surface-muted, var(--color-border));
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
 }
 
 .plan-history__actions {

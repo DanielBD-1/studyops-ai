@@ -16,9 +16,11 @@
   --color-danger: #b42318;
   --color-danger-hover: #912018;
   --color-danger-subtle: #fef3f2;
+  --color-danger-border: #e8b4b0;
   --color-error: #b42318;
   --color-success: #0d5c2e;
   --color-success-subtle: #f0faf4;
+  --color-success-border: #a8d4b8;
   --color-admin-accent: #5b4d8a;
   --color-admin-subtle: #f3f0f8;
   --color-focus-ring: var(--color-primary);
@@ -66,6 +68,7 @@
   --content-max-form: 420px;
   --content-max-workspace: 720px;
   --content-max-reading: 800px;
+  --content-max-cockpit: 1120px;
   --content-max-shell: 1120px;
 
   --shell-height: 3.5rem;

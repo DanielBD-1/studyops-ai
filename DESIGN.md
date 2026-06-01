@@ -1,9 +1,10 @@
-# DESIGN.md — StudyOps AI (v2)
+# DESIGN.md — StudyOps AI (v2.1)
 
-**Status:** Phase 2I-c UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**
+**Status:** Phase **2I-c** UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**; **approved visual direction** codified Phase **A** (docs only)
 
-**Last updated:** 2026-05-30 (Phase **9B** docs alignment)
-**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20)
+**Last updated:** 2026-06-01 (Phase **A** — web-app platform clarification)
+
+**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20); partial updates through Phase **9B** / **12A-0**
 
 ---
 
@@ -14,555 +15,608 @@
 | **`docs/PRD.md`** | Product intent and future MVP features |
 | **`docs/IMPLEMENTATION_STATUS.md`** | **What is built today** — routes, APIs, deferred work |
 | **`DESIGN.md` (this file)** | **Presentation and UX only** — does not change scope, APIs, database, or security |
+| **`frontend/src/styles/tokens.css`** | **Implementation source of truth** for exact color, spacing, radius, shadow, and layout token **values** |
 | **`docs/STITCH_BRIEF.md`** | **Historical** Stitch session input (Phase 2I — advisory); informed v2; **not** current product scope |
 | **Stitch mockups / exports** | **Inspiration only** — not source of truth; never merge HTML/React into the repo |
+| **`docs/design/screenshots/*.png`** | **Reference captures only** — layout/flow hints; may be **outdated** (see `SCREENSHOT_INDEX.md`) |
 
-**Stitch review:** Human-approved **NotebookLM-inspired** visual direction (academic study workspace, source-first, calm productivity). StudyOps is **not** a NotebookLM clone—borrow principles and feeling, not branding, layout identity, or NotebookLM-only features.
+**Platform:** StudyOps AI is a **browser-based web application** (React in the browser). All guidance in this file applies to the **web app UI** only. **Desktop and laptop browsers** are the primary presentation target; smaller viewports are supported through **responsive web layout** in the browser—not a native iOS/Android app, app-store product, or phone-first native experience.
 
-**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). **`11-generated-plan-visible.png`** — **captured** (Phase 2K-c). **Pending:** `15-processing-with-ai.png` — do not fabricate. **Visual drift:** committed PNGs may predate Phase **8C** workspace polish (AppShell, cockpit layouts, AI zones) unless recaptured.
+**Approved visual identity (Phase A):** StudyOps AI is a **modern, enjoyable AI study command center for students** — **calm enough for serious studying**, **smart enough to feel AI-powered**, and **polished enough to feel like a real product** rather than a student CRUD app.
+
+It combines a **NotebookLM-style source workspace** (source-first, readable) with **Linear/Raycast-style** command clarity (filters, status, focused actions). **Cursor** informs the **source/editor + AI sidecar** on material detail. **Claude/ChatGPT artifacts** inform **durable AI outputs** (saved plan, bounded history), not open-ended chat.
+
+**Design balance:** **trust** · **clarity** · **motivation** · **delight** · **focus** — never sacrifice trust or clarity for decoration; never confuse motivation with gamification.
+
+**Inspiration references are principles only.** Do **not** clone NotebookLM, Notion, Linear, Raycast, Cursor, or Claude branding, layouts, or product features.
+
+**Screenshots:** Reference captures live under `docs/design/screenshots/` (see `docs/design/SCREENSHOT_INDEX.md`). **`11-generated-plan-visible.png`** — **captured** (Phase 2K-c). **Pending:** `15-processing-with-ai.png` — do not fabricate. **Visual drift:** committed PNGs were captured during Phase **2I-b** / **2K-c** and may **predate Phase 8C** (AppShell, cockpit layouts, AI zones, stat tiles, plan history UI) unless recaptured. **When screenshots disagree with this file or the live app, trust `IMPLEMENTATION_STATUS.md` + this file + `tokens.css`.**
 
 ---
 
 ## 1. Purpose and scope
 
-This document defines how the **implemented** StudyOps AI frontend should look and behave. **Styling was applied in Phase 2J**, **refined in Phase 8A**, and **workspace presentation completed in Phase 8C-1 through 8C-3D** (global **`AppShell`**, design tokens, cockpit layouts on all workspace routes). Further presentation changes require explicit human approval. It applies to:
+This document defines how the **implemented** StudyOps AI **web** frontend should look and behave in the browser. Styling was applied in Phase **2J**, refined in Phase **8A**, and workspace presentation completed in Phase **8C-1** through **8C-3D** (`AppShell`, `PageHeader`, cockpit layouts, component families). Phase **A** aligns this spec with the approved hybrid direction and current product state (including **bounded generated plan history**). **Further visual implementation** requires explicit human approval after Supervisor Review of Phase A.
+
+**Not in scope for this document:** Native mobile apps (iOS/Android), app-store listings or screenshots, bottom-tab native navigation, push notifications, device-specific mobile features, or any design that implies a installable native product. Mobile mentions elsewhere mean **responsive web behavior** only.
+
+It applies to:
 
 - Auth (`/`, `/register`)
-- Student dashboard with functional stats UI (`/dashboard`)
+- Student dashboard (`/dashboard`)
 - Courses (`/courses`, `/courses/:id`)
-- Study materials (`/study-materials/:materialId`) including **Generate study plan** and **load/clear latest saved plan**
+- Study materials (`/study-materials/:materialId`) — editor, **Generate study plan**, **active plan**, **bounded plan history**, import actions, saved flashcards
 - Tasks (`/tasks`, course-level task UI on `/courses/:id`)
 - Flashcards (`/flashcards`, saved flashcards on material detail)
 - Trello sync (`/trello`)
 - Focus sessions (`/focus/:taskId`)
 - Admin aggregate stats (`/admin`)
 
-**Out of this document’s authority:** New routes or features beyond what **`docs/IMPLEMENTATION_STATUS.md`** lists as built; deployment; backend changes; saved-plan **library** or plan **history** UI. **Note:** Tasks, flashcards, Trello, focus, admin aggregate stats, and dashboard analytics **are implemented** — this file guides **presentation only** for those screens, not product scope.
+**Out of this document’s authority:** New routes or features beyond **`docs/IMPLEMENTATION_STATUS.md`**; deployment; backend changes.
 
-**Goal:** A **NotebookLM-inspired academic study workspace**—clean, Google-like productivity, source-first, modern AI study cockpit—without clinical aesthetics or scope creep.
+**Goal:** A **source-first learning workspace** with a **focused AI command stack** that students **want to open**—readable, trustworthy, motivating, and polished—without feeling dry, childish, clinical, or gamified.
 
 ---
 
 ## 2. Product feeling and positioning
 
+### Official direction
+
+**StudyOps AI is a modern, enjoyable AI study command center for students:** calm enough for serious studying, smart enough to feel AI-powered, and polished enough to feel like a real product rather than a student CRUD app.
+
+The product must **not** feel dry, boring, or purely academic. It should feel **innovative**, **modern**, **enjoyable to use**, **motivating**, **smooth**, **student-friendly**, and **polished**—with **slightly playful micro-interactions** that reward progress, never childish chrome.
+
+### Design balance
+
+| Pillar | Meaning in StudyOps |
+|--------|---------------------|
+| **Trust** | Honest data, plain disclaimers on AI output, safe errors, no fake metrics |
+| **Clarity** | Obvious hierarchy, one primary action per zone, scannable filters and status |
+| **Motivation** | Progress you can see (tasks completed, plan saved, imports succeeded)—without XP or streaks |
+| **Delight** | Satisfying motion, friendly empty states, small wins after generate/complete/import |
+| **Focus** | Reduced noise; stress-lowering layout; source and AI zones stay purposeful |
+
+### Target audience
+
+**Busy students** who are stressed and overloaded—courses, assignments, exams, PDFs, slides, and deadlines. The UX should **reduce stress** and create a feeling of **control**, **progress**, and **clarity**: *“I know what to do next on this material.”*
+
+Presentation should respect cognitive load: calm canvas, clear zones, fast scan paths—not more dashboards to decode.
+
 ### Positioning
 
-StudyOps AI is a **source-first learning workspace** where a student organizes **courses** and **study materials** (saved text), then runs **AI-assisted study planning** on saved content. It should feel like a calm place to read, edit, and plan—not a social app, hospital system, or corporate analytics dashboard.
+StudyOps AI is a **source-first learning workspace** where a student organizes **courses** and **study materials** (saved text), then runs **AI-assisted study planning** on saved content. The UI should feel like a calm place to **read, edit, and plan**—and like a **study command center** for the current course/material—not a social app, hospital system, noisy analytics dashboard, open-ended chat product, or generic admin CRUD.
 
 ### Qualities
 
 | Quality | Intent |
 |---------|--------|
-| **Academic & calm** | NotebookLM-inspired restraint; focus on reading and sources |
-| **Productive** | Clean Google-like clarity; predictable chrome |
-| **Source-first** | Materials feel like “documents in a course,” not generic CRUD rows |
-| **Trustworthy** | Honest empty/loading/error states; no fake metrics |
-| **Grounded AI** | Generate feels helpful and connected to saved material—not flashy or gamified |
-| **Readable** | Long study text is comfortable to read and edit |
-| **Modern** | Professional, pleasant, slightly contemporary—non-clinical |
+| **Calm & serious** | Warm canvas, readable long-form text—room to think, not a sterile archive |
+| **Innovative & AI-forward** | Distinct AI column, processing lane, artifact-style plan—feels like modern productivity SaaS |
+| **Enjoyable & smooth** | Transitions, feedback, and interactions feel responsive and intentional |
+| **Motivating** | Visible progress (counts, completion, saved plan) and encouraging copy—no guilt or hype |
+| **Student-friendly** | Approachable language, helpful empty states, forgiving errors |
+| **Polished** | Consistent tokens, card families, cockpit layout—shipping-quality product |
+| **Slightly playful** | Micro-delight on success paths only—never cartoonish |
+| **Command-center clear** | Obvious primary action per zone; filters and status pills scannable (Linear + Raycast) |
+| **Source-first** | Materials feel like documents in a course; editor is the anchor (NotebookLM) |
+| **Grounded AI** | AI sidecar stack—generate, processing, artifact plan, history (Cursor + Claude artifacts) |
+| **Trustworthy** | Honest empty/loading/error states; no fake metrics or achievements |
+
+### What “fun” means (and does not)
+
+**Fun in StudyOps** = professional delight and relief under pressure—not games.
+
+| Fun **is** | Fun **is not** |
+|------------|----------------|
+| Satisfying button press, card hover, and plan-reveal motion | Gamification loops, streaks, XP, levels |
+| Friendly, specific **empty states** (one clear next step) | Cartoons, mascots, childish illustration |
+| Smooth route and panel transitions (`prefers-reduced-motion` respected) | Confetti, celebration explosions, noisy animations |
+| Clear **progress feedback** (e.g. task completion %, import summary, “Last saved”) | Fake achievements, badges for fake milestones |
+| Pleasant **visual hierarchy**—eyes land on the right action | Childish palettes, neon “game UI” colors |
+| **Motivational but mature** copy (“Nice — plan saved”, “You’re set for this material”) | Streak shame, leaderboard pressure, hype |
+| Modern **AI / productivity SaaS** feel (Raycast/Linear clarity + warm workspace) | Chart-heavy dashboards, KPI theater |
+| Small **moments of delight** after generate, clear plan, complete task, successful import | Reward popups, daily login bonuses |
 
 ### Tone
 
-Supportive and direct. Example: *“Save changes before generating — generation uses your last saved material.”* Avoid hype, streaks, or “AI magic” marketing copy.
+Supportive, direct, and **lightly encouraging**—like a capable study partner, not a mascot or marketer.
 
-### Inspiration (principles only — do not clone)
+- Good: *“Save changes before generating — generation uses your last saved material.”*
+- Good: *“Plan saved. Review tasks below or import them to your course.”*
+- Avoid: streaks, guilt, “AI magic,” infantilizing slang, fake urgency.
 
-| Borrow | Do not copy |
-|--------|-------------|
-| Warm canvas + white cards + soft elevation | NotebookLM logo, exact layout, purple/brand lock-in |
-| Source/document card metaphor for materials | Source drawer, library search, recent sources panel |
-| Subject workspace for course detail | Multi-panel notebook, citations, audio overview |
-| Subtle AI accent zone on generate/plan | Neon gradients, hacker terminal, medical teal |
+### Anti-patterns (feeling)
 
-Earlier briefs referenced Notion/Linear/Raycast **principles**; v2 primary visual direction is **NotebookLM-inspired academic workspace** within the same guardrails (familiar, original).
+| Avoid feeling | Instead aim for |
+|---------------|-----------------|
+| Dry / boring / purely academic | Warm, alive, product-grade |
+| Student-project CRUD | Cockpit workspace + AI command stack |
+| Childish / gamified | Polished + subtle delight |
+| Stressful / chaotic | Control, clarity, calm density |
 
 ---
 
-## 3. Visual language
+## 3. Design references (principles only — do not clone)
 
-### Canvas and surfaces
+For each inspiration source: what StudyOps **borrows**, what it **must not copy**, and how it **translates** into existing screens. **No new product features** may be justified from this table.
 
-- **Page background:** Warm off-white or light gray (`--color-bg`).
-- **Cards / forms:** Clean white (`--color-surface`) on canvas.
-- **Borders:** Soft, low-contrast (`--color-border`)—not harsh black lines.
-- **Shadows:** Subtle (`--shadow-sm` on cards; `--shadow-md` on hover/focus elevation only).
-- **Corners:** Rounded (`--radius-md` for cards; `--radius-sm` for inputs/buttons).
+### 3.1 NotebookLM (Google)
 
-### Color
+| Borrow | Do not copy | StudyOps translation |
+|--------|-------------|----------------------|
+| Source-first journey: **documents → work → outputs** | Three-panel shell, Discover Sources, Studio (audio/slides/infographics), chat-first UI, citations drawer, purple brand | **Course detail** = honest materials list (`MaterialCard`). **Material detail** = **Source column** (editor) + **AI column** (generate → plan → history → import)—**no** middle chat column. **Generate + plan** = durable output zone, not a thread |
 
-- **Text:** Charcoal / near-black (`--color-text`); secondary copy muted (`--color-text-muted`).
-- **Primary accent:** Calm blue or muted indigo (`--color-primary`) for primary actions and links.
-- **AI zones only:** Very soft blue/lavender tint (`--color-primary-subtle`) for Generate block and generated plan card—**not** full-page gradients.
-- **Danger:** Restrained red for delete (`--color-danger`).
-- **Avoid:** Medical/clinical teal, excessive neon, dark hacker-terminal default theme.
+### 3.2 Notion
 
-### Typography
+| Borrow | Do not copy | StudyOps translation |
+|--------|-------------|----------------------|
+| Warm neutral canvas; **section rhythm** (`h1` → zone subtitle → content); comfortable 16px body | Block editor OS, infinite nested pages, full sidebar databases, Notion purple lock-in | **`PageHeader` intro** + `section__title` / `section__subtitle` on course/material/tasks. **`FormCard`** as light block containers. **Filter toolbars** on `/tasks` and `/flashcards` like simplified database filters |
 
-- **Stack:** Manrope-like geometric sans **via system fonts only** unless a human separately approves webfonts:
+### 3.3 Linear
 
-  `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`
+| Borrow | Do not copy | StudyOps translation |
+|--------|-------------|----------------------|
+| Dimmed chrome vs bright workspace; **status pills**; **segmented filters**; list scannability | Dark-first UI, issue IDs, cycles/roadmaps, sidebar-as-primary nav | **`filter-toolbar--segmented`** on tasks/flashcards. **`source-card--task`** with pending/completed/priority pills. **`AppShell`** active nav state. **Dashboard/admin** stat tiles flat, not marketing-hover |
 
-- **Material body:** Comfortable size (e.g. 16px base), line-height ~1.6 in `Textarea` and plan summary.
-- **Hierarchy:** One clear `h1` per page; section titles `h2`/`h3` with consistent scale.
+### 3.4 Raycast
 
-### Iconography
+| Borrow | Do not copy | StudyOps translation |
+|--------|-------------|----------------------|
+| **Command-surface** clarity: one primary action, grouped secondary actions, frosted top chrome, tabular numerals | Dark charcoal default, macOS launcher layout, extension-store aesthetic | **`app-shell__bar`** frosted header. **`PageHeader` actions** cluster (e.g. Refresh stats, New course). **AI panel** single primary CTA. **Focus timer** and stat values use tabular nums where styled |
 
-- **No Material Icons** or icon font libraries unless separately approved.
-- Prefer text labels, native controls, and minimal inline SVG (added in Phase 2J/8A).
+### 3.5 Cursor
+
+| Borrow | Do not copy | StudyOps translation |
+|--------|-------------|----------------------|
+| **Editor + AI sidecar**; busy/disabled during AI; structured output blocks | IDE tabs, file tree, terminal, dark code theme, agent composer as home | **`material-workspace__cockpit`** grid ≥1024px: source left, AI right. **Processing lane** inside AI panel (not full-screen). **Generated plan** = structured sections, not chat bubbles |
+
+### 3.6 Claude / ChatGPT artifacts
+
+| Borrow | Do not copy | StudyOps translation |
+|--------|-------------|----------------------|
+| **Durable output pane** separate from conversation; version list; disclaimer meta | Open-ended chat route, public artifact gallery, artifact app builder | **`GeneratedPlanSection`** = artifact (read-only, disclaimer, last saved). **`GeneratedPlanHistorySection`** = bounded versions (metadata, lazy preview, restore). **No** general chat UI unless separately approved |
 
 ---
 
 ## 4. Layout and app chrome
 
-### Authenticated shell
+### 4.1 Authenticated shell — `AppShell`
 
-Global **`AppShell`** header/nav (implemented in Phase **8C-1**; refined through **8C-3D**):
+Implemented Phase **8C-1** (`frontend/src/components/layout/AppShell.jsx`):
 
-- Brand / app wordmark (text header)
-- Nav links: **Dashboard**, **Courses**, **Tasks**, **Flashcards**, **Trello**
-- **Admin** link when **`user?.role === 'admin'`** (admins only)
-- **Log out**
+- Sticky top bar: brand link, main nav (**Dashboard**, **Courses**, **Tasks**, **Flashcards**, **Trello**), optional **Admin** when `user?.role === 'admin'`, **Log out**
+- Workspace routes render **inside** `AppShell`; auth routes (`/`, `/register`) render **outside**
 
 **Do not add:** Sidebar navigation hub, Search Library, Source Drawer, AI Sidebar as **new** product features.
 
-### Content width
+### 4.2 Page header — `PageHeader`
 
-| Context | Max width (guideline) |
-|---------|------------------------|
-| Login / Register | ~420px centered (`--content-max-form`) |
-| Dashboard, lists, course detail | ~720px (`--content-max-workspace`) |
-| Study material editor / reading | ~800px (`--content-max-reading`) |
+Implemented (`frontend/src/components/layout/PageHeader.jsx`):
 
-### Layout patterns
+- **Standard:** `h1` + optional lead + optional `children` (actions)
+- **Intro mode:** title + lead + note + actions — used on dashboard, course detail, material detail, tasks, flashcards, Trello, admin
+- **Back link:** optional `backTo` above header on nested routes
 
-- **Single column** default on mobile and desktop for MVP screens.
-- **Auth:** Centered `FormCard` on canvas.
-- **Lists:** Vertical stack of cards with consistent gap (`--space-4`–`--space-6`).
-- **Course detail:** Title/edit card → materials list → add material form (inline) → danger zone separated.
-- **Material detail:** Back link → `h1` title → edit card → generate section → saved plan (when present) → danger zone.
+**Guidance:** One clear **`h1`** per route. Primary page action belongs in **`page-header__actions`**, not buried in body forms.
+
+### 4.3 Layout modes (when to use which)
+
+| Mode | CSS / class | Max width token | Use when |
+|------|-------------|-----------------|----------|
+| **Reading layout** | `page--reading` | `--content-max-reading` (800px) | Long-form text focus if a route uses a single reading column without cockpit grid |
+| **Workspace layout** | `page--workspace` | `--content-max-workspace` (720px) | Narrow lists or legacy single-column pages if not upgraded to cockpit |
+| **Cockpit layout** | `page--cockpit` | `--content-max-cockpit` (1120px) | **Default for main app hubs:** `/dashboard`, `/courses`, `/courses/:id`, `/tasks`, `/flashcards`, `/trello`, `/admin`, `/focus/:taskId`, `/study-materials/:materialId` |
+| **Form layout** | centered auth | `--content-max-form` (420px) | Login, register |
+
+**Cockpit width:** Main app hubs use **`--content-max-cockpit: 1120px`** (also `--content-max-shell` for shell inner alignment). Prefer **`page--cockpit`** on dashboard, courses, tasks, flashcards, Trello, admin, and material detail so wide screens show **operational density**, not blog-width stacks.
+
+**Responsive default:** Single column on small viewports; cockpit grids activate at documented breakpoints (e.g. material **Source | AI** split at **≥1024px**).
+
+### 4.4 Study material detail — Source | AI split
+
+Flagship **hybrid cockpit** (`StudyMaterialDetail.jsx`):
+
+| Zone | DOM / class | Role |
+|------|-------------|------|
+| **Source column** | `material-workspace__cockpit-source` | Edit study material (`material-workspace__editor` + instrument-style `FormCard`) |
+| **AI column** | `material-workspace__cockpit-ai` | Generate panel → active plan → plan history → import toolbars |
+| **Library band** | `material-workspace__library` (full width below cockpit) | Saved DB flashcards |
+| **Danger zone** | `material-workspace__danger` | Delete material |
+
+**≥1024px:** Two-column grid (`1fr | 1fr`); AI column gets subtle background, border, **3px primary top rule**. **&lt;1024px:** Stack **Source first**, then AI stack (generate before plan output).
+
+### 4.5 Other layout patterns
+
+- **Auth:** Centered `FormCard` on canvas gradient.
+- **Lists:** Vertical stacks or responsive grids of **Source Cards** with `--space-4`–`--space-6` gaps.
+- **Dashboard / admin:** `dashboard-cockpit` rows of **Stat Tiles** inside **bands**.
 
 ---
 
-## 5. Design tokens (framework-agnostic CSS variables)
+## 5. Design tokens
 
-**Implemented** in `frontend/src/styles/tokens.css` (Phase **2J**; values refined in **8A**). Token names and target values below remain **design guidance** for future polish.
+**Exact values:** `frontend/src/styles/tokens.css` — **authoritative** for hex, rem sizes, shadows, and layout widths. This section describes **semantic roles** only; if §5 ever disagrees with `tokens.css`, **trust `tokens.css`**.
 
-```css
-:root {
-  /* Color */
-  --color-bg: #f8f7f5;
-  --color-bg-subtle: #eeedeb;
-  --color-surface: #ffffff;
-  --color-border: #e5e2dd;
-  --color-text: #1a1a1a;
-  --color-text-muted: #5c5c5c;
-  --color-primary: #4f6bed;
-  --color-primary-hover: #3d56c9;
-  --color-primary-subtle: #eef2ff;
-  --color-danger: #b42318;
-  --color-danger-hover: #912018;
-  --color-error: #b42318;
-  --color-focus-ring: var(--color-primary);
+| Role | Semantic guidance |
+|------|-------------------|
+| **Canvas** | Warm paper `--color-bg` |
+| **Surfaces** | White cards `--color-surface` on canvas |
+| **Text** | Charcoal primary; muted secondary/subtle tertiary |
+| **Primary** | Calm indigo `--color-primary` — actions, links, focus ring |
+| **AI zones** | `--color-primary-subtle`, `--color-primary-border`; top accent on AI column |
+| **Admin** | `--color-admin-accent` / `--color-admin-subtle` — admin-only surfaces |
+| **Danger** | Restrained red; danger zones only |
 
-  /* Typography */
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --line-height-body: 1.6;
-  --line-height-tight: 1.35;
-
-  /* Spacing (4px base) */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-
-  /* Radius & shadow */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-
-  /* Layout */
-  --content-max-form: 420px;
-  --content-max-workspace: 720px;
-  --content-max-reading: 800px;
-}
-```
+**Typography:** System stack in `tokens.css` unless a human separately approves one webfont. Material body: ~16px, `line-height-body` ~1.6. Use **tabular numerals** for stats, timers, and “Card X of N”.
 
 **Implementation notes:**
 
-- Use plain CSS or CSS modules—**not** Tailwind unless separately approved.
-- No `@import` from Google Fonts CDN unless separately approved.
-- Map inline styles in pages/components to these tokens incrementally when further polish is approved.
+- Plain CSS / CSS modules — **not** Tailwind unless separately approved.
+- No Google Fonts CDN unless separately approved.
+- No Material Icons unless separately approved.
 
 ---
 
-## 6. Component guidance
+## 6. Component families
 
-Map to existing React components under `frontend/src/components/`. Updates are **presentation only**—**no behavior or API changes**.
+Presentation families map to existing React/CSS. **No new components or behavior** are required by this section.
 
-### Button (`components/ui/Button.jsx`)
+### 6.1 Source Card (`source-card`)
 
-| Variant | Use |
-|---------|-----|
-| **primary** | Save, Create, Generate study plan, main CTAs |
-| **secondary** | Cancel, Try again, Clear plan |
-| **danger** | Delete course / delete material |
+**Purpose:** Represent **courses**, **materials**, **tasks**, and **dashboard course rows** as scannable documents/rows.
 
-- Min height ~44px when styled; clear `:focus-visible` ring.
-- Disabled: reduced opacity + `cursor: not-allowed` (loading, generating, unsaved blocking generate).
-- No icon-only delete without `aria-label`.
+| Variant | Class hints | Use |
+|---------|-------------|-----|
+| Subject | `source-card--subject` | Course list (`CourseCard`) |
+| Document | `source-card--document` | Material list (`MaterialCard`) |
+| Task | `source-card--task` | Task lists (`TaskCard`) |
+| Dashboard course | `source-card--dashboard-course` | Per-course breakdown on dashboard |
 
-### Input (`components/ui/Input.jsx`)
+**Rules:** Title as plain text or link; pills for type/status/priority; **no** fake progress rings or fabricated counts. Hover lift on **clickable** cards only.
 
-- Visible `<label>` + `id` / `htmlFor`.
-- Full width in forms; border `var(--color-border)`; focus ring primary.
-- Auth: email, password. Courses: title. Materials: title.
+### 6.2 Instrument Card
 
-### Textarea (`components/ui/Textarea.jsx`)
+**Purpose:** Primary **forms and editors**—the “instrument” the student works in.
 
-- **Study material** body: tall (e.g. 12+ rows), `line-height: var(--line-height-body)`.
-- Monospace **not** required; prioritize readability.
-- Validation: content 100–50,000 characters (trimmed) per backend.
+**Implementation:** `FormCard` (+ `material-workspace__editor-card` on material detail): white surface, `elevation-2`, optional **left accent** on source editor.
 
-### FormCard (`components/ui/FormCard.jsx`)
+**Use:** Auth forms, create course/material, edit course title, edit material, task create/edit, flashcard create/edit, Trello credential steps.
 
-- White surface, padding `var(--space-6)`, radius `var(--radius-md)`, shadow `var(--shadow-sm)`.
-- Optional `title` prop as `h2` for section (“Edit study material”, “Add study material”).
+### 6.3 AI Panel (`ai-panel`)
 
-### ErrorMessage (`components/ui/ErrorMessage.jsx`)
+**Purpose:** **Command surface** for generation and AI-adjacent actions.
 
-- `role="alert"`; color `var(--color-error)`; short user-safe text.
-- Never show stack traces, tokens, or raw API bodies.
+**Structure:** `ai-panel__header` (title + lead), `ai-panel__hint` (warnings), `ai-panel__actions` (primary CTA), `ai-panel__loading` (**Processing Lane** when active).
 
-### LoadingState (`components/ui/LoadingState.jsx`)
+**Use:** **Generate study plan** block on material detail. Tint/subtle border distinct from Instrument Cards.
 
-- Muted text or minimal skeleton; preserve layout to avoid shift.
-- Copy: “Loading courses…”, “Loading study material…”, “Processing with AI…” (implemented for generate loading — see §8.2).
+**Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column.
 
-### EmptyState (`components/ui/EmptyState.jsx`)
+### 6.4 Stat Tile (`dashboard-stat` + `dashboard-band`)
 
-- Headline + one sentence + primary CTA.
-- Courses empty: drive “create first course” (see §7.4).
+**Purpose:** Honest **read-only aggregates** on `/dashboard` and `/admin`.
 
-### CourseCard (`components/courses/CourseCard.jsx`)
+**Implementation:** `StatBand` / `StatItem` → `dashboard-band`, `dashboard-stat`.
 
-- Card metaphor: title as primary link (plain text), optional `createdAt` muted.
-- Hover: subtle shadow lift; no fake progress or task counts.
-- **Security:** `course.title` as React text node only.
+**Rules:** Real API counts only; **no** charts, sparklines, or decorative KPI theater. Minimal or no hover lift. Admin bands may use `dashboard-band--admin-*` modifiers.
 
-### MaterialCard (`components/materials/MaterialCard.jsx`)
+### 6.5 Task Row Card
 
-- **Source/document card** feel: title link, `sourceType` + updated date secondary line.
-- List on course detail only—**no** `content` preview in list (API summary shape).
-- **Security:** `material.title` as plain text only.
+**Purpose:** Task list rows with **workflow metadata**.
 
-### GeneratedPlanSection (`components/materials/GeneratedPlanSection.jsx`)
+**Implementation:** `source-card--task` on `TaskCard` — pending/completed pills, priority pill, stat row (minutes), course/material meta, action row (edit, complete, delete, **Start Focus** on pending only).
 
-- Read-only sections: Summary, Key topics, Difficulty, Tasks (ordered list), Flashcards.
-- Plain text for all model strings—**no** `dangerouslySetInnerHTML`.
-- **Clear plan** → secondary button; calls backend **DELETE** (then clears display).
-- Disclaimer (implemented): *“AI-generated — saved as the latest plan for this material. Reference only; verify before you study.”*
-- Optional **Last saved:** plain-text line from `savedAt` (e.g. `toLocaleString()`).
-- Tasks/flashcards **inside this section** remain **read-only** plain-text display (no inline edit here). **Import** and **CRUD** flows live elsewhere on the material detail page and on **`/tasks`** / **`/flashcards`** (implemented — see **`docs/IMPLEMENTATION_STATUS.md`**).
+### 6.6 Study Card (`flashcard-study`)
+
+**Purpose:** **One-card-at-a-time** study mode—largest readable type on the page.
+
+**Implementation:** `FlashcardStudy` — `flashcard-study__card`, question/answer reveal, `flashcard-study__counter`, prev/next.
+
+**Variants:** `flashcard-study--plan` (from generated plan), `flashcard-study--library` (saved DB cards).
+
+### 6.7 Plan History Row (`plan-history`)
+
+**Purpose:** **Bounded** generated plan versions (max **10** per material per backend).
+
+**Implementation:** `GeneratedPlanHistorySection` → `plan-history__list`, `plan-history__item`, badges **Active** / **Previous version**, `plan-history__actions` (Preview inactive only, Make active, Delete inactive).
+
+**Rules:** List load is **metadata-only**; full plan fetched on Preview only. Active row: no Preview / Make active / Delete.
+
+### 6.8 Import Toolbar (`plan-import-toolbar`)
+
+**Purpose:** Batch **apply AI output** to workspace (tasks, flashcards).
+
+**Implementation:** In `GeneratedPlanSection` — label + action row for import buttons; success/error feedback nearby.
+
+**Rules:** Confirm before import; show skip/import counts from API summary; does not clear plan.
+
+### 6.9 Processing Lane
+
+**Purpose:** Visible **in-progress generate** state without full-page overlay.
+
+**Implementation:** `ai-panel__loading--active` — dashed border, `LoadingState` “Processing with AI…”, pulse on label only per §10.
+
+**Screenshot:** Target for pending `15-processing-with-ai.png`.
+
+### 6.10 Shared UI primitives (unchanged roles)
+
+| Component | Guidance |
+|-----------|----------|
+| **Button** | primary / secondary / danger; ~44px min height; disabled when loading/generating/unsaved |
+| **Input / Textarea** | Visible labels; material body uses `Textarea` `reading` mode |
+| **FormCard** | Default instrument surface; `form-card--ai` / `form-card--plan` for AI-tinted plan output |
+| **ErrorMessage** | `role="alert"`; user-safe text only |
+| **LoadingState** | Preserve layout; “Processing with AI…” in generate flow |
+| **EmptyState** | Friendly, specific headline + one sentence + single CTA — reduce stress (“No courses yet” → create first course); not bland or childish |
+
+### 6.11 GeneratedPlanSection
+
+Read-only plan artifact: Summary, Key topics, Difficulty, Tasks (`ol`), Flashcards; plain text only; disclaimer; optional **Last saved**; **Clear plan**; hosts **Import Toolbar** and plan **Study Card** block when flashcards exist.
 
 ---
 
 ## 7. Screen-by-screen guidance (implemented only)
 
-Reference screenshots: `docs/design/SCREENSHOT_INDEX.md`.
+Reference screenshots: `docs/design/SCREENSHOT_INDEX.md` (**may be outdated**—see §0).
 
-### 7.1 Login (`/`)
+### 7.1 Login (`/`) — `01-login.png`
 
-**Screenshot:** `01-login.png`
+Centered Instrument Card; StudyOps title; email/password; link to Register; `LoadingState` on submit.
 
-- Centered `FormCard` on `--color-bg`.
-- Title: StudyOps AI; subcopy: “Sign in to continue.”
-- Email + password; primary **Sign in**; link to Register.
-- `ErrorMessage` for validation/auth failures (generic auth message per backend).
-- `LoadingState` on submit: “Signing in…”
+### 7.2 Register (`/register`) — `02-register.png`
 
-### 7.2 Register (`/register`)
+Same auth layout as login.
 
-**Screenshot:** `02-register.png`
+### 7.3 Student dashboard (`/dashboard`) — `03-dashboard.png` (likely outdated)
 
-- Same auth layout as login.
-- Email, password, confirm password (if present in UI).
-- Subcopy: student registration only.
-- Link back to Login.
+**Layout:** `page--cockpit`, `PageHeader` intro, `dashboard-cockpit` bands.
 
-### 7.3 Student dashboard (`/dashboard`)
+**Content:** Real stats from **`GET /api/dashboard/stats`** — Overview, Tasks (optional completion %), Focus, Learning assets, Trello sync count, per-course `source-card--dashboard-course` rows.
 
-**Screenshot:** `03-dashboard.png` (baseline layout; live UI shows real stats from **`GET /api/dashboard/stats`**)
+**Not:** Charts, KPI widgets, streaks, Gemini logs. **Refresh stats** in header actions; silent refresh when mounted (**5C.1**).
 
-- **Implemented:** read-only aggregate stats (Overview, Tasks, Focus, Learning assets, Trello sync count, per-course breakdown); **Try again** + **Refresh stats**; cross-page silent refresh when mounted (**5C.1**).
-- **Not** an analytics hub—no charts, KPIs, streaks, or Gemini logs on this page.
-- Optional **Admin** nav link when **`user?.role === 'admin'`** (UX only).
-- Links to **My courses**, **Tasks**, **Flashcards**, **Trello** as implemented today.
+**Recapture** `03-dashboard.png` after future visual phases.
 
-### 7.4 Courses — empty state (`/courses`)
+### 7.4 Courses — empty (`/courses`) — `04-courses-empty.png`
 
-**Screenshot:** `04-courses-empty.png`
+`h1` + `EmptyState` + create CTA.
 
-- `h1`: My courses (or Courses).
-- `EmptyState`: “No courses yet” + short body + primary create CTA.
-- Optional top link to Dashboard.
+### 7.5 Courses — create form (`/courses`) — `05-create-course-form.png`
 
-### 7.5 Courses — create course form (`/courses`)
+Inline/toggled Instrument Card; title only.
 
-**Screenshot:** `05-create-course-form.png`
+### 7.6 Courses list (`/courses`) — `06-courses-list.png`
 
-- Inline or toggled form (match existing UX—do not add `/courses/new` route).
-- `FormCard` or equivalent: title field only (3–100 chars).
-- Primary create; secondary cancel.
-- `POST /api/courses` body `{ title }` only.
+**Cockpit** layout; `PageHeader` + **New course**; grid/list of **Source Cards** (`source-card--subject`).
 
-### 7.6 Courses — list (`/courses`)
+### 7.7 Course detail (`/courses/:id`) — `07-course-detail-materials.png`
 
-**Screenshot:** `06-courses-list.png`
+**Workspace/cockpit** subject hub: course title, edit title Instrument Card, **Study materials** as **document Source Cards**, add material form, **course tasks** section (filters, task rows), danger zone separated. **No** fake `stats` stub metrics.
 
-- `h1` + primary **New course**.
-- `LoadingState` / `ErrorMessage` as today.
-- Vertical list of `CourseCard` components (≥2 in reference shot).
-- Optional link: Dashboard.
+### 7.8 Create material (`/courses/:id`) — `08-create-material-form.png`
 
-### 7.7 Course detail — materials (`/courses/:id`)
+Add material Instrument Card: title, source type, large `Textarea`, create/cancel.
 
-**Screenshot:** `07-course-detail-materials.png`
+### 7.9 Study material detail (`/study-materials/:materialId`) — `09`–`12`, `11`, pending `15`
 
-- Back link: ← Back to courses.
-- `h1`: course title.
-- **Edit course** card: title + Save changes.
-- **Study materials** section: list of `MaterialCard` or empty state (“No study materials yet” + Add CTA).
-- **Do not** show `stats` stub as real metrics (zeros)—no progress rings.
-- **Danger zone** visually separated: Delete course (confirm).
+**Cockpit + Source | AI split** (§4.4):
 
-### 7.8 Course detail — create material form (`/courses/:id`)
+- `PageHeader` intro: material title, workspace lead, back to course
+- **Source column:** Edit study material; unsaved hint; Save
+- **AI column:** AI Panel (generate) → active **GeneratedPlanSection** → **Plan History** → import feedback
+- **Library band:** `DbFlashcardsSection` (saved + study)
+- **Danger zone:** delete material
 
-**Screenshot:** `08-create-material-form.png`
+**Recapture** screenshots after visual polish; **`15-processing-with-ai.png`** when live Generate is approved.
 
-- **Add study material** `FormCard`: title, source type (`manual` | `paste`), `Textarea` for content (100–50k).
-- Create + Cancel.
-- `POST` body: `{ title, content, sourceType? }` — never `courseId` from client body (route owns course).
+### 7.10 Generate study plan — `10-generate-study-plan.png`
 
-### 7.9 Study material detail (`/study-materials/:materialId`)
+AI Panel: primary **Generate study plan**; disabled when unsaved/loading/generating.
 
-**Screenshot:** `09-study-material-detail.png`
+### 7.11 Unsaved changes — `12-unsaved-changes-warning.png`
 
-- **Reading/editing workspace:** ← Back to course; `h1` = material title.
-- **Edit study material** card: title, source type select, large `Textarea`, Save changes.
-- Below: **Generate study plan** section (see §7.10).
-- **Danger zone:** Delete study material (confirm).
+`ai-panel__hint--warning`: *“Save changes before generating — generation uses your last saved material.”*
 
-### 7.10 Generate study plan action (`/study-materials/:materialId`)
+### 7.12 Validation error — `13-validation-error.png`
 
-**Screenshot:** `10-generate-study-plan.png`
+Inline field error +/or `ErrorMessage`; not color-only.
 
-- Section `h2`: Generate study plan.
-- Background: `var(--color-primary-subtle)` optional padding/border—grounded, not flashy.
-- Primary button: **Generate study plan**.
-- Disabled when: loading, saving, deleting, generating, or **unsaved changes** (see §7.11).
+### 7.13 Not-found — `14-not-found.png`
 
-### 7.11 Unsaved changes warning (`/study-materials/:materialId`)
+Neutral copy; back links; not “access denied.”
 
-**Screenshot:** `12-unsaved-changes-warning.png`
+### 7.14 Tasks (`/tasks`, `/courses/:id`)
 
-- Muted helper text above generate button:
+**Cockpit** width; **segmented filter toolbar** (course × status); **Task Row Cards**; pending queue visually primary; completed muted; **Start Focus** on pending only; create on `/tasks` when filter allows.
 
-  *“Save changes before generating — generation uses your last saved material.”*
+### 7.15 Flashcards (`/flashcards`, material detail)
 
-- Generate button disabled until save succeeds.
+Filters → **Study Card** stage → manage list. Material page: distinguish **plan flashcards** vs **saved library** section titles.
 
-### 7.12 Validation error (forms)
+### 7.16 Trello (`/trello`)
 
-**Screenshot:** `13-validation-error.png`
+Step-based **workspace**: credentials → board/list picker → task selection (max 50) → results with status pills. Ephemeral credentials only.
 
-- Inline error under field and/or `ErrorMessage`.
-- Examples: course title length; material title 3–150; content 100–50,000.
-- Red text + message—not color alone.
+### 7.17 Focus (`/focus/:taskId`)
 
-### 7.13 Neutral not-found
+Calm timer panel; tabular countdown; primary complete; optional mark task complete; not gamified.
 
-**Screenshot:** `14-not-found.png`
+### 7.18 Admin (`/admin`)
 
-- Course: “Course not found” + neutral explanation + back to courses.
-- Material: “Study material not found” + “may have been deleted” + back link.
-- **404** messaging—not “access denied” (backend uses neutral 404 for wrong owner).
-
-### 7.14 Tasks — global and course (`/tasks`, `/courses/:id`)
-
-- **Filter toolbar:** Course + status filters (in-memory); consistent with dashboard stat-tile aesthetic from **8A**.
-- **Task list:** Card or row stack on white surface; pending vs completed visually distinct (muted completed).
-- **Actions:** Create, edit pending, mark complete, delete — primary/secondary/danger button variants per §6.
-- **Start Focus:** Visible on **pending** tasks only; links to **`/focus/:taskId`**.
-
-### 7.15 Flashcards — global and material (`/flashcards`, material detail)
-
-- **Saved flashcards:** Card list with course/material context; filter toolbar on global page.
-- **Study mode:** Flip/reveal on `--color-surface`; calm, readable question/answer typography.
-- **CRUD:** Inline create/edit forms in `FormCard`; import-from-plan remains on material detail only.
-
-### 7.16 Trello sync (`/trello`)
-
-- **Credentials:** Ephemeral fields only — never persisted; clear after sync attempt.
-- **Board/list picker:** Sequential Load boards → select board → select list; loading/error states per §6.
-- **Task selection + results:** Checkbox list (max 50); per-task sync summary (`success` / `skipped` / `failed`).
-
-### 7.17 Focus session (`/focus/:taskId`)
-
-- **Timer panel:** Centered countdown (25-minute display); calm accent, not gamified.
-- **Complete flow:** Primary complete action; optional “mark task complete” checkbox; success copy uses backend **`durationMinutes`**.
-
-### 7.18 Admin aggregate stats (`/admin`)
-
-- **Scope:** Platform-wide **aggregate counts only** — no emails, content, plan JSON, or raw rows.
-- **Presentation:** Stat tiles consistent with student dashboard; **`· Admin`** suffix on page heading only.
-- **Access:** **`AdminRoute`** is UX-only; backend **`requireAdmin`** remains authoritative.
+**Cockpit** + admin accent; platform aggregate **Stat Tiles** only; `· Admin` in title; `AdminRoute` forbidden surface for non-admins (UX only).
 
 ---
 
-## 8. Pending screenshot — processing state (feature implemented; capture pending)
+## 8. AI workspace rules
 
-**Do not fabricate PNGs.** **`11-generated-plan-visible.png`** is **captured** (see `docs/design/screenshots/`). **`15-processing-with-ai.png`** remains pending per `SCREENSHOT_INDEX.md`.
+Rules for **material detail AI column** and related surfaces. **No general-purpose chat UI** unless separately approved.
 
-### 8.1 Generated plan visible (**implemented — screenshot captured**)
+### 8.1 Generate panel
 
-**Reference file:** `11-generated-plan-visible.png` (Phase 2K-c)
+- Section: **Generate study plan** (`ai-panel`)
+- Primary: **Generate study plan** → `POST /api/study-materials/:materialId/generate` body **`{}` strict**
+- Uses **saved** DB content only — **no** client `studyText`
+- Disabled when: saving, deleting, generating, importing, or **unsaved editor changes**
 
-- Render `GeneratedPlanSection` below generate block when a **saved** plan exists (loaded on visit or after Generate).
-- Card on `--color-primary-subtle` or white with subtle border.
-- Sections: summary, key topics, difficulty, tasks, flashcards—all **read-only** plain text.
-- **Clear plan** → backend DELETE; idempotent if already cleared.
-- **No** “Save plan”, multi-plan library, sync, or history UI.
-- Copy: saved as **latest** plan for this material; AI output is **untrusted reference**.
-- **Refresh** reloads saved plan from backend when one exists.
+### 8.2 Processing state
 
-### 8.2 Processing with AI (**implemented UI — screenshot pending**)
+- While generating: primary shows “Processing with AI…”; **Processing Lane** visible (`ai-panel__loading--active`)
+- Optional pulse on loading label only — no full-screen overlay
+- On success: reveal active plan; on error: `ErrorMessage` with safe mapped message
+- Official screenshot: **`15-processing-with-ai.png`** (pending — do not fabricate)
 
-**Pending file:** `15-processing-with-ai.png`
+### 8.3 Active plan
 
-- While `generating`: disable button; show `LoadingState`—“Processing with AI…”
-- Optional subtle pulse on loading text only—no full-screen overlay.
-- On success: reveal plan per §8.1; on error: `ErrorMessage` with safe mapped message.
+- One **active** plan per material (backend `is_active`)
+- `GeneratedPlanSection`: read-only plain text; disclaimer: *“AI-generated — saved as the latest plan for this material. Reference only; verify before you study.”*
+- Optional **Last saved** from `savedAt`
+- **Clear plan** → `DELETE` active plan only
+- **Refresh** on load uses `GET …/generated-plan`
+
+### 8.4 Plan history (bounded — in scope)
+
+- Up to **10** rows per material; **one active**
+- UI: `GeneratedPlanHistorySection` — metadata list, **Active** / **Previous version** badges
+- **Preview** inactive only (lazy `GET …/generated-plans/:planId`)
+- **Make active** on inactive → `POST …/activate` body `{}` — **no** Gemini call
+- **Delete** inactive only; active delete → backend **409**
+- **Not in scope:** cross-material plan library, sync badges, unbounded archive UI
+
+### 8.5 Import actions
+
+- **Import Toolbar** on active plan when tasks/flashcards exist
+- `POST …/import/tasks` and `POST …/import/flashcards` with dedupe (`source='plan'`)
+- Confirm warns skipped duplicates; plan not auto-cleared
+
+### 8.6 Save-before-generate warning
+
+- When editor dirty: disable generate + `ai-panel__hint--warning` (§7.11)
+
+### 8.7 AI disclaimers
+
+- Plan output is **untrusted reference** — visible disclaimer on active plan and history intro
+- No authority implied for exams or grading
+
+### 8.8 No chat UI
+
+- **No** open-ended chat thread, composer, or `/chat` route in design scope
+- AI interaction is **generate → structured plan artifact → optional import/history**
+- Command palette / keyboard palette: **concept only** — not implemented without approval
 
 ---
 
-## 9. Generate and AI display rules
+## 9. Generate and AI display rules (API alignment)
 
 | Rule | UI requirement |
 |------|----------------|
 | **Route** | `materialId` from URL only |
-| **Request** | `POST /api/study-materials/:materialId/generate` with body **`{}` strict** |
-| **No client studyText** | UI must **not** send `studyText`, `content`, or paste-upload on generate |
-| **Saved content** | Backend reads **saved** DB `content` after ownership check |
-| **Persisted latest plan** | Backend `material_generated_plans` (one row per material); UI via GET on load; React state for display only—no `localStorage` / `sessionStorage`; no plan history library |
-| **Untrusted display** | Treat all plan fields as model output; plain text rendering |
-| **Read-only** | No inline edit of tasks/flashcards that implies DB writes |
-| **No saved library** | No list of past plans, no “synced” indicators |
-| **document-service** | Not called from frontend; no `GEMINI_API_KEY` in client |
+| **Request** | `POST …/generate` body **`{}` strict** |
+| **No client studyText** | UI must not send `studyText`, `content`, or paste on generate |
+| **Saved content** | Backend reads saved DB `content` |
+| **Persistence** | Backend `material_generated_plans`; one active row; up to 10 rows retained |
+| **History APIs** | List metadata-only; get-by-id for preview; activate/delete-version as implemented |
+| **Untrusted display** | Plain React text for all plan fields |
+| **Read-only plan** | No inline edit implying DB writes in plan section |
+| **No chat persistence** | No `localStorage` / `sessionStorage` for plans |
+| **document-service** | Not called from frontend |
 
 ---
 
 ## 10. Motion and animation
 
-Applied in Phase **2J** and refined in **8A**. Further motion changes require explicit approval. Respect `prefers-reduced-motion: reduce`.
+Motion supports **smooth**, **enjoyable** use—not spectacle. Respect `prefers-reduced-motion: reduce` (disable transforms and pulse when set).
 
 | Pattern | Guidance |
-|---------|----------|
-| Route transition | Optional 150–200ms opacity or ≤8px translate |
-| Card hover | `shadow-sm` → `shadow-md` |
-| Button press | Slight darken or scale 0.98 |
-| Generate loading | Gentle pulse on loading label only |
-| Plan reveal | Short fade-in when plan appears |
+|---------|------------|
+| Route transition | Optional 150–200ms opacity — app feels connected, not jumpy |
+| Card hover | `shadow-sm` → `shadow-md` on clickable cards only — satisfying affordance |
+| Button press | Slight darken or scale 0.98 — tactile feedback |
+| Generate loading | Pulse on loading label only (Processing Lane) — alive, not anxious |
+| Plan reveal | Short fade-in (+ optional 4px translateY) when plan appears — **moment of delight** |
+| Task complete / import success | Brief success state color or opacity settle — no confetti |
+| History preview | Optional height transition on expand |
+| Stat refresh | Subtle opacity flash on silent dashboard refresh — progress feels current |
 
-**Avoid:** Parallax, heavy neon animations, distracting looped gradients.
+**Slightly playful:** Allowed on **success paths** only (plan visible, import done, task marked complete). **Not** on every hover or idle loop.
+
+**Avoid:** Parallax, neon animations, confetti, streaks, XP popups, looping gradients, cartoon motion.
 
 ---
 
 ## 11. Accessibility
 
-- One **`h1`** per route; logical heading order for sections.
-- Every control has a visible **label** (not placeholder-only).
-- **`role="alert"`** / `aria-live` for errors and generate failures.
-- **`:focus-visible`** ring using `--color-focus-ring` (≥3:1 contrast).
-- Touch targets **≥44px** height on primary actions.
-- Errors: text + color (not color-only).
-- Delete: accessible confirm (upgrade from `window.confirm` optional in future polish).
-- Generated plan lists: semantic `ul`/`ol`; task items not interactive checkboxes.
-- Material `Textarea`: comfortable contrast on white surface (body text ≥4.5:1).
+- One **`h1`** per route; logical heading order
+- Visible **labels** on controls
+- **`role="alert"`** / `aria-live` for errors and generate failures
+- **`:focus-visible`** ring using `--color-focus-ring`
+- Touch targets **≥44px** on primary actions
+- Errors: text + color
+- Semantic `ul`/`ol` in plan output
+- Material `Textarea`: comfortable contrast (body ≥4.5:1)
 
 ---
 
 ## 12. Responsive behavior
 
+**Responsive web only:** Breakpoints below describe how the **web app** reflows in the browser (CSS media queries). They do **not** define a separate native mobile app or phone-first product. Prefer desktop/web layouts for design reviews and screenshots; narrow widths are supported so students can use the same web app on smaller screens without horizontal scroll.
+
 | Breakpoint | Behavior |
 |------------|----------|
-| **&lt;640px** | Single column; full-width buttons; padding `var(--space-4)` |
-| **≥640px** | Centered main column at max-width tokens; cards full width within column |
+| **&lt;640px** | Single column; full-width primary buttons; compact padding (`--space-4`); stack all zones vertically |
+| **≥640px** | Centered main column at layout max-width tokens (`page--workspace`, `page--reading`, or `page--cockpit` per route) |
+| **≥1024px** | **Study material detail:** two-column cockpit — Source column (editor) and AI column (generate, plan, history). **Other cockpit routes** (`/dashboard`, `/courses`, `/tasks`, etc.): wider layout and band/grid patterns where already implemented in CSS |
 
-- Avoid horizontal scroll on forms and long titles (wrap; truncate with `title` attribute only if needed).
-- Optional `06-courses-list-mobile.png` not required for MVP styling.
+**Long titles and labels:** Wrap text; use `title` tooltip only when necessary. Avoid horizontal scroll on forms, cards, and headers.
 
 ---
 
 ## 13. API and security (UI-facing)
 
-- **Auth:** Bearer via Supabase session + `apiFetch`—no manual token storage in `localStorage`.
-- **No service role** in frontend; no `VITE_*` service keys.
-- **Ownership:** Never send `user_id`, `userId`, `courseId` in generate body; course id from route for materials create only via URL.
-- **XSS:** Render `course.title`, `material.title`, `material.content`, and all `plan` fields as **React text**—never `dangerouslySetInnerHTML`.
-- **401:** Existing logout + redirect (`AUTH_REQUIRED`).
-- **Logging:** Do not log material `content`, `plan`, tokens, or `Authorization` in frontend consoles for production hygiene.
-- **Env:** No secrets, API keys, or `.env` values in UI copy or design assets.
+- Bearer via Supabase session + `apiFetch`
+- No service role or `GEMINI_API_KEY` in frontend
+- Never send `user_id`, `userId`, or `courseId` in generate body
+- **XSS:** React text only for titles, content, plan fields
+- **401:** logout + redirect
+- Do not log material `content`, `plan`, or tokens in production consoles
 
 ---
 
 ## 14. Explicitly out of scope (design)
 
-Do **not** design or implement **new product features** beyond current **`docs/IMPLEMENTATION_STATUS.md`**:
+Do **not** design or implement **new product features** beyond **`docs/IMPLEMENTATION_STATUS.md`**:
 
 - Admin **logs**, user list, role management, Gemini error metrics UI
-- Charts, KPI widgets, streaks, or fake progress rings on dashboard/course pages
-- Saved generated plan library or “plan history”
-- Client “save plan” UI or POST of plan JSON
-- Course-level paste-generate page with client `studyText`
-- Source **upload** UI, file picker, or drive connectors
-- Audio overview, citations panel, notebook sharing
+- Charts, KPI widgets, streaks, fake progress, gamification, confetti
+- **Unbounded** plan library, cross-material plan browser, sync badges
+- Client POST of plan JSON; course-level paste-generate with client `studyText`
+- Source **upload**, file picker, drive connectors
+- Audio overview, citations panel, notebook sharing (NotebookLM clone features)
 - Search Library, Source Drawer, Recent Sources, Drafting Space
-- AI Sidebar as a permanent product navigation feature
+- AI Sidebar as permanent product navigation
+- **General chat route** or ever-scroll chat as primary AI surface
+- Permanent sidebar **hub** beyond minimal top bar
 - Footer links (Privacy, Terms, Help Center) unless separately approved
-- Permanent sidebar navigation **hub** (multi-module app shell beyond minimal top bar)
-- Social feed, gamification, leaderboards
-- Dark “hacker terminal” default theme or medical/clinical teal palette
+- Dark hacker-terminal default or medical/clinical teal palette
 - Trello OAuth, stored credentials, PDF upload, payments, polling/WebSockets
+- New routes, APIs, tables, or backend changes **justified by this file**
 
-**Implemented screens** (tasks, flashcards, Trello, focus, admin aggregate stats) **may** receive presentation polish per this document — do **not** treat them as design-forbidden.
+**In scope for presentation:** Bounded **plan history** on material detail (**11A-3**); tasks, flashcards, Trello, focus, dashboard, admin polish.
 
-Label any future mock: **concept only — not implemented**.
+Label future mocks: **concept only — not implemented**.
 
 ---
 
 ## 15. What not to do
 
-- Do **not** use Stitch HTML/React as source of truth or paste into `frontend/`.
-- Do **not** add **Tailwind**, **Google Fonts**, **Material Icons**, or new UI libraries without human approval.
-- Do **not** clone NotebookLM branding, layout, or NotebookLM-only features.
-- Do **not** use this file to justify new routes, APIs, tables, or persistence.
-- Do **not** imply frontend sends `studyText` on generate.
-- Do **not** show fake dashboard stats or course `stats` stub as real data.
-- Do **not** add checkboxes on generated tasks (implies task DB).
-- Do **not** add “Saved plan” or sync badges.
-- Do **not** weaken auth, RLS, or service boundaries in presentation choices.
-- Do **not** embed external scripts, CDNs for fonts/icons, or env values in design docs/screenshots.
+- Do **not** use Stitch HTML/React as source of truth
+- Do **not** add Tailwind, Google Fonts CDN, Material Icons without approval
+- Do **not** clone inspiration products’ branding, layouts, or exclusive features
+- Do **not** use this file to justify new APIs, tables, or routes
+- Do **not** imply client sends `studyText` on generate
+- Do **not** show fake dashboard stats
+- Do **not** add interactive checkboxes on generated tasks in plan display
+- Do **not** treat outdated screenshots as product truth
+- Do **not** add chat UI without separate approval
 
 ---
 
@@ -570,45 +624,41 @@ Label any future mock: **concept only — not implemented**.
 
 | Situation | Allowed |
 |-----------|---------|
-| **Phase 2I-c** — authoring/updating this file | Yes (documentation only) |
-| **Planning / Stitch / screenshots** | Use `STITCH_BRIEF.md` (historical) + `SCREENSHOT_INDEX.md`; this file is output of 2I-c |
-| **Frontend styling (2J / 8A)** | **Complete** — further CSS/presentation changes require explicit approval |
-| **Functional feature work** | Follow `IMPLEMENTATION_STATUS` for behavior; use this file only for presentation |
-| **Scope expansion** | **Never** — PRD + human approval required |
+| **Phase A** — updating this file | Yes (documentation only) |
+| **Planning / Stitch / screenshots** | Historical brief + screenshot index; **this file** is presentation authority |
+| **Phase 2J / 8A / 8C styling** | **Baseline complete** — further CSS/React presentation requires new approval |
+| **Visual Design Direction implementation** | Requires explicit approval (e.g. `approved — implement Visual Design Direction Phase B`) after Supervisor Review of Phase A |
+| **Functional feature work** | Follow `IMPLEMENTATION_STATUS`; this file for presentation only |
+| **Scope expansion** | **Never** — PRD + human approval |
 
-**Gates:**
-
-- Updating **`DESIGN.md` v2`** required `approved — implement Phase 2I-c DESIGN.md v2` (historical).
-- Applying CSS/tokens beyond **2J**/**8A** requires a **separate** styling approval (e.g. `approved — apply DESIGN styling pass`).
+**Phase A (this update):** Documentation only. **Stop** after doc changes; wait for **Supervisor Review** before visual implementation.
 
 ---
 
-## 17. Styling implementation guide (Phase 2J — complete; 8A polish applied)
+## 17. Styling implementation guide (baseline complete)
 
-**Historical reference** — styling was applied as follows (do not re-run without approval):
+Phases **2J**, **8A**, and **8C** established:
 
-1. Added `frontend/src/styles/tokens.css` from §5; imported once in app entry (e.g. `main.jsx`).
-2. Restyled in order: `components/ui/*` → `CourseCard` / `MaterialCard` → `GeneratedPlanSection` → pages → tasks/flashcards/Trello/focus/admin (**8A**).
-3. Replaced inline styles with token-based classes or CSS modules incrementally.
-4. Minimal **top app bar** per §4 — no feature sidebar.
-5. Kept all routes, API calls, validation, and generate behavior **unchanged**.
-6. Run `npm run lint`, `npm test`, `npm run build` in `frontend/`; `check-all.ps1` if touching multiple packages.
-7. Compare visuals to `docs/design/screenshots/` and this document—not to Stitch exports.
-8. Re-run **Security Review** if changing how plan/content is rendered or auth surfaces.
+1. `frontend/src/styles/tokens.css` — source of truth for values
+2. `components.css`, `layout.css` — Source Cards, AI Panel, cockpit grids, bands
+3. `AppShell`, `PageHeader` on workspace routes
+4. Material **Source | AI** cockpit
 
-**Forbidden in future polish:** New dependencies (Tailwind, icon fonts, Google Fonts) without approval; persistence UI; Stitch code merge.
+**Further presentation work:** Requires explicit approval; compare live UI to this file, not pre-8C PNGs alone.
+
+**Forbidden without approval:** New UI libraries; Stitch merge; scope expansion; chat UI.
 
 ---
 
 ## 18. Related documents
 
 - `docs/IMPLEMENTATION_STATUS.md` — built vs deferred
-- `docs/STITCH_BRIEF.md` — historical Stitch advisory input (Phase 2I-a; not product scope)
-- `docs/design/SCREENSHOT_INDEX.md` — screenshot filenames (captured vs pending)
+- `docs/STITCH_BRIEF.md` — historical Stitch input
+- `docs/design/SCREENSHOT_INDEX.md` — screenshot checklist and drift notes
 - `docs/AGENT_MEMORY.md` — phase history
 - `docs/PRD.md` — product intent
-- `AGENTS.md` — approval gates and agent roles
-- `SECURITY.md` — secrets and service boundaries
+- `AGENTS.md` — approval gates
+- `SECURITY.md` — secrets and boundaries
 
 ---
 
@@ -616,6 +666,9 @@ Label any future mock: **concept only — not implemented**.
 
 | Date | Change |
 |------|--------|
-| 2026-05-20 | Initial DESIGN.md for Phase 1G Courses Frontend UI guidance |
-| 2026-05-22 | **v2** — NotebookLM-inspired study workspace spec; materials + generate; tokens; generated plan + processing sections; styling guide (Phase 2I-c) |
-| 2026-05-30 | **Phase 8B** — align wording with **2J**/**8A** implementation; tokens.css exists; §7.14–7.18 for implemented screens; §14 reframed (new features vs presentation) |
+| 2026-05-20 | Initial DESIGN.md (Phase 1G) |
+| 2026-05-22 | **v2** — NotebookLM-inspired spec; tokens; generate/plan sections |
+| 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
+| 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
+| 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-01 | **Phase A** — Platform note: browser-based web app only; responsive = web reflow; no native mobile/app-store scope |

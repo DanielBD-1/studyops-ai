@@ -500,7 +500,7 @@ export default function StudyMaterialDetail() {
 
   if (loading) {
     return (
-      <main className="page page--reading page--material-detail material-workspace">
+      <main className="page page--cockpit page--material-detail material-workspace">
         <LoadingState message="Loading study material…" />
       </main>
     );
@@ -508,7 +508,7 @@ export default function StudyMaterialDetail() {
 
   if (notFound) {
     return (
-      <main className="page page--reading page--material-detail material-workspace">
+      <main className="page page--cockpit page--material-detail material-workspace">
         <h1 className="page__title--tight">Study material not found</h1>
         <p className="not-found__text">This study material may have been deleted.</p>
         <Link to="/courses">Back to courses</Link>
@@ -518,7 +518,7 @@ export default function StudyMaterialDetail() {
 
   if (error || !material) {
     return (
-      <main className="page page--reading page--material-detail material-workspace">
+      <main className="page page--cockpit page--material-detail material-workspace">
         <ErrorMessage message={error ?? 'Failed to load study material'} />
         <Button variant="secondary" onClick={loadMaterial}>
           Try again
@@ -560,7 +560,7 @@ export default function StudyMaterialDetail() {
     (!planHistoryLoading && planHistoryError == null);
 
   return (
-    <main className="page page--reading page--material-detail material-workspace">
+    <main className="page page--cockpit page--material-detail material-workspace">
       <PageHeader
         intro
         title={material.title}
@@ -572,61 +572,196 @@ export default function StudyMaterialDetail() {
         }}
       />
 
-      <section className="material-workspace__editor" aria-label="Edit study material">
-        <div className="section__header-row">
-          <h2 className="section__title">Source document</h2>
-          <p className="section__subtitle">Reading and editing workspace</p>
+      <div className="material-workspace__cockpit">
+        <div className="material-workspace__cockpit-source">
+          <section className="material-workspace__editor" aria-label="Edit study material">
+            <div className="section__header-row">
+              <h2 className="section__title">Source document</h2>
+              <p className="section__subtitle">Reading and editing workspace</p>
+            </div>
+            <FormCard title="Edit study material" className="material-workspace__editor-card">
+              {hasUnsavedChanges && (
+                <p className="material-workspace__unsaved-hint" role="status">
+                  Unsaved changes
+                </p>
+              )}
+              <form onSubmit={handleSave} className="form-stack material-workspace__editor-form">
+                <Input
+                  id="material-title-edit"
+                  label="Title"
+                  value={title}
+                  onChange={setTitle}
+                  required
+                />
+                <label htmlFor="material-source-type" className="field">
+                  Source type
+                  <select
+                    id="material-source-type"
+                    value={sourceType}
+                    onChange={(e) =>
+                      setSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
+                    }
+                    className="field__select"
+                  >
+                    <option value="manual">Manual entry</option>
+                    <option value="paste">Pasted text</option>
+                  </select>
+                </label>
+                <Textarea
+                  id="material-content-edit"
+                  label="Study material"
+                  value={content}
+                  onChange={setContent}
+                  rows={12}
+                  reading
+                  required
+                />
+                {saveError && <ErrorMessage message={saveError} />}
+                <div className="material-workspace__editor-actions">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={saving || deleting || generating || importingAny}
+                  >
+                    {saving ? 'Saving…' : 'Save changes'}
+                  </Button>
+                </div>
+              </form>
+            </FormCard>
+          </section>
         </div>
-        <FormCard title="Edit study material" className="material-workspace__editor-card">
-          {hasUnsavedChanges && (
-            <p className="material-workspace__unsaved-hint" role="status">
-              Unsaved changes
-            </p>
-          )}
-          <form onSubmit={handleSave} className="form-stack material-workspace__editor-form">
-            <Input
-              id="material-title-edit"
-              label="Title"
-              value={title}
-              onChange={setTitle}
-              required
-            />
-            <label htmlFor="material-source-type" className="field">
-              Source type
-              <select
-                id="material-source-type"
-                value={sourceType}
-                onChange={(e) =>
-                  setSourceType(/** @type {'manual' | 'paste'} */ (e.target.value))
-                }
-                className="field__select"
-              >
-                <option value="manual">Manual entry</option>
-                <option value="paste">Pasted text</option>
-              </select>
-            </label>
-            <Textarea
-              id="material-content-edit"
-              label="Study material"
-              value={content}
-              onChange={setContent}
-              rows={12}
-              reading
-              required
-            />
-            {saveError && <ErrorMessage message={saveError} />}
-            <div className="material-workspace__editor-actions">
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={saving || deleting || generating || importingAny}
-              >
-                {saving ? 'Saving…' : 'Save changes'}
+
+        <aside className="material-workspace__cockpit-ai" aria-label="AI study cockpit">
+          <section
+            className="ai-panel material-workspace__generate"
+            aria-labelledby="generate-heading"
+          >
+            <div className="ai-panel__header">
+              <h2 id="generate-heading" className="ai-panel__title">
+                Generate study plan
+              </h2>
+              <p className="ai-panel__lead">
+                Uses your last saved material to build a summary, tasks, and flashcards.
+              </p>
+            </div>
+            {hasUnsavedChanges && (
+              <p className="ai-panel__hint ai-panel__hint--warning" role="status">
+                Save changes before generating — generation uses your last saved material.
+              </p>
+            )}
+            {generateError && <ErrorMessage message={generateError} />}
+            <div className="ai-panel__actions">
+              <Button variant="primary" disabled={generateDisabled} onClick={handleGenerate}>
+                {generating ? 'Processing with AI…' : 'Generate study plan'}
               </Button>
             </div>
-          </form>
-        </FormCard>
-      </section>
+            {generating && (
+              <div className="ai-panel__loading ai-panel__loading--active" aria-live="polite">
+                <LoadingState message="Processing with AI…" />
+              </div>
+            )}
+          </section>
+
+          {showPlanSection && (
+            <section
+              className="material-workspace__plan"
+              aria-labelledby="saved-plan-heading"
+            >
+              <div className="section__header-row">
+                <h2 id="saved-plan-heading" className="section__title section__title--sm">
+                  Generated study plan
+                </h2>
+                <p className="section__subtitle">Latest AI output for this material</p>
+              </div>
+              {planLoading && (
+                <p className="plan-panel__status plan-panel__status--loading">
+                  Loading saved plan…
+                </p>
+              )}
+              {planLoadError && !planLoading && (
+                <div className="plan-panel__error">
+                  <ErrorMessage message={planLoadError} />
+                  <Button variant="secondary" onClick={loadSavedPlan} disabled={planLoading}>
+                    Try again
+                  </Button>
+                </div>
+              )}
+              {plan && !planLoading && (
+                <GeneratedPlanSection
+                  plan={plan}
+                  savedAt={savedAt}
+                  onClear={handleClearPlan}
+                  clearDisabled={generating || saving || deleting || clearing || importingAny}
+                  clearing={clearing}
+                  onImport={canImportPlan ? handleImportPlan : undefined}
+                  importDisabled={
+                    generating ||
+                    saving ||
+                    deleting ||
+                    clearing ||
+                    importingAny ||
+                    hasUnsavedChanges
+                  }
+                  importing={importing}
+                  importProgress={importProgress}
+                  onImportFlashcards={canImportFlashcards ? handleImportFlashcards : undefined}
+                  importFlashcardsDisabled={
+                    generating ||
+                    saving ||
+                    deleting ||
+                    clearing ||
+                    importingAny ||
+                    hasUnsavedChanges
+                  }
+                  importingFlashcards={importingFlashcards}
+                  importFlashcardsProgress={importFlashcardsProgress}
+                />
+              )}
+              {importError && plan && !planLoading && (
+                <div className="plan-panel__feedback">
+                  <ErrorMessage message={importError} />
+                </div>
+              )}
+              {importSuccess && plan && !planLoading && (
+                <p className="plan-panel__status plan-panel__status--success">
+                  {importSuccess}{' '}
+                  <Link to={`/courses/${material.courseId}`}>View tasks on course</Link>
+                </p>
+              )}
+              {clearError && plan && !planLoading && (
+                <div className="plan-panel__feedback">
+                  <ErrorMessage message={clearError} />
+                </div>
+              )}
+            </section>
+          )}
+
+          {showPlanHistorySection && (
+            <section
+              className="material-workspace__plan-history"
+              aria-labelledby="plan-history-heading"
+            >
+              <div className="section__header-row">
+                <h2 id="plan-history-heading" className="section__title section__title--sm">
+                  Plan history
+                </h2>
+                <p className="section__subtitle">Previous generated plan versions</p>
+              </div>
+              <GeneratedPlanHistorySection
+                materialId={materialId}
+                plans={planHistory}
+                loading={planHistoryLoading}
+                error={planHistoryError}
+                onRetry={loadPlanHistory}
+                disabled={historyDisabled}
+                onActivated={handleActivePlanUpdated}
+                onMutated={loadPlanHistory}
+                handleAuthError={handleAuthError}
+              />
+            </section>
+          )}
+        </aside>
+      </div>
 
       <section
         className="section material-workspace__library"
@@ -661,125 +796,6 @@ export default function StudyMaterialDetail() {
           </p>
         )}
       </section>
-
-      <section
-        className="ai-panel material-workspace__generate"
-        aria-labelledby="generate-heading"
-      >
-        <div className="ai-panel__header">
-          <h2 id="generate-heading" className="ai-panel__title">
-            Generate study plan
-          </h2>
-          <p className="ai-panel__lead">
-            Uses your last saved material to build a summary, tasks, and flashcards.
-          </p>
-        </div>
-        {hasUnsavedChanges && (
-          <p className="ai-panel__hint ai-panel__hint--warning" role="status">
-            Save changes before generating — generation uses your last saved material.
-          </p>
-        )}
-        {generateError && <ErrorMessage message={generateError} />}
-        <div className="ai-panel__actions">
-          <Button variant="primary" disabled={generateDisabled} onClick={handleGenerate}>
-            {generating ? 'Processing with AI…' : 'Generate study plan'}
-          </Button>
-        </div>
-        {generating && (
-          <div className="ai-panel__loading ai-panel__loading--active" aria-live="polite">
-            <LoadingState message="Processing with AI…" />
-          </div>
-        )}
-      </section>
-
-      {showPlanSection && (
-        <section
-          className="section material-workspace__plan"
-          aria-labelledby="saved-plan-heading"
-        >
-          <div className="section__header-row">
-            <h2 id="saved-plan-heading" className="section__title">
-              Generated study plan
-            </h2>
-            <p className="section__subtitle">Latest AI output for this material</p>
-          </div>
-          {planLoading && (
-            <p className="plan-panel__status plan-panel__status--loading">
-              Loading saved plan…
-            </p>
-          )}
-          {planLoadError && !planLoading && (
-            <div className="plan-panel__error">
-              <ErrorMessage message={planLoadError} />
-              <Button variant="secondary" onClick={loadSavedPlan} disabled={planLoading}>
-                Try again
-              </Button>
-            </div>
-          )}
-          {plan && !planLoading && (
-            <GeneratedPlanSection
-              plan={plan}
-              savedAt={savedAt}
-              onClear={handleClearPlan}
-              clearDisabled={generating || saving || deleting || clearing || importingAny}
-              clearing={clearing}
-              onImport={canImportPlan ? handleImportPlan : undefined}
-              importDisabled={
-                generating || saving || deleting || clearing || importingAny || hasUnsavedChanges
-              }
-              importing={importing}
-              importProgress={importProgress}
-              onImportFlashcards={canImportFlashcards ? handleImportFlashcards : undefined}
-              importFlashcardsDisabled={
-                generating || saving || deleting || clearing || importingAny || hasUnsavedChanges
-              }
-              importingFlashcards={importingFlashcards}
-              importFlashcardsProgress={importFlashcardsProgress}
-            />
-          )}
-          {importError && plan && !planLoading && (
-            <div className="plan-panel__feedback">
-              <ErrorMessage message={importError} />
-            </div>
-          )}
-          {importSuccess && plan && !planLoading && (
-            <p className="plan-panel__status plan-panel__status--success">
-              {importSuccess}{' '}
-              <Link to={`/courses/${material.courseId}`}>View tasks on course</Link>
-            </p>
-          )}
-          {clearError && plan && !planLoading && (
-            <div className="plan-panel__feedback">
-              <ErrorMessage message={clearError} />
-            </div>
-          )}
-        </section>
-      )}
-
-      {showPlanHistorySection && (
-        <section
-          className="section material-workspace__plan-history"
-          aria-labelledby="plan-history-heading"
-        >
-          <div className="section__header-row">
-            <h2 id="plan-history-heading" className="section__title">
-              Plan history
-            </h2>
-            <p className="section__subtitle">Previous generated plan versions</p>
-          </div>
-          <GeneratedPlanHistorySection
-            materialId={materialId}
-            plans={planHistory}
-            loading={planHistoryLoading}
-            error={planHistoryError}
-            onRetry={loadPlanHistory}
-            disabled={historyDisabled}
-            onActivated={handleActivePlanUpdated}
-            onMutated={loadPlanHistory}
-            handleAuthError={handleAuthError}
-          />
-        </section>
-      )}
 
       <section className="danger-zone material-workspace__danger">
         <h2 className="danger-zone__title">Danger zone</h2>

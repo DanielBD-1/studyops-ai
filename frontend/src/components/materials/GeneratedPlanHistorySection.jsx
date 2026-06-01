@@ -164,8 +164,8 @@ export default function GeneratedPlanHistorySection({
   const previewSnippet = previewPlan ? getPlanSummarySnippet(previewPlan) : '';
 
   return (
-    <FormCard className="plan-history">
-      <p className="plan-disclaimer">
+    <FormCard className="plan-history plan-history--compact">
+      <p className="plan-disclaimer plan-history__intro">
         Previous generated plans for this material. Only metadata is listed until you preview an
         inactive version.
       </p>
