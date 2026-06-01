@@ -1,10 +1,10 @@
-# DESIGN.md — StudyOps AI (v2.2)
+# DESIGN.md — StudyOps AI (v2.3)
 
-**Status:** Phase **2I-c** UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**; **approved visual direction** codified Phase **A** (docs only); **dashboard decision layout, chart rules, course accents, and AI command emphasis** codified Phase **BX-1** (docs only)
+**Status:** Phase **2I-c** UI/UX specification; styling applied Phase **2J**; polish refined Phase **8A**; global shell + workspace presentation complete Phase **8C-1** through **8C-3D**; **approved visual direction** codified Phase **A** (docs only); **dashboard decision layout, chart rules, course accents, and AI command emphasis** codified Phase **BX-1** (docs only); **Stitch-selected visual presentation** codified Phase **BX-I1** (docs only)
 
-**Last updated:** 2026-06-01 (Phase **BX-1** — direction delta; prototype alignment)
+**Last updated:** 2026-06-01 (Phase **BX-I1** — Stitch visual delta; dark graphite / glass command center)
 
-**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20); partial updates through Phase **9B** / **12A-0**; v2.1 through Phase **A**
+**Supersedes:** Phase 1G `DESIGN.md` (2026-05-20); partial updates through Phase **9B** / **12A-0**; v2.1 through Phase **A**; v2.2 through Phase **BX-1**
 
 ---
 
@@ -18,19 +18,27 @@
 | **`frontend/src/styles/tokens.css`** | **Implementation source of truth** for exact color, spacing, radius, shadow, and layout token **values** |
 | **`docs/STITCH_BRIEF.md`** | **Historical** Stitch session input (Phase 2I — advisory); informed v2; **not** current product scope |
 | **`docs/design/PROTOTYPE_REFERENCES.md`** | **BX-0** Canvas + prototype PNG direction — **reference only**; informs BX-1+ presentation; **not** implementation scope |
-| **Stitch mockups / exports** | **Inspiration only** — not source of truth; never merge HTML/React into the repo |
+| **`docs/design/STITCH_SELECTED_REFERENCE.md`** | **BX-S** — **selected external visual reference** (Phase BX-S); records approved Stitch direction; **reference only**; **not** production code or product scope |
+| **`docs/design/STITCH_VISUAL_STYLE_GUIDE.md`** | **BX-S** — Stitch palette, typography, glass, and component **principles** — **reference only**; informs token and CSS phases; **never** merge Stitch-generated HTML/React/CSS into `frontend/src` |
+| **Stitch mockups / exports** (`docs/design/screenshots/stitch-*.png`) | **Inspiration only** — not source of truth; never merge HTML/React into the repo |
 | **Canvas prototype (`.canvas.tsx`)** | **Layout/hierarchy reference only** — IDE-managed; **never** copy into `frontend/src` (see `PROTOTYPE_REFERENCES.md`) |
 | **`docs/design/screenshots/*.png`** | **Reference captures only** — layout/flow hints; may be **outdated** (see `SCREENSHOT_INDEX.md`); **`proto-*`** = BX-0 prototype captures when present |
 
 **Platform:** StudyOps AI is a **browser-based web application** (React in the browser). All guidance in this file applies to the **web app UI** only. **Desktop and laptop browsers** are the primary presentation target; smaller viewports are supported through **responsive web layout** in the browser—not a native iOS/Android app, app-store product, or phone-first native experience.
 
-**Approved visual identity (Phase A + BX-1):** StudyOps AI is a **modern AI study command center for students** — **calm enough for serious studying**, **smart enough to feel AI-powered**, and **polished enough to feel like a real product** rather than a student CRUD or admin panel.
+**Approved visual identity (Phase A + BX-1 + BX-I1):** StudyOps AI is a **modern AI study command center for students** — **calm enough for serious studying**, **smart enough to feel AI-powered**, and **polished enough to feel like shipping-quality SaaS** rather than a student CRUD app, generic admin console, or BI dashboard.
 
-The dashboard should answer **“What should I study next?”** before it shows aggregate counts. **Charts and progress visuals** support **student decisions** (what to do, where time went, what is overdue)—not corporate KPI theater. **Course surfaces** carry light **accent identity** so subjects feel distinct without gamified chrome.
+**Selected presentation skin (Phase BX-S / BX-I1 — not yet in `tokens.css` or production UI):** An **accessible dark graphite / deep slate** command-center environment with **frosted glass** card surfaces, **electric blue** primary actions, **violet** AI/command accents, **cyan** data and focus accents, and a small **course accent palette** (stable per-course identity). The product should feel like a **focused study flight deck**—not beige/indigo calm UI, not a hacker terminal, and not corporate analytics chrome.
 
-It combines a **NotebookLM-style source workspace** (source-first, readable) with **Linear/Raycast-style** command clarity (filters, status, focused actions). **Cursor** informs the **source/editor + AI sidecar** on material detail—the **AI command panel** is a **first-class product surface**, not a sidebar afterthought. **Claude/ChatGPT artifacts** inform **durable AI outputs** (saved plan, bounded history, flashcard study card), not open-ended chat.
+The **dashboard** is a **decision hub**: it answers **“What should I study next?”** before aggregate counts. **Charts and progress visuals** support **student decisions** (what to do, where time went, what is overloaded)—not KPI theater. **Course surfaces** carry light **accent identity** so subjects feel distinct without gamified chrome.
+
+On **material detail**, the **Source | AI cockpit** stays the signature layout: a **source workspace** (read/edit/save) beside a **strong AI command panel** (generate → plan artifact → history → imports → plan flashcard study)—both columns **first-class**; the AI stack should **visually evolve** toward the Stitch **dark/glass command column** in later approved implementation phases (see §4.4, §6.3).
+
+It combines a **NotebookLM-style source workspace** (source-first, readable) with **Linear/Raycast-style** command clarity (filters, status, focused actions). **Cursor** informs the **source/editor + AI sidecar** layout. **Claude/ChatGPT artifacts** inform **durable AI outputs** (saved plan, bounded history, flashcard study card), not open-ended chat.
 
 **Prototype alignment (BX-0 / BX-1):** `docs/design/PROTOTYPE_REFERENCES.md` and optional `proto-*.png` captures describe richer **student-facing data presentation** than today’s stat-tile-only dashboard. They inform **presentation direction** only until a separately approved implementation phase.
+
+**Stitch alignment (BX-S / BX-I1):** `docs/design/STITCH_SELECTED_REFERENCE.md`, `docs/design/STITCH_VISUAL_STYLE_GUIDE.md`, and `stitch-*.png` screenshots are the **approved external visual reference** for palette, glass, hierarchy, and cockpit emphasis. They are **reference only**—same authority class as other mockups; **do not** copy Stitch-generated code into `frontend/src`.
 
 **Design balance:** **trust** · **clarity** · **motivation** · **delight** · **focus** — never sacrifice trust or clarity for decoration; never confuse motivation with gamification.
 
@@ -42,9 +50,9 @@ It combines a **NotebookLM-style source workspace** (source-first, readable) wit
 
 ## 1. Purpose and scope
 
-This document defines how the **implemented** StudyOps AI **web** frontend should look and behave in the browser—and the **approved presentation direction** for the next visual passes. Styling was applied in Phase **2J**, refined in Phase **8A**, and workspace presentation completed in Phase **8C-1** through **8C-3D** (`AppShell`, `PageHeader`, cockpit layouts, component families). Phase **A** aligned this spec with the approved hybrid direction and current product state (including **bounded generated plan history**). Phase **BX-1** adds the **decision-first dashboard**, **honest chart rules**, **course accent identity**, and **AI command-panel emphasis** without changing product scope.
+This document defines how the **implemented** StudyOps AI **web** frontend should look and behave in the browser—and the **approved presentation direction** for the next visual passes. Styling was applied in Phase **2J**, refined in Phase **8A**, and workspace presentation completed in Phase **8C-1** through **8C-3D** (`AppShell`, `PageHeader`, cockpit layouts, component families). Phase **A** aligned this spec with the approved hybrid direction and current product state (including **bounded generated plan history**). Phase **BX-1** adds the **decision-first dashboard**, **honest chart rules**, **course accent identity**, and **AI command-panel emphasis** without changing product scope. Phase **BX-I1** adds the **Stitch-selected visual presentation direction** (dark graphite / glass / accent system) without changing product scope.
 
-**BX-1 is documentation only.** It does **not** implement charts in React/CSS, add chart libraries, extend dashboard APIs, or start Phase **B4**. **Further visual implementation** (including dashboard charts and course accents in code) requires explicit human approval after Supervisor Review of Phase BX-1.
+**BX-1 and BX-I1 are documentation only.** They do **not** implement dark theme, charts, course accents, sidebar shell, `tokens.css` changes, or frontend/CSS work; do **not** add chart libraries, fonts/CDN, or extend dashboard APIs; and do **not** start Phase **B4**. **Further visual implementation** (tokens, shell skin, dashboard hero, charts, course accents, material cockpit styling) requires **separate** explicit human approval after Supervisor Review of each phase (e.g. BX-I2+).
 
 **Not in scope for this document:** Native mobile apps (iOS/Android), app-store listings or screenshots, bottom-tab native navigation, push notifications, device-specific mobile features, or any design that implies a installable native product. Mobile mentions elsewhere mean **responsive web behavior** only.
 
@@ -100,7 +108,7 @@ StudyOps AI is a **source-first learning workspace** where a student organizes *
 
 | Quality | Intent |
 |---------|--------|
-| **Calm & serious** | Warm canvas, readable long-form text—room to think, not a sterile archive |
+| **Calm & serious** | Focused **dark graphite** canvas (when implemented) or readable surfaces—room to think; long-form material text stays comfortable; not a sterile archive or hacker terminal |
 | **Innovative & AI-forward** | Distinct AI column, processing lane, artifact-style plan—feels like modern productivity SaaS |
 | **Enjoyable & smooth** | Transitions, feedback, and interactions feel responsive and intentional |
 | **Motivating** | Visible progress (counts, completion, saved plan) and encouraging copy—no guilt or hype |
@@ -125,7 +133,7 @@ StudyOps AI is a **source-first learning workspace** where a student organizes *
 | Clear **progress feedback** (e.g. task completion %, import summary, “Last saved”) | Fake achievements, badges for fake milestones |
 | Pleasant **visual hierarchy**—eyes land on the right action | Childish palettes, neon “game UI” colors |
 | **Motivational but mature** copy (“Nice — plan saved”, “You’re set for this material”) | Streak shame, leaderboard pressure, hype |
-| Modern **AI / productivity SaaS** feel (Raycast/Linear clarity + warm workspace) | Chart-heavy dashboards, KPI theater |
+| Modern **AI / productivity SaaS** feel (Raycast/Linear clarity + dark glass command center) | Chart-heavy dashboards, KPI theater |
 | Small **moments of delight** after generate, clear plan, complete task, successful import | Reward popups, daily login bonuses |
 
 ### Tone
@@ -140,7 +148,7 @@ Supportive, direct, and **lightly encouraging**—like a capable study partner, 
 
 | Avoid feeling | Instead aim for |
 |---------------|-----------------|
-| Dry / boring / purely academic | Warm, alive, product-grade |
+| Dry / boring / purely academic | Alive, product-grade command center |
 | Student-project CRUD / admin panel | Study command center + Source \| AI cockpit |
 | Generic BI / KPI dashboard | Decision-first dashboard + honest charts |
 | Childish / gamified | Polished + subtle delight |
@@ -196,10 +204,14 @@ For each inspiration source: what StudyOps **borrows**, what it **must not copy*
 
 Implemented Phase **8C-1** (`frontend/src/components/layout/AppShell.jsx`):
 
-- Sticky top bar: brand link, main nav (**Dashboard**, **Courses**, **Tasks**, **Flashcards**, **Trello**), optional **Admin** when `user?.role === 'admin'`, **Log out**
+- Sticky **top navigation** bar: brand link, main nav (**Dashboard**, **Courses**, **Tasks**, **Flashcards**, **Trello**), optional **Admin** when `user?.role === 'admin'`, **Log out**
 - Workspace routes render **inside** `AppShell`; auth routes (`/`, `/register`) render **outside**
 
-**Do not add:** Sidebar navigation hub, Search Library, Source Drawer, AI Sidebar as **new** product features.
+**MVP shell (BX-I1):** The **implemented and approved navigation model** remains **top nav**—not a permanent sidebar hub. Stitch mockups that show a **left sidebar** are **visual reference only** for chrome density, active states, and frosted glass; they do **not** authorize sidebar implementation. **Migrating to a sidebar shell** requires a **separate approved shell phase** (layout, responsive behavior, focus order, and Security Review)—not BX-I1, not BX-I2, and not implied by selecting Stitch as the visual reference.
+
+**Later visual treatment (approved direction, not yet built):** Restyle the existing top bar with **dark frosted glass**, electric-blue active nav, and command-center brand—without changing route structure or nav items.
+
+**Do not add:** Sidebar navigation hub, Search Library, Source Drawer, AI Sidebar as **new** product features—unless a future phase is explicitly approved beyond visual reference.
 
 ### 4.2 Page header — `PageHeader`
 
@@ -237,7 +249,7 @@ Flagship **hybrid cockpit** (`StudyMaterialDetail.jsx`) — **Source | AI** is t
 
 **≥1024px:** Two-column grid (`1fr | 1fr`); AI column gets subtle background, border, **3px primary top rule** so the command stack reads as a **dedicated product surface**. **&lt;1024px:** Stack **Source first**, then full AI stack (generate → plan → history → imports → study card).
 
-**BX-1:** Strengthen visual parity between columns—source is not “the app” with AI attached; both columns are **first-class** (see §6.3, §6.11, §6.6).
+**BX-1 / BX-I1:** Strengthen visual parity between columns—source is not “the app” with AI attached; both columns are **first-class** (see §6.3, §6.11, §6.6). **Approved visual target (later implementation):** Source column uses a **darker editor well** (readable long-form text); AI column uses **violet-tinted frosted glass**, stronger border/glow, and a clear **command stack** hierarchy matching Stitch cockpit references—without adding chat UI or new product features.
 
 ### 4.5 Other layout patterns
 
@@ -289,7 +301,7 @@ Charts and progress visuals are **presentation direction** in this file until a 
 | **No decoration** | No sparklines on stat tiles, no chart junk, no generic admin/BI dashboard patterns. |
 | **Missing data** | If a visual needs fields the API does not expose (e.g. due dates for a timeline, weekly buckets for focus), show **empty state** or label **future API / deferred concept**—do not invent values. |
 | **Libraries** | **No** chart libraries or npm chart packages without **separate human approval** (same gate as Tailwind/fonts). Prefer **CSS/SVG** simple bars or honest tables until approved otherwise. |
-| **Implementation boundary** | **DESIGN.md** may describe charts; **implementing** them in React/CSS is a **later approved phase** (not BX-1, not automatic B4). **Adding API fields** for chart series is a **separate approved product/backend phase**. |
+| **Implementation boundary** | **DESIGN.md** may describe charts; **implementing** them in React/CSS is a **later approved phase** (not BX-1, not BX-I1, not automatic B4). **Adding API fields** for chart series is a **separate approved product/backend phase**. |
 
 **Candidate visuals (when data exists or API is extended):**
 
@@ -304,19 +316,28 @@ Charts and progress visuals are **presentation direction** in this file until a 
 
 ## 5. Design tokens
 
-**Exact values:** `frontend/src/styles/tokens.css` — **authoritative** for hex, rem sizes, shadows, and layout widths. This section describes **semantic roles** only; if §5 ever disagrees with `tokens.css`, **trust `tokens.css`**.
+**Exact values:** `frontend/src/styles/tokens.css` — **authoritative** for hex, rem sizes, shadows, and layout widths. This section describes **semantic roles** only; if §5 ever disagrees with `tokens.css`, **trust `tokens.css`** for live values until a separately approved token phase (e.g. **BX-I2**) updates them.
 
-| Role | Semantic guidance |
-|------|-------------------|
-| **Canvas** | Warm paper `--color-bg` |
-| **Surfaces** | White cards `--color-surface` on canvas |
-| **Text** | Charcoal primary; muted secondary/subtle tertiary |
-| **Primary** | Calm indigo `--color-primary` — actions, links, focus ring |
-| **AI zones** | `--color-primary-subtle`, `--color-primary-border`; top accent on AI column |
-| **Admin** | `--color-admin-accent` / `--color-admin-subtle` — admin-only surfaces |
+**Today (implemented):** Production UI still uses the **Phase 8A / B1–B3 warm canvas** and **calm indigo** primary from `tokens.css`. **Approved target (BX-I1 — not yet implemented):** Stitch-aligned **dark graphite command center** semantics below.
+
+| Role | Semantic guidance (approved target) |
+|------|-------------------------------------|
+| **Canvas** | **Deep graphite / deep slate** app background — focused command-center atmosphere (Stitch reference: deep graphite family, e.g. ~`#0F172A` / `#0b1326` range) |
+| **Shell chrome** | **Frosted glass** top bar — translucent slate, subtle border, backdrop blur; not flat white bar |
+| **Surfaces** | **Glass cards** — translucent slate elevations on canvas; readable contrast; optional raised surface for hero/modals |
+| **Text** | **On-dark** primary, muted, and subtle tiers — light text on dark canvas/surfaces (meet WCAG body contrast) |
+| **Primary** | **Electric blue** — primary CTAs, links, focus ring, key nav active state (Stitch reference: electric blue / primary blue family) |
+| **AI accent** | **Violet** — AI panel, generate/processing, plan artifact chrome, history emphasis (distinct from primary blue) |
+| **Data accent** | **Cyan** — charts, focus metrics, data visualization series (honest stats only) |
+| **Course accents** | Small rotating palette (e.g. **amber, rose, emerald**) for per-course borders/pills — derived from course id hash or future optional field; accessible, not neon game UI |
+| **AI zones** | Violet-tinted glass + subtle glow on active AI focus; AI column top accent; source editor uses darker **well** surface |
+| **Charts** | Dedicated **chart track / fill / series** roles mapped to primary, data cyan, and course accents — for CSS/SVG only until chart libraries are separately approved |
+| **Admin** | `--color-admin-accent` / `--color-admin-subtle` — admin-only surfaces (readable on dark canvas) |
 | **Danger** | Restrained red; danger zones only |
 
-**Typography:** System stack in `tokens.css` unless a human separately approves one webfont. Material body: ~16px, `line-height-body` ~1.6. Use **tabular numerals** for stats, timers, and “Card X of N”.
+**Reference-level palette (not `tokens.css` values):** See `docs/design/STITCH_VISUAL_STYLE_GUIDE.md` for Stitch export names (electric blue, vibrant violet, cyan tertiary, subject accent colors). Implementation phases map these into semantic CSS variables in `tokens.css`—do not paste Stitch YAML verbatim as production truth without review.
+
+**Typography:** **System stack** in `tokens.css` unless a human separately approves a webfont (e.g. Hanken Grotesk in Stitch reference requires CDN/package approval). Material body: ~16px, `line-height-body` ~1.6. Use **tabular numerals** for stats, timers, and “Card X of N”. Display/hero may use heavier weights when fonts are approved.
 
 **Implementation notes:**
 
@@ -347,7 +368,7 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Purpose:** Primary **forms and editors**—the “instrument” the student works in.
 
-**Implementation:** `FormCard` (+ `material-workspace__editor-card` on material detail): white surface, `elevation-2`, optional **left accent** on source editor.
+**Implementation:** `FormCard` (+ `material-workspace__editor-card` on material detail): instrument surface, `elevation-2`, optional **left accent** on source editor. **Target (BX-I1):** source editor on a **darker well**; glass instrument card on graphite canvas when tokens are updated.
 
 **Use:** Auth forms, create course/material, edit course title, edit material, task create/edit, flashcard create/edit, Trello credential steps.
 
@@ -358,6 +379,8 @@ Presentation families map to existing React/CSS. **No new components or behavior
 **Structure:** `ai-panel__header` (title + lead), `ai-panel__hint` (warnings), `ai-panel__actions` (primary CTA), `ai-panel__loading` (**Processing Lane** when active). Stacks with **GeneratedPlanSection** (artifact), **Plan History**, **Import Toolbar**, and plan **Study Card** in the AI column (§4.4).
 
 **Use:** **Generate study plan** on material detail; visually distinct from Instrument Cards (tint, border, cockpit AI column rule at ≥1024px).
+
+**Target presentation (BX-I1 — later CSS phases):** Move the AI command panel and full AI column toward Stitch’s **dark/glass command stack**—violet AI accent, electric-blue primary **Generate** CTA, frosted surfaces, restrained glow on processing/active plan—not a light beige side form. **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
 
 **Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column. AI column should read as **“command stack”** in hierarchy—equal weight to source editor, not an afterthought sidebar.
 
@@ -677,16 +700,21 @@ Do **not** design or implement **new product features** beyond **`docs/IMPLEMENT
 - **General chat route** or ever-scroll chat as primary AI surface
 - Permanent sidebar **hub** beyond minimal top bar
 - Footer links (Privacy, Terms, Help Center) unless separately approved
-- Dark hacker-terminal default or medical/clinical teal palette
+- **Dark hacker-terminal** UI (matrix chrome, unreadable neon, monospace “terminal” aesthetic) or **medical/clinical** teal palette
+- **Unreadable neon** or decorative glow that fails contrast/accessibility
 - **Native mobile / app-store** product scope (responsive web only—see §0)
 - **Canvas prototype code** copied into production (`frontend/src`)
 - Trello OAuth, stored credentials, PDF upload, payments, polling/WebSockets
 - New routes, APIs, tables, or backend changes **justified by this file**
-- **Phase B4** global styling rollout—**not started** by BX-1
+- **Phase B4** global styling rollout—**not started** by BX-1 or BX-I1
 
-**In scope for presentation (documented, not necessarily built):** Bounded **plan history** on material detail (**11A-3**); tasks, flashcards, Trello, focus, dashboard, admin polish; **BX-1** direction for decision dashboard, honest charts, course accents, AI command emphasis.
+**Allowed presentation direction (BX-I1 — documented, not built):** **Accessible dark SaaS** / **graphite study command center** with frosted glass and electric blue / violet / cyan accents—distinct from hacker-terminal and hospital/clinical tropes.
 
-**BX-1 boundaries:** This file may **describe** charts and dashboard hierarchy. **Building** them requires later approval. **Dashboard API extensions** (time buckets, due dates, plan coverage per course) require a **separate approved backend/product phase**.
+**In scope for presentation (documented, not necessarily built):** Bounded **plan history** on material detail (**11A-3**); tasks, flashcards, Trello, focus, dashboard, admin polish; **BX-1** direction for decision dashboard, honest charts, course accents, AI command emphasis; **BX-I1** Stitch-selected dark/glass/accent skin.
+
+**BX-1 / BX-I1 boundaries:** This file may **describe** charts, dashboard hierarchy, dark theme, and Stitch-aligned surfaces. **Building** them requires later approval (BX-I2+). **BX-I1 does not approve:** `tokens.css` edits, frontend/CSS implementation, dark theme in production, sidebar shell, chart UI, font/CDN/package additions, backend/API changes, or **B4**.
+
+**Dashboard API extensions** (time buckets, due dates, plan coverage per course) require a **separate approved backend/product phase**.
 
 Label future mocks: **concept only — not implemented** or **future API / deferred**.
 
@@ -702,7 +730,8 @@ Label future mocks: **concept only — not implemented** or **future API / defer
 - Do **not** show fake dashboard stats or **fabricated chart series**
 - Do **not** add chart libraries or decorative sparklines without approval
 - Do **not** copy Canvas prototype `.tsx` into `frontend/src`
-- Do **not** treat BX-1 doc updates as approval for **B4** or chart implementation
+- Do **not** treat BX-1 or BX-I1 doc updates as approval for **B4**, **tokens.css** changes, dark theme in code, sidebar shell, or chart implementation
+- Do **not** confuse **accessible dark graphite SaaS** with **hacker-terminal** or unreadable neon styling
 - Do **not** add interactive checkboxes on generated tasks in plan display
 - Do **not** treat outdated screenshots as product truth
 - Do **not** add chat UI without separate approval
@@ -713,17 +742,21 @@ Label future mocks: **concept only — not implemented** or **future API / defer
 
 | Situation | Allowed |
 |-----------|---------|
-| **Phase A / BX-1** — updating this file | Yes (documentation only) |
-| **Planning / Stitch / prototype** | Historical brief + `PROTOTYPE_REFERENCES.md` + screenshot index; **this file** is presentation authority |
+| **Phase A / BX-1 / BX-I1** — updating this file | Yes (documentation only) |
+| **Planning / Stitch / prototype** | `STITCH_SELECTED_REFERENCE.md` + `STITCH_VISUAL_STYLE_GUIDE.md` + historical brief + `PROTOTYPE_REFERENCES.md` + screenshot index; **this file** is presentation authority |
 | **Phase 2J / 8A / 8C / B1–B3 styling** | **Baseline complete** — further CSS/React presentation requires new approval |
-| **BX-1 direction in code** (dashboard hero, charts, course accents) | Requires explicit approval **after Supervisor Review of BX-1** — **not** implied by BX-1 doc edit |
+| **BX-1 direction in code** (dashboard hero, charts, course accents) | Requires explicit approval **after Supervisor Review** — **not** implied by BX-1 doc edit |
+| **BX-I1 Stitch visual direction in code** (dark tokens, glass, accents, cockpit skin) | Requires explicit approval **after Supervisor Review of BX-I1** (e.g. BX-I2+) — **not** implied by BX-I1 doc edit |
+| **Sidebar shell migration** | **Separate** explicit approval — Stitch sidebar is reference-only in BX-I1 |
 | **Chart libraries / new dashboard API fields** | **Separate** explicit approval each |
-| **Phase B4** global styling rollout | **Not started** by BX-1; pending separate gate |
+| **Phase B4** global styling rollout | **Not started** by BX-1 or BX-I1; pending separate gate |
 | **Visual Design Direction implementation** | Requires explicit approval (e.g. `approved — implement … Phase B*`) after Supervisor Review |
 | **Functional feature work** | Follow `IMPLEMENTATION_STATUS`; this file for presentation only |
 | **Scope expansion** | **Never** — PRD + human approval |
 
-**Phase BX-1 (this update):** Documentation only. **Stop** after doc changes; wait for **Supervisor Review** before dashboard charts, course accents in CSS, or **B4**.
+**Phase BX-1:** Documentation only. **Stop** after doc changes; wait for **Supervisor Review** before dashboard charts, course accents in CSS, or **B4**.
+
+**Phase BX-I1 (this update):** Documentation only. **Stop** after doc changes; wait for **Supervisor Review** before **`tokens.css`**, dark theme, shell skin, dashboard hero, charts, course accents, material cockpit styling, sidebar, fonts/CDN, or **B4**.
 
 ---
 
@@ -738,7 +771,9 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 
 **BX-1 (docs only):** Decision-first dashboard hierarchy, chart honesty rules, course accent direction, AI command-panel emphasis—see §4.6–§4.8. **Not yet applied in CSS/React.**
 
-**Further presentation work:** Requires explicit approval; compare live UI to this file + `PROTOTYPE_REFERENCES.md`, not pre-8C PNGs alone.
+**BX-I1 (docs only):** Stitch-selected **dark graphite / glass** command-center presentation, electric blue / violet / cyan accents, course accent palette, top-nav MVP (sidebar reference-only)—see §0, §4.1, §5, §6.3. **Not yet applied in `tokens.css` or React/CSS.**
+
+**Further presentation work:** Requires explicit approval; compare live UI to this file + `STITCH_SELECTED_REFERENCE.md` + `PROTOTYPE_REFERENCES.md`, not pre-8C PNGs alone.
 
 **Forbidden without approval:** New UI libraries (including **chart packages**); Stitch/Canvas merge into `frontend/src`; scope expansion; chat UI; **B4** unless explicitly approved.
 
@@ -750,6 +785,8 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 - `docs/STITCH_BRIEF.md` — historical Stitch input
 - `docs/design/SCREENSHOT_INDEX.md` — screenshot checklist and drift notes
 - `docs/design/PROTOTYPE_REFERENCES.md` — BX-0 Canvas + prototype capture strategy
+- `docs/design/STITCH_SELECTED_REFERENCE.md` — BX-S selected Stitch direction (reference only)
+- `docs/design/STITCH_VISUAL_STYLE_GUIDE.md` — Stitch palette, glass, typography principles (reference only)
 - `docs/AGENT_MEMORY.md` — phase history
 - `docs/PRD.md` — product intent
 - `AGENTS.md` — approval gates
@@ -768,3 +805,4 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
 | 2026-06-01 | **Phase A** — Platform note: browser-based web app only; responsive = web reflow; no native mobile/app-store scope |
 | 2026-06-01 | **Phase BX-1** — Dashboard decision layout (next-up hero, study pulse charts, tertiary stat bands); data visualization rules (honest API-only, no fake KPIs/sparklines/libraries); course accent + active/quiet states; plan coverage deferred; stronger Source \| AI + AI command panel; material cockpit artifact/history/flashcard emphasis; `PROTOTYPE_REFERENCES.md` authority row; BX-1 does not start B4 or chart/API implementation |
+| 2026-06-01 | **Phase BX-I1** — Stitch-selected visual delta: dark graphite/glass AI study command center; electric blue primary, violet AI accent, cyan data accent, course accent palette; dashboard as decision hub; stronger Source \| AI / AI command panel direction; **top nav remains MVP**; Stitch **sidebar reference-only** (separate shell phase); accessible dark SaaS allowed—hacker terminal / unreadable neon / clinical / gamification still forbidden; chart/data honesty retained; `STITCH_SELECTED_REFERENCE.md` + `STITCH_VISUAL_STYLE_GUIDE.md` authority rows; BX-I1 does not approve tokens.css, frontend implementation, sidebar, charts, fonts/CDN, API changes, or B4 |
