@@ -207,7 +207,7 @@ export default function DbFlashcardsSection({
   }
 
   return (
-    <FormCard title="Flashcard library" className="flashcard-library">
+    <FormCard title="Flashcard library" className="flashcard-library flashcard-library--material">
       <p className="flashcard-library__intro plan-disclaimer">
         These flashcards are stored in your account and remain available even if you clear
         the generated plan below.

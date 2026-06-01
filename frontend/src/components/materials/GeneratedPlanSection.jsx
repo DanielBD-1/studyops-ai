@@ -126,27 +126,44 @@ export default function GeneratedPlanSection({
         {tasks.length > 0 && (
           <section className="plan-block plan-block--tasks">
             <h3 className="plan-block__title">Tasks</h3>
-            <ol className="plan-block__list plan-block__list--tasks">
+            <ol className="plan-block__list plan-block__list--tasks plan-task-grid">
               {tasks.map((task, index) => (
                 <li key={`${task.title}-${index}`} className="plan-block__item plan-task-item">
                   <strong className="plan-task-item__title">{task.title}</strong>
                   {task.description ? (
-                    <p className="plan-block__body">{task.description}</p>
+                    <p className="plan-block__body plan-task-item__description">{task.description}</p>
                   ) : null}
-                  <p className="plan-block__meta">
-                    {[
-                      task.priority ? `Priority: ${task.priority}` : null,
-                      task.estimatedMinutes != null
-                        ? `Estimated: ${task.estimatedMinutes} min`
-                        : null,
-                      task.difficulty ? `Difficulty: ${task.difficulty}` : null,
-                      Array.isArray(task.tags) && task.tags.length > 0
-                        ? `Tags: ${task.tags.join(', ')}`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </p>
+                  {(task.priority ||
+                    task.estimatedMinutes != null ||
+                    task.difficulty ||
+                    (Array.isArray(task.tags) && task.tags.length > 0)) && (
+                    <div className="plan-task-item__badges" aria-label="Task details">
+                      {task.priority ? (
+                        <span
+                          className={`plan-task-item__badge plan-task-item__badge--priority plan-task-item__badge--priority-${task.priority}`}
+                        >
+                          {task.priority} priority
+                        </span>
+                      ) : null}
+                      {task.estimatedMinutes != null ? (
+                        <span className="plan-task-item__badge plan-task-item__badge--time">
+                          {task.estimatedMinutes} min
+                        </span>
+                      ) : null}
+                      {task.difficulty ? (
+                        <span className="plan-task-item__badge plan-task-item__badge--difficulty">
+                          {task.difficulty}
+                        </span>
+                      ) : null}
+                      {Array.isArray(task.tags) && task.tags.length > 0
+                        ? task.tags.map((tag) => (
+                            <span key={tag} className="plan-task-item__badge plan-task-item__badge--tag">
+                              {tag}
+                            </span>
+                          ))
+                        : null}
+                    </div>
+                  )}
                 </li>
               ))}
             </ol>
