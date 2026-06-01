@@ -60,8 +60,8 @@
   z-index: var(--z-shell);
   background: var(--color-shell-bg);
   border-bottom: 1px solid var(--color-shell-border);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-shell));
+  -webkit-backdrop-filter: blur(var(--blur-shell));
   box-shadow: var(--elevation-1);
 }
 
@@ -965,7 +965,7 @@
     background: var(--color-bg-subtle);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    border-top: 3px solid var(--color-primary);
+    border-top: 3px solid var(--color-ai-accent);
     box-shadow: var(--elevation-1);
   }
 
