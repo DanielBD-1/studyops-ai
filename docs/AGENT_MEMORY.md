@@ -1967,3 +1967,20 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Manual smoke:** **Passed** — plan history section; Active / Previous version badges; version heading; Make active on one line; Preview inactive; Restore inactive; active plan section updates after restore; exactly one active after restore; delete inactive with confirm; Generate / Clear / Import tasks / Import flashcards still work; console clean; no unexpected Gemini/document-service browser calls
 **Pitfalls:** Do not fetch full plan JSON for every history row on list load; restore must use activate endpoint only (not generate); active row must not expose delete or re-activate actions
 **Follow-up:** optional polish or a new separate phase — not automatically started; optional RLS SELECT hardening for inactive rows (non-blocking, from **11A-2**)
+
+### 2026-06-01 — Phase A DESIGN.md alignment (docs only)
+
+**Workflow:** Phase A — DESIGN.md alignment
+**ADR refs:** none (documentation only)
+**Human gates:** Phase A documentation gate (awaiting Supervisor Review before visual implementation)
+**Summary:** Updated **`DESIGN.md`** to codify approved hybrid visual direction (NotebookLM-style source workspace + Linear/Raycast AI command center; Cursor sidecar; Claude-style durable artifacts). Added design references (§3), layout modes including cockpit and Source|AI split (§4), component families (§6), AI workspace rules including bounded plan history (§8), resolved contradictions (history in scope, `tokens.css` authority, outdated screenshots). Short authority notes in **`STITCH_BRIEF.md`** and **`SCREENSHOT_INDEX.md`**. **No** frontend, backend, CSS, React, database, or package changes.
+**APIs affected:** none
+**Tests:** none (docs-only)
+**Pitfalls:** Do not implement visual changes until Supervisor approves Phase A and a separate implementation gate is issued
+**Follow-up:** Supervisor Review → optional Visual Design Direction implementation phases (B–E per planning reports)
+
+### 2026-06-01 — Phase A enjoyable-product clarification (docs only)
+
+**Workflow:** Phase A — DESIGN.md addendum
+**Summary:** Clarified official direction: modern **enjoyable** AI study command center (not dry/CRUD); target audience (stressed, overloaded students); design balance (trust, clarity, motivation, delight, focus); explicit **fun is / fun is not** table (delight without gamification); tone and motion guidance for micro-delight on success paths. **No** code changes.
+**APIs affected:** none

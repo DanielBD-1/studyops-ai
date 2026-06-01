@@ -5,9 +5,9 @@
 **Folder:** `docs/design/screenshots/`  
 **Rules:** Fake data only · no real student content · no secrets · no `.env` values
 
-**Phase 2I note:** Screenshots are design reference only — **not** product truth. **`DESIGN.md` v2** (Phase 2I-c), the **Phase 2J styling pass**, **Phase 8A UI polish**, and **Phase 8C-1 through 8C-3D workspace presentation** are **complete**; `11-generated-plan-visible.png` **captured** (Phase 2K-c, from **already-saved** plan after Phase 2O-c live smoke — no additional Generate). Only `15-processing-with-ai.png` remains **pending** (do not fabricate).
+**Phase 2I note:** Screenshots are design reference only — **not** product truth. **`DESIGN.md`** (Phase **A**, 2026-06-01) is the **presentation authority** for visual direction, layout modes, and component families. The **Phase 2J** styling pass, **Phase 8A** UI polish, **Phase 8C-1 through 8C-3D** workspace presentation, and **11A-3** plan history UI may be **ahead of** committed PNGs. `11-generated-plan-visible.png` **captured** (Phase 2K-c). Only `15-processing-with-ai.png` remains **pending** (do not fabricate).
 
-**Visual drift (Phase 8B / 9B):** PNGs committed under `docs/design/screenshots/` were captured during Phase **2I-b** / **2K-c** and may **predate Phase 8A** and **8C** polish (AppShell, tokens, cockpit layouts, AI zones, stat tiles). Treat them as layout/flow references unless recaptured on the current UI. **`03-dashboard.png`** in particular is a **pre-5C / pre-8C** capture — the live **`/dashboard`** route shows real aggregate stats from **`GET /api/dashboard/stats`** inside **`AppShell`** (Overview, Tasks, Focus, Learning assets, Trello sync count, per-course breakdown).
+**Screenshot authority:** When a PNG disagrees with **`DESIGN.md`**, **`docs/IMPLEMENTATION_STATUS.md`**, or the live app, **do not treat the PNG as canonical**. Recapture after major visual phases. **`03-dashboard.png`** is a **pre-5C / pre-8C** reference; live **`/dashboard`** uses **`AppShell`**, cockpit layout, and real stats bands. Material detail PNGs may lack **Source | AI** split and **plan history** from **8C-2B** / **11A-3**.
 
 ---
 
@@ -125,3 +125,4 @@ When running Stitch:
 | 2026-05-23 | Phase 2K-c: `11-generated-plan-visible.png` captured from already-saved plan (Phase 2O-c); `15-` still pending |
 | 2026-05-30 | Phase 8B: `03-dashboard.png` clarified as pre-5C/pre-8A reference; note on screenshot visual drift vs 8A polish |
 | 2026-05-30 | Phase 9B: note **8C-1**–**8C-3D** workspace polish complete; screenshots may predate **8C** AppShell/cockpit UI |
+| 2026-06-01 | Phase A: **`DESIGN.md`** is presentation authority; PNGs may lag **8C** / **11A-3** live UI |

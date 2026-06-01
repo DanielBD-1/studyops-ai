@@ -1,10 +1,10 @@
 # STITCH_BRIEF.md — StudyOps AI (Phase 2I)
 
 **Status:** **Historical / advisory** — Phase 2I Stitch design-discovery input (not current product scope)
-**Last updated:** 2026-05-30 (Phase **8B** reframe)
+**Last updated:** 2026-06-01 (Phase **A** note)
 **Purpose:** Preserve the original Stitch session brief that helped derive **`DESIGN.md` v2** direction. This file does **not** change product scope, APIs, or application code. **Current built state:** **`docs/IMPLEMENTATION_STATUS.md`**.
 
-> **Read this first:** Phase **2J** styling and Phase **8A** UI polish are **complete**. Tasks, flashcards, Trello sync, focus sessions, dashboard stats, and admin aggregate UI are **implemented** — but this brief must **not** be used to add new features. Use **`IMPLEMENTATION_STATUS.md`** for product truth and **`DESIGN.md`** for presentation direction.
+> **Read this first:** **`DESIGN.md`** (Phase **A**, 2026-06-01) is the **current presentation authority** — including the approved **NotebookLM-style source workspace + Linear/Raycast AI command center** hybrid. This Stitch brief is **historical inspiration only**; do not use it to override Phase A design direction or to add features. Use **`IMPLEMENTATION_STATUS.md`** for product truth.
 
 ---
 
@@ -355,3 +355,4 @@ Use fake placeholder data only. No secrets or real user content.
 | 2026-05-22 | Screenshot filename alignment pointer; §5 table matches `SCREENSHOT_INDEX.md` |
 | 2026-05-22 | Optional mobile filename: `06-courses-list-mobile.png` (avoids `15-` clash with pending processing) |
 | 2026-05-30 | **Phase 8B** — reframe as historical/advisory; note **2J**/**8A** styling and implemented tasks/flashcards/Trello/focus/admin/dashboard stats |
+| 2026-06-01 | **Phase A** — header note: **`DESIGN.md`** is current presentation authority; this file is historical Stitch inspiration only |
