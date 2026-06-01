@@ -27,7 +27,7 @@
 
 ---
 
-## Current state as of 2026-06-01 (Phase B3)
+## Current state as of 2026-06-01 (Phase BX-1)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -35,7 +35,7 @@
 
 **Generated plan history:** **11A-1** complete — migration **010** applied manually on Supabase; multiple rows per material with **`is_active`** (one active); retention max **10** rows per material; GET/DELETE/generate routes backward compatible; dashboard/admin **`totalGeneratedPlans`** counts active rows only. **11A-2** complete — migration **011** applied manually on Supabase; history REST APIs (list metadata-only, get-by-id, activate inactive, delete inactive); RPC **`reactivate_material_generated_plan`** with ROW_COUNT hardening; Security Review **passed**; manual smoke **passed**; backend **`341/341`** tests. **11A-3** complete — frontend-only **`GeneratedPlanHistorySection`** on material detail; metadata-only history list; lazy Preview for inactive versions; Restore (**Make active**) via activate endpoint (no Gemini); delete inactive with confirm; history refreshes after generate/clear/activate/delete; Security Review **passed**; manual smoke **passed**; frontend lint/test/build passed (**205/205**).
 
-**Design direction (docs):** Phase A complete (**2026-06-01**) — commit **`dedb35c`** (`docs: align StudyOps AI design direction`); **`DESIGN.md`** hybrid Source | AI cockpit direction; **`STITCH_BRIEF.md`** / **`SCREENSHOT_INDEX.md`** authority notes. **No** frontend code in Phase A.
+**Design direction (docs):** Phase A complete (**2026-06-01**) — commit **`dedb35c`** (`docs: align StudyOps AI design direction`); hybrid Source | AI cockpit direction; **`STITCH_BRIEF.md`** / **`SCREENSHOT_INDEX.md`** authority notes. Phase **BX-1** complete (**2026-06-01**) — commit **`303dc4b`** (`docs: update design direction for ai study cockpit`); **`DESIGN.md` v2.1 → v2.2** — modern AI study command center; decision-first dashboard (“What should I study next?”); honest chart/data-viz rules; course accent identity; AI command panel emphasis; **`docs/design/PROTOTYPE_REFERENCES.md`** (BX-0) as reference-only. **Documentation only** — **no** frontend, **`tokens.css`**, backend, API, database, package, chart implementation, or **B4** changes.
 
 **Study material cockpit layout:** **12A-1** complete (**2026-06-01**) — commit **`00a76de`** (`feat: add study material cockpit layout`); presentation-only frontend/CSS on **`/study-materials/:materialId`** — Source | AI split; AI column groups generate, active plan, and plan history; flashcards library and danger zone below cockpit; **`npm run build`** passed; **no** backend/API/database/package changes.
 
@@ -43,7 +43,7 @@
 
 **Phase B2 (AppShell + PageHeader + cockpit width):** **B2** complete (**2026-06-01**) — commit **`f2de33f`** (`style: polish shell headers and cockpit widths`); presentation-only — **AppShell** visual polish (nav active/focus, responsive shell inner), **PageHeader** intro grid/layout polish, main hub routes moved **`page--workspace`** → **`page--cockpit`** on dashboard, courses, course detail, tasks, flashcards, Trello, admin, focus. **`AppShell.jsx`** / **`PageHeader.jsx`** / **`StudyMaterialDetail.jsx`** unchanged (material detail already **`page--cockpit`**; inherits global PageHeader CSS). Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package changes; **no** new routes/features/sidebar/chat/mobile-native UI.
 
-**Phase B3 (cards, controls, badges, filters):** **B3** complete (**2026-06-01**) — commit **`e865c09`** (`style: polish cards controls badges and filters`); presentation-only — **card hover policy** (`source-card--navigable` on **`CourseCard`**, **`MaterialCard`**, dashboard per-course cards; task cards excluded — no lift); **static dashboard/admin stat tiles** (dashboard stat hover de-emphasized); **read-only plan/history surfaces** no longer feel editable on hover; **badge/pill consistency** (shared pill base for source cards, plan tasks, plan history, Trello sync status); **segmented filter** visual polish; **button/link-button** CSS consistency (danger focus, link-btn active, disabled unchanged). JSX: className-only **`source-card--navigable`** on three files. Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package/auth/routing/service changes; **no** new routes/features/sidebar/chat/mobile-native UI/charts/gamification. **B4** **not started** — before **B4**, discuss **Visual Direction Breakout** / Base44 design inspiration; current **`DESIGN.md`** / token direction may still be too calm/basic for desired product feel.
+**Phase B3 (cards, controls, badges, filters):** **B3** complete (**2026-06-01**) — commit **`e865c09`** (`style: polish cards controls badges and filters`); presentation-only — **card hover policy** (`source-card--navigable` on **`CourseCard`**, **`MaterialCard`**, dashboard per-course cards; task cards excluded — no lift); **static dashboard/admin stat tiles** (dashboard stat hover de-emphasized); **read-only plan/history surfaces** no longer feel editable on hover; **badge/pill consistency** (shared pill base for source cards, plan tasks, plan history, Trello sync status); **segmented filter** visual polish; **button/link-button** CSS consistency (danger focus, link-btn active, disabled unchanged). JSX: className-only **`source-card--navigable`** on three files. Supervisor Review **Approved with notes**; Security Review **Approved**. **`npm run lint`** / **`npm test`** (**205/205**) / **`npm run build`** passed; **no** backend/API/database/package/auth/routing/service changes; **no** new routes/features/sidebar/chat/mobile-native UI/charts/gamification. **B4** **not started** (BX-1 updated **`DESIGN.md`** direction only; does not implement B4).
 
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
@@ -51,7 +51,9 @@
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (B1 tokens + B2 shell/cockpit width + B3 cards/controls/badges/filters complete).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (B1 + B2 + B3 complete; BX-1 docs only); dashboard decision layout / charts / course accents **in code** (per **`DESIGN.md` v2.2** — requires separate implementation gate after BX-1).
+
+**Next decision (human):** Either (1) send updated **`DESIGN.md` v2.2** / BX-1 direction to Base44 / Lovable / Stitch for stronger external design references, or (2) proceed to **BX-2 / BX-3** (or related) **implementation planning** based on **`DESIGN.md` v2.2** — charts, dashboard hero, and course accents remain **not built** until explicitly approved.
 
 ---
 
@@ -2048,3 +2050,18 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Reviews:** Supervisor Review **Approved with notes**; Security Review **Approved**
 **Pitfalls:** Do not treat B3 as B4; do not change **`TaskCard.jsx`** / **`Button.jsx`** behavior without a separate gate; preserve navigable vs task hover split; do not commit **`frontend/dist/`** build artifacts
 **Follow-up:** Before **B4**, discuss **Visual Direction Breakout** / Base44 design inspiration — current **`DESIGN.md`** and token direction may still be too calm/basic; **B4** pending separate human approval
+
+### 2026-06-01 — Phase BX-1 DESIGN.md direction delta complete (docs only)
+
+**Workflow:** Phase BX-1 — DESIGN.md direction delta (documentation only)
+**ADR refs:** none (documentation only)
+**Commit:** **`303dc4b`** — `docs: update design direction for ai study cockpit`
+**Prerequisite docs:** Phase A **`dedb35c`**; Phase **BX-0** **`docs/design/PROTOTYPE_REFERENCES.md`** (Canvas/prototype reference — not in this commit); Phases **B1** **`ccca764`**, **B2** **`f2de33f`**, **B3** **`e865c09`** (presentation baseline unchanged by BX-1)
+**Summary:** Updated **`DESIGN.md` v2.1 → v2.2** to codify approved visual direction from BX-1 planning + prototype references. **Identity:** StudyOps AI as a **modern AI study command center** (not CRUD/admin/BI). **Dashboard:** lead with **“What should I study next?”** (next-up hero); **study pulse** charts secondary; compact stat bands tertiary; move away from stat-grid-first layout. **Data visualization:** charts only for **real student decisions**; **honest API-backed** data; **no** fake KPIs, decorative sparklines, random placeholder production data, or chart npm libraries without separate approval; missing API fields labeled **future API / deferred**. **Courses:** accent identity, active vs quiet states, plan coverage only when computable. **Material detail:** stronger **Source | AI** cockpit; **AI command panel** as first-class surface (generate → plan artifact → history → imports → plan flashcard study). **Boundaries:** Canvas/prototype remain **inspiration only** — never copy into **`frontend/src`**. **No** implementation files changed.
+**Files:** **`DESIGN.md`** only
+**APIs affected:** none
+**Tests:** none (docs-only)
+**Implementation:** **none** — **no** `frontend/src`, **`tokens.css`**, backend, database, package, or chart implementation
+**B4:** **not started** — BX-1 does not authorize B4 or dashboard/course visual implementation in code
+**Pitfalls:** Do not implement dashboard charts, course accents, or hero layout from **`DESIGN.md` v2.2** without a separate implementation gate; do not add chart libraries or dashboard API fields under BX-1; do not copy Canvas `.canvas.tsx` into production
+**Follow-up:** Human chooses — (1) external design pass (Base44 / Lovable / Stitch) using **`DESIGN.md` v2.2** + **`PROTOTYPE_REFERENCES.md`**, or (2) **BX-2 / BX-3** implementation planning and gated build of dashboard/course/material presentation per v2.2
