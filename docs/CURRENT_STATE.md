@@ -2,7 +2,7 @@
 
 **Purpose:** Short starting point for the owner and for agents. Read this first, then drill into linked docs.
 
-**Last updated:** 2026-06-02 (Phase **BX-I2** documentation housekeeping — after commit **`03ee9df`**)
+**Last updated:** 2026-06-02 (Phase **BX-I3** documentation housekeeping — after commit **`bdd6f2a`**)
 
 ---
 
@@ -10,9 +10,9 @@
 
 StudyOps AI is a **functional MVP web app**: React frontend → Express backend → document-service (Gemini) → Supabase Auth + Postgres. CI runs lint, tests, and frontend build on Node.js 22.
 
-**Production UI today:** Dark graphite / glass token foundation from `frontend/src/styles/tokens.css` (Phase **BX-I2**, commit **`03ee9df`**) — electric blue primary, violet AI accent, cyan data accent, dark-friendly semantic states, source editor surface, filled-button WCAG AA contrast fix. Global **`AppShell`**, cockpit layouts, Source | AI material detail (**12A-1**), generated plan history (**11A-3**). **Not live:** dashboard hero, charts, course accent wiring, sidebar shell, or material cockpit structure redesign (**BX-I3+** / **B4** — require separate planning and explicit approval).
+**Production UI today:** Dark graphite / glass token foundation from `frontend/src/styles/tokens.css` (Phase **BX-I2**, commit **`03ee9df`**) — electric blue primary, violet AI accent, cyan data accent, dark-friendly semantic states, source editor surface, filled-button WCAG AA contrast fix. Global **`AppShell`**, cockpit layouts, Source | AI material detail (**12A-1**), generated plan history (**11A-3**), and dashboard **“What should I study next?”** decision hero with **rule-based** next-up recommendation (Phase **BX-I3**, commit **`bdd6f2a`**) — uses existing **`GET /api/dashboard/stats`** only; **no** fake AI priority, deadlines, streaks, health scores, weekly focus charts, or specific task/material titles. **Not live:** chart UI, course accent wiring, sidebar shell, or material cockpit structure redesign (**BX-I4+** / **B4** — require separate planning and explicit approval).
 
-**Branch (as of DOCS-A3):** `phase-b-global-visual-system`
+**Branch (as of BX-I3 docs):** `phase-bx-i3-dashboard-decision-layout`
 
 ---
 
@@ -25,8 +25,9 @@ StudyOps AI is a **functional MVP web app**: React frontend → Express backend 
 | **DOCS-A3** | **Complete** | Closed DOCS-A2 gaps in **`IMPLEMENTATION_STATUS`** + phase pointers. **Documentation only.** |
 | **BX-I1** | **Complete** | Stitch visual direction in `DESIGN.md` v2.3 (commit **`6041932`**) — **docs only**. |
 | **BX-I2** | **Complete** | Dark graphite / glass global token foundation — **CSS-only** (commit **`03ee9df`**); **`tokens.css`**, **`components.css`**, **`layout.css`** only. Supervisor Review **approved with notes**; Security Review **approved with limitation** (authenticated visual QA deferred — no local test account). |
+| **BX-I3** | **Complete** | Dashboard decision layout — **frontend-only** (commit **`bdd6f2a`**); rule-based **“What should I study next?”** hero, study pulse / task progress bars, enhanced course workload rows, secondary **At a glance** stat bands; **`GET /api/dashboard/stats`** only; **14** recommendation unit tests (**219/219** total). Supervisor Review **approved with notes**; Security / Trust Review **approved with limitation** (authenticated dashboard manual smoke not fully completed — no approved local test account). |
 | **B4** | **Not started** | Global styling rollout beyond BX-I2 token foundation — requires explicit **`approved — implement Phase B4`**. |
-| **BX-I3 / BX-I4 / BX-I5** | **Not started** | Sidebar shell, dashboard hero, charts, course accent wiring **in code** — **not automatic**; require separate planning and explicit approval each. |
+| **BX-I4 / BX-I5 / BX-I6** | **Not started** | Sidebar shell, chart UI, course accent wiring, material cockpit redesign, backend/API extension — **not automatic** after BX-I3; require separate planning and explicit approval each. |
 
 ---
 
@@ -43,7 +44,7 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 | **Flashcards** | Material + global UI; plan study + saved library CRUD |
 | **Trello** | Manual credentials; board/list picker; sync (max 50 tasks); audit logs |
 | **Focus** | 25-min timer MVP; start/complete |
-| **Dashboard** | Aggregate stats; invalidation-only cross-page refresh (**5C.1**) |
+| **Dashboard** | Aggregate stats; invalidation-only cross-page refresh (**5C.1**); rule-based **“What should I study next?”** decision hero, study pulse / task progress bars, course workload rows (**BX-I3**) |
 | **Admin** | Aggregate stats only (`/admin`) — no logs, user list, or role UI |
 | **Presentation** | **8C-3D**, **12A-1**, **B1**–**B3**, **BX-I2** (dark glass tokens, shell/cockpit polish, cards/badges) — detail in **`IMPLEMENTATION_STATUS`** § UI polish / **BX-I2** |
 
@@ -53,9 +54,9 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 
 | Item | Built | Missing / deferred |
 |------|-------|-------------------|
-| **Dashboard** | Stat tiles + course breakdown | Decision-first hero, charts, weekly focus buckets (BX-1 direction — docs only) |
+| **Dashboard** | Decision hero, study pulse, course workload rows, secondary stat bands (**BX-I3**) | Chart UI, weekly focus buckets, course health / streak / deadline signals (BX-1 direction — docs only; **not** in BX-I3) |
 | **Courses** | List/detail/tasks/materials | Per-course accent identity; plan-coverage indicators (docs only) |
-| **Material detail** | Source \| AI cockpit + history + **BX-I2** dark tokens | Cockpit structure / command-column skin redesign (**BX-I3+** — not started) |
+| **Material detail** | Source \| AI cockpit + history + **BX-I2** dark tokens | Cockpit structure / command-column skin redesign (**BX-I4+** — not started) |
 | **Trello** | Manual sync + picker | OAuth, stored credentials, persistence, card update/delete |
 | **Admin** | Platform aggregate counts | Logs, user management, role management, Gemini metrics |
 | **Design captures** | 14 Phase 2I PNGs + 3 Stitch refs | `15-processing-with-ai.png` pending; many PNGs predate **8C** / **11A-3** |
@@ -67,7 +68,7 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` deferred list):
 
 - **B4** — global visual system rollout beyond BX-I2 token foundation
-- **BX-I3 / BX-I4 / BX-I5** — sidebar shell, dashboard hero, charts, course accent wiring **in code** (each requires separate planning and explicit approval)
+- **BX-I4 / BX-I5 / BX-I6** — sidebar shell, chart UI, course accent wiring, material cockpit redesign, backend/API extension **in code** (each requires separate planning and explicit approval)
 - Sidebar shell migration (Stitch sidebar is reference-only)
 - Course-level paste-generate (`POST /api/courses/:courseId/generate`)
 - PDF upload/parsing; Trello OAuth; payments; spaced repetition; production deployment
@@ -98,9 +99,10 @@ Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` d
 | Phase | Gate |
 |-------|------|
 | **BX-I2** | **Complete** (commit **`03ee9df`**) — follow-up: authenticated visual QA when a test account exists |
-| **BX-I3 / BX-I4 / BX-I5 / B4** | **Not started** — **not automatic** after BX-I2; each requires separate planning and explicit **`approved — implement Phase X`** |
+| **BX-I3** | **Complete** (commit **`bdd6f2a`**) — follow-up: authenticated dashboard visual QA when a test account exists (dashboard with data, empty dashboard, hero CTAs, refresh stats, study pulse / progress bars, ~375px width, console check for no token/secret/material-content logs) |
+| **BX-I4 / BX-I5 / BX-I6 / B4** | **Not started** — **not automatic** after BX-I3; each requires separate planning and explicit **`approved — implement Phase X`** |
 
-**Human next step (typical):** Optional authenticated visual QA for **BX-I2** (dashboard, courses, material detail / AI panel / plan history / disclaimer, Trello, admin forbidden vs admin dashboard, keyboard focus-visible on authenticated shell) when a valid local test account exists → plan **BX-I3**, **BX-I4**, **BX-I5**, or **B4** separately with explicit implement approval. **Do not** start sidebar, dashboard hero, charts, or course accent wiring without a separately approved phase.
+**Human next step (typical):** Optional authenticated visual QA for **BX-I2** and **BX-I3** when a valid local test account exists → plan **BX-I4**, **BX-I5**, **BX-I6**, or **B4** separately with explicit implement approval. **Do not** start sidebar, chart UI, course accent wiring, material cockpit redesign, or backend/API extension without a separately approved phase. Next implementation phase is **not automatic**.
 
 ---
 
@@ -134,10 +136,11 @@ Do **not** assume without checking **`IMPLEMENTATION_STATUS`** and this file:
 | Course-level generate with client `studyText` exists | **Deferred** — material-scoped generate with body `{}` only |
 | Trello OAuth or stored credentials | **Not implemented** — ephemeral body credentials only |
 | Admin logs / user list / role UI | **Not implemented** — aggregate stats only |
-| Dashboard charts / hero / course accents / sidebar | **Documented direction only** — **not wired in code**; dark token foundation live via **BX-I2** |
-| B4 or BX-I3+ already approved | **Not started** — **BX-I2** token foundation is complete; further phases require explicit approval each |
+| Dashboard charts / course accents / sidebar | **Documented direction only** — **not wired in code**; dark token foundation live via **BX-I2**; rule-based decision hero live via **BX-I3** |
+| Dashboard hero implies AI recommendation | **BX-I3** hero is **rule-based** only — derived from existing **`GET /api/dashboard/stats`** counts; **no** AI recommendation API |
+| B4 or BX-I4+ already approved | **Not started** — **BX-I3** decision layout is complete; sidebar, charts, accent wiring, material cockpit redesign, and backend/API extension require explicit approval each |
 | `AGENT_MEMORY` tail entry is current | Read **this file** and **`IMPLEMENTATION_STATUS`** first |
-| BX-I2 complete = BX-I3/BX-I4/BX-I5/B4 implement approval | **BX-I2** was CSS-only tokens; sidebar, hero, charts, accent wiring need separate gates |
+| BX-I3 complete = BX-I4/BX-I5/BX-I6/B4 implement approval | **BX-I3** was dashboard decision layout only; sidebar, chart UI, accent wiring, and further phases need separate gates |
 | `IMPLEMENTATION_STATUS` “Last aligned” before **12A-1** / **B1–B3** | Fixed in **DOCS-A3** — if lag recurs, verify code + **`AGENT_MEMORY`** |
 | Screenshots match live UI | Many PNGs **predate 8C / 11A-3 / B1–B3** — trust code + status docs |
 
