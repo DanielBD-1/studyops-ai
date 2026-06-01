@@ -644,6 +644,164 @@
   color: var(--color-text-muted);
 }
 
+.dashboard-hero {
+  margin-bottom: var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-surface-glass, rgba(30, 41, 59, 0.72));
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-2);
+  backdrop-filter: blur(12px);
+}
+
+.dashboard-hero__eyebrow {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-data-accent);
+}
+
+.dashboard-hero__headline {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.dashboard-hero__context {
+  margin: 0 0 var(--space-5);
+  max-width: 42rem;
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+
+.dashboard-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.dashboard-hero__cta {
+  min-width: min(100%, 12rem);
+}
+
+a.dashboard-hero__cta.btn {
+  text-decoration: none;
+}
+
+a.dashboard-hero__cta.btn:hover {
+  text-decoration: none;
+  color: var(--color-on-primary);
+}
+
+.dashboard-study-pulse,
+.dashboard-secondary {
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-study-pulse__header,
+.dashboard-secondary__header {
+  margin-bottom: var(--space-4);
+}
+
+.dashboard-study-pulse__title,
+.dashboard-secondary__title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.dashboard-study-pulse__subtitle,
+.dashboard-secondary__subtitle {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+
+.dashboard-study-pulse {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+}
+
+.dashboard-study-pulse__courses {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dashboard-progress__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.dashboard-progress__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.dashboard-progress__meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-progress__track {
+  display: flex;
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  background: var(--color-chart-track);
+  border-radius: var(--radius-full, 999px);
+}
+
+.dashboard-progress--compact .dashboard-progress__track {
+  height: 0.375rem;
+}
+
+.dashboard-progress__segment {
+  height: 100%;
+  min-width: 0;
+  transition: width var(--transition-fast);
+}
+
+.dashboard-progress__segment--pending {
+  background: var(--color-chart-series-2, var(--color-primary));
+}
+
+.dashboard-progress__segment--completed {
+  background: var(--color-chart-fill, var(--color-data-accent));
+}
+
+.dashboard-secondary {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.source-card--dashboard-course .dashboard-progress {
+  margin-top: var(--space-4);
+}
+
 .dashboard-cockpit {
   display: flex;
   flex-direction: column;

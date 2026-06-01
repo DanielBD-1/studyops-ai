@@ -12,6 +12,10 @@ import {
   formatFocusMinutes,
   formatTaskCompletionPercent,
 } from '../utils/dashboard-format.js';
+import {
+  deriveCoursePendingTasks,
+  deriveDashboardRecommendation,
+} from '../utils/dashboard-recommendation.js';
 
 /**
  * @param {{ label: string, value: number | string, detail?: string }} props
@@ -36,6 +40,134 @@ function StatBand({ title, children, bandClass }) {
     <section className={bandClasses}>
       <h2 className="dashboard-band__title">{title}</h2>
       <dl className="dashboard-stats">{children}</dl>
+    </section>
+  );
+}
+
+/**
+ * @param {import('../utils/dashboard-recommendation.js').DashboardRecommendation} recommendation
+ */
+function DashboardDecisionHero({ recommendation }) {
+  return (
+    <section className="dashboard-hero" aria-labelledby="dashboard-hero-title">
+      <p className="dashboard-hero__eyebrow">What should I study next?</p>
+      <h2 id="dashboard-hero-title" className="dashboard-hero__headline">
+        {recommendation.headline}
+      </h2>
+      <p className="dashboard-hero__context">{recommendation.context}</p>
+      <div className="dashboard-hero__actions">
+        <Link to={recommendation.primaryCta.to} className="btn btn--primary dashboard-hero__cta">
+          {recommendation.primaryCta.label}
+        </Link>
+        {recommendation.secondaryCta && (
+          <Link
+            to={recommendation.secondaryCta.to}
+            className="link-btn link-btn--secondary dashboard-hero__cta"
+          >
+            {recommendation.secondaryCta.label}
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * @param {{ pending: number, completed: number, total: number, label: string, compact?: boolean, showHeader?: boolean }} props
+ */
+function TaskProgressBar({
+  pending,
+  completed,
+  total,
+  label,
+  compact = false,
+  showHeader = true,
+}) {
+  if (total <= 0) {
+    return null;
+  }
+
+  const pendingPercent = Math.round((pending / total) * 100);
+  const completedPercent = Math.round((completed / total) * 100);
+  const barClasses = ['dashboard-progress', compact && 'dashboard-progress--compact']
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <div className={barClasses}>
+      {showHeader && (
+        <div className="dashboard-progress__header">
+          <span className="dashboard-progress__label">{label}</span>
+          <span className="dashboard-progress__meta">
+            {pending} pending · {completed} completed
+          </span>
+        </div>
+      )}
+      <div
+        className="dashboard-progress__track"
+        role="img"
+        aria-label={`${label}: ${pending} pending, ${completed} completed out of ${total} tasks`}
+      >
+        <div
+          className="dashboard-progress__segment dashboard-progress__segment--pending"
+          style={{ width: `${pendingPercent}%` }}
+        />
+        <div
+          className="dashboard-progress__segment dashboard-progress__segment--completed"
+          style={{ width: `${completedPercent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * @param {{ stats: import('../services/dashboard.service.js').DashboardStats }} props
+ */
+function DashboardStudyPulse({ stats }) {
+  const hasGlobalTasks = stats.totalTasks > 0;
+  const coursesWithTasks = stats.courseStats.filter((course) => course.totalTasks > 0);
+
+  if (!hasGlobalTasks && coursesWithTasks.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="dashboard-study-pulse" aria-labelledby="dashboard-study-pulse-title">
+      <div className="dashboard-study-pulse__header">
+        <h2 id="dashboard-study-pulse-title" className="dashboard-study-pulse__title">
+          Study pulse
+        </h2>
+        <p className="dashboard-study-pulse__subtitle">Pending and completed tasks from your stats</p>
+      </div>
+
+      {hasGlobalTasks && (
+        <TaskProgressBar
+          label="All tasks"
+          pending={stats.pendingTasks}
+          completed={stats.completedTasks}
+          total={stats.totalTasks}
+        />
+      )}
+
+      {coursesWithTasks.length > 0 && (
+        <ul className="dashboard-study-pulse__courses">
+          {coursesWithTasks.map((course) => {
+            const pending = deriveCoursePendingTasks(course);
+            return (
+              <li key={course.courseId}>
+                <TaskProgressBar
+                  compact
+                  label={course.courseName}
+                  pending={pending}
+                  completed={course.completedTasks}
+                  total={course.totalTasks}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }
@@ -137,15 +269,14 @@ export default function DashboardStub() {
 
   const taskCompletionPercent =
     stats && formatTaskCompletionPercent(stats.completedTasks, stats.totalTasks);
-
-  const isEmptyAccount = stats?.totalCourses === 0;
+  const recommendation = stats ? deriveDashboardRecommendation(stats) : null;
 
   return (
     <main className="page page--cockpit page--dashboard">
       <PageHeader
         intro
         title="Dashboard"
-        lead="Your study cockpit — a calm overview of courses, tasks, and learning activity."
+        lead="Your study command center — see what to do next, then review your stats."
         note={user ? `Signed in as ${user.email}` : undefined}
       >
         {!loading && !error && stats && (
@@ -172,67 +303,16 @@ export default function DashboardStub() {
         </>
       )}
 
-      {!loading && !error && stats && (
+      {!loading && !error && stats && recommendation && (
         <>
-          {isEmptyAccount && (
-            <section className="dashboard-empty-cta" aria-label="Get started">
-              <p className="dashboard-empty-cta__eyebrow">Get started</p>
-              <p className="dashboard-empty-cta__text">
-                You have not created any courses yet. Start by adding a course to organize your
-                study materials.
-              </p>
-              <Link to="/courses" className="dashboard-empty-cta__link">
-                Go to My courses
-              </Link>
-            </section>
-          )}
+          <DashboardDecisionHero recommendation={recommendation} />
 
-          <div className="dashboard-cockpit">
-            <StatBand title="Overview" bandClass="dashboard-band--overview">
-              <StatItem label="Courses" value={stats.totalCourses} />
-              <StatItem label="Study materials" value={stats.totalStudyMaterials} />
-              <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
-            </StatBand>
-
-            <div className="dashboard-cockpit__row">
-              <StatBand title="Tasks" bandClass="dashboard-band--tasks">
-                <StatItem label="Total tasks" value={stats.totalTasks} />
-                <StatItem label="Pending" value={stats.pendingTasks} />
-                <StatItem
-                  label="Completed"
-                  value={stats.completedTasks}
-                  detail={
-                    taskCompletionPercent !== null
-                      ? `${taskCompletionPercent}% complete`
-                      : undefined
-                  }
-                />
-              </StatBand>
-
-              <StatBand title="Focus" bandClass="dashboard-band--focus">
-                <StatItem
-                  label="Focus time"
-                  value={formatFocusMinutes(stats.totalFocusMinutes)}
-                />
-                <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
-              </StatBand>
-            </div>
-
-            <div className="dashboard-cockpit__row dashboard-cockpit__row--compact">
-              <StatBand title="Learning assets" bandClass="dashboard-band--assets">
-                <StatItem label="Flashcards" value={stats.totalFlashcards} />
-              </StatBand>
-
-              <StatBand title="Trello" bandClass="dashboard-band--trello">
-                <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
-              </StatBand>
-            </div>
-          </div>
+          <DashboardStudyPulse stats={stats} />
 
           <section className="section section--compact dashboard-courses">
             <div className="section__header-row">
-              <h2 className="section__title section__title--sm">Per course</h2>
-              <p className="section__subtitle">Jump into a subject workspace</p>
+              <h2 className="section__title section__title--sm">Course workload</h2>
+              <p className="section__subtitle">Pending tasks and flashcards by subject</p>
             </div>
             {stats.courseStats.length === 0 ? (
               <div className="dashboard-band dashboard-band--empty">
@@ -240,36 +320,100 @@ export default function DashboardStub() {
               </div>
             ) : (
               <ul className="card-list dashboard-course-list">
-                {stats.courseStats.map((course) => (
-                  <li key={course.courseId}>
-                    <article className="source-card source-card--subject source-card--dashboard-course source-card--navigable">
-                      <h3 className="source-card__title">
-                        <Link
-                          to={`/courses/${course.courseId}`}
-                          className="source-card__link"
-                        >
-                          {course.courseName}
-                        </Link>
-                      </h3>
-                      <ul className="source-card__stat-row" aria-label="Course stats">
-                        <li className="source-card__stat">
-                          <span className="source-card__stat-value">{course.totalTasks}</span>
-                          <span className="source-card__stat-label">tasks</span>
-                        </li>
-                        <li className="source-card__stat">
-                          <span className="source-card__stat-value">{course.completedTasks}</span>
-                          <span className="source-card__stat-label">completed</span>
-                        </li>
-                        <li className="source-card__stat">
-                          <span className="source-card__stat-value">{course.totalFlashcards}</span>
-                          <span className="source-card__stat-label">flashcards</span>
-                        </li>
-                      </ul>
-                    </article>
-                  </li>
-                ))}
+                {stats.courseStats.map((course) => {
+                  const pendingTasks = deriveCoursePendingTasks(course);
+                  return (
+                    <li key={course.courseId}>
+                      <article className="source-card source-card--subject source-card--dashboard-course source-card--navigable">
+                        <h3 className="source-card__title">
+                          <Link
+                            to={`/courses/${course.courseId}`}
+                            className="source-card__link"
+                          >
+                            {course.courseName}
+                          </Link>
+                        </h3>
+                        <ul className="source-card__stat-row" aria-label="Course stats">
+                          <li className="source-card__stat">
+                            <span className="source-card__stat-value">{pendingTasks}</span>
+                            <span className="source-card__stat-label">pending</span>
+                          </li>
+                          <li className="source-card__stat">
+                            <span className="source-card__stat-value">{course.completedTasks}</span>
+                            <span className="source-card__stat-label">completed</span>
+                          </li>
+                          <li className="source-card__stat">
+                            <span className="source-card__stat-value">{course.totalFlashcards}</span>
+                            <span className="source-card__stat-label">flashcards</span>
+                          </li>
+                        </ul>
+                        {course.totalTasks > 0 && (
+                          <TaskProgressBar
+                            compact
+                            showHeader={false}
+                            label={`${course.courseName} tasks`}
+                            pending={pendingTasks}
+                            completed={course.completedTasks}
+                            total={course.totalTasks}
+                          />
+                        )}
+                      </article>
+                    </li>
+                  );
+                })}
               </ul>
             )}
+          </section>
+
+          <section className="dashboard-secondary" aria-labelledby="dashboard-secondary-title">
+            <div className="dashboard-secondary__header">
+              <h2 id="dashboard-secondary-title" className="dashboard-secondary__title">
+                At a glance
+              </h2>
+              <p className="dashboard-secondary__subtitle">Supporting stats from your account</p>
+            </div>
+
+            <div className="dashboard-cockpit">
+              <StatBand title="Overview" bandClass="dashboard-band--overview">
+                <StatItem label="Courses" value={stats.totalCourses} />
+                <StatItem label="Study materials" value={stats.totalStudyMaterials} />
+                <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
+              </StatBand>
+
+              <div className="dashboard-cockpit__row">
+                <StatBand title="Tasks" bandClass="dashboard-band--tasks">
+                  <StatItem label="Total tasks" value={stats.totalTasks} />
+                  <StatItem label="Pending" value={stats.pendingTasks} />
+                  <StatItem
+                    label="Completed"
+                    value={stats.completedTasks}
+                    detail={
+                      taskCompletionPercent !== null
+                        ? `${taskCompletionPercent}% complete`
+                        : undefined
+                    }
+                  />
+                </StatBand>
+
+                <StatBand title="Focus" bandClass="dashboard-band--focus">
+                  <StatItem
+                    label="Focus time"
+                    value={formatFocusMinutes(stats.totalFocusMinutes)}
+                  />
+                  <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
+                </StatBand>
+              </div>
+
+              <div className="dashboard-cockpit__row dashboard-cockpit__row--compact">
+                <StatBand title="Learning assets" bandClass="dashboard-band--assets">
+                  <StatItem label="Flashcards" value={stats.totalFlashcards} />
+                </StatBand>
+
+                <StatBand title="Trello" bandClass="dashboard-band--trello">
+                  <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
+                </StatBand>
+              </div>
+            </div>
           </section>
         </>
       )}
