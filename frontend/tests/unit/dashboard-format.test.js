@@ -9,6 +9,12 @@ import {
   deriveDashboardRecommendation,
   findMostPendingCourse,
 } from '../../src/utils/dashboard-recommendation.js';
+import {
+  COURSE_ACCENT_KEYS,
+  DEFAULT_COURSE_ACCENT_KEY,
+  getCourseAccentKey,
+  stableHash,
+} from '../../src/utils/course-accent.js';
 
 describe('dashboard-format', () => {
   describe('formatFocusMinutes', () => {
@@ -258,6 +264,114 @@ describe('dashboard-recommendation', () => {
       });
 
       assert.equal(recommendation?.kind, 'no-courses');
+    });
+  });
+});
+
+describe('course-accent', () => {
+  describe('getCourseAccentKey', () => {
+    it('returns the same key repeatedly for the same courseId', () => {
+      const params = { courseId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' };
+      const first = getCourseAccentKey(params);
+      const second = getCourseAccentKey(params);
+      const third = getCourseAccentKey(params);
+
+      assert.equal(first, second);
+      assert.equal(second, third);
+      assert.ok(COURSE_ACCENT_KEYS.includes(first));
+    });
+
+    it('prefers courseId over different course names', () => {
+      const courseId = 'course-id-stable-001';
+      const fromNameA = getCourseAccentKey({
+        courseId,
+        courseName: 'Biology 101',
+      });
+      const fromNameB = getCourseAccentKey({
+        courseId,
+        courseName: 'Chemistry 202',
+      });
+
+      assert.equal(fromNameA, fromNameB);
+    });
+
+    it('falls back to courseName when courseId is missing', () => {
+      const key = getCourseAccentKey({ courseName: 'History of Art' });
+      assert.ok(COURSE_ACCENT_KEYS.includes(key));
+    });
+
+    it('falls back to courseTitle when courseId and courseName are missing', () => {
+      const key = getCourseAccentKey({ courseTitle: 'Linear Algebra' });
+      assert.ok(COURSE_ACCENT_KEYS.includes(key));
+    });
+
+    it('returns amber when no seed exists', () => {
+      assert.equal(getCourseAccentKey({}), DEFAULT_COURSE_ACCENT_KEY);
+      assert.equal(getCourseAccentKey({ courseId: '   ' }), DEFAULT_COURSE_ACCENT_KEY);
+      assert.equal(getCourseAccentKey({ courseName: null, courseTitle: undefined }), DEFAULT_COURSE_ACCENT_KEY);
+    });
+
+    it('always returns one of amber, rose, or emerald', () => {
+      const samples = [
+        { courseId: '11111111-1111-1111-1111-111111111111' },
+        { courseId: '22222222-2222-2222-2222-222222222222' },
+        { courseName: 'Physics' },
+        { courseTitle: 'Organic Chemistry' },
+        {},
+      ];
+
+      for (const params of samples) {
+        const key = getCourseAccentKey(params);
+        assert.ok(COURSE_ACCENT_KEYS.includes(key), `unexpected key: ${key}`);
+      }
+    });
+
+    it('matches golden cases for sample IDs and names', () => {
+      const sampleId = '00000000-0000-4000-8000-000000000001';
+      const sampleName = 'StudyOps Sample Course';
+
+      assert.equal(
+        getCourseAccentKey({ courseId: sampleId }),
+        COURSE_ACCENT_KEYS[stableHash(sampleId) % COURSE_ACCENT_KEYS.length]
+      );
+      assert.equal(
+        getCourseAccentKey({ courseName: sampleName }),
+        COURSE_ACCENT_KEYS[stableHash(sampleName) % COURSE_ACCENT_KEYS.length]
+      );
+    });
+
+    it('does not log to console', () => {
+      const logs = [];
+      const originalLog = console.log;
+      const originalInfo = console.info;
+      const originalWarn = console.warn;
+      const originalError = console.error;
+
+      console.log = (...args) => logs.push(['log', ...args]);
+      console.info = (...args) => logs.push(['info', ...args]);
+      console.warn = (...args) => logs.push(['warn', ...args]);
+      console.error = (...args) => logs.push(['error', ...args]);
+
+      try {
+        getCourseAccentKey({
+          courseId: 'quiet-course-id',
+          courseName: 'Quiet Course Name',
+          courseTitle: 'Quiet Course Title',
+        });
+        assert.equal(logs.length, 0);
+      } finally {
+        console.log = originalLog;
+        console.info = originalInfo;
+        console.warn = originalWarn;
+        console.error = originalError;
+      }
+    });
+  });
+
+  describe('stableHash', () => {
+    it('is deterministic for the same input', () => {
+      assert.equal(stableHash('same-seed'), stableHash('same-seed'));
+      assert.notEqual(stableHash('seed-a'), stableHash('seed-b'));
     });
   });
 });
