@@ -403,54 +403,70 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     statusFilter === 'all';
 
   return (
-    <section className="section task-workspace__main">
-      <div className="section__header-row">
-        <h2 className="section__title">Task list</h2>
-        <p className="section__subtitle">Filter by course and status, then take action on each task</p>
-      </div>
+    <section className="section task-workspace__main" aria-label="Study task command">
+      <div className="task-workspace__command-band task-workspace__command-band--deck">
+        <div className="task-workspace__command-header section__header-row">
+          <h2 className="section__title section__title--sm task-workspace__command-title">
+            Task command
+          </h2>
+          <p className="section__subtitle task-workspace__command-subtitle">
+            Filter by course and status, then take action on each task
+          </p>
+        </div>
 
-      <div className="filter-toolbar filter-toolbar--segmented task-workspace__filters">
-        <label htmlFor="global-tasks-course-filter" className="field">
-          Course
-          <select
-            id="global-tasks-course-filter"
-            value={courseFilter}
-            onChange={(e) => handleCourseFilterChange(e.target.value)}
-            className="field__select"
-            disabled={busy}
+        <div className="task-workspace__command-controls">
+          <div
+            className="filter-toolbar filter-toolbar--segmented task-workspace__filters"
+            role="group"
+            aria-label="Filter study tasks"
           >
-            <option value="all">All courses</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </select>
-        </label>
+            <label htmlFor="global-tasks-course-filter" className="field task-workspace__course-field">
+              Course
+              <select
+                id="global-tasks-course-filter"
+                value={courseFilter}
+                onChange={(e) => handleCourseFilterChange(e.target.value)}
+                className="field__select"
+                disabled={busy}
+              >
+                <option value="all">All courses</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-        <div className="filter-toolbar__segment">
-          {STATUS_FILTERS.map((f) => (
-            <Button
-              key={f.value}
-              type="button"
-              variant={statusFilter === f.value ? 'primary' : 'secondary'}
-              onClick={() => handleStatusFilterChange(f.value)}
-              disabled={busy}
-            >
-              {f.label}
-            </Button>
-          ))}
+            <div className="filter-toolbar__segment task-workspace__status-segment">
+              {STATUS_FILTERS.map((f) => {
+                const selected = statusFilter === f.value;
+                return (
+                  <button
+                    key={f.value}
+                    type="button"
+                    className={`btn ${selected ? 'btn--primary' : 'btn--secondary'}`.trim()}
+                    aria-pressed={selected}
+                    onClick={() => handleStatusFilterChange(f.value)}
+                    disabled={busy}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {canShowCreate && !showCreate && !loading && !error && (
+            <div className="task-workspace__toolbar">
+              <Button variant="primary" onClick={openCreateForm} disabled={busy}>
+                Add study task
+              </Button>
+            </div>
+          )}
         </div>
-      </div>
 
-      {canShowCreate && !showCreate && !loading && !error && (
-        <div className="task-workspace__toolbar">
-          <Button variant="primary" onClick={openCreateForm} disabled={busy}>
-            Add study task
-          </Button>
-        </div>
-      )}
-
+        <div className="task-workspace__command-body">
       {showCreate && canShowCreate && (
         <div className="section--compact task-workspace__create">
           <FormCard title="Add study task">
@@ -549,54 +565,66 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         </div>
       )}
 
-      {loading && <LoadingState message="Loading study tasks…" />}
+      {loading && (
+        <div className="task-workspace__loading">
+          <LoadingState message="Loading study tasks…" />
+        </div>
+      )}
 
       {!loading && error && (
-        <>
+        <div className="task-workspace__error-block">
           <ErrorMessage message={error} />
-          <Button variant="secondary" onClick={loadTasks}>
-            Try again
-          </Button>
-        </>
+          <div className="task-workspace__error-actions">
+            <Button variant="secondary" onClick={loadTasks}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {showGlobalEmpty && courses.length === 0 && (
-        <EmptyState
-          headline="No study tasks yet"
-          description="Add tasks from a course, or create a course first."
-          actionLabel="Go to courses"
-          onAction={() => navigate('/courses')}
-        />
+        <div className="task-workspace__empty">
+          <EmptyState
+            headline="No study tasks yet"
+            description="Add tasks from a course, or create a course first."
+            actionLabel="Go to courses"
+            onAction={() => navigate('/courses')}
+          />
+        </div>
       )}
 
       {showGlobalEmpty && courses.length > 0 && (
-        <>
+        <div className="task-workspace__empty">
           <EmptyState
             headline="No study tasks yet"
             description="Create a study task for one of your courses."
             actionLabel="Add study task"
             onAction={openCreateForm}
           />
-        </>
+        </div>
       )}
 
       {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'pending' && (
-        <p className="section__meta">No pending tasks.</p>
+        <p className="section__meta task-workspace__filter-empty">No pending tasks.</p>
       )}
 
       {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'completed' && (
-        <p className="section__meta">No completed tasks.</p>
+        <p className="section__meta task-workspace__filter-empty">No completed tasks.</p>
       )}
 
       {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'all' && (
-        <p className="section__meta">No tasks match the selected filters.</p>
+        <p className="section__meta task-workspace__filter-empty">
+          No tasks match the selected filters.
+        </p>
       )}
 
       {!loading && !error && tasks.length > 0 && (
-        <div className="card-list task-list">
+        <div className="task-workspace__list-zone">
+          <ul className="card-list task-list task-workspace__list" aria-label="Study tasks">
           {tasks.map((task) =>
             editingTaskId === task.id ? (
-              <FormCard key={task.id} title="Edit study task">
+              <li key={task.id} className="task-workspace__list-item">
+              <FormCard title="Edit study task" className="task-workspace__edit-card">
                 {loadingEditMaterials ? (
                   <LoadingState message="Loading study materials…" />
                 ) : (
@@ -678,9 +706,10 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                   </form>
                 )}
               </FormCard>
+              </li>
             ) : (
+              <li key={task.id} className="task-workspace__list-item">
               <TaskCard
-                key={task.id}
                 task={task}
                 onEdit={() => startEdit(task)}
                 onComplete={() => handleComplete(task.id)}
@@ -701,12 +730,20 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                 }
                 disabled={busy}
               />
+              </li>
             )
           )}
+          </ul>
         </div>
       )}
 
-      {actionError && <ErrorMessage message={actionError} />}
+      {actionError && (
+        <div className="task-workspace__action-error">
+          <ErrorMessage message={actionError} />
+        </div>
+      )}
+        </div>
+      </div>
     </section>
   );
 }

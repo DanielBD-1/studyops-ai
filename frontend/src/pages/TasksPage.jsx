@@ -56,15 +56,21 @@ export default function TasksPage() {
         lead="Review and manage study tasks across your courses — filter, edit, and start focus sessions."
       />
 
-      {coursesLoading && <LoadingState message="Loading courses…" />}
+      {coursesLoading && (
+        <div className="task-workspace__page-loading">
+          <LoadingState message="Loading courses…" />
+        </div>
+      )}
 
       {!coursesLoading && coursesError && (
-        <>
+        <div className="task-workspace__page-error">
           <ErrorMessage message={coursesError} />
-          <Button variant="secondary" onClick={loadCourses}>
-            Try again
-          </Button>
-        </>
+          <div className="task-workspace__error-actions">
+            <Button variant="secondary" onClick={loadCourses}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {!coursesLoading && !coursesError && (
