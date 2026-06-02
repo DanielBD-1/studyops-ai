@@ -64,13 +64,14 @@ export default function GeneratedPlanSection({
           ) : null}
         </header>
 
-        <section className="plan-block plan-block--summary">
+        <div className="plan-output__body">
+        <section className="plan-block plan-block--summary plan-output__section">
           <h3 className="plan-block__title">Summary</h3>
           <p className="plan-block__body plan-block__body--summary">{plan.summary}</p>
         </section>
 
         {keyTopics.length > 0 && (
-          <section className="plan-block">
+          <section className="plan-block plan-output__section">
             <h3 className="plan-block__title">Key topics</h3>
             <ul className="plan-block__list plan-block__list--topics">
               {keyTopics.map((topic) => (
@@ -81,14 +82,14 @@ export default function GeneratedPlanSection({
         )}
 
         {plan.difficulty && (
-          <section className="plan-block plan-block--inline">
+          <section className="plan-block plan-block--inline plan-output__section">
             <h3 className="plan-block__title">Difficulty</h3>
             <p className="plan-block__body plan-block__body--capitalize">{plan.difficulty}</p>
           </section>
         )}
 
         {showImportToolbar ? (
-          <div className="plan-import-toolbar" aria-label="Import from plan">
+          <div className="plan-import-toolbar plan-output__import-band" aria-label="Import from plan">
             <p className="plan-import-toolbar__label">Import to your workspace</p>
             <div className="plan-import-toolbar__actions">
               {tasks.length > 0 && onImport ? (
@@ -124,7 +125,7 @@ export default function GeneratedPlanSection({
         ) : null}
 
         {tasks.length > 0 && (
-          <section className="plan-block plan-block--tasks">
+          <section className="plan-block plan-block--tasks plan-output__section">
             <h3 className="plan-block__title">Tasks</h3>
             <ol className="plan-block__list plan-block__list--tasks plan-task-grid">
               {tasks.map((task, index) => (
@@ -171,12 +172,16 @@ export default function GeneratedPlanSection({
         )}
 
         {flashcards.length > 0 && (
+          <div className="plan-output__section plan-output__flashcards">
           <FlashcardStudy
             flashcards={flashcards}
             title="Plan flashcards"
             className="flashcard-study--plan"
           />
+          </div>
         )}
+
+        </div>
 
         <footer className="plan-output__footer">
           <Button

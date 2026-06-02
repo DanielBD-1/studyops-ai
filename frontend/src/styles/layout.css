@@ -1058,7 +1058,7 @@ a.dashboard-hero__cta.btn:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  margin-top: var(--space-2);
+  margin-top: var(--space-4);
   min-width: 0;
 }
 
@@ -1070,12 +1070,58 @@ a.dashboard-hero__cta.btn:hover {
   min-width: 0;
 }
 
+.material-workspace__source-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.material-workspace__source-heading {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.material-workspace__source-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
 .material-workspace__editor {
   margin-bottom: 0;
 }
 
-.material-workspace__editor .section__header-row {
+.material-workspace__editor .section__header-row:not(.material-workspace__source-header) {
   margin-bottom: var(--space-4);
+}
+
+.material-workspace__command-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.material-workspace__command-section {
+  min-width: 0;
+}
+
+.material-workspace__command-section + .material-workspace__command-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
 }
 
 .material-workspace__cockpit-ai .material-workspace__generate {
@@ -1087,6 +1133,12 @@ a.dashboard-hero__cta.btn:hover {
   margin-top: 0;
   padding-top: 0;
   border-top: none;
+}
+
+.material-workspace__cockpit-ai .material-workspace__command-section + .material-workspace__command-section {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-glass-border);
 }
 
 .material-workspace__cockpit-ai .material-workspace__plan .section__header-row,
@@ -1110,6 +1162,41 @@ a.dashboard-hero__cta.btn:hover {
   border-top: 2px solid var(--color-border-strong);
 }
 
+@media (max-width: 1023px) {
+  .material-workspace__cockpit-ai {
+    padding: var(--space-4);
+    background: linear-gradient(
+      180deg,
+      var(--color-ai-surface) 0%,
+      var(--color-bg-subtle) 40%,
+      var(--color-bg-subtle) 100%
+    );
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    border-top: 3px solid var(--color-ai-accent);
+  }
+}
+
+@media (max-width: 639px) {
+  .material-workspace__cockpit {
+    gap: var(--space-5);
+  }
+
+  .material-workspace__editor-form .field__textarea--reading {
+    min-height: 14rem;
+  }
+
+  .material-workspace__library {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+  }
+
+  .material-workspace__danger {
+    margin-top: var(--space-10);
+    padding-top: var(--space-6);
+  }
+}
+
 @media (min-width: 1024px) {
   .material-workspace__cockpit {
     display: grid;
@@ -1118,10 +1205,19 @@ a.dashboard-hero__cta.btn:hover {
     align-items: start;
   }
 
+  .material-workspace__cockpit-source {
+    padding: var(--space-1);
+  }
+
   .material-workspace__cockpit-ai {
     padding: var(--space-5);
-    background: var(--color-bg-subtle);
-    border: 1px solid var(--color-border);
+    background: linear-gradient(
+      180deg,
+      var(--color-ai-surface) 0%,
+      var(--color-bg-subtle) 35%,
+      var(--color-bg-subtle) 100%
+    );
+    border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-lg);
     border-top: 3px solid var(--color-ai-accent);
     box-shadow: var(--elevation-1);
@@ -1129,10 +1225,12 @@ a.dashboard-hero__cta.btn:hover {
 
   .material-workspace__cockpit-ai .ai-panel {
     box-shadow: none;
+    border-color: transparent;
+    background: transparent;
   }
 
   .material-workspace__editor-form .field__textarea--reading {
-    min-height: 20rem;
+    min-height: 22rem;
   }
 }
 
