@@ -2,7 +2,19 @@
 
 **Purpose:** Short starting point for the owner and for agents. Read this first, then drill into linked docs.
 
-**Last updated:** 2026-06-02 (Phase **BX-I5** documentation housekeeping — after commit **`c2288d4`**)
+**Last updated:** 2026-06-02 (Phase **DOCS-WEB-ONLY** — web-only product scope clarification; prior **BX-I5** housekeeping)
+
+---
+
+## Product platform (web only)
+
+**StudyOps AI is a browser-based web application only.** It is **not** a mobile app, native mobile app, Android/iOS app, phone app, app-store product, or mobile-first/native product.
+
+- **In scope:** The same React web app in desktop and mobile **browsers**; **responsive web layout** at narrow browser widths.
+- **375px QA:** References to **~375px** width in recent phases and follow-up QA mean **narrow responsive browser viewport** / **small viewport web layout** testing — **not** mobile-app product scope.
+- **Terminology for agents:** Use **narrow responsive browser layout**, **small viewport web layout**, or **responsive web viewport** — not “mobile app”, “native mobile”, “phone app”, “mobile direction”, “mobile navigation”, “bottom tabs”, or “app-store flow”.
+- **Stitch / DESIGN:** Visual inspiration for the **web UI only** — does not approve native mobile work, sidebar implementation (unless separately approved), or mobile-specific navigation / app-store patterns.
+- **BX-I6 / B4:** Future visual phases must **not** expand scope into mobile/native/app-store products without explicit human approval.
 
 ---
 
@@ -20,6 +32,7 @@ StudyOps AI is a **functional MVP web app**: React frontend → Express backend 
 
 | Phase | Status | Notes |
 |-------|--------|-------|
+| **DOCS-WEB-ONLY** | **Complete** | Product scope clarification — StudyOps is **web-only**; 375px = responsive browser viewport; agent terminology; Stitch = web UI reference only. **Documentation only.** |
 | **DOCS-A1** | **Complete** | Source-of-truth cleanup (CURRENT_STATE, AGENT_MEMORY, PRD clarifications). |
 | **DOCS-A2** | **Complete** | Documentation reality-check audit only — no file changes. |
 | **DOCS-A3** | **Complete** | Closed DOCS-A2 gaps in **`IMPLEMENTATION_STATUS`** + phase pointers. **Documentation only.** |
@@ -101,9 +114,9 @@ Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` d
 | Phase | Gate |
 |-------|------|
 | **BX-I2** | **Complete** (commit **`03ee9df`**) — follow-up: authenticated visual QA when a test account exists |
-| **BX-I3** | **Complete** (commit **`bdd6f2a`**) — follow-up: authenticated dashboard visual QA when a test account exists (dashboard with data, empty dashboard, hero CTAs, refresh stats, study pulse / progress bars, ~375px width, console check for no token/secret/material-content logs) |
-| **BX-I4** | **Complete** (commit **`ff65e21`**) — follow-up: authenticated visual QA when a test account exists (**`/courses`** list, **`/courses/:id`** detail header, **`/dashboard`** course workload rows; same course shows same accent across list/detail/dashboard; ~375px width; keyboard focus on course links/cards; console check for no token/secret/course-data logs) |
-| **BX-I5** | **Complete** (commit **`c2288d4`**) — follow-up: authenticated material-detail visual QA when a test account exists (edit/save, unsaved blocks generate, generate/clear/restore/delete history, import tasks/flashcards, saved flashcards study, delete material danger zone, fake UUID/not found, ~375px width, console check for no token/secret/full material content logs) |
+| **BX-I3** | **Complete** (commit **`bdd6f2a`**) — follow-up: authenticated dashboard visual QA when a test account exists (dashboard with data, empty dashboard, hero CTAs, refresh stats, study pulse / progress bars, **narrow responsive browser viewport ~375px**, console check for no token/secret/material-content logs) |
+| **BX-I4** | **Complete** (commit **`ff65e21`**) — follow-up: authenticated visual QA when a test account exists (**`/courses`** list, **`/courses/:id`** detail header, **`/dashboard`** course workload rows; same course shows same accent across list/detail/dashboard; **narrow responsive browser viewport ~375px**; keyboard focus on course links/cards; console check for no token/secret/course-data logs) |
+| **BX-I5** | **Complete** (commit **`c2288d4`**) — follow-up: authenticated material-detail visual QA when a test account exists (edit/save, unsaved blocks generate, generate/clear/restore/delete history, import tasks/flashcards, saved flashcards study, delete material danger zone, fake UUID/not found, **narrow responsive browser viewport ~375px**, console check for no token/secret/full material content logs) |
 | **BX-I6 / B4** | **Not started** — **not automatic** after BX-I5; each requires separate planning and explicit **`approved — implement Phase X`** |
 
 **Human next step (typical):** Optional authenticated visual QA for **BX-I2**, **BX-I3**, **BX-I4**, and **BX-I5** when a valid local test account exists → plan **BX-I6** or **B4** separately with explicit implement approval. **Do not** start sidebar, chart UI, or backend/API extension without a separately approved phase. Next implementation phase is **not automatic**.
@@ -148,6 +161,8 @@ Do **not** assume without checking **`IMPLEMENTATION_STATUS`** and this file:
 | Material cockpit polish not wired | **BX-I5** shipped visual polish on **`/study-materials/:materialId`** only — **no** behavior/API change; course accents on material detail **not shipped** |
 | `AGENT_MEMORY` tail entry is current | Read **this file** and **`IMPLEMENTATION_STATUS`** first |
 | BX-I5 complete = BX-I6/B4 implement approval | **BX-I5** was material detail visual polish only; sidebar, chart UI, and further phases need separate gates |
+| 375px / “mobile” in QA notes | Means **narrow responsive browser viewport** testing only — **not** native mobile app scope |
+| Native mobile / app-store assumed from Stitch or DESIGN | **Web UI reference only** — native mobile, sidebar, and app-store patterns require separate explicit approval |
 | `IMPLEMENTATION_STATUS` “Last aligned” before **12A-1** / **B1–B3** | Fixed in **DOCS-A3** — if lag recurs, verify code + **`AGENT_MEMORY`** |
 | Screenshots match live UI | Many PNGs **predate 8C / 11A-3 / B1–B3** — trust code + status docs |
 

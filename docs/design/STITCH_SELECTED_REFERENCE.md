@@ -7,7 +7,9 @@
 
 ## Status
 
-**Selected external visual reference only.**
+**Selected external visual reference only — web UI inspiration.**
+
+StudyOps AI is a **browser-based web application only**. Stitch exports and this guide describe **web UI** presentation in the browser. They do **not** approve native mobile app work, Android/iOS apps, app-store products, phone-first native shells, bottom-tab native navigation, or mobile-specific navigation patterns.
 
 This document records the user’s choice of Stitch as the target visual direction for StudyOps AI. It is **not** implementation scope, **not** production code, and **not** product truth until the direction is translated into `DESIGN.md`, `frontend/src/styles/tokens.css`, and separately approved frontend phases.
 
@@ -68,9 +70,9 @@ When this direction is later translated into design tokens and UI, preserve thes
 
 ### Shell and navigation
 
-- The **Stitch reference uses a sidebar-style shell** (persistent left navigation).
+- The **Stitch reference uses a sidebar-style shell** (persistent left navigation) — **visual reference for web UI chrome only**, not native mobile navigation.
 - The **current StudyOps app uses `AppShell` with top navigation** (see `DESIGN.md` and implemented `frontend/src`).
-- **Sidebar or full shell redesign requires separate human approval** before any implementation phase. This selection doc does **not** approve sidebar migration.
+- **Sidebar or full shell redesign requires separate human approval** before any implementation phase. This selection doc does **not** approve sidebar migration, bottom tabs, or app-store-style navigation.
 
 ### Design system and theme
 
@@ -94,7 +96,7 @@ StudyOps AI product constraints apply to any future translation of this referenc
 
 | Constraint | Rule |
 |------------|------|
-| Platform | **React browser-based web app** only — no native mobile app |
+| Platform | **React browser-based web app only** — no native mobile app, Android/iOS app, phone app, or app-store product; responsive CSS in the browser is in scope |
 | Data honesty | **No fake KPIs** — charts and stats reflect real APIs when built |
 | Gamification | **No XP, streaks, confetti**, or childish reward chrome |
 | Tone | **No clinical/hospital look** |

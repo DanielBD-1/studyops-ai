@@ -26,6 +26,8 @@
 
 **Platform:** StudyOps AI is a **browser-based web application** (React in the browser). All guidance in this file applies to the **web app UI** only. **Desktop and laptop browsers** are the primary presentation target; smaller viewports are supported through **responsive web layout** in the browser—not a native iOS/Android app, app-store product, or phone-first native experience.
 
+**Agent terminology (required):** When documenting or reviewing **375px** or other narrow-width checks, use **narrow responsive browser layout**, **small viewport web layout**, or **responsive web viewport**. Do **not** use “mobile app”, “native mobile”, “phone app”, “mobile direction”, “mobile navigation”, “bottom tabs”, or “app-store flow” — those imply out-of-scope native product work. **375px checks are narrow responsive browser viewport checks, not mobile-app scope.**
+
 **Approved visual identity (Phase A + BX-1 + BX-I1):** StudyOps AI is a **modern AI study command center for students** — **calm enough for serious studying**, **smart enough to feel AI-powered**, and **polished enough to feel like shipping-quality SaaS** rather than a student CRUD app, generic admin console, or BI dashboard.
 
 **Selected presentation skin (Phase BX-S / BX-I1 — not yet in `tokens.css` or production UI):** An **accessible dark graphite / deep slate** command-center environment with **frosted glass** card surfaces, **electric blue** primary actions, **violet** AI/command accents, **cyan** data and focus accents, and a small **course accent palette** (stable per-course identity). The product should feel like a **focused study flight deck**—not beige/indigo calm UI, not a hacker terminal, and not corporate analytics chrome.
@@ -38,7 +40,7 @@ It combines a **NotebookLM-style source workspace** (source-first, readable) wit
 
 **Prototype alignment (BX-0 / BX-1):** `docs/design/PROTOTYPE_REFERENCES.md` and optional `proto-*.png` captures describe richer **student-facing data presentation** than today’s stat-tile-only dashboard. They inform **presentation direction** only until a separately approved implementation phase.
 
-**Stitch alignment (BX-S / BX-I1):** `docs/design/STITCH_SELECTED_REFERENCE.md`, `docs/design/STITCH_VISUAL_STYLE_GUIDE.md`, and `stitch-*.png` screenshots are the **approved external visual reference** for palette, glass, hierarchy, and cockpit emphasis. They are **reference only**—same authority class as other mockups; **do not** copy Stitch-generated code into `frontend/src`.
+**Stitch alignment (BX-S / BX-I1):** `docs/design/STITCH_SELECTED_REFERENCE.md`, `docs/design/STITCH_VISUAL_STYLE_GUIDE.md`, and `stitch-*.png` screenshots are the **approved external visual reference** for palette, glass, hierarchy, and cockpit emphasis on the **web UI only**. They are **reference only**—same authority class as other mockups; **do not** copy Stitch-generated code into `frontend/src`. Stitch references do **not** approve native mobile app work, sidebar implementation (unless separately planned and approved), or mobile-specific navigation / app-store patterns.
 
 **Design balance:** **trust** · **clarity** · **motivation** · **delight** · **focus** — never sacrifice trust or clarity for decoration; never confuse motivation with gamification.
 
@@ -662,6 +664,8 @@ Motion supports **smooth**, **enjoyable** use—not spectacle. Respect `prefers-
 
 **Responsive web only:** Breakpoints below describe how the **web app** reflows in the browser (CSS media queries). They do **not** define a separate native mobile app or phone-first product. Prefer desktop/web layouts for design reviews and screenshots; narrow widths are supported so students can use the same web app on smaller screens without horizontal scroll.
 
+**375px / narrow viewport QA:** Manual and agent checks at **~375px browser width** validate **narrow responsive browser layout** (no horizontal scroll, touch-friendly targets, stacked columns). This is **responsive web viewport testing** — **not** authorization for native mobile apps, bottom-tab navigation, or app-store flows.
+
 | Breakpoint | Behavior |
 |------------|----------|
 | **&lt;640px** | Single column; full-width primary buttons; compact padding (`--space-4`); stack all zones vertically |
@@ -803,6 +807,7 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-02 | **Phase DOCS-WEB-ONLY** — Agent terminology for narrow viewport QA; Stitch web-UI-only boundary reinforced in §0 |
 | 2026-06-01 | **Phase A** — Platform note: browser-based web app only; responsive = web reflow; no native mobile/app-store scope |
 | 2026-06-01 | **Phase BX-1** — Dashboard decision layout (next-up hero, study pulse charts, tertiary stat bands); data visualization rules (honest API-only, no fake KPIs/sparklines/libraries); course accent + active/quiet states; plan coverage deferred; stronger Source \| AI + AI command panel; material cockpit artifact/history/flashcard emphasis; `PROTOTYPE_REFERENCES.md` authority row; BX-1 does not start B4 or chart/API implementation |
 | 2026-06-01 | **Phase BX-I1** — Stitch-selected visual delta: dark graphite/glass AI study command center; electric blue primary, violet AI accent, cyan data accent, course accent palette; dashboard as decision hub; stronger Source \| AI / AI command panel direction; **top nav remains MVP**; Stitch **sidebar reference-only** (separate shell phase); accessible dark SaaS allowed—hacker terminal / unreadable neon / clinical / gamification still forbidden; chart/data honesty retained; `STITCH_SELECTED_REFERENCE.md` + `STITCH_VISUAL_STYLE_GUIDE.md` authority rows; BX-I1 does not approve tokens.css, frontend implementation, sidebar, charts, fonts/CDN, API changes, or B4 |

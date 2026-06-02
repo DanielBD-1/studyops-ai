@@ -8,6 +8,8 @@
 
 StudyOps AI helps students turn pasted study text into summaries, tasks, flashcards, Trello cards, focus sessions, and dashboard analytics.
 
+**Product platform:** StudyOps AI is a **browser-based web application only** (React in the browser). It is **not** a mobile app, native mobile app, Android/iOS app, phone app, app-store product, or mobile-first/native product. Responsive CSS supports **narrow responsive browser viewports** in the same web app — that is **not** mobile-app scope.
+
 **Architecture (MVP):** React frontend → Express modular monolith → HTTP → Document Processing microservice → Gemini API. Supabase Auth + PostgreSQL.
 
 **Read first:** `docs/IMPLEMENTATION_STATUS.md` (what is built today), `docs/AGENT_MEMORY.md` (phase history), `docs/PRD.md` (MVP intent and future scope), relevant `docs/adrs/*.md`, the workflow for your phase, and `DESIGN.md` only for approved frontend UI work.
@@ -86,7 +88,7 @@ Before implementing any feature that touches architecture, validation, Trello, o
 
 **Out of scope — do not implement without explicit human approval:**
 
-- PDF upload/parsing, Trello OAuth, Google Calendar/Maps, payments, mobile app
+- PDF upload/parsing, Trello OAuth, Google Calendar/Maps, payments, **native mobile / app-store product** (see **Product platform** below — responsive web in the browser remains in scope)
 - Real-time collaboration, advanced spaced repetition, full AI chat
 - Background polling, mass Trello sync, deleting Trello cards
 - Full microservices for every module, GDPR/data retention tooling
@@ -94,6 +96,19 @@ Before implementing any feature that touches architecture, validation, Trello, o
 - Redux, WebSockets, optimistic dashboard updates, credential persistence
 
 **Cost & external services (out of scope without approval):** Paid third-party APIs, new SaaS subscriptions, paid storage tiers, or other **cost-increasing** dependencies — same explicit approval gate as new npm packages. Assume **Free Tier / minimal-cost** operation unless the human approves otherwise (see `docs/IMPLEMENTATION_STATUS.md` § Operating constraints).
+
+### Product platform (web only)
+
+| In scope | Out of scope without explicit approval |
+|----------|----------------------------------------|
+| React web UI in desktop/laptop/mobile **browsers** | Native iOS/Android apps, React Native, Capacitor/Cordova wrappers, PWA install flows as a “mobile product”, app-store assets |
+| **Responsive web layout** — CSS reflow at narrow widths (e.g. **~375px** browser viewport) | Bottom-tab native navigation, phone-first native shell, push notifications, device APIs, app-store onboarding |
+| **`AppShell` top navigation** (implemented) | Permanent sidebar hub, Stitch sidebar mockups as implementation approval |
+| Stitch / `DESIGN.md` as **web UI** visual reference | Treating Stitch exports as authorization for native mobile or sidebar migration |
+
+**Agent terminology (required):** When checking **375px** or narrow layouts, say **narrow responsive browser layout**, **small viewport web layout**, or **responsive web viewport** — **not** “mobile app”, “native mobile”, “phone app”, “mobile direction”, “mobile navigation”, “bottom tabs”, or “app-store flow”. **Do not introduce** mobile/native/app-store direction in plans, reviews, or implementation unless the human explicitly expands product scope.
+
+**Stitch / DESIGN boundary:** Stitch references (`docs/design/STITCH_*.md`, `stitch-*.png`) are **visual inspiration for the web UI only**. They do **not** approve native mobile app work, sidebar implementation (unless separately planned and approved), or mobile-specific navigation / app-store patterns.
 
 ---
 

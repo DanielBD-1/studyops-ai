@@ -108,6 +108,18 @@ spacing:
   stack-lg: 48px
 ---
 
+## Scope (StudyOps AI — web only)
+
+**Reference only — not production code or product scope expansion.**
+
+StudyOps AI is a **browser-based web application only**. This Stitch style guide informs **web UI** presentation in the browser. It does **not** approve native mobile apps, Android/iOS apps, phone apps, app-store products, bottom-tab native navigation, or mobile-specific navigation patterns.
+
+Stitch mockups may show sidebar or narrow layouts — those are **visual inspiration for responsive web layout** only. Sidebar migration, native mobile work, and app-store flows require **separate explicit human approval**.
+
+**375px / narrow width:** Breakpoints below describe **responsive web viewport** reflow in CSS — **narrow responsive browser layout**, not a separate mobile-app product.
+
+---
+
 ## Brand & Style
 
 The design system is engineered for a high-performance AI study command center. It targets high-achieving students who view education as a competitive pursuit, requiring a UI that feels like a visionary flight deck rather than a traditional classroom tool.
@@ -142,7 +154,7 @@ The layout follows a **Fixed Grid** model for the central dashboard, utilizing a
 
 - **Desktop (1440px+):** 12 columns, 80px width, 20px gutters, 24px side margins.
 - **Tablet (768px - 1024px):** 8 columns, fluid width, 16px gutters.
-- **Mobile (<768px):** 4 columns, fluid width, 12px gutters.
+- **Narrow web viewport (<768px):** 4 columns, fluid width, 12px gutters — **responsive web layout** in the browser (not native mobile app scope). Stitch token name `headline-lg-mobile` means smaller **web** headline at narrow breakpoints only.
 
 The spacing rhythm is strictly base-8. Use `stack-lg` for separating major sections (e.g., Study Session vs. Resource Library) and `stack-sm` for internal card padding and metadata groups.
 
@@ -184,4 +196,4 @@ The shape language is **Rounded**, balancing professional structure with a moder
 - Small, uppercase label-sm typography. Backgrounds should be low-opacity versions of the accent colors (e.g., 10% Amber) with 100% opacity text.
 
 ### Navigation
-- Vertical sidebar with a frosted glass effect. Active states are indicated by a vertical "Light Bar" (2px wide) of Electric Blue on the far left edge and a subtle gradient shift in the item background.
+- Vertical sidebar with a frosted glass effect (**Stitch web UI reference only** — StudyOps MVP uses **top `AppShell` nav**; sidebar requires separate approved shell phase). Active states are indicated by a vertical "Light Bar" (2px wide) of Electric Blue on the far left edge and a subtle gradient shift in the item background.

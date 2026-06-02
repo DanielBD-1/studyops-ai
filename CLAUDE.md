@@ -23,8 +23,20 @@ Instructions for Claude (and Claude Code) in this repository. **AGENTS.md** and 
 
 ---
 
+## Product platform (web only)
+
+StudyOps AI is a **browser-based web application only** — not a mobile app, native mobile app, Android/iOS app, phone app, app-store product, or mobile-first/native product.
+
+- **In scope:** Responsive **web** layout in the browser (including narrow viewports such as **~375px** width).
+- **Out of scope:** Native mobile apps, app-store flows, bottom-tab native navigation, phone-first native shell, push notifications, and any work that treats StudyOps as an installable native product.
+- **Terminology:** For narrow layout checks, use **narrow responsive browser layout**, **small viewport web layout**, or **responsive web viewport** — never “mobile app”, “native mobile”, “phone app”, “mobile direction”, “mobile navigation”, “bottom tabs”, or “app-store flow”.
+- **Stitch / DESIGN:** Visual reference for **web UI only** — does not approve native mobile work, sidebar migration, or mobile-specific navigation unless separately approved.
+
+---
+
 ## Behavioral Rules
 
+- **Web only:** Do not introduce mobile/native/app-store product direction. Responsive CSS for narrow browser viewports is allowed and is **not** mobile-app scope.
 - **MVP only:** Do not add PDF upload, OAuth, payments, polling, Redux, or credential storage unless the human explicitly expands scope.
 - **Minimal cost:** Do not add paid APIs, new subscriptions, paid storage tiers, or other cost-increasing architecture without explicit human approval (see `AGENTS.md` and `IMPLEMENTATION_STATUS` operating constraints).
 - **Planning ≠ implementation:** Do not write application code or apply migrations until the human gives **`approved — implement Phase X`** (or equivalent)—planning approval alone is insufficient.
