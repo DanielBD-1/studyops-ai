@@ -1,5 +1,4 @@
 import Button from '../ui/Button.jsx';
-import EmptyState from '../ui/EmptyState.jsx';
 import FormCard from '../ui/FormCard.jsx';
 import { TRELLO_SYNC_MAX_TASKS } from '../../utils/trello-sync-validation.js';
 
@@ -34,7 +33,9 @@ export default function TrelloTaskSelector({
         Select tasks to sync
       </h2>
       {tasks.length === 0 ? (
-        <EmptyState message="No study tasks yet. Create tasks on a course or the All study tasks page." />
+        <p className="trello-picker__empty trello-picker__status" role="status">
+          No study tasks yet. Create tasks on a course or the All study tasks page.
+        </p>
       ) : (
         <>
           <div className="trello-sync__toolbar">
