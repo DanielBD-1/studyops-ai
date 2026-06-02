@@ -2761,6 +2761,21 @@ a.dashboard-hero__cta.btn:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-4);
   }
+
+  /* BX-I7D — courses desktop shelf (Tier 1) */
+  .page--courses .courses-shelf--deck .courses-shelf__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  /* BX-I7D — course detail document shelf (Tier 1) */
+  .page--course-detail .document-shelf--deck {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+  }
 }
 
 @media (min-width: 641px) {
