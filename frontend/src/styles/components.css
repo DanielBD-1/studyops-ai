@@ -183,13 +183,23 @@
 }
 
 .form-card--plan {
-  border-color: var(--color-primary-border);
-  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-primary-subtle) 100%);
+  border-color: rgba(208, 188, 255, 0.28);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface) 0%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
+}
+
+.plan-output__flashcards {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
 }
 
 .plan-disclaimer {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
   color: var(--color-text-muted);
 }
 
@@ -669,6 +679,25 @@
   box-shadow: var(--shadow-sm);
 }
 
+.material-workspace__command-section.ai-panel,
+.material-workspace__cockpit-ai .material-workspace__generate {
+  margin-top: 0;
+  padding: var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-ai-surface) 0%,
+    var(--color-ai-gradient-end-soft) 100%
+  );
+  border: 1px solid rgba(208, 188, 255, 0.28);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.material-workspace__cockpit-ai .ai-panel__loading--active {
+  border-color: rgba(208, 188, 255, 0.35);
+  background: var(--color-surface);
+}
+
 .ai-panel__header {
   margin-bottom: var(--space-4);
 }
@@ -729,11 +758,43 @@
   margin-bottom: 0;
   box-shadow: var(--elevation-2);
   border-radius: var(--radius-lg);
+  background: var(--color-editor-surface);
+  border-color: var(--color-glass-border);
+}
+
+.material-workspace__editor-form {
+  gap: var(--space-4);
+}
+
+.material-workspace__editor-form .field__input,
+.material-workspace__editor-form .field__select {
+  background: rgba(6, 14, 32, 0.65);
+  border-color: var(--color-border);
+}
+
+.material-workspace__editor-form .field__textarea--reading {
+  min-height: 16rem;
+  font-size: var(--font-size-base);
+  line-height: 1.65;
+  padding: var(--space-4);
+  background: rgba(6, 14, 32, 0.85);
+  border-color: var(--color-border-strong);
+}
+
+.material-workspace__editor-form .field__textarea--reading:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus-field);
 }
 
 .material-workspace__cockpit-ai .plan-output,
 .material-workspace__cockpit-ai .plan-history {
   margin-bottom: 0;
+}
+
+.material-workspace__cockpit-ai .plan-output,
+.material-workspace__cockpit-ai .plan-history.form-card {
+  border-color: rgba(208, 188, 255, 0.22);
+  background: var(--color-surface);
 }
 
 .material-workspace__editor-card .form-card__title {
@@ -759,13 +820,9 @@
   border-radius: var(--radius-sm);
 }
 
-.material-workspace__editor-form .field__textarea--reading {
-  min-height: 16rem;
-  font-size: var(--font-size-base);
-}
-
 .material-workspace__editor-actions {
-  padding-top: var(--space-2);
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
   border-top: 1px solid var(--color-border);
 }
 
@@ -778,6 +835,12 @@
 .flashcard-library--material {
   box-shadow: var(--elevation-2);
   border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border-color: var(--color-glass-border);
+}
+
+.material-workspace__library .flashcard-library--material {
+  border-left-color: var(--color-primary-border);
 }
 
 .flashcard-library__intro {
@@ -785,7 +848,10 @@
 }
 
 .flashcard-library__empty {
-  padding: var(--space-4);
+  margin: 0;
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--color-text-muted);
   background: var(--color-bg-subtle);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
@@ -843,12 +909,28 @@
 
 .plan-output .form-card__title {
   font-size: var(--font-size-lg);
+  color: var(--color-text);
 }
 
 .plan-output__header {
   margin-bottom: var(--space-5);
   padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-primary-border);
+  border-bottom: 1px solid rgba(208, 188, 255, 0.25);
+}
+
+.plan-output__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.plan-output__section {
+  margin-bottom: 0;
+}
+
+.plan-output__section + .plan-output__section,
+.plan-output__import-band {
+  margin-top: 0;
 }
 
 .plan-output__footer {
@@ -857,13 +939,22 @@
   border-top: 1px solid var(--color-border);
 }
 
-.plan-import-toolbar {
-  margin: var(--space-5) 0;
+.plan-import-toolbar,
+.plan-output__import-band {
+  margin: 0;
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-subtle) 0%,
+    var(--color-surface) 100%
+  );
   border: 1px solid var(--color-primary-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+}
+
+.plan-output__import-band {
+  border-left: 3px solid var(--color-primary);
 }
 
 .plan-import-toolbar__label {
@@ -882,6 +973,26 @@
 .plan-panel__status--loading,
 .plan-panel__status--progress {
   margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.plan-history__empty,
+.plan-history__status {
+  padding: var(--space-5);
+  text-align: center;
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.plan-history__error {
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .plan-panel__status--success {
@@ -927,9 +1038,10 @@
 
 .plan-block--summary {
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
+  background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-ai-accent);
 }
 
 .plan-block--inline {
@@ -980,6 +1092,8 @@
   gap: var(--space-2);
   margin-bottom: 0;
   box-shadow: none;
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
 }
 
 .plan-task-item__title {
@@ -1626,8 +1740,14 @@
 
 .plan-history__preview {
   margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
+}
+
+.plan-history__preview-panel {
+  padding: var(--space-4);
+  background: var(--color-editor-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-ai-accent);
 }
 
 .plan-history__preview-summary,

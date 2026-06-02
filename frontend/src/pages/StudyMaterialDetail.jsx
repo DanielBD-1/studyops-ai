@@ -575,9 +575,12 @@ export default function StudyMaterialDetail() {
       <div className="material-workspace__cockpit">
         <div className="material-workspace__cockpit-source">
           <section className="material-workspace__editor" aria-label="Edit study material">
-            <div className="section__header-row">
-              <h2 className="section__title">Source document</h2>
-              <p className="section__subtitle">Reading and editing workspace</p>
+            <div className="section__header-row material-workspace__source-header">
+              <div className="material-workspace__source-heading">
+                <h2 className="section__title">Source document</h2>
+                <p className="section__subtitle">Reading and editing workspace</p>
+              </div>
+              <span className="material-workspace__source-pill">{sourceTypeLabel}</span>
             </div>
             <FormCard title="Edit study material" className="material-workspace__editor-card">
               {hasUnsavedChanges && (
@@ -632,8 +635,9 @@ export default function StudyMaterialDetail() {
         </div>
 
         <aside className="material-workspace__cockpit-ai" aria-label="AI study cockpit">
+          <div className="material-workspace__command-stack">
           <section
-            className="ai-panel material-workspace__generate"
+            className="material-workspace__command-section ai-panel material-workspace__generate"
             aria-labelledby="generate-heading"
           >
             <div className="ai-panel__header">
@@ -664,7 +668,7 @@ export default function StudyMaterialDetail() {
 
           {showPlanSection && (
             <section
-              className="material-workspace__plan"
+              className="material-workspace__command-section material-workspace__plan"
               aria-labelledby="saved-plan-heading"
             >
               <div className="section__header-row">
@@ -738,7 +742,7 @@ export default function StudyMaterialDetail() {
 
           {showPlanHistorySection && (
             <section
-              className="material-workspace__plan-history"
+              className="material-workspace__command-section material-workspace__plan-history"
               aria-labelledby="plan-history-heading"
             >
               <div className="section__header-row">
@@ -760,6 +764,7 @@ export default function StudyMaterialDetail() {
               />
             </section>
           )}
+          </div>
         </aside>
       </div>
 

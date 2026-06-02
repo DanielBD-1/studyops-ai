@@ -130,7 +130,9 @@ export default function GeneratedPlanHistorySection({
   if (loading) {
     return (
       <FormCard className="plan-history">
-        <p className="plan-panel__status plan-panel__status--loading">Loading plan history…</p>
+        <p className="plan-panel__status plan-panel__status--loading plan-history__status">
+          Loading plan history…
+        </p>
       </FormCard>
     );
   }
@@ -138,7 +140,7 @@ export default function GeneratedPlanHistorySection({
   if (error) {
     return (
       <FormCard className="plan-history">
-        <div className="plan-panel__error">
+        <div className="plan-panel__error plan-history__error">
           <ErrorMessage message={error} />
           {onRetry ? (
             <Button variant="secondary" onClick={onRetry} disabled={disabled}>
@@ -153,7 +155,7 @@ export default function GeneratedPlanHistorySection({
   if (plans.length === 0) {
     return (
       <FormCard className="plan-history">
-        <p className="plan-panel__status" role="status">
+        <p className="plan-panel__status plan-history__empty" role="status">
           No saved plan versions yet. Generate a study plan to create one.
         </p>
       </FormCard>
@@ -235,7 +237,7 @@ export default function GeneratedPlanHistorySection({
               )}
 
               {!item.isActive && isPreviewOpen ? (
-                <div className="plan-history__preview" aria-live="polite">
+                <div className="plan-history__preview plan-history__preview-panel" aria-live="polite">
                   {previewLoading ? (
                     <p className="plan-panel__status plan-panel__status--loading">
                       Loading preview…
