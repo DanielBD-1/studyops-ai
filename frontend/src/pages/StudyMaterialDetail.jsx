@@ -506,7 +506,9 @@ export default function StudyMaterialDetail() {
   if (loading) {
     return (
       <main className="page page--cockpit page--material-detail material-workspace">
-        <LoadingState message="Loading study material…" />
+        <div className="material-workspace__page-loading">
+          <LoadingState message="Loading study material…" />
+        </div>
       </main>
     );
   }
@@ -514,9 +516,13 @@ export default function StudyMaterialDetail() {
   if (notFound) {
     return (
       <main className="page page--cockpit page--material-detail material-workspace">
-        <h1 className="page__title--tight">Study material not found</h1>
-        <p className="not-found__text">This study material may have been deleted.</p>
-        <Link to="/courses">Back to courses</Link>
+        <div className="material-workspace__not-found">
+          <h1 className="page__title--tight">Study material not found</h1>
+          <p className="not-found__text">This study material may have been deleted.</p>
+          <p>
+            <Link to="/courses">Back to courses</Link>
+          </p>
+        </div>
       </main>
     );
   }
@@ -524,13 +530,17 @@ export default function StudyMaterialDetail() {
   if (error || !material) {
     return (
       <main className="page page--cockpit page--material-detail material-workspace">
-        <ErrorMessage message={error ?? 'Failed to load study material'} />
-        <Button variant="secondary" onClick={loadMaterial}>
-          Try again
-        </Button>
-        <p className="section__actions">
-          <Link to="/courses">Back to courses</Link>
-        </p>
+        <div className="material-workspace__page-error">
+          <ErrorMessage message={error ?? 'Failed to load study material'} />
+          <div className="material-workspace__error-actions">
+            <Button variant="secondary" onClick={loadMaterial}>
+              Try again
+            </Button>
+          </div>
+          <p className="section__actions">
+            <Link to="/courses">Back to courses</Link>
+          </p>
+        </div>
       </main>
     );
   }

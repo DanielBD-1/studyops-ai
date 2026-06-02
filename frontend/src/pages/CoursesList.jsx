@@ -86,7 +86,7 @@ export default function CoursesList() {
   }
 
   return (
-    <main className="page page--cockpit page--courses">
+    <main className="page page--cockpit page--courses courses-workspace">
       <PageHeader
         intro
         title="My courses"
@@ -135,14 +135,20 @@ export default function CoursesList() {
         </div>
       )}
 
-      {loading && <LoadingState message="Loading courses…" />}
+      {loading && (
+        <div className="courses-workspace__page-loading">
+          <LoadingState message="Loading courses…" />
+        </div>
+      )}
       {!loading && error && (
-        <>
+        <div className="courses-workspace__page-error">
           <ErrorMessage message={error} />
-          <Button variant="secondary" onClick={loadCourses}>
-            Try again
-          </Button>
-        </>
+          <div className="courses-workspace__error-actions">
+            <Button variant="secondary" onClick={loadCourses}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && courses.length === 0 && (

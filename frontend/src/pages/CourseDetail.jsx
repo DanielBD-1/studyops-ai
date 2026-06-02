@@ -213,32 +213,42 @@ export default function CourseDetail() {
 
   if (loading) {
     return (
-      <main className="page page--cockpit page--course-detail">
-        <LoadingState message="Loading course…" />
+      <main className="page page--cockpit page--course-detail course-workspace">
+        <div className="course-workspace__page-loading">
+          <LoadingState message="Loading course…" />
+        </div>
       </main>
     );
   }
 
   if (notFound) {
     return (
-      <main className="page page--cockpit page--course-detail">
-        <h1 className="page__title--tight">Course not found</h1>
-        <p className="not-found__text">This course may have been deleted.</p>
-        <Link to="/courses">Back to courses</Link>
+      <main className="page page--cockpit page--course-detail course-workspace">
+        <div className="course-workspace__not-found">
+          <h1 className="page__title--tight">Course not found</h1>
+          <p className="not-found__text">This course may have been deleted.</p>
+          <p>
+            <Link to="/courses">Back to courses</Link>
+          </p>
+        </div>
       </main>
     );
   }
 
   if (error || !course) {
     return (
-      <main className="page page--cockpit page--course-detail">
-        <ErrorMessage message={error ?? 'Failed to load course'} />
-        <Button variant="secondary" onClick={loadCourse}>
-          Try again
-        </Button>
-        <p className="section__actions">
-          <Link to="/courses">Back to courses</Link>
-        </p>
+      <main className="page page--cockpit page--course-detail course-workspace">
+        <div className="course-workspace__page-error">
+          <ErrorMessage message={error ?? 'Failed to load course'} />
+          <div className="course-workspace__error-actions">
+            <Button variant="secondary" onClick={loadCourse}>
+              Try again
+            </Button>
+          </div>
+          <p className="section__actions">
+            <Link to="/courses">Back to courses</Link>
+          </p>
+        </div>
       </main>
     );
   }
