@@ -2902,6 +2902,96 @@ a.dashboard-hero__cta.btn:hover {
   .page--admin-dashboard .admin-workspace__stats-row {
     min-width: 0;
   }
+
+  /* BX-I7F — material detail desktop cockpit (/study-materials/:materialId only) */
+  .page--material-detail.material-workspace:has(.material-workspace__cockpit)
+    .material-workspace__cockpit {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+
+  .page--material-detail .material-workspace__cockpit-ai .plan-history__actions,
+  .page--material-detail .material-workspace__cockpit-ai .plan-import-toolbar__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .page--material-detail .material-workspace__cockpit-ai .plan-history__actions .btn,
+  .page--material-detail .material-workspace__cockpit-ai .plan-import-toolbar__actions .btn {
+    width: auto;
+    justify-content: center;
+  }
+
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+    min-width: 0;
+  }
+
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .form-card__title,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .flashcard-library__intro,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .flashcard-library__loading,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .flashcard-library__error,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .flashcard-library__empty,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .flashcard-library__form,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .plan-panel__status,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .alert,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .flashcard-library__create-cta,
+  .page--material-detail
+    .material-workspace__library
+    .flashcard-library--material:has(.flashcard-library__study)
+    > .section__actions.flashcard-library__create-cta {
+    grid-column: 1 / -1;
+  }
+
+  .page--material-detail .material-workspace__library .flashcard-library__study,
+  .page--material-detail .material-workspace__library .flashcard-library__manage {
+    min-width: 0;
+  }
+
+  .page--material-detail
+    .flashcard-library__manage:has(.flashcard-library__list)
+    .flashcard-library__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .page--material-detail .flashcard-library__list .flashcard-library__item:has(form) {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 641px) {
