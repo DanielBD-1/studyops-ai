@@ -4,6 +4,8 @@
 
 Web app that helps students turn study material into summaries, tasks, flashcards, Trello cards, and focus sessions.
 
+**Product platform:** **Browser-based web application only** — not a native mobile app, Android/iOS app, phone app, or app-store product. Responsive layout in the browser (including narrow viewports) is in scope; that is not mobile-app product scope.
+
 **Current status:** Phases **1A–1G**, **2A–2G**, **2L-a/b/c/d**, **3A-a/b/c/c.1/c.2/c.3/d/e/f**, **3B-a/b/c/d/e/f/g**, **4A-0**–**4A-3**, **4B-1**, **4B-2**, **4C-0**, **4C-1**, **4C-2**, **4C-3**, **5B**, **5C**, **5C.1**, **6A-1**, **6A-2**, **6A-3**, **7A**, **7B**, **7C**, **8A**, **8B**, and **8C-1** through **8C-3D** are implemented — functional MVP through admin aggregate stats; hardening/docs alignment **7A**–**7C**; global **`AppShell`** and UI presentation polish through **8C-3D**. See **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** and **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. **Docs alignment (2026-05-30):** Phase **9B** post-**8C** implementation-status alignment. Future work (**Trello OAuth**, admin logs / user management / role management, course-level generate, PDF upload, dashboard polling/WebSockets/cross-tab sync, spaced repetition, payments, production deployment, etc.) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today

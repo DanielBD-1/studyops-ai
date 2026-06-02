@@ -146,7 +146,11 @@ StudyOps AI
 
 ### One-line Description
 
-StudyOps AI is a web application that helps students turn raw study material into actionable study tasks, flashcards, Trello cards, focus sessions, and progress analytics.
+StudyOps AI is a **browser-based web application** that helps students turn raw study material into actionable study tasks, flashcards, Trello cards, focus sessions, and progress analytics.
+
+### Product platform
+
+StudyOps AI is a **web application only** — students use it in a **desktop or mobile browser**. It is **not** a native mobile app, Android app, iOS app, phone app, or app-store product. **Responsive web layout** (including narrow browser viewports, e.g. **~375px** width checks) supports the same web UI in smaller windows; that is **responsive browser testing**, not mobile-app product scope.
 
 ### Product Goal
 
@@ -297,7 +301,7 @@ The following are intentionally excluded from the first version:
 - Google Calendar integration
 - Google Maps integration
 - Stripe or payments
-- mobile app
+- **native mobile app** (iOS/Android), app-store product, phone-first native shell, or installable native client — **responsive web in the browser remains in MVP scope**
 - real-time collaboration
 - advanced spaced repetition algorithm
 - full AI chat interface
