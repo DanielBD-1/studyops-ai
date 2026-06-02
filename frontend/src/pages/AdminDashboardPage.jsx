@@ -17,7 +17,7 @@ import {
  */
 function StatItem({ label, value, detail }) {
   return (
-    <div className="dashboard-stat">
+    <div className="dashboard-stat admin-workspace__stat">
       <dt className="dashboard-stat__label">{label}</dt>
       <dd className="dashboard-stat__value">{value}</dd>
       {detail && <dd className="dashboard-stat__detail">{detail}</dd>}
@@ -29,12 +29,14 @@ function StatItem({ label, value, detail }) {
  * @param {{ title: string, children: import('react').ReactNode, bandClass?: string }} props
  */
 function StatBand({ title, children, bandClass }) {
-  const bandClasses = ['dashboard-band', bandClass].filter(Boolean).join(' ');
+  const bandClasses = ['dashboard-band', 'admin-workspace__band', bandClass]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <section className={bandClasses}>
       <h2 className="dashboard-band__title">{title}</h2>
-      <dl className="dashboard-stats">{children}</dl>
+      <dl className="dashboard-stats admin-workspace__stats">{children}</dl>
     </section>
   );
 }
@@ -128,7 +130,7 @@ export default function AdminDashboardPage() {
     stats && formatTaskCompletionPercent(stats.completedTasks, stats.totalTasks);
 
   return (
-    <main className="page page--cockpit page--admin-dashboard">
+    <main className="page page--cockpit page--admin-dashboard admin-workspace">
       <PageHeader
         intro
         title="Admin dashboard"
@@ -148,98 +150,123 @@ export default function AdminDashboardPage() {
         )}
       </PageHeader>
 
-      {loading && <LoadingState message="Loading admin stats…" />}
+      {loading && (
+        <div className="admin-workspace__page-loading">
+          <LoadingState message="Loading admin stats…" />
+        </div>
+      )}
 
       {!loading && forbidden && (
-        <div className="admin-forbidden-card">
-          <p className="admin-forbidden-card__lead">Admin access required</p>
-          <p className="admin-forbidden-card__text">
-            You do not have permission to view platform admin stats.
-          </p>
-          <p>
-            <Link to="/dashboard">Back to dashboard</Link>
-          </p>
+        <div className="admin-workspace__forbidden">
+          <div className="admin-forbidden-card">
+            <p className="admin-forbidden-card__lead">Admin access required</p>
+            <p className="admin-forbidden-card__text">
+              You do not have permission to view platform admin stats.
+            </p>
+            <p>
+              <Link to="/dashboard">Back to dashboard</Link>
+            </p>
+          </div>
         </div>
       )}
 
       {!loading && error && (
-        <>
+        <div className="admin-workspace__page-error">
           <ErrorMessage message={error} />
-          <Button variant="secondary" onClick={() => loadStats()}>
-            Try again
-          </Button>
-        </>
+          <div className="admin-workspace__error-actions">
+            <Button variant="secondary" onClick={() => loadStats()}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && !forbidden && stats && (
-        <>
-          <p className="admin-disclaimer" role="note">
-            Aggregate totals only — no emails, content, or individual records are displayed.
-          </p>
-
-          <div className="dashboard-cockpit admin-cockpit">
-            <StatBand title="Platform overview" bandClass="dashboard-band--admin-overview">
-              <StatItem label="Total users" value={stats.totalUsers} />
-              <StatItem label="Total courses" value={stats.totalCourses} />
-              <StatItem label="Study materials" value={stats.totalStudyMaterials} />
-              <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
-            </StatBand>
-
-            <div className="dashboard-cockpit__row">
-              <StatBand title="Tasks" bandClass="dashboard-band--tasks">
-                <StatItem label="Total tasks" value={stats.totalTasks} />
-                <StatItem label="Pending" value={stats.pendingTasks} />
-                <StatItem
-                  label="Completed"
-                  value={stats.completedTasks}
-                  detail={
-                    taskCompletionPercent !== null
-                      ? `${taskCompletionPercent}% complete`
-                      : undefined
-                  }
-                />
-              </StatBand>
-
-              <StatBand title="Focus" bandClass="dashboard-band--focus">
-                <StatItem
-                  label="Focus time"
-                  value={formatFocusMinutes(stats.totalFocusMinutes)}
-                />
-                <StatItem label="Completed sessions" value={stats.completedFocusSessions} />
-              </StatBand>
-            </div>
-
-            <div className="dashboard-cockpit__row dashboard-cockpit__row--compact">
-              <StatBand title="Learning assets" bandClass="dashboard-band--assets">
-                <StatItem label="Flashcards" value={stats.totalFlashcards} />
-              </StatBand>
-
-              <StatBand title="Trello" bandClass="dashboard-band--trello">
-                <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
-              </StatBand>
-            </div>
-
-            <StatBand title="Trello today (UTC)" bandClass="dashboard-band--trello-today">
-              <StatItem
-                label="Sync attempts today (UTC)"
-                value={stats.trelloSyncAttemptsToday}
-              />
-              <StatItem
-                label="Succeeded today (UTC)"
-                value={stats.trelloSyncSucceededToday}
-              />
-              <StatItem label="Failed today (UTC)" value={stats.trelloSyncFailedToday} />
-              <StatItem label="Skipped today (UTC)" value={stats.trelloSyncSkippedToday} />
-            </StatBand>
-
-            <StatBand title="System health" bandClass="dashboard-band--health">
-              <StatItem
-                label="Status"
-                value={formatBackendHealth(stats.systemHealth.backend)}
-              />
-            </StatBand>
+        <section
+          className="admin-workspace__command-band admin-workspace__command-band--deck"
+          aria-label="Platform admin statistics"
+        >
+          <div className="admin-workspace__command-header section__header-row">
+            <h2 className="section__title section__title--sm admin-workspace__command-title">
+              Platform control
+            </h2>
+            <p className="section__subtitle admin-workspace__command-subtitle">
+              Aggregate platform overview — admin-only counts from the latest platform totals.
+            </p>
           </div>
-        </>
+
+          <div className="admin-workspace__command-body">
+            <p className="admin-disclaimer admin-workspace__trust-note" role="note">
+              Aggregate counts only — no emails, content, or individual records are displayed.
+            </p>
+
+            <div className="dashboard-cockpit admin-cockpit admin-workspace__stats-deck">
+              <StatBand title="Platform overview" bandClass="dashboard-band--admin-overview">
+                <StatItem label="Total users" value={stats.totalUsers} />
+                <StatItem label="Total courses" value={stats.totalCourses} />
+                <StatItem label="Study materials" value={stats.totalStudyMaterials} />
+                <StatItem label="Generated plans" value={stats.totalGeneratedPlans} />
+              </StatBand>
+
+              <div className="dashboard-cockpit__row admin-workspace__stats-row">
+                <StatBand title="Tasks" bandClass="dashboard-band--tasks">
+                  <StatItem label="Total tasks" value={stats.totalTasks} />
+                  <StatItem label="Pending" value={stats.pendingTasks} />
+                  <StatItem
+                    label="Completed"
+                    value={stats.completedTasks}
+                    detail={
+                      taskCompletionPercent !== null
+                        ? `${taskCompletionPercent}% complete`
+                        : undefined
+                    }
+                  />
+                </StatBand>
+
+                <StatBand title="Focus" bandClass="dashboard-band--focus">
+                  <StatItem
+                    label="Focus time"
+                    value={formatFocusMinutes(stats.totalFocusMinutes)}
+                  />
+                  <StatItem
+                    label="Completed sessions"
+                    value={stats.completedFocusSessions}
+                  />
+                </StatBand>
+              </div>
+
+              <div className="dashboard-cockpit__row dashboard-cockpit__row--compact admin-workspace__stats-row">
+                <StatBand title="Learning assets" bandClass="dashboard-band--assets">
+                  <StatItem label="Flashcards" value={stats.totalFlashcards} />
+                </StatBand>
+
+                <StatBand title="Trello" bandClass="dashboard-band--trello">
+                  <StatItem label="Synced tasks" value={stats.trelloSyncedTasks} />
+                </StatBand>
+              </div>
+
+              <StatBand title="Trello today (UTC)" bandClass="dashboard-band--trello-today">
+                <StatItem
+                  label="Sync attempts today (UTC)"
+                  value={stats.trelloSyncAttemptsToday}
+                />
+                <StatItem
+                  label="Succeeded today (UTC)"
+                  value={stats.trelloSyncSucceededToday}
+                />
+                <StatItem label="Failed today (UTC)" value={stats.trelloSyncFailedToday} />
+                <StatItem label="Skipped today (UTC)" value={stats.trelloSyncSkippedToday} />
+              </StatBand>
+
+              <StatBand title="Backend status" bandClass="dashboard-band--health">
+                <StatItem
+                  label="Status"
+                  value={formatBackendHealth(stats.systemHealth.backend)}
+                />
+              </StatBand>
+            </div>
+          </div>
+        </section>
       )}
     </main>
   );

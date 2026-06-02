@@ -244,7 +244,7 @@
 }
 
 .admin-disclaimer {
-  margin: 0 0 var(--space-5);
+  margin: 0;
   padding: var(--space-3) var(--space-4);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
@@ -255,18 +255,21 @@
 }
 
 .admin-cockpit {
-  margin-top: var(--space-2);
+  margin-top: 0;
 }
 
-.dashboard-band--admin-overview {
+.page--admin-dashboard .dashboard-band--admin-overview,
+.page--admin-dashboard .admin-workspace__band.dashboard-band--admin-overview {
   border-top: 3px solid var(--color-admin-accent);
 }
 
-.dashboard-band--health {
+.page--admin-dashboard .dashboard-band--health,
+.page--admin-dashboard .admin-workspace__band.dashboard-band--health {
   border-top: 3px solid var(--color-border-strong);
 }
 
-.dashboard-band--trello-today {
+.page--admin-dashboard .dashboard-band--trello-today,
+.page--admin-dashboard .admin-workspace__band.dashboard-band--trello-today {
   border-top: 3px solid var(--color-primary);
 }
 
@@ -276,6 +279,22 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--elevation-1);
+}
+
+.page--admin-dashboard .admin-forbidden-card,
+.page--admin-forbidden .admin-forbidden-card {
+  padding: var(--space-6) var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-top: 3px solid var(--color-admin-accent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+  min-width: 0;
 }
 
 .admin-forbidden-card__lead {
@@ -293,6 +312,128 @@
 
 .admin-forbidden-card p:last-child {
   margin-bottom: 0;
+}
+
+/* Admin workspace — /admin command surface (B4-D) */
+.page--admin-dashboard.admin-workspace {
+  min-width: 0;
+}
+
+.admin-workspace__page-loading,
+.admin-workspace__page-error,
+.admin-workspace__forbidden {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.admin-workspace__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.admin-workspace__command-band {
+  min-width: 0;
+}
+
+.admin-workspace__command-band--deck {
+  margin-top: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--color-admin-accent);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.admin-workspace__command-header {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-glass-border);
+}
+
+.admin-workspace__command-title {
+  font-size: var(--font-size-card-title);
+}
+
+.admin-workspace__command-subtitle {
+  max-width: 42rem;
+}
+
+.admin-workspace__command-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.page--admin-dashboard .admin-workspace__trust-note {
+  margin: 0;
+}
+
+.admin-workspace__stats-deck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.page--admin-dashboard .admin-workspace__band {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  min-width: 0;
+}
+
+.page--admin-dashboard .admin-workspace__stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.page--admin-dashboard .admin-workspace__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  min-width: 0;
+}
+
+.page--admin-dashboard .admin-workspace__stat {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  min-width: 0;
+}
+
+.page--admin-dashboard .admin-workspace__stat:hover {
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.page--admin-dashboard .admin-workspace__stat .dashboard-stat__value {
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-workspace__command-band--deck,
+  .page--admin-dashboard .admin-forbidden-card,
+  .page--admin-forbidden .admin-forbidden-card {
+    transition: none;
+  }
 }
 
 .page--workspace {
@@ -2500,5 +2641,36 @@ a.dashboard-hero__cta.btn:hover {
   .course-workspace__danger {
     margin-top: var(--space-10);
     padding-top: var(--space-6);
+  }
+
+  .page--admin-dashboard .admin-workspace__command-band--deck {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page--admin-dashboard .admin-workspace__command-header {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+  }
+
+  .page--admin-dashboard .admin-workspace__band {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .page--admin-dashboard .admin-workspace__stats {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr));
+  }
+
+  .page--admin-dashboard .admin-workspace__stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .page--admin-dashboard .admin-forbidden-card,
+  .page--admin-forbidden .admin-forbidden-card {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page--admin-dashboard .page-header__actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
