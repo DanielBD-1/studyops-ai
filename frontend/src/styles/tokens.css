@@ -141,8 +141,8 @@
   --content-max-form: 420px;
   --content-max-workspace: 720px;
   --content-max-reading: 800px;
-  --content-max-cockpit: 1120px;
-  --content-max-shell: 1120px;
+  --content-max-cockpit: 1280px;
+  --content-max-shell: 1280px;
 
   --shell-height: 3.5rem;
   --z-shell: 100;
