@@ -2862,6 +2862,27 @@ a.dashboard-hero__cta.btn:hover {
   .page--flashcards .flashcards-workspace__list-item:has(form) {
     grid-column: 1 / -1;
   }
+
+  /* BX-I7E3 — Trello desktop panels (/trello only — Tier A) */
+  .page--trello .trello-workspace__flow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+    min-width: 0;
+  }
+
+  .page--trello .trello-workspace__step--credentials,
+  .page--trello .trello-workspace__step--destination {
+    min-width: 0;
+  }
+
+  .page--trello .trello-workspace__step--tasks,
+  .page--trello .trello-sync__messages,
+  .page--trello .trello-workspace__step--sync,
+  .page--trello .trello-sync__submit {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 641px) {
