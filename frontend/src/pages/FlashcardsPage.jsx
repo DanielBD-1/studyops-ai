@@ -56,15 +56,21 @@ export default function FlashcardsPage() {
         lead="Filter your library, study filtered cards, and manage questions across courses and study materials."
       />
 
-      {coursesLoading && <LoadingState message="Loading courses…" />}
+      {coursesLoading && (
+        <div className="flashcards-workspace__page-loading">
+          <LoadingState message="Loading courses…" />
+        </div>
+      )}
 
       {!coursesLoading && coursesError && (
-        <>
+        <div className="flashcards-workspace__page-error">
           <ErrorMessage message={coursesError} />
-          <Button variant="secondary" onClick={loadCourses}>
-            Try again
-          </Button>
-        </>
+          <div className="flashcards-workspace__error-actions">
+            <Button variant="secondary" onClick={loadCourses}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {!coursesLoading && !coursesError && (
