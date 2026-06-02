@@ -268,88 +268,119 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
   );
 
   return (
-    <div className="trello-workspace__main">
+    <section className="section trello-workspace__main" aria-label="Trello integration">
       <div className="trello-sync">
-        {tasksLoading && <LoadingState message="Loading study tasks…" />}
-
-        {!tasksLoading && tasksError && (
-          <div className="trello-sync__error-block">
-            <ErrorMessage message={tasksError} />
-            <div className="trello-sync__actions">
-              <Button variant="secondary" onClick={loadTasks}>
-                Try again
-              </Button>
-            </div>
+        <div className="trello-workspace__command-band trello-workspace__command-band--deck">
+          <div className="trello-workspace__command-header section__header-row">
+            <h2 className="section__title section__title--sm trello-workspace__command-title">
+              Trello integration
+            </h2>
+            <p className="section__subtitle trello-workspace__command-subtitle">
+              Connect and sync study tasks to Trello
+            </p>
           </div>
-        )}
+
+          <div className="trello-workspace__command-body">
+            {tasksLoading && (
+              <div className="trello-workspace__loading">
+                <LoadingState message="Loading study tasks…" />
+              </div>
+            )}
+
+            {!tasksLoading && tasksError && (
+              <div className="trello-sync__error-block">
+                <ErrorMessage message={tasksError} />
+                <div className="trello-sync__actions trello-workspace__error-actions">
+                  <Button variant="secondary" onClick={loadTasks}>
+                    Try again
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!tasksLoading && !tasksError && (
+              <div className="trello-workspace__flow-deck">
+                <form
+                  className="trello-sync__form trello-workspace__flow"
+                  onSubmit={handleSubmit}
+                  noValidate
+                >
+                  <TrelloSyncForm
+                    apiKey={apiKey}
+                    token={token}
+                    onApiKeyChange={setApiKey}
+                    onTokenChange={setToken}
+                    onClearCredentials={clearCredentials}
+                    disabled={syncing}
+                  />
+
+                  <TrelloBoardListPicker
+                    boards={boards}
+                    lists={lists}
+                    selectedBoardId={selectedBoardId}
+                    selectedListId={selectedListId}
+                    boardsLoading={boardsLoading}
+                    listsLoading={listsLoading}
+                    boardsAttempted={boardsAttempted}
+                    listsAttempted={listsAttempted}
+                    boardsError={boardsError}
+                    listsError={listsError}
+                    loadBoardsDisabled={loadBoardsDisabled}
+                    onLoadBoards={handleLoadBoards}
+                    onBoardChange={handleBoardChange}
+                    onListChange={handleListChange}
+                    disabled={syncing}
+                  />
+
+                  <TrelloTaskSelector
+                    tasks={tasks}
+                    courseTitleById={courseTitleById}
+                    selectedTaskIds={selectedTaskIds}
+                    onToggleTask={handleToggleTask}
+                    onSelectAll={handleSelectAll}
+                    onClearSelection={handleClearSelection}
+                    disabled={syncing}
+                  />
+
+                  {(validationError || syncError) && (
+                    <div className="trello-sync__messages">
+                      {validationError && <ErrorMessage message={validationError} />}
+                      {syncError && <ErrorMessage message={syncError} />}
+                    </div>
+                  )}
+
+                  <div className="trello-workspace__step trello-workspace__step--sync trello-sync__submit">
+                    <p className="trello-workspace__step-label" aria-hidden="true">
+                      Step 4
+                    </p>
+                    <h2 className="trello-workspace__step-title" id="trello-step-sync">
+                      Sync to Trello
+                    </h2>
+                    <p className="trello-workspace__step-hint">
+                      Create cards in your selected Trello list.
+                    </p>
+                    <div className="trello-sync__submit-actions">
+                      <Button type="submit" disabled={submitDisabled}>
+                        {syncing ? 'Syncing…' : 'Sync to Trello'}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
 
         {!tasksLoading && !tasksError && (
-          <form className="trello-sync__form trello-workspace__flow" onSubmit={handleSubmit} noValidate>
-          <TrelloSyncForm
-            apiKey={apiKey}
-            token={token}
-            onApiKeyChange={setApiKey}
-            onTokenChange={setToken}
-            onClearCredentials={clearCredentials}
-            disabled={syncing}
-          />
-
-          <TrelloBoardListPicker
-            boards={boards}
-            lists={lists}
-            selectedBoardId={selectedBoardId}
-            selectedListId={selectedListId}
-            boardsLoading={boardsLoading}
-            listsLoading={listsLoading}
-            boardsAttempted={boardsAttempted}
-            listsAttempted={listsAttempted}
-            boardsError={boardsError}
-            listsError={listsError}
-            loadBoardsDisabled={loadBoardsDisabled}
-            onLoadBoards={handleLoadBoards}
-            onBoardChange={handleBoardChange}
-            onListChange={handleListChange}
-            disabled={syncing}
-          />
-
-          <TrelloTaskSelector
-            tasks={tasks}
-            courseTitleById={courseTitleById}
-            selectedTaskIds={selectedTaskIds}
-            onToggleTask={handleToggleTask}
-            onSelectAll={handleSelectAll}
-            onClearSelection={handleClearSelection}
-            disabled={syncing}
-          />
-
-          {(validationError || syncError) && (
-            <div className="trello-sync__messages">
-              {validationError && <ErrorMessage message={validationError} />}
-              {syncError && <ErrorMessage message={syncError} />}
-            </div>
-          )}
-
-          <div className="trello-workspace__step trello-workspace__step--sync trello-sync__submit">
-            <p className="trello-workspace__step-label" aria-hidden="true">
-              Step 4
-            </p>
-            <h2 className="trello-workspace__step-title" id="trello-step-sync">
-              Sync to Trello
-            </h2>
-            <p className="trello-workspace__step-hint">
-              Creates one Trello card per selected task in your chosen list.
-            </p>
-            <div className="trello-sync__submit-actions">
-              <Button type="submit" disabled={submitDisabled}>
-                {syncing ? 'Syncing…' : 'Sync to Trello'}
-              </Button>
-            </div>
+          <div className="trello-workspace__results-zone">
+            <TrelloSyncResults
+              summary={summary}
+              results={results}
+              taskTitleById={taskTitleById}
+            />
           </div>
-        </form>
         )}
-
-        <TrelloSyncResults summary={summary} results={results} taskTitleById={taskTitleById} />
       </div>
-    </div>
+    </section>
   );
 }
