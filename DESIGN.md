@@ -231,10 +231,10 @@ Implemented (`frontend/src/components/layout/PageHeader.jsx`):
 |------|-------------|-----------------|----------|
 | **Reading layout** | `page--reading` | `--content-max-reading` (800px) | Long-form text focus if a route uses a single reading column without cockpit grid |
 | **Workspace layout** | `page--workspace` | `--content-max-workspace` (720px) | Narrow lists or legacy single-column pages if not upgraded to cockpit |
-| **Cockpit layout** | `page--cockpit` | `--content-max-cockpit` (1120px) | **Default for main app hubs:** `/dashboard`, `/courses`, `/courses/:id`, `/tasks`, `/flashcards`, `/trello`, `/admin`, `/focus/:taskId`, `/study-materials/:materialId` |
+| **Cockpit layout** | `page--cockpit` | `--content-max-cockpit` (**1280px** in production after Phase **BX-I7B**; trust `tokens.css` for live values) | **Default for main app hubs:** `/dashboard`, `/courses`, `/courses/:id`, `/tasks`, `/flashcards`, `/trello`, `/admin`, `/focus/:taskId`, `/study-materials/:materialId` |
 | **Form layout** | centered auth | `--content-max-form` (420px) | Login, register |
 
-**Cockpit width:** Main app hubs use **`--content-max-cockpit: 1120px`** (also `--content-max-shell` for shell inner alignment). Prefer **`page--cockpit`** on dashboard, courses, tasks, flashcards, Trello, admin, and material detail so wide screens show **operational density**, not blog-width stacks.
+**Cockpit width:** Main app hubs use **`--content-max-cockpit`** and **`--content-max-shell`** (**1280px** in production after Phase **BX-I7B**, commit **`00d3255`** — was **1120px** before **BX-I7B**). **`tokens.css`** is authoritative for exact values. Prefer **`page--cockpit`** on dashboard, courses, tasks, flashcards, Trello, admin, and material detail so wide screens show **operational density**, not blog-width stacks. **BX-I7B** widened the global shell only — **per-page** desktop grid/density (dashboard, tasks, course detail, material cockpit, etc.) is **not** fully built; see **`docs/CURRENT_STATE.md`** (**BX-I7C**–**BX-I7F** proposed).
 
 **Responsive default:** Single column on small viewports; cockpit grids activate at documented breakpoints (e.g. material **Source | AI** split at **≥1024px**).
 
@@ -807,6 +807,7 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-02 | **Phase BX-I7B** (implementation) + **DOCS-BX-I7B-HOUSEKEEPING** — Global cockpit/shell max width **1280px** in `tokens.css` (`--content-max-cockpit`, `--content-max-shell`); §4.3 cockpit width aligned with production; per-page grid phases **BX-I7C**–**BX-I7F** remain proposed |
 | 2026-06-02 | **Phase DOCS-WEB-ONLY** — Agent terminology for narrow viewport QA; Stitch web-UI-only boundary reinforced in §0 |
 | 2026-06-01 | **Phase A** — Platform note: browser-based web app only; responsive = web reflow; no native mobile/app-store scope |
 | 2026-06-01 | **Phase BX-1** — Dashboard decision layout (next-up hero, study pulse charts, tertiary stat bands); data visualization rules (honest API-only, no fake KPIs/sparklines/libraries); course accent + active/quiet states; plan coverage deferred; stronger Source \| AI + AI command panel; material cockpit artifact/history/flashcard emphasis; `PROTOTYPE_REFERENCES.md` authority row; BX-1 does not start B4 or chart/API implementation |

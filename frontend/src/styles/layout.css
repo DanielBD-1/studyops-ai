@@ -2717,6 +2717,13 @@ a.dashboard-hero__cta.btn:hover {
   }
 }
 
+@media (min-width: 1280px) {
+  .page {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
 @media (min-width: 641px) {
   .app-shell__inner {
     flex-wrap: nowrap;
