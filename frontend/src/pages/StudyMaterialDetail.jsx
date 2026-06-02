@@ -675,7 +675,7 @@ export default function StudyMaterialDetail() {
               </Button>
             </div>
             {generating && (
-              <div className="ai-panel__loading ai-panel__loading--active" aria-live="polite">
+              <div className="ai-panel__loading ai-panel__loading--active">
                 <LoadingState message="Processing with AI…" />
               </div>
             )}
