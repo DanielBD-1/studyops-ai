@@ -146,19 +146,31 @@ export default function CoursesList() {
       )}
 
       {!loading && !error && courses.length === 0 && (
-        <EmptyState
-          headline="No courses yet"
-          description="Create a course to organize your study material."
-          actionLabel="Create your first course"
-          onAction={focusCreateForm}
-        />
+        <div className="courses-empty">
+          <EmptyState
+            headline="No courses yet"
+            description="Create a course to organize your study material."
+            actionLabel="Create your first course"
+            onAction={focusCreateForm}
+          />
+        </div>
       )}
 
       {!loading && !error && courses.length > 0 && (
-        <section className="courses-shelf" aria-label="Course list">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
+        <section className="courses-shelf courses-shelf--deck" aria-label="Course list">
+          <div className="courses-shelf__header section__header-row">
+            <h2 className="section__title section__title--sm courses-shelf__title">Subject shelf</h2>
+            <p className="section__subtitle courses-shelf__subtitle">
+              Open a course workspace to manage materials and tasks
+            </p>
+          </div>
+          <ul className="courses-shelf__list card-list">
+            {courses.map((course) => (
+              <li key={course.id}>
+                <CourseCard course={course} />
+              </li>
+            ))}
+          </ul>
         </section>
       )}
     </main>
