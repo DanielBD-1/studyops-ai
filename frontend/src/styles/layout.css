@@ -1526,31 +1526,35 @@ a.dashboard-hero__cta.btn:hover {
   margin-bottom: var(--space-5);
 }
 
-/* B4-F3A — secondary in-page state surfaces (course detail) */
-.page--course-detail .course-workspace__materials--primary > .loading {
+/* B4-F3A / B4-F3B — secondary in-page state surfaces (course detail) */
+.page--course-detail .course-workspace__materials-loading {
+  min-width: 0;
+}
+
+.page--course-detail .course-workspace__materials-loading .loading {
   margin: 0 0 var(--space-4);
   min-width: 0;
 }
 
-.page--course-detail .course-workspace__materials--primary > .alert--error {
+.page--course-detail .course-workspace__materials-error .alert--error {
   margin: 0;
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 
-.page--course-detail .course-workspace__materials--primary > .alert--error + .btn {
+.page--course-detail .course-workspace__materials-error-actions {
   margin-top: var(--space-4);
 }
 
-.page--course-detail .course-workspace__materials--primary > .empty-state {
+.page--course-detail .course-workspace__materials-empty .empty-state {
   margin: 0;
   min-width: 0;
   background: var(--color-bg-subtle);
   border-color: var(--color-glass-border);
 }
 
-.page--course-detail .course-workspace__tasks .section__meta {
+.page--course-detail .course-workspace__tasks-filter-empty {
   margin: 0;
   padding: var(--space-5) var(--space-4);
   text-align: center;
@@ -2296,7 +2300,11 @@ a.dashboard-hero__cta.btn:hover {
   min-width: 0;
 }
 
-.page--material-detail .material-workspace__library .flashcard-library > .loading {
+.page--material-detail .material-workspace__library .flashcard-library__loading {
+  min-width: 0;
+}
+
+.page--material-detail .material-workspace__library .flashcard-library__loading .loading {
   margin: 0 0 var(--space-4);
   min-width: 0;
 }
@@ -3060,11 +3068,11 @@ a.dashboard-hero__cta.btn:hover {
     padding: var(--space-4) var(--space-3);
   }
 
-  .page--course-detail .course-workspace__materials--primary > .empty-state {
+  .page--course-detail .course-workspace__materials-empty .empty-state {
     padding: var(--space-5) var(--space-4);
   }
 
-  .page--course-detail .course-workspace__tasks .section__meta {
+  .page--course-detail .course-workspace__tasks-filter-empty {
     padding: var(--space-4) var(--space-3);
   }
 

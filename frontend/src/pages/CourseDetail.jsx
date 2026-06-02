@@ -303,24 +303,32 @@ export default function CourseDetail() {
           </p>
         </div>
 
-        {materialsLoading && <LoadingState message="Loading study materials…" />}
+        {materialsLoading && (
+          <div className="course-workspace__materials-loading">
+            <LoadingState message="Loading study materials…" />
+          </div>
+        )}
 
         {!materialsLoading && materialsError && (
-          <>
+          <div className="course-workspace__materials-error">
             <ErrorMessage message={materialsError} />
-            <Button variant="secondary" onClick={loadMaterials}>
-              Try again
-            </Button>
-          </>
+            <div className="course-workspace__materials-error-actions">
+              <Button variant="secondary" onClick={loadMaterials}>
+                Try again
+              </Button>
+            </div>
+          </div>
         )}
 
         {!materialsLoading && !materialsError && materials.length === 0 && !showCreateMaterial && (
-          <EmptyState
-            headline="No study materials yet"
-            description="Add pasted notes or text for this course."
-            actionLabel="Add study material"
-            onAction={() => setShowCreateMaterial(true)}
-          />
+          <div className="course-workspace__materials-empty">
+            <EmptyState
+              headline="No study materials yet"
+              description="Add pasted notes or text for this course."
+              actionLabel="Add study material"
+              onAction={() => setShowCreateMaterial(true)}
+            />
+          </div>
         )}
 
         {!materialsLoading && !materialsError && materials.length > 0 && (
