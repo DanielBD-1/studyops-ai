@@ -301,7 +301,7 @@ export default function DashboardStub() {
   const recommendation = stats ? deriveDashboardRecommendation(stats) : null;
 
   return (
-    <main className="page page--cockpit page--dashboard">
+    <main className="page page--cockpit page--dashboard dashboard-workspace">
       <PageHeader
         intro
         title="Dashboard"
@@ -321,15 +321,21 @@ export default function DashboardStub() {
         )}
       </PageHeader>
 
-      {loading && <LoadingState message="Loading dashboard…" />}
+      {loading && (
+        <div className="dashboard-workspace__page-loading">
+          <LoadingState message="Loading dashboard…" />
+        </div>
+      )}
 
       {!loading && error && (
-        <>
+        <div className="dashboard-workspace__page-error">
           <ErrorMessage message={error} />
-          <Button variant="secondary" onClick={() => loadStats()}>
-            Try again
-          </Button>
-        </>
+          <div className="dashboard-workspace__error-actions">
+            <Button variant="secondary" onClick={() => loadStats()}>
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && stats && recommendation && (

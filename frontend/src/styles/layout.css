@@ -855,6 +855,44 @@
   min-width: 0;
 }
 
+/* Dashboard workspace — route state framing (B4-F2) */
+.page--dashboard.dashboard-workspace {
+  min-width: 0;
+}
+
+.dashboard-workspace__page-loading,
+.dashboard-workspace__page-error {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.dashboard-workspace__page-error {
+  padding: var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--color-primary);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.dashboard-workspace__page-loading .loading {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.dashboard-workspace__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
 .dashboard-hero {
   position: relative;
   margin-bottom: var(--space-8);
@@ -1262,6 +1300,44 @@ a.dashboard-hero__cta.btn:hover {
   backdrop-filter: blur(var(--blur-glass));
 }
 
+/* Courses workspace — route state framing (B4-F2) */
+.page--courses.courses-workspace {
+  min-width: 0;
+}
+
+.courses-workspace__page-loading,
+.courses-workspace__page-error {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.courses-workspace__page-error {
+  padding: var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--color-primary);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.courses-workspace__page-loading .loading {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.courses-workspace__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
 .courses-shelf {
   display: flex;
   flex-direction: column;
@@ -1304,6 +1380,66 @@ a.dashboard-hero__cta.btn:hover {
   flex-direction: column;
   gap: 0;
   min-width: 0;
+}
+
+/* Course workspace — route state framing (B4-F2) */
+.course-workspace__page-loading,
+.course-workspace__page-error,
+.course-workspace__not-found {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.page--course-detail.course-workspace > .course-workspace__page-loading,
+.page--course-detail.course-workspace > .course-workspace__not-found {
+  margin-top: var(--space-6);
+}
+
+.course-workspace__page-error,
+.course-workspace__not-found {
+  padding: var(--space-6) var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--color-primary);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.course-workspace__page-loading .loading {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.course-workspace__not-found .page__title--tight {
+  margin: 0 0 var(--space-2);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.course-workspace__not-found .not-found__text {
+  margin-bottom: var(--space-4);
+}
+
+.course-workspace__not-found p:last-child {
+  margin: 0;
+}
+
+.course-workspace__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.course-workspace__page-error .section__actions {
+  margin-top: var(--space-4);
+  margin-bottom: 0;
 }
 
 .course-workspace__subject-badge {
@@ -1956,6 +2092,66 @@ a.dashboard-hero__cta.btn:hover {
   flex-direction: column;
   gap: 0;
   min-width: 0;
+}
+
+/* Material workspace — route state framing (B4-F2) */
+.material-workspace__page-loading,
+.material-workspace__page-error,
+.material-workspace__not-found {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.page--material-detail.material-workspace > .material-workspace__page-loading,
+.page--material-detail.material-workspace > .material-workspace__not-found {
+  margin-top: var(--space-6);
+}
+
+.material-workspace__page-error,
+.material-workspace__not-found {
+  padding: var(--space-6) var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--color-primary);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.material-workspace__page-loading .loading {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.material-workspace__not-found .page__title--tight {
+  margin: 0 0 var(--space-2);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.material-workspace__not-found .not-found__text {
+  margin-bottom: var(--space-4);
+}
+
+.material-workspace__not-found p:last-child {
+  margin: 0;
+}
+
+.material-workspace__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.material-workspace__page-error .section__actions {
+  margin-top: var(--space-4);
+  margin-bottom: 0;
 }
 
 .material-workspace__cockpit {
@@ -2722,6 +2918,25 @@ a.dashboard-hero__cta.btn:hover {
 
   .page--courses .courses-empty {
     padding: var(--space-5) var(--space-4);
+  }
+
+  .dashboard-workspace__page-error,
+  .courses-workspace__page-error {
+    padding: var(--space-4);
+  }
+
+  .course-workspace__page-error,
+  .course-workspace__not-found,
+  .material-workspace__page-error,
+  .material-workspace__not-found {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page--course-detail.course-workspace > .course-workspace__page-loading,
+  .page--course-detail.course-workspace > .course-workspace__not-found,
+  .page--material-detail.material-workspace > .material-workspace__page-loading,
+  .page--material-detail.material-workspace > .material-workspace__not-found {
+    margin-top: var(--space-5);
   }
 
   .courses-shelf--deck .courses-shelf__list {
