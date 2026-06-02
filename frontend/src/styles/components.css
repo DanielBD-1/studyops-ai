@@ -515,7 +515,7 @@
 
 .page--course-detail[data-course-accent] .page-header--intro {
   border-bottom-color: var(--course-accent-border);
-  box-shadow: inset 0 -3px 0 var(--course-accent-color);
+  box-shadow: var(--elevation-1), inset 0 -3px 0 var(--course-accent-color);
 }
 
 .page--course-detail[data-course-accent] .course-workspace__subject-pill {
@@ -2085,7 +2085,7 @@
 .auth-footer {
   margin: var(--space-2) 0 0;
   padding-top: var(--space-5);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-glass-border);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   text-align: center;
