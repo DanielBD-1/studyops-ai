@@ -30,7 +30,7 @@ export default function TrelloTaskSelector({
       <p className="trello-workspace__step-label" aria-hidden="true">
         Step 3
       </p>
-      <h2 className="form-card__title" id="trello-step-tasks">
+      <h2 className="trello-workspace__step-title form-card__title" id="trello-step-tasks">
         Select tasks to sync
       </h2>
       {tasks.length === 0 ? (

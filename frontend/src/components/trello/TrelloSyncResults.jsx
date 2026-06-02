@@ -23,7 +23,7 @@ export default function TrelloSyncResults({ summary, results, taskTitleById }) {
       <p className="trello-workspace__step-label" aria-hidden="true">
         Step 5
       </p>
-      <h2 className="form-card__title" id="trello-step-results">
+      <h2 className="trello-workspace__step-title form-card__title" id="trello-step-results">
         Sync results
       </h2>
       <div className="trello-sync-results__summary-band" role="status">

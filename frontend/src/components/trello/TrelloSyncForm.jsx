@@ -25,7 +25,7 @@ export default function TrelloSyncForm({
       <p className="trello-workspace__step-label" aria-hidden="true">
         Step 1
       </p>
-      <h2 className="form-card__title" id="trello-step-credentials">
+      <h2 className="trello-workspace__step-title form-card__title" id="trello-step-credentials">
         Connect to Trello
       </h2>
       <p className="form-card__hint trello-workspace__trust-note">

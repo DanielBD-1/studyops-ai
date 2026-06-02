@@ -57,7 +57,7 @@ export default function TrelloBoardListPicker({
       <p className="trello-workspace__step-label" aria-hidden="true">
         Step 2
       </p>
-      <h2 className="form-card__title" id="trello-step-destination">
+      <h2 className="trello-workspace__step-title form-card__title" id="trello-step-destination">
         Choose board and list
       </h2>
       <p className="form-card__hint">

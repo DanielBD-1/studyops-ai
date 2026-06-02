@@ -56,10 +56,16 @@ export default function TrelloSyncPage() {
         note="Credentials are used only for this session's requests — they are never saved or stored."
       />
 
-      {coursesLoading && <LoadingState message="Loading courses…" />}
+      {coursesLoading && (
+        <div className="trello-workspace__page-loading">
+          <LoadingState message="Loading courses…" />
+        </div>
+      )}
 
       {!coursesLoading && coursesError && (
-        <ErrorMessage message={coursesError} />
+        <div className="trello-workspace__page-error">
+          <ErrorMessage message={coursesError} />
+        </div>
       )}
 
       {!coursesLoading && !coursesError && (
