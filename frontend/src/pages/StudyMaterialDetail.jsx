@@ -447,6 +447,11 @@ export default function StudyMaterialDetail() {
   async function handleClearPlan() {
     if (!materialId || clearing) return;
 
+    const confirmed = window.confirm(
+      'Clear the active generated plan for this material? The saved plan will be removed.'
+    );
+    if (!confirmed) return;
+
     setClearError(null);
     setClearing(true);
     try {
