@@ -183,12 +183,14 @@
 }
 
 .form-card--plan {
-  border-color: rgba(208, 188, 255, 0.28);
+  border-color: rgba(208, 188, 255, 0.32);
   background: linear-gradient(
-    180deg,
-    var(--color-surface) 0%,
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 50%,
     var(--color-ai-gradient-end-faint) 100%
   );
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(208, 188, 255, 0.06);
 }
 
 .plan-output__flashcards {
@@ -861,11 +863,11 @@
   background: linear-gradient(
     165deg,
     var(--color-ai-surface) 0%,
-    var(--color-ai-gradient-end) 100%
+    var(--color-ai-gradient-end-soft) 100%
   );
-  border: 1px solid var(--color-primary-border);
+  border: 1px solid rgba(208, 188, 255, 0.32);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--elevation-1), var(--glow-ai);
 }
 
 .material-workspace__command-section.ai-panel,
@@ -874,17 +876,42 @@
   padding: var(--space-5);
   background: linear-gradient(
     165deg,
-    var(--color-ai-surface) 0%,
+    var(--color-surface-raised) 0%,
     var(--color-ai-gradient-end-soft) 100%
   );
-  border: 1px solid rgba(208, 188, 255, 0.28);
-  border-radius: var(--radius-md);
-  box-shadow: none;
+  border: 1px solid rgba(208, 188, 255, 0.34);
+  border-radius: var(--radius-lg);
+  border-top: 2px solid var(--color-ai-accent);
+  box-shadow:
+    var(--elevation-1),
+    inset 0 1px 0 rgba(208, 188, 255, 0.08);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+}
+
+.material-workspace__cockpit-ai .ai-panel__title,
+.material-workspace__cockpit-ai .ai-panel .section__title--sm {
+  color: var(--color-text);
 }
 
 .material-workspace__cockpit-ai .ai-panel__loading--active {
-  border-color: rgba(208, 188, 255, 0.35);
-  background: var(--color-surface);
+  border-color: rgba(208, 188, 255, 0.42);
+  border-style: dashed;
+  background: linear-gradient(
+    165deg,
+    var(--color-surface) 0%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(208, 188, 255, 0.06), var(--glow-ai);
+}
+
+.material-workspace__cockpit-ai .ai-panel__loading--active .loading {
+  border-color: rgba(208, 188, 255, 0.25);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
 }
 
 .ai-panel__header {
@@ -936,8 +963,12 @@
 
 .ai-panel__loading--active {
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px dashed var(--color-primary-border);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface) 0%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
+  border: 1px dashed rgba(208, 188, 255, 0.38);
   border-radius: var(--radius-md);
 }
 
@@ -982,8 +1013,29 @@
 
 .material-workspace__cockpit-ai .plan-output,
 .material-workspace__cockpit-ai .plan-history.form-card {
-  border-color: rgba(208, 188, 255, 0.22);
-  background: var(--color-surface);
+  border-color: rgba(208, 188, 255, 0.3);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 55%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(208, 188, 255, 0.05);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+}
+
+.material-workspace__cockpit-ai .plan-output .form-card__title {
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.material-workspace__cockpit-ai .plan-output__header {
+  border-bottom-color: rgba(208, 188, 255, 0.28);
+}
+
+.material-workspace__cockpit-ai .plan-output__footer {
+  border-top-color: rgba(208, 188, 255, 0.16);
 }
 
 .material-workspace__editor-card .form-card__title {
@@ -1142,8 +1194,25 @@
   box-shadow: var(--shadow-sm);
 }
 
+.material-workspace__cockpit-ai .plan-import-toolbar,
+.material-workspace__cockpit-ai .plan-output__import-band {
+  background: linear-gradient(
+    165deg,
+    var(--color-ai-surface) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid rgba(208, 188, 255, 0.28);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-1), var(--glow-ai);
+}
+
 .plan-output__import-band {
   border-left: 3px solid var(--color-primary);
+}
+
+.material-workspace__cockpit-ai .plan-output__import-band,
+.material-workspace__cockpit-ai .plan-import-toolbar {
+  border-left: 3px solid var(--color-ai-accent);
 }
 
 .plan-import-toolbar__label {
@@ -1175,6 +1244,16 @@
   background: var(--color-bg-subtle);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
+}
+
+.material-workspace__cockpit-ai .plan-history__empty,
+.material-workspace__cockpit-ai .plan-history__status {
+  background: linear-gradient(
+    165deg,
+    var(--color-bg-subtle) 0%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
+  border-color: rgba(208, 188, 255, 0.22);
 }
 
 .plan-history__error {
@@ -1872,10 +1951,29 @@
   background: var(--color-bg-subtle);
 }
 
+.material-workspace__cockpit-ai .plan-history__item:not(.plan-history__item--active) {
+  background: linear-gradient(
+    165deg,
+    var(--color-bg-subtle) 0%,
+    var(--color-surface) 100%
+  );
+  border-color: rgba(208, 188, 255, 0.16);
+}
+
 .plan-history__item--active {
   border-color: var(--color-primary-border);
   background: var(--color-primary-subtle);
   box-shadow: var(--elevation-1);
+}
+
+.material-workspace__cockpit-ai .plan-history__item--active {
+  border-color: rgba(208, 188, 255, 0.38);
+  background: linear-gradient(
+    165deg,
+    var(--color-ai-surface) 0%,
+    var(--color-surface) 100%
+  );
+  box-shadow: var(--elevation-1), var(--glow-ai);
 }
 
 .plan-history__header {
@@ -1939,6 +2037,16 @@
   border-left: 3px solid var(--color-ai-accent);
 }
 
+.material-workspace__cockpit-ai .plan-history__preview-panel {
+  background: linear-gradient(
+    165deg,
+    var(--color-editor-surface) 0%,
+    var(--color-ai-gradient-end-faint) 100%
+  );
+  border-color: rgba(208, 188, 255, 0.24);
+  box-shadow: inset 0 1px 0 rgba(208, 188, 255, 0.06);
+}
+
 .plan-history__preview-summary,
 .plan-history__preview-meta {
   margin: 0 0 var(--space-2);
@@ -1962,6 +2070,15 @@
 @media (prefers-reduced-motion: reduce) {
   .plan-fade-in {
     animation: none;
+  }
+
+  .material-workspace__cockpit-ai .material-workspace__generate,
+  .material-workspace__cockpit-ai .plan-output,
+  .material-workspace__cockpit-ai .plan-history.form-card,
+  .material-workspace__cockpit-ai .plan-import-toolbar,
+  .material-workspace__cockpit-ai .plan-output__import-band {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
