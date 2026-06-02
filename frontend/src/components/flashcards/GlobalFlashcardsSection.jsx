@@ -424,67 +424,83 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   }
 
   return (
-    <section className="section flashcards-workspace__main">
-      <div className="section__header-row">
-        <h2 className="section__title">Flashcard library</h2>
-        <p className="section__subtitle">
-          Filter by course and material, study your selection, then edit or delete cards below
-        </p>
-      </div>
+    <section className="section flashcards-workspace__main" aria-label="Flashcard library">
+      <div className="flashcards-workspace__command-band flashcards-workspace__command-band--deck">
+        <div className="flashcards-workspace__command-header section__header-row">
+          <h2 className="section__title section__title--sm flashcards-workspace__command-title">
+            Flashcard library
+          </h2>
+          <p className="section__subtitle flashcards-workspace__command-subtitle">
+            Filter, study, and manage saved cards
+          </p>
+        </div>
 
-      <FormCard className="flashcard-library">
-        <p className="flashcard-library__intro plan-disclaimer">
-          Saved flashcards stay in your account across courses. You can also create or import
-          cards from a study material page.
-        </p>
-
-        <div className="filter-toolbar flashcards-workspace__filters">
-          <label htmlFor="global-flashcards-course-filter" className="field">
-            Course
-            <select
-              id="global-flashcards-course-filter"
-              value={courseFilter}
-              onChange={(e) => handleCourseFilterChange(e.target.value)}
-              className="field__select"
-              disabled={busy}
+        <div className="flashcards-workspace__command-controls">
+          <div
+            className="filter-toolbar flashcards-workspace__filters"
+            role="group"
+            aria-label="Filter saved flashcards"
+          >
+            <label
+              htmlFor="global-flashcards-course-filter"
+              className="field flashcards-workspace__course-field"
             >
-              <option value="all">All courses</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {showMaterialFilter ? (
-            <label htmlFor="global-flashcards-material-filter" className="field">
-              Study material
+              Course
               <select
-                id="global-flashcards-material-filter"
-                value={materialFilter}
-                onChange={(e) => handleMaterialFilterChange(e.target.value)}
+                id="global-flashcards-course-filter"
+                value={courseFilter}
+                onChange={(e) => handleCourseFilterChange(e.target.value)}
                 className="field__select"
-                disabled={busy || materialsLoading}
+                disabled={busy}
               >
-                <option value="all">All materials in course</option>
-                {materials.map((material) => (
-                  <option key={material.id} value={material.id}>
-                    {material.title}
+                <option value="all">All courses</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
                   </option>
                 ))}
               </select>
             </label>
-          ) : null}
+
+            {showMaterialFilter ? (
+              <label
+                htmlFor="global-flashcards-material-filter"
+                className="field flashcards-workspace__material-field"
+              >
+                Study material
+                <select
+                  id="global-flashcards-material-filter"
+                  value={materialFilter}
+                  onChange={(e) => handleMaterialFilterChange(e.target.value)}
+                  className="field__select"
+                  disabled={busy || materialsLoading}
+                >
+                  <option value="all">All materials in course</option>
+                  {materials.map((material) => (
+                    <option key={material.id} value={material.id}>
+                      {material.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+          </div>
+
+          {canShowCreate && !showCreate && editingId === null && !loading && !error && (
+            <div className="flashcards-workspace__toolbar">
+              <Button type="button" variant="primary" onClick={openCreateForm} disabled={busy}>
+                {flashcards.length === 0 ? 'Create flashcard' : 'Add another flashcard'}
+              </Button>
+            </div>
+          )}
         </div>
 
-        {canShowCreate && !showCreate && editingId === null && !loading && !error && (
-          <div className="flashcards-workspace__toolbar">
-            <Button type="button" variant="primary" onClick={openCreateForm} disabled={busy}>
-              {flashcards.length === 0 ? 'Create flashcard' : 'Add another flashcard'}
-            </Button>
-          </div>
-        )}
+        <div className="flashcards-workspace__command-body">
+          <FormCard className="flashcard-library">
+            <p className="flashcard-library__intro plan-disclaimer">
+              Saved flashcards stay in your account across courses. You can also create or import
+              cards from a study material page.
+            </p>
 
         {showCreate && canShowCreate && (
           <div className="flashcards-workspace__create">
@@ -577,12 +593,16 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
           </div>
         )}
 
-        {loading && <LoadingState message="Loading saved flashcards…" />}
+        {loading && (
+          <div className="flashcards-workspace__loading">
+            <LoadingState message="Loading saved flashcards…" />
+          </div>
+        )}
 
         {error && !loading && (
-          <div className="flashcard-library__error">
+          <div className="flashcards-workspace__error-block">
             <ErrorMessage message={error} />
-            <p className="section__actions">
+            <div className="flashcards-workspace__error-actions">
               <Button
                 type="button"
                 variant="secondary"
@@ -591,26 +611,30 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
               >
                 Try again
               </Button>
-            </p>
+            </div>
           </div>
         )}
 
         {showGlobalEmpty && courses.length === 0 && (
-          <EmptyState
-            headline="No saved flashcards yet"
-            description="Create a course first, then add flashcards here or from a study material page."
-            actionLabel="Go to courses"
-            onAction={() => navigate('/courses')}
-          />
+          <div className="flashcards-workspace__empty">
+            <EmptyState
+              headline="No saved flashcards yet"
+              description="Create a course first, then add flashcards here or from a study material page."
+              actionLabel="Go to courses"
+              onAction={() => navigate('/courses')}
+            />
+          </div>
         )}
 
         {showGlobalEmpty && courses.length > 0 && (
-          <EmptyState
-            headline="No saved flashcards yet"
-            description="Create a flashcard for one of your courses, or add cards from a study material page."
-            actionLabel="Create flashcard"
-            onAction={openCreateForm}
-          />
+          <div className="flashcards-workspace__empty">
+            <EmptyState
+              headline="No saved flashcards yet"
+              description="Create a flashcard for one of your courses, or add cards from a study material page."
+              actionLabel="Create flashcard"
+              onAction={openCreateForm}
+            />
+          </div>
         )}
 
         {!loading &&
@@ -618,12 +642,14 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
           flashcards.length === 0 &&
           !showGlobalEmpty &&
           !showCreate && (
-            <p className="section__meta">No flashcards match the selected filters.</p>
+            <p className="section__meta flashcards-workspace__filter-empty">
+              No flashcards match the selected filters.
+            </p>
           )}
 
         {!loading && !error && flashcards.length > 0 && (
           <>
-            <div className="flashcard-library__study">
+            <div className="flashcards-workspace__study-zone flashcard-library__study">
               <FlashcardStudy
                 flashcards={studyCards}
                 title="Study filtered cards"
@@ -632,14 +658,17 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
             </div>
 
             <section
-              className="flashcard-library__manage plan-block"
+              className="flashcards-workspace__manage-zone flashcard-library__manage plan-block"
               aria-label="Manage saved flashcards"
             >
               <h3 className="plan-block__title">Your saved cards</h3>
-              <ul className="flashcard-library__list plan-block__list">
+              <ul className="flashcard-library__list plan-block__list flashcards-workspace__list">
                 {flashcards.map((card) =>
                   editingId === card.id ? (
-                    <li key={card.id} className="plan-block__item flashcard-library__item">
+                    <li
+                      key={card.id}
+                      className="plan-block__item flashcard-library__item flashcards-workspace__list-item"
+                    >
                       <form onSubmit={handleUpdate} className="form-stack">
                         <Textarea
                           id={`global-flashcard-edit-question-${card.id}`}
@@ -680,7 +709,10 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
                       </form>
                     </li>
                   ) : (
-                    <li key={card.id} className="plan-block__item flashcard-library__item">
+                    <li
+                      key={card.id}
+                      className="plan-block__item flashcard-library__item flashcards-workspace__list-item"
+                    >
                       <p className="plan-block__body flashcard-library__question">
                         {truncateFlashcardQuestion(card.question)}
                       </p>
@@ -752,8 +784,15 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
         {successMessage && (
           <p className="plan-panel__status plan-panel__status--success">{successMessage}</p>
         )}
-        {actionError && <ErrorMessage message={actionError} />}
-      </FormCard>
+          </FormCard>
+
+          {actionError && (
+            <div className="flashcards-workspace__action-error">
+              <ErrorMessage message={actionError} />
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
