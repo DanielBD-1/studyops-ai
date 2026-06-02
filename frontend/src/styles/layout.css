@@ -2806,6 +2806,62 @@ a.dashboard-hero__cta.btn:hover {
   .page--tasks .task-workspace__list-item:has(.task-workspace__edit-card) {
     grid-column: 1 / -1;
   }
+
+  /* BX-I7E2 — flashcards desktop panels (/flashcards only) */
+  .page--flashcards .flashcards-workspace__command-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .page--flashcards .flashcards-workspace__command-controls .flashcards-workspace__filters {
+    flex: 1 1 20rem;
+    min-width: 0;
+  }
+
+  .page--flashcards .flashcards-workspace__command-controls .flashcards-workspace__toolbar {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcard-library__intro,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcards-workspace__create,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcards-workspace__loading,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcards-workspace__error-block,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcards-workspace__empty,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcards-workspace__filter-empty,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .plan-panel__status,
+  .page--flashcards .flashcard-library:has(.flashcards-workspace__study-zone) > .flashcard-library__create-cta,
+  .page--flashcards
+    .flashcard-library:has(.flashcards-workspace__study-zone)
+    > .section__actions.flashcard-library__create-cta {
+    grid-column: 1 / -1;
+  }
+
+  .page--flashcards .flashcards-workspace__study-zone,
+  .page--flashcards .flashcards-workspace__manage-zone {
+    min-width: 0;
+  }
+
+  .page--flashcards .flashcards-workspace__manage-zone:has(.flashcards-workspace__list) .flashcards-workspace__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .page--flashcards .flashcards-workspace__list-item:has(form) {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 641px) {
