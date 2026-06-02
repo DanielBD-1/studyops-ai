@@ -237,9 +237,13 @@ export default function GeneratedPlanHistorySection({
               )}
 
               {!item.isActive && isPreviewOpen ? (
-                <div className="plan-history__preview plan-history__preview-panel" aria-live="polite">
+                <div className="plan-history__preview plan-history__preview-panel">
                   {previewLoading ? (
-                    <p className="plan-panel__status plan-panel__status--loading">
+                    <p
+                      className="plan-panel__status plan-panel__status--loading"
+                      role="status"
+                      aria-live="polite"
+                    >
                       Loading preview…
                     </p>
                   ) : null}
