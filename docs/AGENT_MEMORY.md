@@ -8,15 +8,15 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
-**Branch / phase (2026-06-02):** post-**BX-I6B** (commit **`cceb4e0`**). Phase **DOCS-WEB-ONLY** complete — web-only product scope clarified in governance and status docs. Docs phases **DOCS-A3** and **BX-I1** complete; **BX-I2** implementation complete (commit **`03ee9df`**); **BX-I3** implementation complete (commit **`bdd6f2a`**); **BX-I4** implementation complete (commit **`ff65e21`**); **BX-I5** implementation complete (commit **`c2288d4`**); **BX-I6B** implementation complete (commit **`cceb4e0`**). **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** + **BX-I2** + **BX-I3** + **BX-I4** + **BX-I5** + **BX-I6B** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
+**Branch / phase (2026-06-02):** post-**BX-I6C** (commit **`6a1e6ad`**). Phase **DOCS-WEB-ONLY** complete — web-only product scope clarified in governance and status docs. Docs phases **DOCS-A3** and **BX-I1** complete; **BX-I2** implementation complete (commit **`03ee9df`**); **BX-I3** implementation complete (commit **`bdd6f2a`**); **BX-I4** implementation complete (commit **`ff65e21`**); **BX-I5** implementation complete (commit **`c2288d4`**); **BX-I6B** implementation complete (commit **`cceb4e0`**); **BX-I6C** implementation complete (commit **`6a1e6ad`**). **`DESIGN.md` v2.3** (commit **`6041932`**) documents Stitch-selected visual direction. Functional MVP through **6A-3** + **10B** + **11A-3** + **12A-1** + **B1**–**B3** + **BX-I2** + **BX-I3** + **BX-I4** + **BX-I5** + **BX-I6B** + **BX-I6C** — authoritative detail in **`docs/IMPLEMENTATION_STATUS.md`**; phase gates in **`docs/CURRENT_STATE.md`**.
 
 **Major caution — do not proceed without explicit approval:**
 
-- **Phase BX-I6B** is **complete** (frontend-only — commit **`cceb4e0`**). **Do not** start **BX-I6C**, **BX-I6D**, **B4**, sidebar shell, chart UI, chart APIs, backend/API/database/package changes, or fonts/packages/CDN without explicit human **`approved — implement Phase X`** after Supervisor Review of **each** phase.
-- **BX-I6B completion does not automatically approve** courses/course-detail visual alignment, AppShell/global motion, sidebar, chart UI/APIs, or backend/API extension — those are separate gated phases.
+- **Phase BX-I6C** is **complete** (frontend-only — commit **`6a1e6ad`**). **Do not** start **BX-I6D**, **B4**, sidebar shell, chart UI, chart APIs, backend/API/database/package changes, or fonts/packages/CDN without explicit human **`approved — implement Phase X`** after Supervisor Review of **each** phase.
+- **BX-I6C completion does not automatically approve** AppShell/global motion, sidebar, chart UI/APIs, dashboard changes, or backend/API extension — those are separate gated phases.
 - **Web-only product:** StudyOps AI is a **browser-based web application only** — not a native mobile/app-store product. **~375px** QA notes mean **narrow responsive browser viewport** testing, not mobile-app scope. Use terminology from **`AGENTS.md`** § Product platform.
 
-The **“Current state as of 2026-06-02 (post BX-I6B)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
+The **“Current state as of 2026-06-02 (post BX-I6C)”** section below is a **point-in-time snapshot** — prefer **`CURRENT_STATE.md`** for up-to-date phase gates.
 
 ---
 
@@ -47,7 +47,7 @@ The **“Current state as of 2026-06-02 (post BX-I6B)”** section below is a **
 
 ---
 
-## Current state as of 2026-06-02 (post BX-I6B)
+## Current state as of 2026-06-02 (post BX-I6C)
 
 **Read first:** **`docs/IMPLEMENTATION_STATUS.md`** — authoritative built-vs-deferred snapshot.
 
@@ -75,13 +75,15 @@ The **“Current state as of 2026-06-02 (post BX-I6B)”** section below is a **
 
 **Phase BX-I6B (dashboard visual upgrade):** **BX-I6B** complete (**2026-06-02**) — commit **`cceb4e0`** (`style: upgrade dashboard command center`); **frontend-only** — **`frontend/src/pages/DashboardStub.jsx`**, **`frontend/src/styles/layout.css`**, **`frontend/src/styles/components.css`** only; **no** backend, API, database, package, auth, routes, services, **`DashboardContext`**, **`dashboard.service.js`**, or **`dashboard-recommendation.js`** logic changes; **no** `tokens.css` changes. Dashboard **AI Study Command Center** presentation on **`/dashboard`** only: flagship rule-based recommendation hero; glass/depth/glow via existing tokens; Study pulse cockpit band with factual **Pending / Completed / Total** from existing stats; richer course workload command deck; **At a glance** visually tertiary; **narrow responsive browser viewport ~375px** — no mid-word stat label breaks, no horizontal overflow; **`prefers-reduced-motion`** for decorative dashboard effects. **No fake metrics:** **no** fake AI confidence, urgency, priority, health score, or analytics. **No unsafe rendering** changes — plain React text only. Supervisor Review **Approved with notes**; Supervisor re-check **Approved with notes**; Security / Trust Review **Approved with notes**; manual authenticated dashboard smoke **passed**. **`npm run lint`** / **`npm test`** (**228/228**) / **`npm run build`** passed. **Not in BX-I6B:** chart libraries; sidebar; weekly focus chart; new packages; course/material pages; AppShell changes; **BX-I6C** / **BX-I6D** / **B4**. **Known non-blocking notes:** duplicate JSDoc above **`PulseMetric`**; **`dashboard-hero--flagship`** / **`dashboard-study-pulse--cockpit`** semantic hooks; contrast reviewed statically/manual-smoke not lab-measured.
 
+**Phase BX-I6C (courses visual alignment):** **BX-I6C** complete (**2026-06-02**) — commit **`6a1e6ad`** (`style: align courses visual surfaces`); **frontend-only** — **`frontend/src/components/courses/CourseCard.jsx`**, **`frontend/src/components/materials/MaterialCard.jsx`**, **`frontend/src/pages/CoursesList.jsx`**, **`frontend/src/pages/CourseDetail.jsx`**, **`frontend/src/styles/layout.css`**, **`frontend/src/styles/components.css`** only; **no** backend, API, database, package, auth, routes, services, `tokens.css`, dashboard, AppShell, or material cockpit changes. **`/courses`:** polished subject shelf (`courses-shelf--deck`), semantic **`ul > li > article`**, **`source-card--course-shelf`**, glass create form, empty-state wrapper. **`/courses/:id`:** subject workspace hierarchy; **Subject** pill using existing course accent (chrome only); settings secondary band; materials primary glass zone; **`document-shelf--deck`** / **`source-card--document-shelf`**; honest material count subtitle from already-loaded **`materials.length` only** (hidden during loading/error/empty — **not** health/progress/coverage/priority/AI); stronger tasks framing and danger-zone separation; **narrow responsive browser viewport ~375px** — no horizontal overflow; **`prefers-reduced-motion`** for shelf card hover transforms. **No fake metrics:** **no** fake course health, priority, urgency, status labels, or AI classification. **No unsafe rendering** — plain React text; **no** full material body on course/material cards. Supervisor Review **Approved with notes**; Security / Trust Review **Approved with notes**; manual authenticated smoke **passed** (`/courses` empty state not smoke-tested). **`npm run lint`** / **`npm test`** (**228/228**) / **`npm run build`** passed. **Not in BX-I6C:** chart libraries; sidebar; new packages; dashboard/AppShell/material cockpit; **BX-I6D** / **B4**. **Known non-blocking notes:** `/courses` empty state not manually smoke-tested; empty-state double framing may be cosmetic follow-up; console audit not fully instrumented.
+
 **Plan import dedupe:** **10B** complete — material-scoped plan import with `source='plan'`, dedupe, migration **009** applied, manual smoke passed.
 
 **Hardening / docs:** **7A**–**7C** complete (**2026-05-29**).
 
 **UI polish:** Complete through **8C-3D** (**2026-05-30**) — global **`AppShell`**, design system, and presentation upgrades on all workspace routes. Material detail cockpit layout added in **12A-1**. Design screenshots may predate **8C** / **12A-1** visuals.
 
-**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); **BX-I6C** / **BX-I6D** courses/course-detail visual alignment and AppShell/global motion (**not started**); sidebar shell / chart UI / chart APIs / backend/API extension **in code** (**not started** — separate approval each); course accent persistence in DB (**not shipped**); course accents on material detail (**not shipped**).
+**Still deferred:** admin logs / user management / role management; Gemini admin metrics; Trello OAuth / stored credentials; course-level generate; PDF upload; real-time dashboard; spaced repetition; payments; production deployment; Phase **B4** global styling rollout (**not started**); **BX-I6D** AppShell/global motion and broader visual rollout (**not started**); sidebar shell / chart UI / chart APIs / backend/API extension **in code** (**not started** — separate approval each); course accent persistence in DB (**not shipped**); course accents on material detail (**not shipped**).
 
 **Next phase (planning only — human):** Optional **BX-I2**, **BX-I3**, **BX-I4**, and **BX-I5 follow-up** — authenticated visual QA when a test account exists (**BX-I5:** material detail edit/save, unsaved blocks generate, generate/clear/restore/delete history, import tasks/flashcards, saved flashcards study, delete material danger zone, fake UUID/not found, **narrow responsive browser viewport ~375px**, console check for no token/secret/full material content logs). **Do not** automatically start **BX-I6C**, **BX-I6D**, remaining **BX-I6** work, or **B4** — each requires separate planning and explicit **`approved — implement Phase X`**. Next implementation phase is **not automatic**. Courses/course-detail visual alignment, AppShell/global motion, charts, sidebar shell, and backend/API extension remain **not built** until separately approved. Future visual phases must **not** expand scope into mobile/native/app-store products.
 
@@ -2227,4 +2229,28 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **APIs affected:** none
 **Tests:** none (docs-only)
 **Pitfalls:** Do not conflate BX-I6B presentation with **`dashboard-recommendation.js`** logic changes; do not auto-start BX-I6C/BX-I6D/B4
+**Follow-up:** none — stop before commit per phase gate
+
+### 2026-06-02 — Phase BX-I6C courses visual alignment complete (frontend only)
+
+**Workflow:** Phase BX-I6C — courses / course-detail visual alignment (frontend only)
+**ADR refs:** none (presentation-only CSS/className changes)
+**Commit:** **`6a1e6ad`** — `style: align courses visual surfaces`
+**Prerequisite:** Phase **BX-I4** **`ff65e21`** (deterministic course accents); Phases **B1**–**B3** + **BX-I2** **`03ee9df`** (tokens/presentation baseline); **8C-2A** courses/course-detail cockpit layout
+**Summary:** Courses and course-detail **presentation** on **`/courses`** and **`/courses/:id`** only. **`/courses`:** subject shelf (`courses-shelf--deck`), semantic **`ul > li > article`**, **`source-card--course-shelf`**, glass create form, empty-state wrapper. **`/courses/:id`:** subject workspace hierarchy; **Subject** pill under header (existing **`data-course-accent`** — chrome only); settings secondary band; materials primary glass zone; document shelf deck; honest material count subtitle (**`materials.length`**, no new API; hidden during loading/error/empty); stronger tasks and danger-zone framing; **narrow responsive browser viewport ~375px** — no horizontal overflow. **No** backend/API/database/package/auth/routes/services, `tokens.css`, dashboard, AppShell, or material cockpit changes. **No** chart libraries, sidebar, new packages, or fake course health/priority/urgency/status/AI classification. **Supervisor Review:** Approved with notes. **Security / Trust Review:** Approved with notes. **Manual authenticated smoke:** passed (`/courses` empty state not smoke-tested).
+**Files changed in commit:** **`frontend/src/components/courses/CourseCard.jsx`**, **`frontend/src/components/materials/MaterialCard.jsx`**, **`frontend/src/pages/CoursesList.jsx`**, **`frontend/src/pages/CourseDetail.jsx`**, **`frontend/src/styles/layout.css`**, **`frontend/src/styles/components.css`** only — **no** backend, database, package, or docs in implementation commit
+**APIs affected:** none
+**Tests:** `cd frontend && npm run lint` passed; `npm test` passed (**228/228**); `npm run build` passed
+**Implementation:** Courses/course-detail visual alignment only — **does not** authorize **BX-I6D**, AppShell/global motion, sidebar shell, chart UI/APIs, dashboard changes, backend/API extension, or **B4**
+**Pitfalls:** Do not treat BX-I6C as approval for BX-I6D/B4; do not treat material count subtitle as health/progress/AI; do not use accents as status signals; **375px** QA is **narrow responsive browser viewport** only — not mobile/native scope; `/courses` empty state not manually smoke-tested
+**Follow-up:** Optional `/courses` empty-state visual smoke; plan **BX-I6D** / remaining **BX-I6** / **B4** separately with explicit implement approval — next implementation phase is **not automatic**
+
+### 2026-06-02 — Phase BX-I6C documentation housekeeping (documentation only)
+
+**Workflow:** BX-I6C docs — record implementation commit **`6a1e6ad`** in **`CURRENT_STATE`**, **`IMPLEMENTATION_STATUS`**, **`AGENT_MEMORY`**
+**ADR refs:** none
+**Summary:** Documentation-only housekeeping after BX-I6C implementation commit **`6a1e6ad`**. Records frontend-only scope (six approved files), **`/courses`** + **`/courses/:id`** presentation only, web-only / narrow responsive browser viewport wording, reviews, tests (**228/228**), and manual authenticated smoke with notes. **No** application code changes.
+**APIs affected:** none
+**Tests:** none (docs-only)
+**Pitfalls:** Do not conflate BX-I6C with backend/API or dashboard changes; do not auto-start BX-I6D/B4
 **Follow-up:** none — stop before commit per phase gate
