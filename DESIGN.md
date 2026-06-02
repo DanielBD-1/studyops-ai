@@ -223,6 +223,8 @@ Implemented (`frontend/src/components/layout/PageHeader.jsx`):
 - **Intro mode:** title + lead + note + actions — used on dashboard, course detail, material detail, tasks, flashcards, Trello, admin
 - **Back link:** optional `backTo` above header on nested routes
 
+**Shipped presentation (BX-I8C, commit `8008dc1`):** Intro headers (`.page-header--intro` only) use a glass intro band, top gradient rule, frosted `backdrop-filter`, and `elevation-1`; non-intro `.page-header` unchanged. Auth (`/`, `/register`) uses glass/command-center `.page--auth .form-card` treatment and `.auth-brand` gradient bar + soft glow — **`layout.css`** + **`components.css`** only; course accent inset on `CourseDetail` intro header preserved. **375px** stacked; **BX-I7** desktop grids preserved.
+
 **Guidance:** One clear **`h1`** per route. Primary page action belongs in **`page-header__actions`**, not buried in body forms.
 
 ### 4.3 Layout modes (when to use which)
@@ -384,7 +386,7 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Shipped presentation (BX-I5 + BX-I8B):** Material-detail AI command column uses stronger violet/glass treatment — frosted gradients, restrained glow, violet borders on generate panel, loading lane, plan output, history, and import bands (**BX-I8B**, commit **`bda2645`** — **`components.css`** + **`layout.css`** only). **Generate** CTA remains electric blue / primary. **375px** stacked; **BX-I7F** desktop cockpit layout preserved. **No** `tokens.css`, behavior, copy, or API changes in **BX-I8B**.
 
-**Target presentation (BX-I1 — remaining gaps):** Further Stitch-aligned polish on auth/PageHeader intro, motion micro-pass, and global control/card shape alignment — see proposed **BX-I8C**–**BX-I8E**. **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
+**Target presentation (BX-I1 — remaining gaps):** Motion micro-pass and global control/card shape alignment — see proposed **BX-I8D**–**BX-I8E**. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
 
 **Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column. AI column should read as **“command stack”** in hierarchy—equal weight to source editor, not an afterthought sidebar.
 
@@ -809,6 +811,7 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-03 | **Phase BX-I8C** (implementation) + **DOCS-BX-I8C-HOUSEKEEPING** — Auth + PageHeader intro chrome in `components.css` + `layout.css` (glass `.page--auth .form-card`, intro `.page-header--intro` band + top gradient, `.auth-brand` polish; course accent header preserved; 375px stacked; BX-I7/BX-I8B layouts preserved; no tokens/base/JSX/API/auth behavior/copy/logging changes); §4.2 + §6.3 updated; next likely BX-I8D–BX-I8E proposed |
 | 2026-06-03 | **Phase BX-I8B** (implementation) + **DOCS-BX-I8B-HOUSEKEEPING** — AI command surfaces polish in `components.css` + `layout.css` on `/study-materials/:materialId` (stronger violet/glass on AI command column; Generate CTA remains primary blue; 375px stacked; BX-I7F layout preserved; no tokens/JSX/API/behavior changes); §6.3 updated; next likely BX-I8C–BX-I8E proposed |
 | 2026-06-03 | **Phase BX-I7F** (implementation) + **DOCS-BX-I7F-HOUSEKEEPING** / **BX-I7 closeout** — Material cockpit desktop pass in `layout.css` at **≥1280px** (`/study-materials/:materialId` cockpit 1.15fr|0.85fr; plan-history/import actions horizontal; library study|manage 2-column; manage list 2-column; create/edit full-width; loading/error/not-found unaffected; `/flashcards` unaffected); §4.3 updated; **BX-I7** desktop layout sequence complete |
 | 2026-06-03 | **Phase BX-I7E4** (implementation) + **DOCS-BX-I7E4-HOUSEKEEPING** — Admin desktop stats deck in `layout.css` at **≥1280px** (`/admin` stats deck 2-column grid; Platform overview, Trello today, Backend status full-width; Tasks|Focus and Learning|Trello stats rows side-by-side; inner stat grids unchanged); §4.3 updated; **BX-I7F** remains proposed |
