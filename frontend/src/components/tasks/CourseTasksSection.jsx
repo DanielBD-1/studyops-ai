@@ -328,11 +328,11 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       )}
 
       {!loading && !error && tasks.length === 0 && statusFilter === 'pending' && (
-        <p className="section__meta">No pending tasks.</p>
+        <p className="section__meta course-workspace__tasks-filter-empty">No pending tasks.</p>
       )}
 
       {!loading && !error && tasks.length === 0 && statusFilter === 'completed' && (
-        <p className="section__meta">No completed tasks.</p>
+        <p className="section__meta course-workspace__tasks-filter-empty">No completed tasks.</p>
       )}
 
       {!loading && !error && tasks.length > 0 && (

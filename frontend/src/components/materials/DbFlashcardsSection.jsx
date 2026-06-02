@@ -213,7 +213,11 @@ export default function DbFlashcardsSection({
         the generated plan below.
       </p>
 
-      {loading && <LoadingState message="Loading saved flashcards…" />}
+      {loading && (
+        <div className="flashcard-library__loading">
+          <LoadingState message="Loading saved flashcards…" />
+        </div>
+      )}
 
       {error && !loading && (
         <div className="flashcard-library__error">
