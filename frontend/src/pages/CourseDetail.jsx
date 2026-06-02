@@ -261,6 +261,10 @@ export default function CourseDetail() {
         backTo={{ to: '/courses', label: '← Back to courses' }}
       />
 
+      <p className="course-workspace__subject-badge">
+        <span className="course-workspace__subject-pill">Subject</span>
+      </p>
+
       <section className="course-workspace__settings" aria-label="Course settings">
         <FormCard title="Course settings">
           <form onSubmit={handleSave} className="form-stack">
@@ -279,10 +283,14 @@ export default function CourseDetail() {
         </FormCard>
       </section>
 
-      <section className="section course-workspace__materials">
-        <div className="section__header-row">
+      <section className="section course-workspace__materials course-workspace__materials--primary">
+        <div className="section__header-row course-workspace__materials-header">
           <h2 className="section__title">Study materials</h2>
-          <p className="section__subtitle">Document shelf</p>
+          <p className="section__subtitle">
+            {!materialsLoading && !materialsError && materials.length > 0
+              ? `${materials.length} material${materials.length === 1 ? '' : 's'} · Document shelf`
+              : 'Document shelf'}
+          </p>
         </div>
 
         {materialsLoading && <LoadingState message="Loading study materials…" />}
@@ -306,7 +314,7 @@ export default function CourseDetail() {
         )}
 
         {!materialsLoading && !materialsError && materials.length > 0 && (
-          <div className="document-shelf card-list">
+          <div className="document-shelf document-shelf--deck card-list">
             {materials.map((material) => (
               <MaterialCard key={material.id} material={material} />
             ))}

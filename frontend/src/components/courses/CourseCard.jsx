@@ -12,7 +12,7 @@ export default function CourseCard({ course }) {
 
   return (
     <article
-      className="source-card source-card--subject source-card--navigable"
+      className="source-card source-card--subject source-card--course-shelf source-card--navigable"
       data-course-accent={accentKey}
     >
       <div className="source-card__header">

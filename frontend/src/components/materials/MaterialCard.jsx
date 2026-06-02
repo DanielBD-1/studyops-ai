@@ -7,7 +7,7 @@ export default function MaterialCard({ material }) {
   const sourceLabel = material.sourceType === 'paste' ? 'Pasted text' : 'Manual entry';
 
   return (
-    <article className="source-card source-card--document source-card--navigable">
+    <article className="source-card source-card--document source-card--document-shelf source-card--navigable">
       <div className="source-card__header">
         <span className="source-card__pill source-card__pill--document">{sourceLabel}</span>
       </div>
