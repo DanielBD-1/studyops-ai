@@ -2883,6 +2883,25 @@ a.dashboard-hero__cta.btn:hover {
   .page--trello .trello-sync__submit {
     grid-column: 1 / -1;
   }
+
+  /* BX-I7E4 — admin desktop stats panels (/admin only) */
+  .page--admin-dashboard .admin-workspace__stats-deck {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+    min-width: 0;
+  }
+
+  .page--admin-dashboard .admin-workspace__band.dashboard-band--admin-overview,
+  .page--admin-dashboard .admin-workspace__band.dashboard-band--trello-today,
+  .page--admin-dashboard .admin-workspace__band.dashboard-band--health {
+    grid-column: 1 / -1;
+  }
+
+  .page--admin-dashboard .admin-workspace__stats-row {
+    min-width: 0;
+  }
 }
 
 @media (min-width: 641px) {
