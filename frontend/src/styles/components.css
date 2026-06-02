@@ -972,6 +972,10 @@
   border-radius: var(--radius-md);
 }
 
+.ai-panel__loading--active .loading {
+  animation: processing-label-pulse 2s ease-in-out infinite;
+}
+
 /* Material editor workspace */
 .material-workspace__editor-card {
   border-left: 3px solid var(--color-border-strong);
@@ -1269,6 +1273,7 @@
   background: var(--color-success-subtle);
   border: 1px solid var(--color-success-border);
   border-radius: var(--radius-md);
+  animation: plan-fade-in 250ms ease;
 }
 
 .plan-panel__error,
@@ -2035,6 +2040,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--color-ai-accent);
+  animation: plan-fade-in 200ms ease;
 }
 
 .material-workspace__cockpit-ai .plan-history__preview-panel {
@@ -2056,6 +2062,17 @@
   margin-bottom: 0;
 }
 
+@keyframes processing-label-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.72;
+  }
+}
+
 @keyframes plan-fade-in {
   from {
     opacity: 0;
@@ -2067,8 +2084,19 @@
   }
 }
 
+.focus-done {
+  animation: plan-fade-in 250ms ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .plan-fade-in {
+  .ai-panel__loading--active .loading {
+    animation: none;
+  }
+
+  .plan-fade-in,
+  .plan-panel__status--success,
+  .plan-history__preview-panel,
+  .focus-done {
     animation: none;
   }
 
