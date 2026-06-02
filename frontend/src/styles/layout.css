@@ -2169,27 +2169,77 @@ a.dashboard-hero__cta.btn:hover {
   gap: var(--space-3);
 }
 
-/* Focus session */
+/* Focus workspace — session cockpit (B4-E) */
+.page--focus.focus-workspace {
+  min-width: 0;
+}
+
 .focus-workspace {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .focus-workspace__nav {
   margin-top: var(--space-2);
 }
 
-.focus-workspace__loading {
-  margin-top: var(--space-6);
+.focus-workspace__session-deck {
+  margin-top: var(--space-2);
+  min-width: 0;
 }
 
-.focus-context {
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-2);
+.focus-workspace__command-band {
+  min-width: 0;
+}
+
+.focus-workspace__command-band--deck {
+  padding: var(--space-6) var(--space-5);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--color-data-accent);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.focus-workspace__command-header {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-glass-border);
+}
+
+.focus-workspace__command-title {
+  font-size: var(--font-size-card-title);
+}
+
+.focus-workspace__command-subtitle {
+  max-width: 42rem;
+}
+
+.focus-workspace__command-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.focus-workspace__page-loading,
+.focus-workspace__page-error,
+.focus-workspace__done-zone {
+  min-width: 0;
+}
+
+.focus-workspace__task-context.focus-context {
+  margin: 0;
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-glass-border);
   border-left: 3px solid var(--color-primary-border);
   border-radius: var(--radius-md);
   box-shadow: var(--elevation-1);
@@ -2210,10 +2260,11 @@ a.dashboard-hero__cta.btn:hover {
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
-.focus-error {
-  margin-top: var(--space-4);
+.focus-workspace__page-error .focus-error {
+  margin: 0;
   padding: var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -2221,19 +2272,31 @@ a.dashboard-hero__cta.btn:hover {
   box-shadow: var(--elevation-1);
 }
 
-.page--focus .focus-panel {
-  margin-top: var(--space-6);
-  padding: var(--space-8) var(--space-6);
+.page--focus .focus-workspace__session-panel.focus-panel {
+  margin: 0;
+  padding: var(--space-6) var(--space-5);
   text-align: center;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--elevation-2);
+  min-width: 0;
+}
+
+.focus-workspace__timer-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-glass-border);
+  min-width: 0;
 }
 
 .focus-timer-surface {
-  margin: 0 auto var(--space-6);
+  margin: 0 auto;
   padding: var(--space-6) var(--space-4);
+  width: 100%;
   max-width: 20rem;
   background: linear-gradient(
     165deg,
@@ -2242,16 +2305,17 @@ a.dashboard-hero__cta.btn:hover {
   );
   border: 1px solid var(--color-primary-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
 }
 
 .focus-timer {
   margin: 0 0 var(--space-2);
-  font-size: clamp(2.75rem, 10vw, 4.5rem);
+  font-size: clamp(2.5rem, 12vw, 4.5rem);
   font-weight: var(--font-weight-semibold);
   font-variant-numeric: var(--font-tabular);
   letter-spacing: 0.04em;
   line-height: 1;
-  color: var(--color-primary);
+  color: var(--color-data-accent);
 }
 
 .focus-panel__hint {
@@ -2261,11 +2325,19 @@ a.dashboard-hero__cta.btn:hover {
   font-weight: var(--font-weight-medium);
 }
 
+.focus-workspace__action-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
 .focus-panel__checkbox {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 auto var(--space-6);
+  margin: 0;
   font-size: var(--font-size-sm);
   cursor: pointer;
 }
@@ -2282,16 +2354,19 @@ a.dashboard-hero__cta.btn:hover {
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
 }
 
-.focus-done {
-  margin-top: var(--space-6);
+.focus-workspace__done-zone .focus-done {
+  margin: 0;
   padding: var(--space-6) var(--space-5);
   text-align: center;
   background: var(--color-success-subtle);
   border: 1px solid var(--color-success-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--elevation-1);
+  min-width: 0;
 }
 
 .focus-done__headline {
@@ -2311,10 +2386,18 @@ a.dashboard-hero__cta.btn:hover {
   margin: 0 0 var(--space-5);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .focus-done p:last-child {
   margin-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-workspace__command-band--deck,
+  .focus-timer-surface {
+    backdrop-filter: none;
+  }
 }
 
 @media (min-width: 641px) {
@@ -2530,13 +2613,28 @@ a.dashboard-hero__cta.btn:hover {
     justify-content: center;
   }
 
-  .focus-panel__actions {
+  .page--focus .focus-workspace__command-band--deck {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page--focus .focus-workspace__session-panel.focus-panel {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page--focus .focus-timer-surface {
+    padding: var(--space-5) var(--space-3);
+  }
+
+  .focus-panel__actions,
+  .focus-workspace__action-zone.focus-panel__actions {
     flex-direction: column;
     align-items: stretch;
   }
 
   .focus-panel__actions .link-btn,
-  .focus-panel__actions .btn {
+  .focus-panel__actions .btn,
+  .focus-workspace__action-zone.focus-panel__actions .link-btn,
+  .focus-workspace__action-zone.focus-panel__actions .btn {
     width: 100%;
     justify-content: center;
   }

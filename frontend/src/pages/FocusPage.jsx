@@ -268,98 +268,126 @@ export default function FocusPage() {
         </nav>
       </PageHeader>
 
-      {taskTitle ? (
-        <div className="focus-context" aria-label="Task context">
-          <p className="focus-context__label">Working on</p>
-          <p className="focus-context__title">{taskTitle}</p>
-        </div>
-      ) : null}
-
-      {phase === 'starting' && (
-        <div className="focus-workspace__loading">
-          <LoadingState message="Starting focus session…" />
-        </div>
-      )}
-
-      {phase === 'start-error' && (
-        <section className="focus-error" aria-live="polite">
-          <ErrorMessage
-            message={
-              startErrorMessage ??
-              (startErrorKind === 'session-conflict'
-                ? 'This focus session was already completed.'
-                : 'Could not start focus session.')
-            }
-          />
-          <div className="form-row focus-panel__actions">
-            {startErrorKind === 'network' ? (
-              <Button type="button" variant="secondary" onClick={retryStart}>
-                Try again
-              </Button>
-            ) : null}
-            <Link className="link-btn link-btn--secondary" to="/tasks">
-              Go to all tasks
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {phase === 'active' && session && (
-        <section className="focus-panel" aria-live="polite">
-          <div className="focus-timer-surface">
-            <p className="focus-timer">{formatCountdown(secondsLeft)}</p>
-            <p className="focus-panel__hint">
-              {session.durationMinutes}-minute focus timer
+      <section className="section focus-workspace__session-deck" aria-label="Focus session cockpit">
+        <div className="focus-workspace__command-band focus-workspace__command-band--deck">
+          <div className="focus-workspace__command-header section__header-row">
+            <h2 className="section__title section__title--sm focus-workspace__command-title">
+              Session cockpit
+            </h2>
+            <p className="section__subtitle focus-workspace__command-subtitle">
+              25-minute timer for this task — stay focused on the selected task
             </p>
           </div>
 
-          <label className="focus-panel__checkbox">
-            <input
-              type="checkbox"
-              checked={markTaskComplete}
-              disabled={completing}
-              onChange={(e) => setMarkTaskComplete(e.target.checked)}
-            />
-            Mark task as complete
-          </label>
-
-          {completeError ? <ErrorMessage message={completeError} /> : null}
-
-          <div className="focus-panel__actions">
-            <Button
-              type="button"
-              variant="primary"
-              disabled={completing}
-              onClick={handleCompleteSession}
-            >
-              {completing ? 'Completing…' : 'Complete session'}
-            </Button>
-          </div>
-        </section>
-      )}
-
-      {phase === 'done' && completedSession && (
-        <section className="focus-done" aria-live="polite">
-          <p className="focus-done__headline">Session complete</p>
-          <p className="focus-done__summary">
-            You focused for {completedSession.durationMinutes} minute
-            {completedSession.durationMinutes === 1 ? '' : 's'}.
-          </p>
-          {completedTask ? (
-            <p className="focus-done__task">Task marked complete: {completedTask.title}</p>
-          ) : null}
-          <div className="focus-panel__actions">
-            <Link className="link-btn link-btn--secondary" to={tasksBackPath}>
-              Back to tasks
-            </Link>
-            {showCourseBack ? (
-              <Link className="link-btn link-btn--secondary" to={`/courses/${courseId}`}>
-                Back to course
-              </Link>
+          <div className="focus-workspace__command-body">
+            {taskTitle ? (
+              <div className="focus-context focus-workspace__task-context" aria-label="Task context">
+                <p className="focus-context__label">Working on</p>
+                <p className="focus-context__title">{taskTitle}</p>
+              </div>
             ) : null}
+
+            {phase === 'starting' && (
+              <div className="focus-workspace__page-loading">
+                <LoadingState message="Starting focus session…" />
+              </div>
+            )}
+
+            {phase === 'start-error' && (
+              <div className="focus-workspace__page-error">
+                <section className="focus-error" aria-live="polite">
+                  <ErrorMessage
+                    message={
+                      startErrorMessage ??
+                      (startErrorKind === 'session-conflict'
+                        ? 'This focus session was already completed.'
+                        : 'Could not start focus session.')
+                    }
+                  />
+                  <div className="form-row focus-workspace__action-zone focus-panel__actions">
+                    {startErrorKind === 'network' ? (
+                      <Button type="button" variant="secondary" onClick={retryStart}>
+                        Try again
+                      </Button>
+                    ) : null}
+                    <Link className="link-btn link-btn--secondary" to="/tasks">
+                      Go to all tasks
+                    </Link>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {phase === 'active' && session && (
+              <section className="focus-panel focus-workspace__session-panel">
+                <div className="focus-workspace__timer-zone">
+                  <div className="focus-timer-surface">
+                    <p
+                      className="focus-timer"
+                      aria-label={`${session.durationMinutes}-minute focus timer`}
+                    >
+                      {formatCountdown(secondsLeft)}
+                    </p>
+                    <p className="focus-panel__hint">
+                      {session.durationMinutes}-minute focus timer
+                    </p>
+                  </div>
+                </div>
+
+                <div className="focus-workspace__action-zone">
+                  <label className="focus-panel__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={markTaskComplete}
+                      disabled={completing}
+                      onChange={(e) => setMarkTaskComplete(e.target.checked)}
+                    />
+                    Mark task as complete
+                  </label>
+
+                  {completeError ? <ErrorMessage message={completeError} /> : null}
+
+                  <div className="focus-panel__actions">
+                    <Button
+                      type="button"
+                      variant="primary"
+                      disabled={completing}
+                      onClick={handleCompleteSession}
+                    >
+                      {completing ? 'Completing…' : 'Complete session'}
+                    </Button>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {phase === 'done' && completedSession && (
+              <div className="focus-workspace__done-zone">
+                <section className="focus-done" aria-live="polite">
+                  <p className="focus-done__headline">Session complete</p>
+                  <p className="focus-done__summary">
+                    You focused for {completedSession.durationMinutes} minute
+                    {completedSession.durationMinutes === 1 ? '' : 's'}.
+                  </p>
+                  {completedTask ? (
+                    <p className="focus-done__task">Task marked complete: {completedTask.title}</p>
+                  ) : null}
+                  <div className="focus-workspace__action-zone focus-panel__actions">
+                    <Link className="link-btn link-btn--secondary" to={tasksBackPath}>
+                      Back to tasks
+                    </Link>
+                    {showCourseBack ? (
+                      <Link className="link-btn link-btn--secondary" to={`/courses/${courseId}`}>
+                        Back to course
+                      </Link>
+                    ) : null}
+                  </div>
+                </section>
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
     </main>
   );
 }
