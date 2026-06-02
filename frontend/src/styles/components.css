@@ -477,6 +477,57 @@
 
 .source-card--dashboard-course {
   margin-bottom: 0;
+  padding: var(--space-5) var(--space-6);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.source-card--dashboard-course:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--elevation-2), var(--glow-primary);
+}
+
+.source-card--dashboard-course .source-card__title {
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.source-card--dashboard-course .source-card__stat-row {
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.source-card--dashboard-course .source-card__stat {
+  flex: 1 1 5.5rem;
+  min-width: min(100%, 5.5rem);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-subtle);
+  border-color: var(--color-glass-border);
+  border-radius: var(--radius-md);
+}
+
+.source-card--dashboard-course .source-card__stat-value {
+  font-size: var(--font-size-xl);
+}
+
+.source-card--dashboard-course .source-card__stat-label {
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+}
+
+.source-card--dashboard-course[data-course-accent] .source-card__stat {
+  border-left: 2px solid var(--course-accent-border);
+}
+
+.source-card--dashboard-course .source-card__link:focus-visible {
+  outline-offset: 3px;
 }
 
 .source-card--course-context {

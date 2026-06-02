@@ -48,9 +48,24 @@ function StatBand({ title, children, bandClass }) {
 /**
  * @param {import('../utils/dashboard-recommendation.js').DashboardRecommendation} recommendation
  */
+/**
+ * @param {{ label: string, value: number }} props
+ */
+function PulseMetric({ label, value }) {
+  return (
+    <div className="dashboard-pulse-metric">
+      <span className="dashboard-pulse-metric__value">{value}</span>
+      <span className="dashboard-pulse-metric__label">{label}</span>
+    </div>
+  );
+}
+
 function DashboardDecisionHero({ recommendation }) {
   return (
-    <section className="dashboard-hero" aria-labelledby="dashboard-hero-title">
+    <section
+      className="dashboard-hero dashboard-hero--flagship"
+      aria-labelledby="dashboard-hero-title"
+    >
       <p className="dashboard-hero__eyebrow">What should I study next?</p>
       <h2 id="dashboard-hero-title" className="dashboard-hero__headline">
         {recommendation.headline}
@@ -134,7 +149,10 @@ function DashboardStudyPulse({ stats }) {
   }
 
   return (
-    <section className="dashboard-study-pulse" aria-labelledby="dashboard-study-pulse-title">
+    <section
+      className="dashboard-study-pulse dashboard-study-pulse--cockpit"
+      aria-labelledby="dashboard-study-pulse-title"
+    >
       <div className="dashboard-study-pulse__header">
         <h2 id="dashboard-study-pulse-title" className="dashboard-study-pulse__title">
           Study pulse
@@ -143,12 +161,22 @@ function DashboardStudyPulse({ stats }) {
       </div>
 
       {hasGlobalTasks && (
-        <TaskProgressBar
-          label="All tasks"
-          pending={stats.pendingTasks}
-          completed={stats.completedTasks}
-          total={stats.totalTasks}
-        />
+        <div className="dashboard-study-pulse__band">
+          <div
+            className="dashboard-study-pulse__metrics"
+            aria-label="All tasks: pending, completed, and total counts"
+          >
+            <PulseMetric label="Pending" value={stats.pendingTasks} />
+            <PulseMetric label="Completed" value={stats.completedTasks} />
+            <PulseMetric label="Total" value={stats.totalTasks} />
+          </div>
+          <TaskProgressBar
+            label="All tasks"
+            pending={stats.pendingTasks}
+            completed={stats.completedTasks}
+            total={stats.totalTasks}
+          />
+        </div>
       )}
 
       {coursesWithTasks.length > 0 && (
@@ -310,9 +338,11 @@ export default function DashboardStub() {
 
           <DashboardStudyPulse stats={stats} />
 
-          <section className="section section--compact dashboard-courses">
-            <div className="section__header-row">
-              <h2 className="section__title section__title--sm">Course workload</h2>
+          <section className="section section--compact dashboard-courses dashboard-courses--deck">
+            <div className="section__header-row dashboard-courses__header">
+              <h2 className="section__title section__title--sm dashboard-courses__title">
+                Course workload
+              </h2>
               <p className="section__subtitle">Pending tasks and flashcards by subject</p>
             </div>
             {stats.courseStats.length === 0 ? (
@@ -373,7 +403,10 @@ export default function DashboardStub() {
             )}
           </section>
 
-          <section className="dashboard-secondary" aria-labelledby="dashboard-secondary-title">
+          <section
+            className="dashboard-secondary dashboard-secondary--tertiary"
+            aria-labelledby="dashboard-secondary-title"
+          >
             <div className="dashboard-secondary__header">
               <h2 id="dashboard-secondary-title" className="dashboard-secondary__title">
                 At a glance
