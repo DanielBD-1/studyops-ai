@@ -282,19 +282,27 @@
   font-size: var(--font-size-sm);
 }
 
-/* Alerts & states */
+/* Alerts & states — shared primitives (B4-F1) */
 .alert {
   margin: 0 0 var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-body);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .alert--error {
   color: var(--color-error);
-  background: var(--color-danger-subtle);
+  background: linear-gradient(
+    165deg,
+    var(--color-danger-subtle) 0%,
+    var(--color-bg-subtle) 100%
+  );
   border: 1px solid var(--color-danger-border);
+  border-left: 3px solid var(--color-error);
+  box-shadow: var(--elevation-1);
 }
 
 .alert--success {
@@ -307,9 +315,22 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  color: var(--color-text-muted);
+  min-width: 0;
   margin: var(--space-4) 0;
+  padding: var(--space-4) var(--space-5);
+  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-bg-subtle) 100%
+  );
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
 }
 
 .loading::before {
@@ -337,23 +358,48 @@
 }
 
 .empty-state {
+  min-width: 0;
   text-align: center;
   padding: var(--space-10) var(--space-6);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
 }
 
 .empty-state__title {
   margin: 0 0 var(--space-3);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
 }
 
 .empty-state__text {
+  max-width: 36rem;
+  margin: 0 auto var(--space-5);
   color: var(--color-text-muted);
-  margin: 0 0 var(--space-4);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .loading {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .empty-state {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .alert {
+    padding: var(--space-3);
+  }
 }
 
 /* Long unbroken text — cards and study surfaces */
@@ -1938,7 +1984,16 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-4);
   color: var(--color-text-muted);
-  background: var(--color-bg);
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    var(--color-bg-subtle) 100%
+  );
+}
+
+.protected-loading .loading {
+  margin: 0;
+  max-width: min(100%, 22rem);
 }
