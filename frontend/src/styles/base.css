@@ -74,4 +74,14 @@ a:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .btn:active,
+  .link-btn:active {
+    transform: none;
+  }
+
+  .source-card--navigable:hover,
+  .dashboard-empty-cta__link:hover {
+    transform: none;
+  }
 }
