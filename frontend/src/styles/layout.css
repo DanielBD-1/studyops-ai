@@ -2722,6 +2722,45 @@ a.dashboard-hero__cta.btn:hover {
     padding-left: var(--space-6);
     padding-right: var(--space-6);
   }
+
+  /* BX-I7C — dashboard desktop grid (success body only; :has(.dashboard-hero) skips loading/error) */
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    column-gap: var(--space-6);
+    row-gap: var(--space-6);
+    align-items: start;
+  }
+
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero) .page-header {
+    grid-column: 1 / -1;
+  }
+
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero) .dashboard-hero {
+    grid-column: 1;
+    margin-bottom: 0;
+  }
+
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero) .dashboard-study-pulse {
+    grid-column: 2;
+    margin-bottom: 0;
+  }
+
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero):not(:has(.dashboard-study-pulse))
+    .dashboard-hero {
+    grid-column: 1 / -1;
+  }
+
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero) .dashboard-courses,
+  .page--dashboard.dashboard-workspace:has(.dashboard-hero) .dashboard-secondary {
+    grid-column: 1 / -1;
+  }
+
+  .page--dashboard .dashboard-course-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
 }
 
 @media (min-width: 641px) {
