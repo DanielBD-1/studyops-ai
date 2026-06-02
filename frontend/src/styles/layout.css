@@ -1526,6 +1526,41 @@ a.dashboard-hero__cta.btn:hover {
   margin-bottom: var(--space-5);
 }
 
+/* B4-F3A — secondary in-page state surfaces (course detail) */
+.page--course-detail .course-workspace__materials--primary > .loading {
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+}
+
+.page--course-detail .course-workspace__materials--primary > .alert--error {
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.page--course-detail .course-workspace__materials--primary > .alert--error + .btn {
+  margin-top: var(--space-4);
+}
+
+.page--course-detail .course-workspace__materials--primary > .empty-state {
+  margin: 0;
+  min-width: 0;
+  background: var(--color-bg-subtle);
+  border-color: var(--color-glass-border);
+}
+
+.page--course-detail .course-workspace__tasks .section__meta {
+  margin: 0;
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  overflow-wrap: anywhere;
+}
+
 .course-task-list {
   display: flex;
   flex-direction: column;
@@ -2256,6 +2291,84 @@ a.dashboard-hero__cta.btn:hover {
   margin-bottom: var(--space-5);
 }
 
+/* B4-F3A — secondary in-page state surfaces (material detail) */
+.page--material-detail .material-workspace__library .flashcard-library {
+  min-width: 0;
+}
+
+.page--material-detail .material-workspace__library .flashcard-library > .loading {
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+}
+
+.page--material-detail .material-workspace__library .flashcard-library__error {
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.page--material-detail .material-workspace__library .flashcard-library__error .alert {
+  margin-bottom: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.page--material-detail .material-workspace__library .flashcard-library__error .section__actions {
+  margin-top: var(--space-4);
+  margin-bottom: 0;
+}
+
+.page--material-detail .material-workspace__library .flashcard-library__empty {
+  margin: 0 0 var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.material-workspace__cockpit-ai .plan-panel__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.material-workspace__cockpit-ai .plan-panel__error .alert {
+  margin-bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.material-workspace__cockpit-ai .plan-panel__error .btn {
+  flex-shrink: 0;
+}
+
+.page--material-detail .material-workspace__cockpit-ai .plan-history__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.page--material-detail .material-workspace__cockpit-ai .plan-history__error .alert {
+  margin-bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.page--material-detail .material-workspace__cockpit-ai .plan-history__error .btn {
+  flex-shrink: 0;
+}
+
 .material-workspace__danger {
   margin-top: var(--space-12);
   padding-top: var(--space-8);
@@ -2944,6 +3057,24 @@ a.dashboard-hero__cta.btn:hover {
   }
 
   .course-workspace__materials--primary {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .page--course-detail .course-workspace__materials--primary > .empty-state {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page--course-detail .course-workspace__tasks .section__meta {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .page--material-detail .material-workspace__library .flashcard-library__error,
+  .page--material-detail .material-workspace__library .flashcard-library__empty {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .material-workspace__cockpit-ai .plan-panel__error,
+  .page--material-detail .material-workspace__cockpit-ai .plan-history__error {
     padding: var(--space-4) var(--space-3);
   }
 
