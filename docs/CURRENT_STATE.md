@@ -2,7 +2,7 @@
 
 **Purpose:** Short starting point for the owner and for agents. Read this first, then drill into linked docs.
 
-**Last updated:** 2026-06-03 (Phase **DOCS-BX-I10A6-QA** — **BX-I10A6-QA** Trello failed-row live verification **complete** — **Pass with notes**, review only, **no** repo file changes; prior **DOCS-BX-I10A5** / **BX-I10A5** targeted glass/elevation pass **complete** at **`38aa561`**; prior **BX-I10A4**–**BX-I10A1**; prior **BX-I9C** / **BX-I9C-Auth** final visual QA **complete**; deferred optional follow-ups remain **separate-gated** — **not automatic**)
+**Last updated:** 2026-06-03 (Phase **TRELLO-OAUTH-A2-DOCS-ALIGNMENT** — Trello OAuth **A2** storage foundation documented; **OAuth/connect not live**; manual sync unchanged. Prior **DOCS-BX-I10A6-QA** — **BX-I10A6-QA** Trello failed-row live verification **complete** — **Pass with notes**, review only, **no** repo file changes; prior **DOCS-BX-I10A5** / **BX-I10A5** targeted glass/elevation pass **complete** at **`38aa561`**; prior **BX-I10A4**–**BX-I10A1**; prior **BX-I9C** / **BX-I9C-Auth** final visual QA **complete**; deferred optional follow-ups remain **separate-gated** — **not automatic**)
 
 ---
 
@@ -147,7 +147,7 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 | **AI generate** | Material-scoped `POST …/generate` body `{}`; persisted plan; history (max 10/material); import tasks/flashcards with dedupe (**10B**) |
 | **Tasks** | Course + global UI; filters; edit pending; focus link |
 | **Flashcards** | Material + global UI; plan study + saved library CRUD |
-| **Trello** | Manual credentials; board/list picker; sync (max 50 tasks); audit logs |
+| **Trello** | **Live:** manual credentials (per session); board/list picker; sync (max 50 tasks); audit logs. **A2 (repo, not live):** encrypted connection storage foundation |
 | **Focus** | 25-min timer MVP; start/complete |
 | **Dashboard** | Aggregate stats; invalidation-only cross-page refresh (**5C.1**); rule-based **“What should I study next?”** decision hero, study pulse / task progress bars, course workload rows (**BX-I3**) |
 | **Admin** | Aggregate stats only (`/admin`) — page body polish **B4-D**; no logs, user list, or role UI |
@@ -163,7 +163,7 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 | **Desktop layout (global)** | **`--content-max-cockpit`** / **`--content-max-shell`** **1280px** (**BX-I7B**, commit **`00d3255`**); dashboard desktop grid (**BX-I7C**, commit **`583922d`**); courses/course detail desktop shelves (**BX-I7D Tier 1**, commit **`52c68ab`**); **`/tasks`** desktop panels (**BX-I7E1**, commit **`d0db43e`**); **`/flashcards`** desktop panels (**BX-I7E2**, commit **`b18304c`**, **`layout.css`** only); **`/trello`** desktop setup panels (**BX-I7E3 Tier A**, commit **`cba6dde`**, **`layout.css`** only — credentials + destination 2-up at **≥1280px**); **`/admin`** desktop stats panels (**BX-I7E4**, commit **`467ccd9`**, **`layout.css`** only — stats deck 2-column at **≥1280px**); material cockpit desktop pass (**BX-I7F**, commit **`25988dc`**, **`layout.css`** only); dark glass tokens; cockpit class on hub routes; Source \| AI split at **≥1024px** on material detail | **BX-I7E3 Tier B** **not implemented**; optional **BX-I7D Tier 2** side-by-side workspace **not implemented**; UI is **not** final Stitch-level |
 | **Courses** | List/detail/tasks/materials; deterministic per-course accent chrome (**BX-I4**); subject shelf + course workspace visual alignment (**BX-I6C**); desktop shelf grids at **≥1280px** — 3-column course list, 2-column document shelf (**BX-I7D Tier 1**, commit **`52c68ab`**) | Plan-coverage indicators (docs only); accent persistence in DB (not shipped); `/courses` empty state not manually smoke-tested; **BX-I7D Tier 2** side-by-side workspace **not implemented** |
 | **Material detail** | Source \| AI cockpit + history + **BX-I2** dark tokens + **BX-I5** visual polish + **BX-I7F** desktop pass + **BX-I8B** AI command surfaces violet/glass polish | Course accents on material detail (**not shipped**); authenticated visual QA pending (no test account) |
-| **Trello** | Manual sync + picker; **`/trello`** desktop setup panels at **≥1280px** (**BX-I7E3 Tier A**, commit **`cba6dde`**, **`layout.css`** only) | OAuth, stored credentials, persistence, card update/delete; **BX-I7E3 Tier B** (task-list grid, results grid, wizard/results side-by-side) **not implemented** |
+| **Trello** | **Live:** manual apiKey/token sync + board/list picker on **`/trello`**; **`/trello`** desktop setup panels at **≥1280px** (**BX-I7E3 Tier A**). **A2 foundation (repo):** encrypted `trello_connections` + backend crypto/repository — **not wired** to UI/routes | OAuth / Connect UI; callback + connect/disconnect routes; sync/boards using **stored** token; board/list persistence; card update/delete; **BX-I7E3 Tier B** **not implemented** |
 | **Admin** | Platform aggregate counts; **`/admin`** page body presentation (**B4-D**); desktop stats deck grid at **≥1280px** (**BX-I7E4**, commit **`467ccd9`**, **`layout.css`** only) | Logs, user management, role management, Gemini metrics |
 | **Design captures** | 14 Phase 2I PNGs + 3 Stitch refs | `15-processing-with-ai.png` pending; many PNGs predate **8C** / **11A-3** |
 
@@ -179,7 +179,7 @@ Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` d
 - **BX-I6** (remaining) — sidebar shell, chart UI, chart APIs, backend/API extension **in code** (requires separate planning and explicit approval each)
 - Sidebar shell migration (Stitch sidebar is reference-only)
 - Course-level paste-generate (`POST /api/courses/:courseId/generate`)
-- PDF upload/parsing; Trello OAuth; payments; spaced repetition; production deployment
+- PDF upload/parsing; Trello OAuth **connect** (UI + routes + stored-token sync); payments; spaced repetition; production deployment (**A2** encrypted storage foundation is in repo — manual sync still live)
 - Dashboard polling / WebSockets / cross-tab sync
 - `api_logs` / admin logs UI
 
@@ -281,7 +281,9 @@ Do **not** assume without checking **`IMPLEMENTATION_STATUS`** and this file:
 | `DESIGN.md` or BX-I1 doc update = implement approval | Requires **`approved — implement Phase X`** |
 | Stitch exports are production code | **Reference only** — never merge into `frontend/src` |
 | Course-level generate with client `studyText` exists | **Deferred** — material-scoped generate with body `{}` only |
-| Trello OAuth or stored credentials | **Not implemented** — ephemeral body credentials only |
+| Trello OAuth or connect UI/routes | **Not implemented** — **live** path is ephemeral apiKey/token in POST body only (ADR 004) |
+| `trello_connections` is unused in production routes | **Correct for today** — A2 added encrypted storage + repository; sync/boards/lists do **not** read it until connect phases |
+| Trello tokens safe in frontend localStorage | **Never** — manual credentials cleared from React state; OAuth tokens must **never** be stored client-side |
 | Admin logs / user list / role UI | **Not implemented** — aggregate stats only |
 | Dashboard charts / sidebar | **Documented direction only** — **not wired in code**; dark token foundation live via **BX-I2**; rule-based decision hero live via **BX-I3** |
 | Course accents not wired | **BX-I4** shipped deterministic accents on **`/courses`**, **`/courses/:id`**, and dashboard workload rows — **`amber` | `rose` | `emerald`** from course ID/name/title only; supplementary chrome only; **no** DB persistence |

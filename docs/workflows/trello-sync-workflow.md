@@ -2,7 +2,9 @@
 
 **Owner:** Orchestrator  
 **Prerequisite:** Phase 3 tasks exist (task list + DB)  
-**ADR gate:** 004, 005 (mandatory)
+**ADR gate:** 004, 005 (mandatory). **OAuth / stored tokens:** ADR 006 + separate connect workflow (A3+) — **not** this manual sync workflow.
+
+**Current live path:** Manual apiKey/token in POST body (ADR 004). Phase **TRELLO-OAUTH-A2-DB** added encrypted `trello_connections` foundation only — **does not** change this workflow until connect routes ship.
 
 ---
 
@@ -86,7 +88,8 @@ Implement `POST /api/trello/sync`, optional `POST /api/trello/boards`, frontend 
 
 ## Forbidden
 
-- Storing credentials encrypted or plain
+- Storing **manual** apiKey/token in DB or browser storage (ADR 004 — live)
+- Using `trello_connections` in sync/boards handlers without an approved OAuth connect phase (ADR 006 foundation is separate)
 - GET endpoints with credentials in query string
 - Deleting Trello cards (out of scope)
 - Mass/background sync

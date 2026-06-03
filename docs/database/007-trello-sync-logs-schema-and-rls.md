@@ -4,7 +4,7 @@
 **Migration file:** `supabase/migrations/007_trello_sync_logs.sql`
 **Apply method:** Supabase SQL Editor (not CLI) — **Success. No rows returned.**
 **Prerequisite:** migrations **001–006** applied and verified
-**PRD reference:** Section 7.6 (Trello Sync), Section 8.4 (`trello_sync_logs`), ADR 004 (no credential persistence)
+**PRD reference:** Section 7.6 (Trello Sync), Section 8.4 (`trello_sync_logs`), ADR 004 (no credential columns in sync logs). **OAuth tokens:** stored separately in `trello_connections` (ADR 006, migration **012**) — not in this table.
 
 ---
 

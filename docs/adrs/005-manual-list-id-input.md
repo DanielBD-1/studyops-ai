@@ -43,7 +43,7 @@ Trello cards must be created in a specific list (`idList`). OAuth and full board
 ## Compliance Rules for Agents
 
 - Do not make List ID optional in MVP sync flow.
-- Do not implement Trello OAuth without scope change and new ADR.
+- Do not implement Trello OAuth connect UI/routes without scope change; storage foundation is ADR 006 (A2) — connect flow still requires approval + Security Review.
 - Card creation must use user-supplied `listId`, not a hardcoded default.
 - UI copy must explain List ID is required and credentials are not saved.
 
@@ -52,4 +52,5 @@ Trello cards must be created in a specific list (`idList`). OAuth and full board
 ## References
 
 - PRD Section 3 (MVP Trello), 7.6, 15.5 (Trello Sync Page)
-- ADR 004 (no credential persistence)
+- ADR 004 (manual MVP — ephemeral credentials)
+- ADR 006 (encrypted connections — when OAuth connect ships)
