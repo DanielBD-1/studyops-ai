@@ -1,12 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  classifyTrelloCredentialMode,
   trelloBoardIdParamSchema,
   trelloBoardListsBodySchema,
+  trelloBoardListsStoredBodySchema,
   trelloBoardsBodySchema,
+  trelloBoardsStoredBodySchema,
   trelloConnectCompleteBodySchema,
   trelloDisconnectBodySchema,
   trelloSyncBodySchema,
+  trelloSyncStoredBodySchema,
 } from '../../src/shared/validation/trello.schema.js';
 
 const VALID_CREDENTIALS = {
@@ -169,6 +173,63 @@ describe('trello.validation', () => {
 
   it('disconnect schema rejects non-empty body', () => {
     const parsed = trelloDisconnectBodySchema.safeParse({ force: true });
+    assert.equal(parsed.success, false);
+  });
+
+  it('classifyTrelloCredentialMode returns stored when credential keys are absent', () => {
+    assert.equal(classifyTrelloCredentialMode({}), 'stored');
+    assert.equal(
+      classifyTrelloCredentialMode({
+        listId: 'list123',
+        taskIds: ['11111111-1111-4111-8111-111111111111'],
+      }),
+      'stored'
+    );
+  });
+
+  it('classifyTrelloCredentialMode returns manual when both credential keys are present', () => {
+    assert.equal(classifyTrelloCredentialMode(VALID_CREDENTIALS), 'manual');
+  });
+
+  it('classifyTrelloCredentialMode returns partial when only one credential key is present', () => {
+    assert.equal(classifyTrelloCredentialMode({ apiKey: 'key' }), 'partial');
+    assert.equal(classifyTrelloCredentialMode({ token: 'token' }), 'partial');
+  });
+
+  it('stored boards schema accepts empty object', () => {
+    const parsed = trelloBoardsStoredBodySchema.safeParse({});
+    assert.equal(parsed.success, true);
+  });
+
+  it('stored boards schema rejects unknown fields', () => {
+    const parsed = trelloBoardsStoredBodySchema.safeParse({ apiKey: 'key' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('stored board lists schema accepts empty object', () => {
+    const parsed = trelloBoardListsStoredBodySchema.safeParse({});
+    assert.equal(parsed.success, true);
+  });
+
+  it('stored sync schema accepts listId and taskIds only', () => {
+    const parsed = trelloSyncStoredBodySchema.safeParse({
+      listId: 'list123',
+      taskIds: ['11111111-1111-4111-8111-111111111111'],
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('stored sync schema rejects credential fields', () => {
+    const parsed = trelloSyncStoredBodySchema.safeParse(VALID_BODY);
+    assert.equal(parsed.success, false);
+  });
+
+  it('stored sync schema rejects duplicate taskIds', () => {
+    const id = '11111111-1111-4111-8111-111111111111';
+    const parsed = trelloSyncStoredBodySchema.safeParse({
+      listId: 'list123',
+      taskIds: [id, id],
+    });
     assert.equal(parsed.success, false);
   });
 });
