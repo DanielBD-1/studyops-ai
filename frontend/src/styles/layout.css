@@ -1611,7 +1611,7 @@ a.dashboard-hero__cta.btn:hover {
 }
 
 .page--course-detail[data-course-accent] .course-workspace__materials--primary {
-  border-top: 3px solid var(--course-accent-border);
+  border-top: 4px solid var(--course-accent-border);
 }
 
 .course-workspace__materials-header {
