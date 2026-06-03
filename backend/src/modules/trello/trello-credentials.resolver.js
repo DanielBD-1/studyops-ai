@@ -17,6 +17,8 @@ import { requireTrelloApiKey } from './trello-connection.service.js';
 const TRELLO_NOT_CONNECTED_MESSAGE =
   'Connect your Trello account or provide API credentials.';
 const TRELLO_INTEGRATION_UNAVAILABLE_MESSAGE = 'Trello integration is not available.';
+const TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED_MESSAGE =
+  'Use your connected Trello account, or disconnect before using manual credentials.';
 
 /**
  * @param {import('zod').SafeParseReturnType<unknown, unknown>} parsed
@@ -65,6 +67,21 @@ function throwPartialCredentialsError() {
 
 /**
  * @param {string} userId
+ * @returns {Promise<void>}
+ */
+async function assertManualCredentialsAllowed(userId) {
+  const metadata = await getConnectionByUserId(userId);
+  if (metadata) {
+    throw new ApiError(
+      'TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED',
+      TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED_MESSAGE,
+      400
+    );
+  }
+}
+
+/**
+ * @param {string} userId
  * @returns {Promise<{ apiKey: string, token: string }>}
  */
 async function resolveStoredCredentials(userId) {
@@ -106,6 +123,7 @@ export async function resolveTrelloDiscoveryCredentials(userId, body) {
   }
 
   if (mode === 'manual') {
+    await assertManualCredentialsAllowed(userId);
     const parsed = parseBodyOrThrow(trelloBoardsBodySchema, body);
     return { apiKey: parsed.apiKey, token: parsed.token };
   }
@@ -127,6 +145,7 @@ export async function resolveTrelloBoardListsCredentials(userId, body) {
   }
 
   if (mode === 'manual') {
+    await assertManualCredentialsAllowed(userId);
     const parsed = parseBodyOrThrow(trelloBoardListsBodySchema, body);
     return { apiKey: parsed.apiKey, token: parsed.token };
   }
@@ -148,6 +167,7 @@ export async function resolveTrelloSyncRequest(userId, body) {
   }
 
   if (mode === 'manual') {
+    await assertManualCredentialsAllowed(userId);
     const parsed = parseBodyOrThrow(trelloSyncBodySchema, body);
     return {
       apiKey: parsed.apiKey,

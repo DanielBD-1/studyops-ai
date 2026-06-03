@@ -293,18 +293,11 @@ describe('trello stored credentials API integration', () => {
     assert.equal(body.error.code, 'VALIDATION_ERROR');
   });
 
-  it('POST /api/trello/boards with manual body still works when user is connected', async () => {
+  it('POST /api/trello/boards with manual body rejects when user is connected', async () => {
     await seedStoredConnection(base(), auth);
 
-    setTrelloFetchForTests(async (url) => {
-      assert.ok(url.includes(`key=${MANUAL_API_KEY}`));
-      assert.ok(url.includes(`token=${encodeURIComponent(MANUAL_TOKEN)}`));
-      assert.equal(url.includes(CONNECT_TOKEN), false);
-      return {
-        ok: true,
-        status: 200,
-        json: async () => [{ id: 'b2', name: 'Manual', closed: false }],
-      };
+    setTrelloFetchForTests(() => {
+      throw new Error('Trello fetch should not be called for rejected manual credentials');
     });
 
     const { statusCode, body } = await request(`${base()}/api/trello/boards`, {
@@ -313,8 +306,59 @@ describe('trello stored credentials API integration', () => {
       body: { apiKey: MANUAL_API_KEY, token: MANUAL_TOKEN },
     });
 
-    assert.equal(statusCode, 200);
-    assert.deepEqual(body.data.boards, [{ id: 'b2', name: 'Manual' }]);
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED');
+    assert.equal(body.error.message.includes(MANUAL_API_KEY), false);
+    assert.equal(body.error.message.includes(MANUAL_TOKEN), false);
+    assertNoTrelloCredentialsInValue(body);
+    assertNoPlaintextTrelloTokenInValue(body);
+  });
+
+  it('POST /api/trello/boards/:boardId/lists with manual body rejects when user is connected', async () => {
+    await seedStoredConnection(base(), auth);
+
+    setTrelloFetchForTests(() => {
+      throw new Error('Trello fetch should not be called for rejected manual credentials');
+    });
+
+    const { statusCode, body } = await request(
+      `${base()}/api/trello/boards/${BOARD_ID}/lists`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: { apiKey: MANUAL_API_KEY, token: MANUAL_TOKEN },
+      }
+    );
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED');
+    assertNoTrelloCredentialsInValue(body);
+    assertNoPlaintextTrelloTokenInValue(body);
+  });
+
+  it('POST /api/trello/sync with manual body rejects when user is connected', async () => {
+    await seedStoredConnection(base(), auth);
+
+    setTrelloFetchForTests(() => {
+      throw new Error('Trello fetch should not be called for rejected manual credentials');
+    });
+
+    const { statusCode, body } = await request(`${base()}/api/trello/sync`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        apiKey: MANUAL_API_KEY,
+        token: MANUAL_TOKEN,
+        listId: STORED_LIST_ID,
+        taskIds: [OWN_TASK_ID],
+      },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED');
+    assert.equal(getMockTrelloSyncLogs().length, 0);
+    assertNoTrelloCredentialsInValue(body);
+    assertNoPlaintextTrelloTokenInValue(body);
   });
 
   it('POST /api/trello/boards stored mode maps revoked token to TRELLO_AUTH_ERROR', async () => {
