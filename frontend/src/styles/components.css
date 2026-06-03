@@ -512,8 +512,8 @@
 
 .source-card--navigable:hover {
   border-color: var(--color-border-strong);
-  box-shadow: var(--elevation-2);
-  transform: translateY(-1px);
+  box-shadow: var(--elevation-1);
+  transform: none;
 }
 
 .source-card--task:hover,
@@ -625,7 +625,8 @@
 
 .page--courses .source-card--course-shelf:hover {
   border-color: var(--color-border-strong);
-  box-shadow: var(--elevation-2), var(--glow-primary);
+  box-shadow: var(--elevation-1), var(--glow-primary);
+  transform: none;
 }
 
 .page--courses .source-card--course-shelf[data-course-accent]:hover {
@@ -656,7 +657,8 @@
 
 .course-workspace .source-card--document-shelf:hover {
   border-color: var(--color-border-strong);
-  box-shadow: var(--elevation-2);
+  box-shadow: var(--elevation-1);
+  transform: none;
 }
 
 .course-workspace .source-card--document-shelf .source-card__pill--document {
@@ -703,7 +705,8 @@
 
 .source-card--dashboard-course:hover {
   border-color: var(--color-border-strong);
-  box-shadow: var(--elevation-2), var(--glow-primary);
+  box-shadow: var(--elevation-1), var(--glow-primary);
+  transform: none;
 }
 
 .source-card--dashboard-course .source-card__title {
@@ -1862,9 +1865,14 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
   cursor: pointer;
   transition:
     border-color var(--transition-fast),
@@ -1874,7 +1882,7 @@
 
 .trello-task-list__label:hover {
   border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.06);
 }
 
 .trello-task-list__label--selected {
@@ -2248,6 +2256,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .source-card--navigable:hover,
+  .page--courses .source-card--course-shelf:hover,
+  .course-workspace .source-card--document-shelf:hover,
+  .source-card--dashboard-course:hover {
+    transform: none;
+  }
+
   .ai-panel__loading--active .loading {
     animation: none;
   }
