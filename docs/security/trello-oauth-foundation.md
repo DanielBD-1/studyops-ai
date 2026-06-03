@@ -1,7 +1,7 @@
-# Trello OAuth foundation — security notes (A2 + A3 + A4-STATE + A4-FRONTEND)
+# Trello OAuth foundation — security notes (A2 + A3 + A4-STATE + A4-FRONTEND + A5A)
 
-**Phases:** TRELLO-OAUTH-A2-DB (storage/crypto foundation); TRELLO-OAUTH-A3 (backend connect/authorize routes); TRELLO-OAUTH-A4-STATE (signed OAuth state on connect flow); TRELLO-OAUTH-A4-FRONTEND (frontend Connect/Disconnect UI + callback)
-**Status:** **A2 + A3 + A4-STATE + A4-FRONTEND implemented in repo** — users can **connect/disconnect** a Trello account from **`/trello`**. **Stored-token sync is not implemented** — manual apiKey/token on **`/trello`** remains the **only active sync path** until **A5**.
+**Phases:** TRELLO-OAUTH-A2-DB (storage/crypto foundation); TRELLO-OAUTH-A3 (backend connect/authorize routes); TRELLO-OAUTH-A4-STATE (signed OAuth state on connect flow); TRELLO-OAUTH-A4-FRONTEND (frontend Connect/Disconnect UI + callback); TRELLO-OAUTH-A5A (backend stored-token mode on boards/lists/sync)
+**Status:** **A2 + A3 + A4-STATE + A4-FRONTEND + A5A implemented in repo** — users can **connect/disconnect** a Trello account from **`/trello`**. **Backend** boards/lists/sync support **stored-token mode** when the request body omits `apiKey`/`token` keys. **Frontend A5B not implemented** — manual apiKey/token on **`/trello`** remains the **only active UI sync path** until **A5B**.
 
 ---
 
@@ -51,11 +51,49 @@
 - **Secrets not persisted client-side:** no `localStorage` / `sessionStorage`; not stored in React state; not logged or rendered
 - **Reviews:** Supervisor **Pass**; Security **Pass** — **`npm test` 271**; **`npm run lint`**; **`npm run build`**
 
+## What is shipped (A5A — backend only)
+
+Additive, backward-compatible **stored-token mode** on existing discovery/sync routes. **No route path changes.** **No frontend changes.**
+
+| Route | Stored mode body | Manual mode body |
+|-------|------------------|------------------|
+| **`POST /api/trello/boards`** | `{}` strict | `{ apiKey, token }` strict (unchanged) |
+| **`POST /api/trello/boards/:boardId/lists`** | `{}` strict | `{ apiKey, token }` strict (unchanged) |
+| **`POST /api/trello/sync`** | `{ listId, taskIds }` strict | `{ apiKey, token, listId, taskIds }` strict (unchanged) |
+
+**Credential mode classification (`classifyTrelloCredentialMode`):**
+
+- Uses **key presence**, not truthiness (`Object.prototype.hasOwnProperty.call`)
+- No `apiKey`/`token` keys → **stored** mode
+- Both keys present → **manual** mode (even when user is connected — intentional A5A compatibility)
+- Only one key present → **`VALIDATION_ERROR`** / 400
+- Stored mode, user not connected → **`TRELLO_NOT_CONNECTED`** / 400
+
+**Stored mode resolution (`trello-credentials.resolver.js`):**
+
+- Server **`TRELLO_API_KEY`** + **`decryptTokenForUser(req.user.id)`** — scoped to authenticated user only
+- Decrypted token used only inside backend process for Trello upstream calls
+- **Unchanged:** `trello.routes.js`, `trello.service.js`, `trello.client.js`, `trello-token-crypto.js`, `trello-connection.repository.js` logic
+
+**Security (A5A — reviewed PASS):**
+
+- Stored token decrypted **backend-side only**
+- **`service_role`** remains backend-only; frontend must not access `trello_connections` via PostgREST
+- **No** token returned to frontend in API responses
+- **No** token, ciphertext, iv, or tag in API responses
+- **No** token in **`trello_sync_logs`**
+- Manual credentials remain **ephemeral** — not stored in DB
+- Manual override while connected is **intentional A5A** backward compatibility
+- **Deferred (A5C):** hardening against wrong-account manual sync while connected
+
+**Reviews (A5A):** Supervisor Review **Approved** (after test-wiring fix); Security Review **PASS**. **`npm test`:** **442** pass; **`npm run lint`:** pass.
+
 ## What is not shipped
 
-- Refactor boards/lists/sync to use stored token (**A5**, if approved)
-- Remove manual apiKey/token fields from sync section (**A5**)
-- Any change to manual **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** credential flow (still ephemeral body credentials)
+- Frontend refactor to call boards/lists/sync without manual credentials when connected (**A5B**)
+- Remove manual apiKey/token fields from **`/trello`** sync section (**A5B**)
+- Wrong-account manual sync hardening while connected (**A5C**)
+- Board/list persistence; Trello card update/delete; force re-sync
 
 ---
 
@@ -66,7 +104,7 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | Backend only | Required for `trello_connections` access |
 | `TRELLO_TOKEN_ENCRYPTION_KEY` | Backend only | 32-byte random value, base64-encoded; generate locally — never commit |
 | `TRELLO_OAUTH_STATE_SECRET` | Backend only | Optional dedicated 32-byte base64 HMAC key for OAuth state; **production should prefer dedicated secret**; falls back to derive from encryption key when unset |
-| `TRELLO_API_KEY` | Backend only | Trello app key (public per Trello docs); not per-user |
+| `TRELLO_API_KEY` | Backend only | Trello app key (public per Trello docs); used for stored mode and connect flow |
 
 Never put these in frontend `VITE_*`, issues, PRs, or logs.
 
@@ -76,7 +114,7 @@ Never put these in frontend `VITE_*`, issues, PRs, or logs.
 
 - Treat as **secrets** — same sensitivity as passwords for Trello account access
 - **Must not** appear in logs, API responses, frontend state persistence, or Supabase Data API for browsers
-- **Encrypted at rest** with `TRELLO_TOKEN_ENCRYPTION_KEY` before insert; decrypt only in backend process when calling Trello (disconnect revoke today; sync/boards/lists in **A5** if approved)
+- **Encrypted at rest** with `TRELLO_TOKEN_ENCRYPTION_KEY` before insert; decrypt only in backend process when calling Trello (disconnect revoke; **A5A** boards/lists/sync stored mode)
 - Repository **metadata** queries exclude ciphertext columns; decrypt helpers are backend-internal only
 
 ---
@@ -91,11 +129,13 @@ Frontend must use **sanitized backend APIs** for connection status — never Pos
 
 ---
 
-## Manual MVP sync (still live — only active sync path)
+## Manual MVP sync (still live UI path — until A5B)
 
 - User enters apiKey + token on **`/trello`**; sent in POST body to `/api/trello/boards`, `/lists`, `/sync`
 - Credentials cleared from React state after sync; **not** stored in DB, localStorage, or sessionStorage
-- See ADR 004 for ephemeral manual flow; ADR 006 for stored-token path when **A5** ships
+- See ADR 004 for ephemeral manual flow; ADR 006 + **A5A** for stored-token backend path when body omits credential keys
+
+**Backend alternative (A5A):** API clients (including future **A5B** frontend) may omit `apiKey`/`token` when user is connected — backend uses stored token. **Current `/trello` UI does not use this path.**
 
 ---
 
@@ -107,6 +147,7 @@ Frontend must use **sanitized backend APIs** for connection status — never Pos
 | A3 connect/authorize/disconnect routes | Reviewed — **Security approved with notes** |
 | **A4-STATE** signed OAuth state on connect flow | Reviewed — **Security approved with notes** |
 | **A4-FRONTEND** OAuth callback, fragment handling, Connect UI | Reviewed — **Pass** |
-| Refactoring sync/boards/lists to stored tokens (**A5**) | **Pending** — separate review when implemented |
+| **A5A** stored-token mode on boards/lists/sync (backend) | Reviewed — **PASS** |
+| **A5B** frontend stored-token sync UX | **Pending** — separate review when implemented |
 
 See `SECURITY.md` and `AGENTS.md`.
