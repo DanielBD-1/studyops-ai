@@ -47,7 +47,8 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Trello OAuth frontend connect UI (TRELLO-OAUTH-A4-FRONTEND):** **`/trello`** Connect/Disconnect panel; protected **`/trello/connect/callback`** (state from query, token from hash; URL sanitized before complete POST); **Supervisor + Security Review Pass**; manual apiKey/token sync remains the **only active UI sync path**
 - **Trello OAuth backend stored-token mode (TRELLO-OAUTH-A5A):** **`POST /api/trello/boards`**, **`/boards/:boardId/lists`**, **`/sync`** accept stored-token mode when body has no `apiKey`/`token` keys; manual mode unchanged when both keys present; **Supervisor Approved + Security PASS**
 - **Trello OAuth frontend connected-account sync (TRELLO-OAUTH-A5B):** when connected, **`/trello`** sends `{}` / `{ listId, taskIds }` only — manual credential inputs hidden; when disconnected, Connect prompt + collapsed manual fallback; **Supervisor Pass with notes + Security PASS**; **no backend contract changes**
-- **Still deferred:** board/list persistence; Trello card update/delete; force re-sync; **A5C:** wrong-account manual sync hardening while connected
+- **Trello OAuth backend manual-credential hardening (TRELLO-OAUTH-A5C):** connected users sending manual `{ apiKey, token }` to boards/lists/sync receive **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** — must disconnect before manual fallback; connected + stored mode unchanged; **Supervisor Pass with notes + Security approved with notes**
+- **Still deferred:** board/list persistence; Trello card update/delete; force re-sync
 - **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
 - **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion)
 - **Focus Sessions frontend UI** (Phase **4C-2**) — protected **`/focus/:taskId`**; **Start Focus** on pending tasks; fixed **25**-minute display countdown; complete sends **`{ completedTask }` only**; **no** pause/resume, duration picker, or browser storage
@@ -81,7 +82,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 ### Still deferred (requires separate approval)
 
 - **`GET /api/admin/logs`** / **`api_logs`** table; admin **user list**; **role management** UI; Gemini/system error metrics for admin
-- Trello board/list **persistence**; card update/delete; force re-sync; **A5C** wrong-account manual sync hardening while connected — **note:** **A2–A5B** (encrypted storage, backend connect, signed state, Connect/Disconnect UI + callback, backend stored-token mode, **frontend connected-account sync UX**) in repo; **connected-account sync is the primary `/trello` UX** when linked; manual fallback when disconnected (ADR 004)
+- Trello board/list **persistence**; card update/delete; force re-sync — **note:** **A2–A5C** (encrypted storage, backend connect, signed state, Connect/Disconnect UI + callback, backend stored-token mode, **frontend connected-account sync UX**, **backend manual-credential hardening while connected**) in repo; **connected-account sync is the primary `/trello` UX** when linked; manual fallback when **disconnected** only (ADR 004)
 - Course-level **`POST /api/courses/:courseId/generate`** with client `studyText`; route **`/courses/:id/generate`**
 - PDF upload/parsing
 - Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** (invalidation-only **5C.1** refresh is implemented)
@@ -597,7 +598,7 @@ The Document Processing Microservice is separated because Gemini processing has 
 
 **Implemented (Phases 4A + 4B):** Protected **`/trello`** page; apiKey/token (password fields); **Load boards** → select board → select list (**4B-2**); task checkboxes; frontend → StudyOps backend only (`/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync` — never `api.trello.com`); results with `status` `success` \| `failed` \| `skipped` and summary counts; credentials cleared from React state after sync (not persisted in DB or browser storage). Manual Trello list ID lookup is **not** required for the main flow.
 
-**OAuth account connection (A2 + A3 + A4-STATE + A4-FRONTEND):** `trello_connections` + encrypted token storage (ADR 006); backend connect/authorize routes; **A4-STATE** signed state; frontend Connect/Disconnect on **`/trello`** + protected **`/trello/connect/callback`** (token from hash, state from query; URL cleared before complete POST; token/state not stored or logged client-side). **A5A (backend):** boards/lists/sync support stored-token mode when body omits credential keys. **A5B (frontend — live when connected):** **`/trello`** sends `{}` / `{ listId, taskIds }` only; manual credential inputs hidden; UI states sync uses connected account. **Manual fallback (disconnected):** collapsed advanced credentials; ephemeral apiKey/token in React state only (ADR 004).
+**OAuth account connection (A2 + A3 + A4-STATE + A4-FRONTEND):** `trello_connections` + encrypted token storage (ADR 006); backend connect/authorize routes; **A4-STATE** signed state; frontend Connect/Disconnect on **`/trello`** + protected **`/trello/connect/callback`** (token from hash, state from query; URL cleared before complete POST; token/state not stored or logged client-side). **A5A (backend):** boards/lists/sync support stored-token mode when body omits credential keys. **A5B (frontend — live when connected):** **`/trello`** sends `{}` / `{ listId, taskIds }` only; manual credential inputs hidden; UI states sync uses connected account. **A5C (backend):** connected users **cannot** send manual `{ apiKey, token }` — **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400**; must disconnect before manual fallback. **Manual fallback (disconnected only):** collapsed advanced credentials; ephemeral apiKey/token in React state only (ADR 004).
 
 **Connected flow (A5B — primary UX when linked):**
 
@@ -606,7 +607,7 @@ The Document Processing Microservice is separated because Gemini processing has 
 - Frontend sends: **`POST /api/trello/boards`** `{}`; **`POST /api/trello/boards/:boardId/lists`** `{}`; **`POST /api/trello/sync`** `{ listId, taskIds }` — **no** `apiKey`/`token` keys
 - Backend uses stored decrypted token (**A5A**)
 
-**Manual fallback flow (disconnected or explicit manual use):**
+**Manual fallback flow (disconnected only — A5C):**
 
 - Student opens Trello integration screen
 - Student expands **Advanced manual credentials** and enters Trello API key and token (not saved)
