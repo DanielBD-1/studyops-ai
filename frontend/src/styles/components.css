@@ -9,7 +9,7 @@
   font-family: inherit;
   font-weight: 500;
   line-height: 1.2;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
   transition:
@@ -92,7 +92,7 @@
   font-family: inherit;
   font-weight: 500;
   line-height: 1.2;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid transparent;
   text-decoration: none;
   cursor: pointer;
