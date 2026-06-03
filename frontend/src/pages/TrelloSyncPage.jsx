@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import TrelloConnectionPanel from '../components/trello/TrelloConnectionPanel.jsx';
@@ -11,6 +11,8 @@ import { ApiRequestError, listCourses } from '../services/courses.service.js';
 /**
  * @typedef {{ type: 'success' | 'error', message: string }} TrelloConnectFlash
  */
+
+/** @typedef {'loading' | 'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'error'} TrelloConnectionPanelStatus */
 
 export default function TrelloSyncPage() {
   const { logout } = useAuth();
@@ -27,12 +29,20 @@ export default function TrelloSyncPage() {
   const [panelStatusMessage, setPanelStatusMessage] = useState(
     /** @type {{ type: 'success' | 'error', text: string } | null} */ (null)
   );
+  const [connectionStatus, setConnectionStatus] = useState(
+    /** @type {TrelloConnectionPanelStatus} */ ('loading')
+  );
+  const [connection, setConnection] = useState(
+    /** @type {import('../services/trello.service.js').TrelloConnectionConnected | null} */ (null)
+  );
+  const [connectionRefreshTrigger, setConnectionRefreshTrigger] = useState(0);
 
   useEffect(() => {
     /** @type {TrelloConnectFlash | undefined} */
     const flash = location.state?.trelloConnectFlash;
     if (flash?.type && flash.message) {
       setConnectFlash(flash);
+      setConnectionRefreshTrigger((value) => value + 1);
       navigate('/trello', { replace: true, state: {} });
     }
   }, [location.state, navigate]);
@@ -68,13 +78,41 @@ export default function TrelloSyncPage() {
     loadCourses();
   }, [loadCourses]);
 
+  const handleConnectionChange = useCallback(({ status, connection: nextConnection }) => {
+    setConnectionStatus(status);
+    setConnection(nextConnection);
+  }, []);
+
+  const syncMode = useMemo(() => {
+    if (connectionStatus === 'connected') {
+      return 'connected';
+    }
+    if (connectionStatus === 'loading') {
+      return 'loading';
+    }
+    return 'manual';
+  }, [connectionStatus]);
+
+  const connectedUsername = useMemo(() => {
+    if (connection?.trelloUsername == null) {
+      return null;
+    }
+    const trimmed = connection.trelloUsername.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }, [connection]);
+
+  const pageNote =
+    syncMode === 'connected'
+      ? 'Sync uses your linked Trello account — credentials are never stored in the browser.'
+      : 'Connect your Trello account above, or expand advanced manual credentials below.';
+
   return (
     <main className="page page--cockpit page--trello trello-workspace">
       <PageHeader
         intro
         title="Trello sync"
-        lead="Connect with your Trello credentials, choose a destination list, and sync study tasks as cards."
-        note="Credentials are used only for this session's requests — they are never saved or stored."
+        lead="Connect your Trello account or use manual credentials, choose a destination list, and sync study tasks as cards."
+        note={pageNote}
       />
 
       {connectFlash?.type === 'success' && (
@@ -98,6 +136,8 @@ export default function TrelloSyncPage() {
       <TrelloConnectionPanel
         handleAuthError={handleAuthError}
         onStatusMessage={setPanelStatusMessage}
+        onConnectionChange={handleConnectionChange}
+        refreshTrigger={connectionRefreshTrigger}
       />
 
       {coursesLoading && (
@@ -113,7 +153,12 @@ export default function TrelloSyncPage() {
       )}
 
       {!coursesLoading && !coursesError && (
-        <TrelloSyncSection courses={courses} handleAuthError={handleAuthError} />
+        <TrelloSyncSection
+          courses={courses}
+          handleAuthError={handleAuthError}
+          syncMode={syncMode}
+          connectedUsername={connectedUsername}
+        />
       )}
     </main>
   );

@@ -121,6 +121,60 @@ afterEach(() => {
 });
 
 describe('trello.service', () => {
+  it('fetchTrelloBoards in connected mode sends POST body {} without credential keys', async () => {
+    const data = await fetchTrelloBoards();
+
+    const boardCall = calls.find((c) => c.path === '/api/trello/boards');
+    assert.ok(boardCall);
+    assert.equal(boardCall.init.method, 'POST');
+    assert.equal(boardCall.token, TOKEN);
+
+    const body = JSON.parse(String(boardCall.init.body));
+    assert.deepEqual(body, {});
+    assert.equal('apiKey' in body, false);
+    assert.equal('token' in body, false);
+
+    assert.deepEqual(data.boards, [{ id: FAKE_BOARD_ID, name: 'My Board' }]);
+  });
+
+  it('fetchTrelloBoardLists in connected mode sends POST body {} without credential keys', async () => {
+    const data = await fetchTrelloBoardLists({ boardId: FAKE_BOARD_ID });
+
+    const listsCall = calls.find((c) => c.path === `/api/trello/boards/${FAKE_BOARD_ID}/lists`);
+    assert.ok(listsCall);
+    assert.equal(listsCall.init.method, 'POST');
+    assert.equal(listsCall.token, TOKEN);
+
+    const body = JSON.parse(String(listsCall.init.body));
+    assert.deepEqual(body, {});
+    assert.equal('apiKey' in body, false);
+    assert.equal('token' in body, false);
+
+    assert.deepEqual(data.lists, [{ id: FAKE_LIST_ID, name: 'To Do' }]);
+  });
+
+  it('syncTasksToTrello in connected mode sends listId and taskIds only', async () => {
+    const data = await syncTasksToTrello({
+      listId: FAKE_LIST_ID,
+      taskIds: [TASK_ID],
+    });
+
+    const syncCall = calls.find((c) => c.path === '/api/trello/sync');
+    assert.ok(syncCall);
+    assert.equal(syncCall.init.method, 'POST');
+    assert.equal(syncCall.token, TOKEN);
+
+    const body = JSON.parse(String(syncCall.init.body));
+    assert.equal(body.listId, FAKE_LIST_ID);
+    assert.deepEqual(body.taskIds, [TASK_ID]);
+    assert.equal('apiKey' in body, false);
+    assert.equal('token' in body, false);
+
+    assert.deepEqual(data.summary, MOCK_SYNC_RESPONSE.summary);
+    assert.equal(data.results.length, 1);
+    assert.equal(data.results[0].status, 'success');
+  });
+
   it('fetchTrelloBoards sends POST to /api/trello/boards with Bearer token', async () => {
     const data = await fetchTrelloBoards({
       apiKey: FAKE_API_KEY,
@@ -185,6 +239,9 @@ describe('trello.service', () => {
   });
 
   it('does not call api.trello.com', async () => {
+    await fetchTrelloBoards();
+    await fetchTrelloBoardLists({ boardId: FAKE_BOARD_ID });
+    await syncTasksToTrello({ listId: FAKE_LIST_ID, taskIds: [TASK_ID] });
     await fetchTrelloBoards({ apiKey: FAKE_API_KEY, token: FAKE_TRELLO_TOKEN });
     await fetchTrelloBoardLists({
       apiKey: FAKE_API_KEY,

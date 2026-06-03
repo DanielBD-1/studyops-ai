@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import { listAllTasks } from '../../services/tasks.service.js';
 import {
-  ApiRequestError,
   fetchTrelloBoardLists,
   fetchTrelloBoards,
   syncTasksToTrello,
 } from '../../services/trello.service.js';
+import { mapTrelloSyncError } from '../../utils/trello-sync-errors.js';
 import {
   isTrelloSyncSubmitDisabled,
   TRELLO_SYNC_MAX_TASKS,
@@ -21,13 +21,22 @@ import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
 
+/** @typedef {import('../../utils/trello-sync-validation.js').TrelloSyncCredentialMode} TrelloSyncCredentialMode */
+
 /**
  * @param {{
  *   courses: import('../../services/courses.service.js').Course[],
  *   handleAuthError: (err: unknown) => Promise<boolean>,
+ *   syncMode: TrelloSyncCredentialMode,
+ *   connectedUsername?: string | null,
  * }} props
  */
-export default function TrelloSyncSection({ courses, handleAuthError }) {
+export default function TrelloSyncSection({
+  courses,
+  handleAuthError,
+  syncMode,
+  connectedUsername = null,
+}) {
   const { refreshStats } = useDashboardRefresh();
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
@@ -63,6 +72,10 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     /** @type {import('../../services/trello.service.js').TrelloSyncResult[] | null} */ (null)
   );
 
+  const isConnectedMode = syncMode === 'connected';
+  const validationMode = syncMode === 'connected' ? 'connected' : syncMode === 'loading' ? 'loading' : 'manual';
+  const errorMode = isConnectedMode ? 'connected' : 'manual';
+
   const courseTitleById = useMemo(
     () => new Map(courses.map((c) => [c.id, c.title])),
     [courses]
@@ -72,6 +85,13 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     () => new Map(tasks.map((t) => [t.id, { title: t.title }])),
     [tasks]
   );
+
+  const connectedLabel = useMemo(() => {
+    if (connectedUsername) {
+      return `@${connectedUsername}`;
+    }
+    return 'your connected Trello account';
+  }, [connectedUsername]);
 
   const resetPickerState = useCallback(() => {
     setBoards([]);
@@ -84,6 +104,19 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setListsError(null);
   }, []);
 
+  const clearSyncResults = useCallback(() => {
+    setSummary(null);
+    setResults(null);
+    setValidationError(null);
+    setSyncError(null);
+  }, []);
+
+  const clearConnectedSessionState = useCallback(() => {
+    resetPickerState();
+    clearSyncResults();
+    setSelectedTaskIds(new Set());
+  }, [resetPickerState, clearSyncResults]);
+
   const clearCredentials = useCallback(() => {
     setApiKey('');
     setToken('');
@@ -94,6 +127,26 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setApiKey('');
     setToken('');
   }, []);
+
+  const prevSyncModeRef = useRef(syncMode);
+
+  useEffect(() => {
+    const prevSyncMode = prevSyncModeRef.current;
+    prevSyncModeRef.current = syncMode;
+
+    if (prevSyncMode === 'connected' && syncMode !== 'connected') {
+      clearConnectedSessionState();
+      setApiKey('');
+      setToken('');
+      return;
+    }
+
+    if (prevSyncMode !== 'connected' && syncMode === 'connected') {
+      clearConnectedSessionState();
+      setApiKey('');
+      setToken('');
+    }
+  }, [syncMode, clearConnectedSessionState]);
 
   const loadTasks = useCallback(async () => {
     setTasksLoading(true);
@@ -119,7 +172,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setListsError(null);
     setValidationError(null);
 
-    const validation = validateTrelloLoadBoards(apiKey, token);
+    const validation = validateTrelloLoadBoards(apiKey, token, validationMode);
     if (!validation.valid) {
       setBoardsError(validation.message);
       return;
@@ -131,19 +184,17 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setListsAttempted(false);
 
     try {
-      const data = await fetchTrelloBoards({
-        apiKey: apiKey.trim(),
-        token: token.trim(),
-      });
+      const data = isConnectedMode
+        ? await fetchTrelloBoards()
+        : await fetchTrelloBoards({
+            apiKey: apiKey.trim(),
+            token: token.trim(),
+          });
       setBoards(data.boards);
       setBoardsAttempted(true);
     } catch (err) {
       if (await handleAuthError(err)) return;
-      if (err instanceof ApiRequestError) {
-        setBoardsError(err.message);
-      } else {
-        setBoardsError('Failed to load Trello boards. Please try again.');
-      }
+      setBoardsError(mapTrelloSyncError(err, { mode: errorMode, context: 'boards' }));
       setBoardsAttempted(true);
     } finally {
       setBoardsLoading(false);
@@ -161,7 +212,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
       return;
     }
 
-    const validation = validateTrelloLoadBoards(apiKey, token);
+    const validation = validateTrelloLoadBoards(apiKey, token, validationMode);
     if (!validation.valid) {
       setListsError(validation.message);
       return;
@@ -170,19 +221,17 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setListsLoading(true);
 
     try {
-      const data = await fetchTrelloBoardLists({
-        apiKey: apiKey.trim(),
-        token: token.trim(),
-        boardId,
-      });
+      const data = isConnectedMode
+        ? await fetchTrelloBoardLists({ boardId })
+        : await fetchTrelloBoardLists({
+            apiKey: apiKey.trim(),
+            token: token.trim(),
+            boardId,
+          });
       setLists(data.lists);
     } catch (err) {
       if (await handleAuthError(err)) return;
-      if (err instanceof ApiRequestError) {
-        setListsError(err.message);
-      } else {
-        setListsError('Failed to load Trello lists. Please try again.');
-      }
+      setListsError(mapTrelloSyncError(err, { mode: errorMode, context: 'lists' }));
     } finally {
       setListsLoading(false);
       setListsAttempted(true);
@@ -220,7 +269,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
     setSyncError(null);
 
     const taskIds = [...selectedTaskIds];
-    const validation = validateTrelloSyncForm(apiKey, token, selectedListId, taskIds);
+    const validation = validateTrelloSyncForm(apiKey, token, selectedListId, taskIds, validationMode);
     if (!validation.valid) {
       setValidationError(validation.message);
       return;
@@ -231,12 +280,17 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
 
     try {
       backendAttempted = true;
-      const data = await syncTasksToTrello({
-        apiKey: apiKey.trim(),
-        token: token.trim(),
-        listId: selectedListId.trim(),
-        taskIds,
-      });
+      const data = isConnectedMode
+        ? await syncTasksToTrello({
+            listId: selectedListId.trim(),
+            taskIds,
+          })
+        : await syncTasksToTrello({
+            apiKey: apiKey.trim(),
+            token: token.trim(),
+            listId: selectedListId.trim(),
+            taskIds,
+          });
       setSummary(data.summary);
       setResults(data.results);
       if (data.summary.success > 0) {
@@ -244,27 +298,27 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
       }
     } catch (err) {
       if (await handleAuthError(err)) return;
-      if (err instanceof ApiRequestError) {
-        setSyncError(err.message);
-      } else {
-        setSyncError('Sync failed. Please try again.');
-      }
+      setSyncError(mapTrelloSyncError(err, { mode: errorMode, context: 'sync' }));
     } finally {
-      if (backendAttempted) {
+      if (backendAttempted && !isConnectedMode) {
         clearCredentialsAfterSync();
       }
       setSyncing(false);
     }
   }
 
-  const loadBoardsDisabled = validateTrelloLoadBoards(apiKey, token).valid !== true;
+  const loadBoardsDisabled =
+    syncMode === 'loading' ||
+    syncing ||
+    validateTrelloLoadBoards(apiKey, token, validationMode).valid !== true;
 
   const submitDisabled = isTrelloSyncSubmitDisabled(
     apiKey,
     token,
     selectedListId,
     [...selectedTaskIds],
-    syncing
+    syncing,
+    validationMode
   );
 
   return (
@@ -281,6 +335,25 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
           </div>
 
           <div className="trello-workspace__command-body">
+            {syncMode === 'loading' && (
+              <div className="trello-workspace__loading">
+                <LoadingState message="Checking Trello account status…" />
+              </div>
+            )}
+
+            {isConnectedMode && (
+              <p role="status" className="form-card__hint trello-workspace__trust-note">
+                Sync uses your connected Trello account ({connectedLabel}).
+              </p>
+            )}
+
+            {syncMode === 'manual' && (
+              <p className="form-card__hint trello-workspace__trust-note">
+                Connect your Trello account above for one-click sync, or use advanced manual
+                credentials below.
+              </p>
+            )}
+
             {tasksLoading && (
               <div className="trello-workspace__loading">
                 <LoadingState message="Loading study tasks…" />
@@ -298,21 +371,28 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
               </div>
             )}
 
-            {!tasksLoading && !tasksError && (
+            {!tasksLoading && !tasksError && syncMode !== 'loading' && (
               <div className="trello-workspace__flow-deck">
                 <form
                   className="trello-sync__form trello-workspace__flow"
                   onSubmit={handleSubmit}
                   noValidate
                 >
-                  <TrelloSyncForm
-                    apiKey={apiKey}
-                    token={token}
-                    onApiKeyChange={setApiKey}
-                    onTokenChange={setToken}
-                    onClearCredentials={clearCredentials}
-                    disabled={syncing}
-                  />
+                  {syncMode === 'manual' && (
+                    <details className="trello-workspace__manual-credentials">
+                      <summary className="trello-workspace__manual-credentials-summary">
+                        Advanced manual credentials
+                      </summary>
+                      <TrelloSyncForm
+                        apiKey={apiKey}
+                        token={token}
+                        onApiKeyChange={setApiKey}
+                        onTokenChange={setToken}
+                        onClearCredentials={clearCredentials}
+                        disabled={syncing}
+                      />
+                    </details>
+                  )}
 
                   <TrelloBoardListPicker
                     boards={boards}
@@ -330,6 +410,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
                     onBoardChange={handleBoardChange}
                     onListChange={handleListChange}
                     disabled={syncing}
+                    credentialMode={isConnectedMode ? 'connected' : 'manual'}
                   />
 
                   <TrelloTaskSelector
@@ -357,7 +438,9 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
                       Sync to Trello
                     </h2>
                     <p className="trello-workspace__step-hint">
-                      Create cards in your selected Trello list.
+                      {isConnectedMode
+                        ? `Create cards in your selected list using ${connectedLabel}.`
+                        : 'Create cards in your selected Trello list.'}
                     </p>
                     <div className="trello-sync__submit-actions">
                       <Button type="submit" disabled={submitDisabled}>
@@ -371,7 +454,7 @@ export default function TrelloSyncSection({ courses, handleAuthError }) {
           </div>
         </div>
 
-        {!tasksLoading && !tasksError && (
+        {!tasksLoading && !tasksError && syncMode !== 'loading' && (
           <div className="trello-workspace__results-zone">
             <TrelloSyncResults
               summary={summary}

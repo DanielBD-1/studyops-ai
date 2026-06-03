@@ -38,8 +38,8 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 | `VITE_SUPABASE_ANON_KEY` | **frontend only** (public anon key by design) |
 
 - **`POST /process`** on document-service is **internal-only** (backend orchestration). Browsers must not call it directly.
-- **Trello (manual MVP — live):** `POST /api/trello/boards`, `/boards/:boardId/lists`, `/sync` accept ephemeral `{ apiKey, token }` in the **body** only. Credentials are **not** stored in the database, browser storage, or logs. Frontend must not call `api.trello.com` directly.
-- **Trello OAuth account connection (A2 + A3 + A4-STATE + A4-FRONTEND):** `public.trello_connections` stores **encrypted** user tokens after connect. **A4-STATE** HMAC-signed state on authorize-url / connect/complete blocks account-linking CSRF. **A4-FRONTEND** callback reads token from hash and state from query only; clears URL before complete POST; does not persist OAuth secrets client-side. Table is **`service_role` only** — frontend must not access it via Supabase client. **A5A:** backend boards/lists/sync support stored-token mode when body omits credential keys; decrypted token never returned to client. **Manual sync UI** on **`/trello`** still sends ephemeral apiKey/token until **A5B**. See [docs/security/trello-oauth-foundation.md](docs/security/trello-oauth-foundation.md) and ADR 006.
+- **Trello (connected + manual fallback — live):** When connected, **`POST /api/trello/boards`**, `/boards/:boardId/lists`, `/sync` receive `{}` / `{ listId, taskIds }` from frontend (**A5B**); backend uses stored decrypted token (**A5A**). Manual fallback sends ephemeral `{ apiKey, token }` in the **body** only when user explicitly uses advanced credentials. Credentials are **not** stored in the database, browser storage, or logs. Frontend must not call `api.trello.com` directly.
+- **Trello OAuth account connection (A2 + A3 + A4-STATE + A4-FRONTEND):** `public.trello_connections` stores **encrypted** user tokens after connect. **A4-STATE** HMAC-signed state on authorize-url / connect/complete blocks account-linking CSRF. **A4-FRONTEND** callback reads token from hash and state from query only; clears URL before complete POST; does not persist OAuth secrets client-side. Table is **`service_role` only** — frontend must not access it via Supabase client. **A5A:** backend boards/lists/sync support stored-token mode when body omits credential keys; decrypted token never returned to client. **A5B:** frontend connected-account sync when linked; manual fallback when disconnected. **A5C deferred:** backend still accepts manually crafted manual credentials while connected. See [docs/security/trello-oauth-foundation.md](docs/security/trello-oauth-foundation.md) and ADR 006.
 - **Generate (implemented):** `POST /api/study-materials/:materialId/generate` with strict empty body `{}`. Backend loads saved material `content` only after ownership checks. Frontend must not send `studyText`, `content`, `courseId`, `userId`, or `plan` in the generate body.
 - **Saved plan (implemented):** `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` — frontend loads/clears **active** plan via backend only; **no** direct Supabase client writes to `material_generated_plans`.
 - **Plan history (implemented — Phases 11A-1/2/3):** Multiple rows per material in `public.material_generated_plans` with exactly one **`is_active`**; history REST APIs — `GET …/generated-plans` (metadata only), `GET …/generated-plans/:planId`, `POST …/generated-plans/:planId/activate` (body `{}` — **no** Gemini), `DELETE …/generated-plans/:planId` (inactive only). Frontend history UI loads metadata list only; full plan fetched on **Preview** for inactive versions; **Restore** uses activate endpoint only.
@@ -55,12 +55,17 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 
 ## Trello credentials and tokens
 
-**Manual sync (live today):**
+**Manual sync (fallback when disconnected or explicit manual use):**
 
 - User-supplied Trello **API key** and **token** are secrets — validate format only; **never** persist, log, or return them in responses.
-- Frontend clears credential state after sync; **never** use `localStorage` or `sessionStorage` for Trello credentials.
+- Frontend clears manual credential state after sync; **never** use `localStorage` or `sessionStorage` for Trello credentials.
 
-**OAuth account connection (A2 + A3 + A4-STATE + A4-FRONTEND — storage + backend + frontend callback; manual sync still live):**
+**Connected sync (A5B — primary UX when linked):**
+
+- Frontend sends `{}` / `{ listId, taskIds }` only — **no** `apiKey`/`token` keys in connected-mode request bodies.
+- Backend resolves stored decrypted token (**A5A**).
+
+**OAuth account connection (A2 + A3 + A4-STATE + A4-FRONTEND — storage + backend + frontend callback):**
 
 - Trello **user tokens** are tier-1 secrets. Encrypt at rest with **`TRELLO_TOKEN_ENCRYPTION_KEY`** (32-byte value, base64 in env — placeholders in `backend/.env.example` only).
 - **`TRELLO_OAUTH_STATE_SECRET`** (optional, 32-byte base64) — dedicated HMAC key for OAuth state signing; **production should prefer a dedicated secret**; when unset, backend derives a separate key from **`TRELLO_TOKEN_ENCRYPTION_KEY`** with domain separation.
@@ -70,7 +75,7 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 - **`trello_connections`:** backend / **`service_role`** only. Frontend must **not** query this table. Future status APIs must expose metadata only (no token, IV, tag, or ciphertext).
 - Decrypted tokens must **never** be logged or sent to the client.
 
-**Security Review required** before merge for OAuth callback frontend, connect/complete/disconnect route changes, **A4-STATE**-class state signing changes, **A5B** frontend stored-token sync UX, or further changes that read stored tokens in boards/lists/sync handlers. **A5A** backend stored-token mode: reviewed **PASS**.
+**Security Review required** before merge for OAuth callback frontend, connect/complete/disconnect route changes, **A4-STATE**-class state signing changes, or further changes that read stored tokens in boards/lists/sync handlers. **A5A** backend stored-token mode: reviewed **PASS**. **A5B** frontend connected-account sync UX: reviewed **PASS**.
 
 ---
 
@@ -129,6 +134,6 @@ Supervisor Review and human approval gates still apply per `CONTRIBUTING.md`.
 - `CONTRIBUTING.md` — branch workflow and reviews
 - `AGENTS.md` — security anti-patterns
 - `docs/IMPLEMENTATION_STATUS.md` — built APIs, env boundaries, deferred work
-- `docs/security/trello-oauth-foundation.md` — Trello A2/A3/A4-STATE/A4-FRONTEND/A5A storage, connect, callback, and stored-token boundaries
+- `docs/security/trello-oauth-foundation.md` — Trello A2/A3/A4-STATE/A4-FRONTEND/A5A/A5B storage, connect, callback, connected-account sync, and stored-token boundaries
 - `docs/adrs/006-trello-oauth-encrypted-connections.md` — encrypted connection decision
 - `docs/PRD.md` — permissions and API contract (MVP + future)

@@ -12,6 +12,7 @@ const oauthSources = [
   'utils/trello-oauth-callback.js',
   'utils/trello-connect-errors.js',
   'utils/trello-oauth-exchange-guard.js',
+  'utils/trello-sync-errors.js',
   'pages/TrelloConnectCallbackPage.jsx',
   'components/trello/TrelloConnectionPanel.jsx',
   'services/trello.service.js',
@@ -80,7 +81,7 @@ describe('trello oauth security boundaries', () => {
   });
 
   for (const relativePath of manualSyncSources) {
-    it(`${relativePath} was not modified for oauth connect flow`, () => {
+    it(`${relativePath} does not import oauth connect helpers`, () => {
       const source = readSource(relativePath);
 
       assert.equal(source.includes('fetchTrelloConnection'), false);
@@ -90,4 +91,14 @@ describe('trello oauth security boundaries', () => {
       assert.equal(source.includes('trelloConnectFlash'), false);
     });
   }
+
+  it('TrelloSyncSection uses connected service calls without credential args', () => {
+    const source = readSource('components/trello/TrelloSyncSection.jsx');
+
+    assert.match(source, /fetchTrelloBoards\(\)/);
+    assert.match(source, /fetchTrelloBoardLists\(\{\s*boardId\s*\}\)/);
+    assert.match(source, /syncTasksToTrello\(\{\s*listId:/);
+    assert.equal(source.includes('localStorage'), false);
+    assert.equal(source.includes('sessionStorage'), false);
+  });
 });
