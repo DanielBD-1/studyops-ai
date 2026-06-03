@@ -27,8 +27,8 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Admin (6A-1 + 6A-2 + 6A-3)** — backend **`requireAdmin`** + **`GET /api/admin/access-check`** (**`{ admin: true }`** only) and **`GET /api/admin/stats`** (platform-wide aggregate counts; **`requireAuth`** + **`requireAdmin`**); frontend protected **`/admin`** dashboard consumes **`GET /api/admin/stats`** via **`admin.service.js`** (aggregate numbers and safe labels only — no emails, content, plan JSON, or raw rows); **`AdminRoute`** is UX-only — backend remains authoritative; **Admin** link in **`AppShell`** nav for admins; **manual smoke test passed** (**6A-3**, **2026-05-29**); admin logs / user management **not** implemented
 - **Trello sync (manual MVP, with board/list picker)** — protected **`/trello`** page: enter apiKey/token per session (**not stored** in DB or browser storage), **Load boards** and choose board/list in the app (**manual listId lookup not required**), select owned tasks (max 50), sync via StudyOps backend only (frontend never calls Trello directly); view summary and per-task results (`success` / `skipped` / `failed`); credentials cleared after sync attempt; **manually smoke-tested** (card created, duplicate sync skipped); backend writes `trello_sync_logs` and updates `study_tasks.trello_card_id` on success — **this is the live user path**
 - **Trello OAuth foundation (A2)** — encrypted `trello_connections` storage + backend crypto/repository in repo
-- **Trello OAuth backend connect routes (A3, not live for users)** — `GET /api/trello/connection`, `GET /api/trello/authorize-url`, `POST /api/trello/connect/complete`, `POST /api/trello/disconnect` (backend only; reviewed; **no** frontend callback or Connect UI); boards/lists/sync still use manual apiKey/token
-- **Trello not implemented (user-facing OAuth)** — **A4:** frontend callback, state/nonce, Connect UI; **A5:** sync/boards using stored token; board/list persistence; Trello card update/delete; force re-sync
+- **Trello OAuth backend connect routes (A3 + A4-STATE, not live for users)** — `GET /api/trello/connection`, `GET /api/trello/authorize-url`, `POST /api/trello/connect/complete` (requires `{ token, state }`), `POST /api/trello/disconnect` (backend only; reviewed; signed OAuth state blocks account-linking CSRF; **no** frontend callback or Connect UI); boards/lists/sync still use manual apiKey/token
+- **Trello not implemented (user-facing OAuth)** — **A4 frontend:** callback route, fragment handling, Connect UI; **A5:** sync/boards using stored token; board/list persistence; Trello card update/delete; force re-sync
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 
@@ -83,7 +83,7 @@ cp frontend/.env.example frontend/.env
 
 | Package | Variables | Security |
 |---------|-----------|----------|
-| **backend** | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DOCUMENT_SERVICE_URL`, `FRONTEND_URL`, `PORT`; optional until OAuth connect: `TRELLO_API_KEY`, `TRELLO_TOKEN_ENCRYPTION_KEY` (placeholders in `.env.example` only) | Service role **backend only**; Trello encryption key **never** in frontend |
+| **backend** | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DOCUMENT_SERVICE_URL`, `FRONTEND_URL`, `PORT`; optional until OAuth connect: `TRELLO_API_KEY`, `TRELLO_TOKEN_ENCRYPTION_KEY`, `TRELLO_OAUTH_STATE_SECRET` (placeholders in `.env.example` only) | Service role **backend only**; Trello encryption/state secrets **never** in frontend |
 | **document-service** | `GEMINI_API_KEY`, `GEMINI_MODEL` (optional, default `gemini-2.5-flash-lite`), `PORT` | Gemini key **never** in frontend or backend |
 | **frontend** | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Calls backend API only |
 
