@@ -2,14 +2,14 @@
 
 **Owner:** Orchestrator  
 **Prerequisite:** Phase 3 tasks exist (task list + DB)  
-**ADR gate:** 004, 005 (mandatory). **OAuth account connect:** ADR 006 + **A3** + **A4-STATE** + **A4-FRONTEND** (Connect/Disconnect + callback on **`/trello`**). **Backend stored-token mode:** **A5A** on **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** when body omits `apiKey`/`token` keys. **Frontend connected-account sync:** **A5B** — when connected, **`/trello`** uses stored-token mode (frontend `{}` / `{ listId, taskIds }` only).
+**ADR gate:** 004, 005 (mandatory). **OAuth account connect:** ADR 006 + **A3** + **A4-STATE** + **A4-FRONTEND** (Connect/Disconnect + callback on **`/trello`**). **Backend stored-token mode:** **A5A** on **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** when body omits `apiKey`/`token` keys. **Frontend connected-account sync:** **A5B** — when connected, **`/trello`** uses stored-token mode (frontend `{}` / `{ listId, taskIds }` only). **Backend manual-credential hardening:** **A5C** — connected users **cannot** send manual `{ apiKey, token }`; **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400**; disconnect required before manual fallback.
 
 **Current `/trello` UX:**
 
-- **Connected (primary):** Connect account (**A4-FRONTEND**); Load boards → pick board/list → sync tasks — frontend sends **no** `apiKey`/`token` keys (**A5B** + **A5A**).
-- **Disconnected / manual fallback:** Connect prompt; collapsed **Advanced manual credentials**; ephemeral apiKey/token in POST body (ADR 004).
+- **Connected (primary):** Connect account (**A4-FRONTEND**); Load boards → pick board/list → sync tasks — frontend sends **no** `apiKey`/`token` keys (**A5B** + **A5A**). Backend rejects crafted manual credentials (**A5C**).
+- **Disconnected / manual fallback:** Connect prompt; collapsed **Advanced manual credentials**; ephemeral apiKey/token in POST body (ADR 004) — **only when disconnected**.
 
-Phases **A2–A5B** added encrypted storage, backend connect routes, signed state, account connection UI, backend stored-token support, and frontend connected-account sync.
+Phases **A2–A5C** added encrypted storage, backend connect routes, signed state, account connection UI, backend stored-token support, frontend connected-account sync, and backend manual-credential hardening while connected.
 
 ---
 

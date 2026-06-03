@@ -30,7 +30,8 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Trello OAuth account connection (A3 + A4-STATE + A4-FRONTEND)** — backend connect routes + signed state + frontend Connect/Disconnect on **`/trello`** and protected **`/trello/connect/callback`** (token from hash, state from query; URL cleared before complete POST; reviewed)
 - **Trello OAuth backend stored-token mode (A5A)** — **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** support stored-token mode when body omits `apiKey`/`token`; manual mode unchanged
 - **Trello OAuth frontend connected-account sync (A5B)** — **`/trello`** uses connected-account sync when linked; manual fallback when disconnected; **Supervisor Pass with notes + Security PASS**
-- **Trello not implemented (deferred)** — board/list persistence; Trello card update/delete; force re-sync; **A5C** wrong-account manual sync hardening while connected
+- **Trello OAuth backend manual-credential hardening (A5C)** — connected + manual `{ apiKey, token }` → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400**; manual fallback when disconnected only; **Supervisor Pass with notes + Security approved with notes**
+- **Trello not implemented (deferred)** — board/list persistence; Trello card update/delete; force re-sync
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 
