@@ -821,10 +821,17 @@
   gap: var(--space-4);
   margin-bottom: var(--space-6);
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  min-width: 0;
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .filter-toolbar .field {
@@ -851,9 +858,14 @@
   align-items: stretch;
   gap: var(--space-1);
   padding: var(--space-1);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    180deg,
+    rgba(6, 14, 32, 0.42) 0%,
+    rgba(15, 23, 42, 0.28) 100%
+  );
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 rgba(218, 226, 253, 0.04);
   flex: 0 1 auto;
 }
 
@@ -868,7 +880,7 @@
 
 .filter-toolbar--segmented .filter-toolbar__segment .btn--secondary:hover:not(:disabled) {
   background: var(--color-surface);
-  border-color: var(--color-border);
+  border-color: var(--color-glass-border);
   box-shadow: none;
 }
 
@@ -882,6 +894,36 @@
 
 .filter-toolbar--segmented .filter-toolbar__segment .btn--primary:focus-visible {
   box-shadow: var(--shadow-focus);
+}
+
+/* BX-I10A3 — quiet glass filter-empty strips (scoped; not global .section__meta) */
+.page--tasks .task-workspace__filter-empty,
+.page--flashcards .flashcards-workspace__filter-empty,
+.page--course-detail .course-workspace__tasks-filter-empty {
+  margin: 0;
+  padding: var(--space-5) var(--space-4);
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  text-align: center;
+  color: var(--color-text-muted);
+  background: linear-gradient(
+    165deg,
+    rgba(30, 41, 59, 0.4) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px dashed var(--color-glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 rgba(218, 226, 253, 0.04);
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-toolbar,
+  .page--tasks .task-workspace__filters.filter-toolbar,
+  .page--flashcards .flashcards-workspace__filters.filter-toolbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .dashboard-empty-cta {
@@ -1642,17 +1684,6 @@ a.dashboard-hero__cta.btn:hover {
   border-color: var(--color-glass-border);
 }
 
-.page--course-detail .course-workspace__tasks-filter-empty {
-  margin: 0;
-  padding: var(--space-5) var(--space-4);
-  text-align: center;
-  color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  overflow-wrap: anywhere;
-}
-
 .course-task-list {
   display: flex;
   flex-direction: column;
@@ -1746,10 +1777,6 @@ a.dashboard-hero__cta.btn:hover {
 .page--tasks .task-workspace__filters {
   margin-bottom: 0;
   padding: var(--space-4) var(--space-5);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  min-width: 0;
 }
 
 .page--tasks .task-workspace__course-field {
@@ -1794,18 +1821,6 @@ a.dashboard-hero__cta.btn:hover {
 
 .page--tasks .task-workspace__empty .empty-state {
   margin: 0;
-  background: var(--color-bg-subtle);
-  border-color: var(--color-glass-border);
-}
-
-.page--tasks .task-workspace__filter-empty {
-  margin: 0;
-  padding: var(--space-5) var(--space-4);
-  text-align: center;
-  color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
 }
 
 .task-workspace__list-zone {
@@ -1909,10 +1924,6 @@ a.dashboard-hero__cta.btn:hover {
 .page--flashcards .flashcards-workspace__filters {
   margin-bottom: 0;
   padding: var(--space-4) var(--space-5);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  min-width: 0;
 }
 
 .page--flashcards .flashcards-workspace__course-field,
@@ -1962,18 +1973,6 @@ a.dashboard-hero__cta.btn:hover {
 
 .page--flashcards .flashcards-workspace__empty .empty-state {
   margin: 0;
-  background: var(--color-bg-subtle);
-  border-color: var(--color-glass-border);
-}
-
-.page--flashcards .flashcards-workspace__filter-empty {
-  margin: 0;
-  padding: var(--space-5) var(--space-4);
-  text-align: center;
-  color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
 }
 
 .flashcards-workspace__study-zone {
