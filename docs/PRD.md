@@ -1,6 +1,6 @@
 # PRD — StudyOps AI (Version 2.0)
 
-**Last Updated:** 2026-05-30
+**Last Updated:** 2026-06-04 (docs: **DOCS-CONSISTENCY-FIX** — Trello A2–A5C live; admin log UI still deferred)
 **Status:** Ready for Implementation
 
 ---
@@ -38,16 +38,10 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
 - **Trello backend sync API** (Phase **4A-1**) — `POST /api/trello/sync` with manual `{ apiKey, token, listId, taskIds }` in body; native `fetch` Trello client; per-task `results[]` with `status` enum `success` \| `failed` \| `skipped` (approved refinement vs PRD boolean `success` example); updates `study_tasks.trello_card_id` on success; appends `trello_sync_logs` for owned tasks; **credentials never stored**
 - **Trello frontend sync UI** (Phase **4A-2** + **4A-3** polish) — protected **`/trello`**; user enters apiKey/token, selects owned tasks (max 50), frontend calls StudyOps backend only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
-- **Trello backend board/list discovery** (Phase **4B-1**) — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; ephemeral `{ apiKey, token }` in body; backend proxies to Trello; returns sanitized `{ boards: [{ id, name }] }` / `{ lists: [{ id, name }] }` only; **no** DB writes; **no** credential storage. **Approved refinement:** two endpoints (lazy list load after board pick) instead of one nested boards+lists response in older PRD examples
+- **Trello backend board/list discovery** (Phase **4B-1** + **A5A**) — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; **stored mode** `{}` when connected (**A5A**) or manual `{ apiKey, token }` when disconnected; backend proxies to Trello; returns sanitized `{ boards: [{ id, name }] }` / `{ lists: [{ id, name }] }` only; **no** DB writes; **no** credential storage. **Approved refinement:** two endpoints (lazy list load after board pick) instead of one nested boards+lists response in older PRD examples
 - **Trello frontend board/list picker** (Phase **4B-2**) — **`/trello`**: Load boards → select board → load lists → select list; **`fetchTrelloBoards`** / **`fetchTrelloBoardLists`** call backend discovery endpoints only; manual listId lookup **not** required for main flow; **`syncTasksToTrello`** sends selected list id as `listId`
-- **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker — **live path:** manual apiKey/token in POST body (ADR 004)
-- **Trello OAuth foundation (TRELLO-OAUTH-A2-DB):** `trello_connections` migration + encrypted storage docs + backend crypto/repository
-- **Trello OAuth backend connect routes (TRELLO-OAUTH-A3):** `GET /api/trello/connection`, `GET /api/trello/authorize-url`, `POST /api/trello/connect/complete`, `POST /api/trello/disconnect` — backend only; **OAuth not live for users**; boards/lists/sync unchanged
-- **Trello OAuth signed state (TRELLO-OAUTH-A4-STATE):** HMAC-signed state on authorize-url / connect/complete (`{ token, state }`); blocks account-linking CSRF; stateless, not single-use; replay within 10-minute TTL accepted MVP residual risk — backend only
-- **Trello OAuth frontend connect UI (TRELLO-OAUTH-A4-FRONTEND):** **`/trello`** Connect/Disconnect panel; protected **`/trello/connect/callback`** (state from query, token from hash; URL sanitized before complete POST); **Supervisor + Security Review Pass**; manual apiKey/token sync remains the **only active UI sync path**
-- **Trello OAuth backend stored-token mode (TRELLO-OAUTH-A5A):** **`POST /api/trello/boards`**, **`/boards/:boardId/lists`**, **`/sync`** accept stored-token mode when body has no `apiKey`/`token` keys; manual mode unchanged when both keys present; **Supervisor Approved + Security PASS**
-- **Trello OAuth frontend connected-account sync (TRELLO-OAUTH-A5B):** when connected, **`/trello`** sends `{}` / `{ listId, taskIds }` only — manual credential inputs hidden; when disconnected, Connect prompt + collapsed manual fallback; **Supervisor Pass with notes + Security PASS**; **no backend contract changes**
-- **Trello OAuth backend manual-credential hardening (TRELLO-OAUTH-A5C):** connected users sending manual `{ apiKey, token }` to boards/lists/sync receive **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** — must disconnect before manual fallback; connected + stored mode unchanged; **Supervisor Pass with notes + Security approved with notes**
+- **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker — **primary path when connected (A5B + A5A):** `{}` / `{ listId, taskIds }` only; **manual fallback when disconnected (ADR 004):** ephemeral apiKey/token in POST body
+- **Trello account connection (A2–A5C):** Trello **implicit/token authorization** with **encrypted backend token storage** and **connected-account sync** — **not** a full enterprise **OAuth2 authorization-code** flow. **`trello_connections`** + crypto (**A2**); connect routes (**A3**); HMAC-signed state (**A4-STATE**); Connect/Disconnect + **`/trello/connect/callback`** (**A4-FRONTEND** — **live**); stored-token boards/lists/sync when body omits `apiKey`/`token` (**A5A**); **`/trello`** primary sync when connected — `{}` / `{ listId, taskIds }` only (**A5B**); connected + manual credentials → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** (**A5C**). Reviews: Supervisor + Security **PASS** / approved with notes per phase
 - **Still deferred:** board/list persistence; Trello card update/delete; force re-sync
 - **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
 - **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion)
@@ -95,8 +89,8 @@ This section is a **historical summary only** and may lag the latest merged phas
 | PRD (target MVP) | Implemented today |
 |------------------|-------------------|
 | `POST /api/courses/:courseId/generate` with `{ studyText }` | **Deferred** |
-| `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content`; persists **latest plan JSON** per material |
-| Persist **latest generated plan** per material | **Yes** (2L-a/b/c) — not a multi-plan library or history |
+| `POST /api/study-materials/:materialId/generate` with `{}` | **Yes** — backend loads saved owned material `content`; persists validated plan per material |
+| Persist **generated plan** per material | **Yes** (2L-a/b/c + **11A-1/2/3**) — one **active** plan per material; up to **10** history rows; history REST + material-detail history UI |
 | Course-level **manual task UI** (list / create / complete / delete) | **Yes** (3A-c on `/courses/:id`) |
 | Edit **pending** course tasks (`title`, `description`, `priority`, `estimated minutes`) | **Yes** (3A-c.1 — `PATCH /api/tasks/:taskId`; **no** edit on completed tasks) |
 | Task **status filters** (All / Pending / Completed) on course tasks | **Yes** (3A-c.2 — in-memory, not URL-persisted) |
@@ -201,13 +195,14 @@ The student can:
 
 An admin user who monitors system usage and operational logs.
 
-The admin can view:
+**Implemented today:** platform **aggregate statistics** on **`/admin`** (**6A-2/6A-3**) — counts only; **no** per-request log tables in UI.
+
+**Planned / not implemented today** (PRD target; requires **`api_logs`** and related APIs):
 
 - Gemini API logs
-- Trello sync logs
-- system errors
-- usage statistics
-- basic system activity
+- Trello sync log viewer (sync **attempts** are stored in **`trello_sync_logs`** for backend audit; **no** admin log UI)
+- system error feeds
+- detailed operational log browsing
 
 **Note:** Admin users are created manually through Supabase admin panel or database seeding. Students cannot self-register as admins.
 
@@ -305,7 +300,7 @@ The MVP will include:
 The following are intentionally excluded from the first version:
 
 - full PDF upload and parsing
-- full Trello OAuth
+- full **OAuth2 authorization-code** Trello integration (shipped today: **implicit/token connect** + encrypted storage + connected-account sync — **A2–A5C**; see built summary above)
 - Google Calendar integration
 - Google Maps integration
 - Stripe or payments
@@ -696,13 +691,15 @@ Dashboard should show:
 
 ### 7.9 Admin Dashboard
 
-Admin dashboard should show:
+**Implemented today:** protected **`/admin`** shows **aggregate** platform stats via **`GET /api/admin/stats`** (**6A-2/6A-3**) — user/course/task/focus/Trello **counts** and Trello sync **today breakdown**; **no** raw log rows, emails, or content.
+
+**PRD target (not implemented today):**
 
 - Gemini API logs
-- Trello sync logs
+- Trello sync logs (table/UI)
 - system errors
-- API usage statistics
-- basic operational logs
+- API usage statistics (beyond aggregate counts)
+- basic operational logs (`GET /api/admin/logs` / **`api_logs`** — deferred)
 
 **Success criteria:**
 
@@ -1118,34 +1115,34 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 - Returns: `{ lists: [{ id, name }] }` — open lists only, sorted by name, max 500
 - **Approved refinement:** Separate from boards endpoint (lazy load after board selection) instead of one nested boards+lists payload in older PRD examples
 
-**GET /api/trello/connection** - Connection status (**implemented** — Phase **TRELLO-OAUTH-A3** backend only)
+**GET /api/trello/connection** - Connection status (**implemented** — **A3** + **A4-FRONTEND**)
 
 - Auth: **`requireAuth`**
 - Returns: `{ connected: false }` or connected metadata only — `{ connected: true, trelloMemberId, trelloUsername, scopes, expirationPolicy, expiresAt, defaultBoardId, defaultListId, connectedAt, updatedAt }` (flat A3 contract; **no** token/ciphertext)
-- **Not user-facing until A4** — no frontend Connect UI or callback route yet
+- **User-facing:** **`TrelloConnectionPanel`** on **`/trello`** via **`fetchTrelloConnection`**
 
-**GET /api/trello/authorize-url** - Trello authorize URL (**implemented** — Phase **TRELLO-OAUTH-A3** + **A4-STATE** backend only)
+**GET /api/trello/authorize-url** - Trello authorize URL (**implemented** — **A3** + **A4-STATE** + **A4-FRONTEND**)
 
 - Auth: **`requireAuth`**
 - Returns: `{ authorizeUrl }` — Trello implicit grant URL (`response_type=token`, `callback_method=fragment`, `scope=read,write`, `expiration=never`, `name=StudyOps`; `return_url` = `FRONTEND_URL/trello/connect/callback?state=<signed-state>`)
 - Signed state bound to authenticated user (**A4-STATE**); state not returned separately
 - Requires server `TRELLO_API_KEY`; missing key → **503**
-- **Not user-facing until A4 frontend**
+- **User-facing:** **Connect account** on **`/trello`** redirects to returned URL
 
-**POST /api/trello/connect/complete** - Validate and store Trello token (**implemented** — Phase **TRELLO-OAUTH-A3** + **A4-STATE** backend only)
+**POST /api/trello/connect/complete** - Validate and store Trello token (**implemented** — **A3** + **A4-STATE** + **A4-FRONTEND**)
 
 - Body: `{ token, state }` strict (trimmed; token max 128 chars; state max 2048 chars)
 - Verifies signed OAuth state **before** Trello `GET /members/me` and **before** encrypted upsert
 - Invalid/missing/tampered/expired/foreign state → `TRELLO_OAUTH_STATE_INVALID` / 400 (generic message)
 - Returns connected metadata only (same flat shape as **GET /connection**)
-- **Not user-facing until A4 frontend**
+- **User-facing:** protected **`/trello/connect/callback`** (token from hash, state from query; URL cleared before POST)
 
-**POST /api/trello/disconnect** - Revoke and remove connection (**implemented** — Phase **TRELLO-OAUTH-A3** backend only)
+**POST /api/trello/disconnect** - Revoke and remove connection (**implemented** — **A3** + **A4-FRONTEND**)
 
 - Body: `{}` strict
 - Best-effort Trello token revoke; hard-deletes local `trello_connections` row
 - Returns: `{ connected: false }`
-- **Not user-facing until A4**
+- **User-facing:** **Disconnect** on **`/trello`**
 
 ---
 
@@ -1439,11 +1436,13 @@ For MVP, Trello credentials are **NOT stored in database**.
 - **`POST /api/trello/boards`** — `{ apiKey, token }` → `{ boards: [{ id, name }] }`
 - **`POST /api/trello/boards/:boardId/lists`** — `{ apiKey, token }` → `{ lists: [{ id, name }] }`
 
-**Frontend (4B-2)** — `/trello` picker calls those endpoints via `fetchTrelloBoards` / `fetchTrelloBoardLists`; user selects list; sync uses `listId` from selection. Credentials in request body only (NOT query params); **not** persisted; frontend never calls Trello directly. **OAuth / Connect Trello (A4 frontend + A5):** **A3** + **A4-STATE** backend connect routes exist (signed state on connect/complete); **OAuth is not live for users** until frontend callback and Connect UI ship.
+**Frontend (4B-2 + A5B)** — `/trello` picker calls those endpoints via `fetchTrelloBoards` / `fetchTrelloBoardLists`; user selects list; sync uses `listId` from selection. When **connected**, frontend sends **`{}`** / **`{ listId, taskIds }`** only (**A5B** + **A5A**); when **disconnected**, manual `{ apiKey, token }` in body (ADR 004). Credentials in request body only (NOT query params); manual credentials **not** persisted in DB or browser storage; frontend never calls Trello directly. **Account connect (A4-FRONTEND + A3 + A4-STATE)** is **live** on **`/trello`** and **`/trello/connect/callback`**.
 
-### Post-MVP: Encrypted Storage
+### Encrypted token storage (implemented — A2 + ADR 006)
 
-If credentials must be persisted later:
+**Shipped:** user Trello tokens are encrypted at rest in **`trello_connections`** (not manual apiKey/token — those remain ephemeral per ADR 004 when disconnected).
+
+If additional credential persistence were required later:
 
 1. Use AES-256-GCM encryption
 2. Store encryption key in environment variable (not in database)
@@ -2195,7 +2194,8 @@ The demo should show both the product and the development methodology.
 - Start and finish focus session
 - Show dashboard progress
 - Login/view as admin
-- Show Gemini logs, Trello sync logs, errors, and usage statistics
+- Show **aggregate** platform stats on **`/admin`** (**implemented** — **6A-3**)
+- **Planned / not implemented today:** per-request **Gemini API logs**, **Trello sync log table UI**, and detailed error/log feeds (no **`api_logs`** table; **`GET /api/admin/logs`** not built)
 
 ### Methodology Demo
 
@@ -2460,7 +2460,7 @@ Show:
 Possible future features:
 
 - PDF upload and parsing
-- Trello OAuth
+- Trello board/list persistence; Trello card update/delete; OAuth single-use state nonce (connect/sync **A2–A5C** shipped)
 - Google Calendar integration
 - advanced spaced repetition
 - recommendation engine for "what to study today"
