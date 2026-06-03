@@ -2092,6 +2092,28 @@ a.dashboard-hero__cta.btn:hover {
   min-width: 0;
 }
 
+.trello-workspace__account {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.trello-workspace__connect-flash {
+  margin-top: var(--space-4);
+}
+
+.trello-workspace__account-loading {
+  margin-top: var(--space-3);
+}
+
+.trello-workspace__account-status {
+  margin: var(--space-3) 0 0;
+  color: var(--color-text);
+}
+
+.page--trello .trello-workspace__step--account.form-card {
+  min-width: 0;
+}
+
 .trello-workspace__main {
   margin-top: var(--space-2);
   min-width: 0;

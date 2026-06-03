@@ -2,9 +2,9 @@
 
 **Owner:** Orchestrator  
 **Prerequisite:** Phase 3 tasks exist (task list + DB)  
-**ADR gate:** 004, 005 (mandatory). **OAuth / stored tokens:** ADR 006 + separate connect workflow (**A3** + **A4-STATE** backend shipped; **A4 frontend** callback + Connect UI; **A5** stored-token sync) — **not** this manual sync workflow.
+**ADR gate:** 004, 005 (mandatory). **OAuth account connect:** ADR 006 + **A3** + **A4-STATE** + **A4-FRONTEND** (Connect/Disconnect + callback on **`/trello`**) — **separate** from this manual sync workflow. **Stored-token sync:** **A5** — **not** shipped; **not** this workflow.
 
-**Current live path:** Manual apiKey/token in POST body (ADR 004). Phase **TRELLO-OAUTH-A2-DB** added encrypted `trello_connections` foundation. Phase **TRELLO-OAUTH-A3** added backend connect/authorize HTTP routes. Phase **TRELLO-OAUTH-A4-STATE** added signed OAuth state on authorize-url / connect/complete — **does not** change this workflow or **`/trello`** UX until **A4 frontend** ships. **OAuth is not live for users.**
+**Current live sync path:** Manual apiKey/token in POST body (ADR 004) — **unchanged**. Phases **A2–A4-FRONTEND** added encrypted storage, backend connect routes, signed state, and account connection UI; they **do not** refactor boards/lists/sync to use stored tokens until **A5**.
 
 ---
 

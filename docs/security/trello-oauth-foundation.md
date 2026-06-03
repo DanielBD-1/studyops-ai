@@ -1,7 +1,7 @@
-# Trello OAuth foundation — security notes (A2 + A3 + A4-STATE)
+# Trello OAuth foundation — security notes (A2 + A3 + A4-STATE + A4-FRONTEND)
 
-**Phases:** TRELLO-OAUTH-A2-DB (storage/crypto foundation); TRELLO-OAUTH-A3 (backend connect/authorize routes); TRELLO-OAUTH-A4-STATE (signed OAuth state on connect flow)
-**Status:** **A2 + A3 + A4-STATE implemented in repo**; **OAuth is not live for users** — manual key/token sync on `/trello` is unchanged and remains the **only live user path**.
+**Phases:** TRELLO-OAUTH-A2-DB (storage/crypto foundation); TRELLO-OAUTH-A3 (backend connect/authorize routes); TRELLO-OAUTH-A4-STATE (signed OAuth state on connect flow); TRELLO-OAUTH-A4-FRONTEND (frontend Connect/Disconnect UI + callback)
+**Status:** **A2 + A3 + A4-STATE + A4-FRONTEND implemented in repo** — users can **connect/disconnect** a Trello account from **`/trello`**. **Stored-token sync is not implemented** — manual apiKey/token on **`/trello`** remains the **only active sync path** until **A5**.
 
 ---
 
@@ -37,12 +37,25 @@
 - **MVP accepted residual risk:** replay within the 10-minute TTL if an attacker captures `{ token, state }` plus a valid session — mitigated by auth requirement and `sub` binding; acceptable for MVP
 - **Future hardening (not a blocker):** single-use nonce persistence (server-side store)
 
+## What is shipped (A4-FRONTEND — frontend only)
+
+- **`/trello`** — `TrelloConnectionPanel`: Connect account (`fetchTrelloAuthorizeUrl` → redirect); Disconnect (`disconnectTrello`); displays safe metadata (`@trelloUsername`); trust note that sync below still uses manual API key/token
+- Protected **`/trello/connect/callback`** — `TrelloConnectCallbackPage`
+- **Parse:** `state` from **query string** only; Trello OAuth `token` from **URL hash fragment** only (token in query is ignored)
+- **URL hygiene:** `sanitizeOAuthCallbackUrl` via `history.replaceState` clears query and hash **before** `POST /api/trello/connect/complete`
+- **Complete:** `completeTrelloConnection({ token, state })` — body only; never in URL path/query
+- **StrictMode:** `beginOAuthExchange` — at most one in-flight complete POST per callback load; guard holds promise only (no token/state/URL)
+- **Missing token/state:** safe redirect to **`/trello`** with error flash; **no** backend POST
+- **`TRELLO_OAUTH_STATE_INVALID`:** user message “Connection request expired or invalid. Please try again.”
+- **Frontend does not validate or sign state** — relies on **A4-STATE** backend
+- **Secrets not persisted client-side:** no `localStorage` / `sessionStorage`; not stored in React state; not logged or rendered
+- **Reviews:** Supervisor **Pass**; Security **Pass** — **`npm test` 271**; **`npm run lint`**; **`npm run build`**
+
 ## What is not shipped
 
-- Frontend Connect Trello UI, Connect button, or `/trello/connect/callback` route
-- Hash-fragment token handling in frontend (**A4 frontend** — separate phase)
 - Refactor boards/lists/sync to use stored token (**A5**, if approved)
-- Any change to manual **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** credential flow
+- Remove manual apiKey/token fields from sync section (**A5**)
+- Any change to manual **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** credential flow (still ephemeral body credentials)
 
 ---
 
@@ -78,11 +91,11 @@ Frontend must use **sanitized backend APIs** for connection status — never Pos
 
 ---
 
-## Manual MVP (still live)
+## Manual MVP sync (still live — only active sync path)
 
-- User enters apiKey + token on `/trello`; sent in POST body to `/api/trello/boards`, `/lists`, `/sync`
+- User enters apiKey + token on **`/trello`**; sent in POST body to `/api/trello/boards`, `/lists`, `/sync`
 - Credentials cleared from React state after sync; **not** stored in DB, localStorage, or sessionStorage
-- See ADR 004 for ephemeral manual flow; ADR 006 for stored-token path when **A4 frontend / A5** ship
+- See ADR 004 for ephemeral manual flow; ADR 006 for stored-token path when **A5** ships
 
 ---
 
@@ -93,7 +106,7 @@ Frontend must use **sanitized backend APIs** for connection status — never Pos
 | A2 storage/crypto/repository | Reviewed — passed |
 | A3 connect/authorize/disconnect routes | Reviewed — **Security approved with notes** |
 | **A4-STATE** signed OAuth state on connect flow | Reviewed — **Security approved with notes** |
-| **A4 frontend** OAuth callback, fragment handling, Connect UI | **Pending** — required before OAuth is live for users |
+| **A4-FRONTEND** OAuth callback, fragment handling, Connect UI | Reviewed — **Pass** |
 | Refactoring sync/boards/lists to stored tokens (**A5**) | **Pending** — separate review when implemented |
 
 See `SECURITY.md` and `AGENTS.md`.

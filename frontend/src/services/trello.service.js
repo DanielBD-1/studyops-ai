@@ -87,6 +87,68 @@ async function request(path, init = {}) {
  */
 
 /**
+ * @typedef {{
+ *   connected: true,
+ *   trelloMemberId: string,
+ *   trelloUsername: string,
+ *   scopes: string,
+ *   expirationPolicy: string,
+ *   expiresAt: string | null,
+ *   defaultBoardId: string | null,
+ *   defaultListId: string | null,
+ *   connectedAt: string,
+ *   updatedAt: string,
+ * }} TrelloConnectionConnected
+ */
+
+/**
+ * @typedef {{ connected: false }} TrelloConnectionDisconnected
+ */
+
+/**
+ * @typedef {TrelloConnectionConnected | TrelloConnectionDisconnected} TrelloConnectionStatus
+ */
+
+/**
+ * @returns {Promise<TrelloConnectionStatus>}
+ */
+export async function fetchTrelloConnection() {
+  const data = await request('/api/trello/connection');
+  return /** @type {TrelloConnectionStatus} */ (data);
+}
+
+/**
+ * @returns {Promise<{ authorizeUrl: string }>}
+ */
+export async function fetchTrelloAuthorizeUrl() {
+  const data = await request('/api/trello/authorize-url');
+  return /** @type {{ authorizeUrl: string }} */ (data);
+}
+
+/**
+ * @param {{ token: string, state: string }} body
+ * @returns {Promise<TrelloConnectionConnected>}
+ */
+export async function completeTrelloConnection(body) {
+  const data = await request('/api/trello/connect/complete', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return /** @type {TrelloConnectionConnected} */ (data);
+}
+
+/**
+ * @returns {Promise<TrelloConnectionDisconnected>}
+ */
+export async function disconnectTrello() {
+  const data = await request('/api/trello/disconnect', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return /** @type {TrelloConnectionDisconnected} */ (data);
+}
+
+/**
  * @param {{ apiKey: string, token: string }} body
  * @returns {Promise<{ boards: TrelloNamedItem[] }>}
  */

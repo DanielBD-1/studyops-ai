@@ -9,6 +9,7 @@ import CourseDetail from './pages/CourseDetail.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import FlashcardsPage from './pages/FlashcardsPage.jsx';
 import TrelloSyncPage from './pages/TrelloSyncPage.jsx';
+import TrelloConnectCallbackPage from './pages/TrelloConnectCallbackPage.jsx';
 import FocusPage from './pages/FocusPage.jsx';
 import StudyMaterialDetail from './pages/StudyMaterialDetail.jsx';
 import AdminRoute from './components/auth/AdminRoute.jsx';
@@ -68,6 +69,14 @@ export default function App() {
           element={
             <AuthenticatedPage>
               <FlashcardsPage />
+            </AuthenticatedPage>
+          }
+        />
+        <Route
+          path="/trello/connect/callback"
+          element={
+            <AuthenticatedPage>
+              <TrelloConnectCallbackPage />
             </AuthenticatedPage>
           }
         />

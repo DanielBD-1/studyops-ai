@@ -4,6 +4,10 @@ import {
   syncTasksToTrello,
   fetchTrelloBoards,
   fetchTrelloBoardLists,
+  fetchTrelloConnection,
+  fetchTrelloAuthorizeUrl,
+  completeTrelloConnection,
+  disconnectTrello,
   __setApiFetchForTests,
   __setAccessTokenForTests,
   ApiRequestError,
@@ -15,6 +19,8 @@ const FAKE_API_KEY = 'fake-api-key';
 const FAKE_TRELLO_TOKEN = 'fake-trello-token';
 const FAKE_LIST_ID = 'fake-list-id';
 const FAKE_BOARD_ID = 'board-abc123';
+const FAKE_OAUTH_STATE = 'signed-state-value';
+const FAKE_COMPLETE_TOKEN = 'complete-token-value';
 
 const MOCK_SYNC_RESPONSE = {
   results: [
@@ -54,6 +60,49 @@ beforeEach(() => {
       return {
         success: true,
         data: { lists: [{ id: FAKE_LIST_ID, name: 'To Do' }] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    }
+
+    if (path === '/api/trello/connection') {
+      return {
+        success: true,
+        data: { connected: false },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    }
+
+    if (path === '/api/trello/authorize-url') {
+      return {
+        success: true,
+        data: { authorizeUrl: 'https://trello.com/1/authorize?response_type=token' },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    }
+
+    if (path === '/api/trello/connect/complete') {
+      return {
+        success: true,
+        data: {
+          connected: true,
+          trelloMemberId: 'member-123',
+          trelloUsername: 'studyops_user',
+          scopes: 'read,write',
+          expirationPolicy: 'never',
+          expiresAt: null,
+          defaultBoardId: null,
+          defaultListId: null,
+          connectedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    }
+
+    if (path === '/api/trello/disconnect') {
+      return {
+        success: true,
+        data: { connected: false },
         meta: { timestamp: new Date().toISOString() },
       };
     }
@@ -176,5 +225,69 @@ describe('trello.service', () => {
         return true;
       }
     );
+  });
+
+  it('fetchTrelloConnection uses GET /api/trello/connection with Bearer token', async () => {
+    const data = await fetchTrelloConnection();
+
+    const connectionCall = calls.find((c) => c.path === '/api/trello/connection');
+    assert.ok(connectionCall);
+    assert.equal(connectionCall.init.method, undefined);
+    assert.equal(connectionCall.token, TOKEN);
+    assert.equal(data.connected, false);
+  });
+
+  it('fetchTrelloAuthorizeUrl uses GET /api/trello/authorize-url with Bearer token', async () => {
+    const data = await fetchTrelloAuthorizeUrl();
+
+    const authorizeCall = calls.find((c) => c.path === '/api/trello/authorize-url');
+    assert.ok(authorizeCall);
+    assert.equal(authorizeCall.init.method, undefined);
+    assert.equal(authorizeCall.token, TOKEN);
+    assert.equal(data.authorizeUrl.includes('trello.com/1/authorize'), true);
+  });
+
+  it('completeTrelloConnection sends POST body { token, state }', async () => {
+    const data = await completeTrelloConnection({
+      token: FAKE_COMPLETE_TOKEN,
+      state: FAKE_OAUTH_STATE,
+    });
+
+    const completeCall = calls.find((c) => c.path === '/api/trello/connect/complete');
+    assert.ok(completeCall);
+    assert.equal(completeCall.init.method, 'POST');
+    assert.equal(completeCall.token, TOKEN);
+
+    const body = JSON.parse(String(completeCall.init.body));
+    assert.equal(body.token, FAKE_COMPLETE_TOKEN);
+    assert.equal(body.state, FAKE_OAUTH_STATE);
+    assert.equal(data.connected, true);
+    assert.equal(data.trelloUsername, 'studyops_user');
+  });
+
+  it('completeTrelloConnection does not put token or state in URL', async () => {
+    await completeTrelloConnection({
+      token: FAKE_COMPLETE_TOKEN,
+      state: FAKE_OAUTH_STATE,
+    });
+
+    const completeCall = calls.find((c) => c.path === '/api/trello/connect/complete');
+    assert.ok(completeCall);
+    assert.equal(completeCall.path.includes(FAKE_COMPLETE_TOKEN), false);
+    assert.equal(completeCall.path.includes(FAKE_OAUTH_STATE), false);
+    assert.equal(String(completeCall.path).includes('?'), false);
+  });
+
+  it('disconnectTrello sends POST {} to /api/trello/disconnect', async () => {
+    const data = await disconnectTrello();
+
+    const disconnectCall = calls.find((c) => c.path === '/api/trello/disconnect');
+    assert.ok(disconnectCall);
+    assert.equal(disconnectCall.init.method, 'POST');
+    assert.equal(disconnectCall.token, TOKEN);
+
+    const body = JSON.parse(String(disconnectCall.init.body));
+    assert.deepEqual(body, {});
+    assert.equal(data.connected, false);
   });
 });
