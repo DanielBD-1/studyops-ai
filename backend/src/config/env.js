@@ -12,6 +12,8 @@ const envSchema = z.object({
   TRELLO_API_KEY: z.string().min(1).optional(),
   /** Base64-encoded 32-byte key for AES-256-GCM token encryption. */
   TRELLO_TOKEN_ENCRYPTION_KEY: z.string().min(1).optional(),
+  /** Base64-encoded 32-byte key for Trello OAuth state HMAC signing. */
+  TRELLO_OAUTH_STATE_SECRET: z.string().min(1).optional(),
 });
 
 /** @typedef {z.infer<typeof envSchema>} Env */
