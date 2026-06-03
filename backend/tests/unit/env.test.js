@@ -31,4 +31,20 @@ describe('backend env validation', () => {
       /Invalid environment configuration/
     );
   });
+
+  it('parseEnv accepts missing optional Trello OAuth env vars', () => {
+    const env = parseEnv({ ...validEnv });
+    assert.equal(env.TRELLO_API_KEY, undefined);
+    assert.equal(env.TRELLO_TOKEN_ENCRYPTION_KEY, undefined);
+  });
+
+  it('parseEnv accepts optional Trello OAuth placeholders', () => {
+    const env = parseEnv({
+      ...validEnv,
+      TRELLO_API_KEY: 'placeholder-api-key',
+      TRELLO_TOKEN_ENCRYPTION_KEY: 'placeholder-encryption-key',
+    });
+    assert.equal(env.TRELLO_API_KEY, 'placeholder-api-key');
+    assert.equal(env.TRELLO_TOKEN_ENCRYPTION_KEY, 'placeholder-encryption-key');
+  });
 });

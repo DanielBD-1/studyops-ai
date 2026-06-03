@@ -1,6 +1,7 @@
 # ADR 004: No Trello Credential Persistence (MVP)
 
-**Status:** Accepted  
+**Status:** Accepted — **partially superseded for user tokens** by [ADR 006](006-trello-oauth-encrypted-connections.md) when OAuth connect ships (A3+). **Manual MVP flow below remains live today** — users still enter apiKey/token per sync; nothing is read from `trello_connections` in production routes yet.
+
 **Date:** 2026-05-20  
 **Deciders:** Project team (MVP)
 
@@ -49,11 +50,11 @@ Optional `POST /api/trello/boards` uses same ephemeral pattern.
 
 ## Compliance Rules for Agents
 
-- No `trello_connections` table or credential columns in MVP.
-- Never log `apiKey` or `token`.
+- **Today:** No **use** of `trello_connections` in live sync/boards/lists routes — manual body credentials only.
+- **Foundation (A2):** `trello_connections` exists for **future OAuth** — see ADR 006; do not wire stored tokens without an approved connect phase + Security Review.
+- Never log `apiKey` or `token` (manual or OAuth).
 - Never return credentials in GET responses.
-- Credentials **only** in POST body—never query params (see PRD 10.5).
-- Post-MVP encrypted storage requires new ADR + human approval.
+- Credentials **only** in POST body for manual MVP—never query params (see PRD 10.5).
 
 ---
 
@@ -61,3 +62,4 @@ Optional `POST /api/trello/boards` uses same ephemeral pattern.
 
 - PRD Section 7.6, 10.5
 - ADR 005 (List ID handling)
+- ADR 006 (encrypted connection storage — OAuth foundation)

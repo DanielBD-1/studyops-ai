@@ -40,7 +40,9 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Trello frontend sync UI** (Phase **4A-2** + **4A-3** polish) — protected **`/trello`**; user enters apiKey/token, selects owned tasks (max 50), frontend calls StudyOps backend only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
 - **Trello backend board/list discovery** (Phase **4B-1**) — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; ephemeral `{ apiKey, token }` in body; backend proxies to Trello; returns sanitized `{ boards: [{ id, name }] }` / `{ lists: [{ id, name }] }` only; **no** DB writes; **no** credential storage. **Approved refinement:** two endpoints (lazy list load after board pick) instead of one nested boards+lists response in older PRD examples
 - **Trello frontend board/list picker** (Phase **4B-2**) — **`/trello`**: Load boards → select board → load lists → select list; **`fetchTrelloBoards`** / **`fetchTrelloBoardLists`** call backend discovery endpoints only; manual listId lookup **not** required for main flow; **`syncTasksToTrello`** sends selected list id as `listId`
-- **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker. **Still deferred:** OAuth / Connect Trello (future production improvement); credential storage; board/list persistence; Trello card update/delete; force re-sync
+- **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker — **live path:** manual apiKey/token in POST body (ADR 004)
+- **Trello OAuth foundation (TRELLO-OAUTH-A2-DB):** `trello_connections` migration + encrypted storage docs + backend crypto/repository — **not live in UI/routes**; boards/lists/sync unchanged until connect phases
+- **Still deferred:** OAuth / Connect Trello UI; authorize/callback/connect/disconnect routes; sync/boards using stored token; board/list persistence; Trello card update/delete; force re-sync
 - **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
 - **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion)
 - **Focus Sessions frontend UI** (Phase **4C-2**) — protected **`/focus/:taskId`**; **Start Focus** on pending tasks; fixed **25**-minute display countdown; complete sends **`{ completedTask }` only**; **no** pause/resume, duration picker, or browser storage
@@ -74,7 +76,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 ### Still deferred (requires separate approval)
 
 - **`GET /api/admin/logs`** / **`api_logs`** table; admin **user list**; **role management** UI; Gemini/system error metrics for admin
-- Trello **OAuth**; **stored** credentials; board/list **persistence**; Trello card update/delete; force re-sync
+- Trello **OAuth** (authorize, callback, Connect UI, connect/disconnect routes); using **stored** token in sync/boards/lists; board/list **persistence**; Trello card update/delete; force re-sync — **note:** A2 **encrypted storage foundation** is in repo; manual sync remains live until connect ships
 - Course-level **`POST /api/courses/:courseId/generate`** with client `studyText`; route **`/courses/:id/generate`**
 - PDF upload/parsing
 - Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** (invalidation-only **5C.1** refresh is implemented)
@@ -588,7 +590,9 @@ The Document Processing Microservice is separated because Gemini processing has 
 
 ### 7.6 Trello Sync
 
-**Implemented (Phases 4A + 4B):** Protected **`/trello`** page; apiKey/token (password fields); **Load boards** → select board → select list (**4B-2**); task checkboxes; frontend → StudyOps backend only (`/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync` — never `api.trello.com`); results with `status` `success` \| `failed` \| `skipped` and summary counts; credentials cleared from React state after sync (not persisted). Manual Trello list ID lookup is **not** required for the main flow. **Still deferred:** OAuth / Connect Trello; stored credentials.
+**Implemented (Phases 4A + 4B):** Protected **`/trello`** page; apiKey/token (password fields); **Load boards** → select board → select list (**4B-2**); task checkboxes; frontend → StudyOps backend only (`/api/trello/boards`, `/api/trello/boards/:boardId/lists`, `/api/trello/sync` — never `api.trello.com`); results with `status` `success` \| `failed` \| `skipped` and summary counts; credentials cleared from React state after sync (not persisted in DB or browser storage). Manual Trello list ID lookup is **not** required for the main flow.
+
+**OAuth foundation (A2 — repo only, not live):** `trello_connections` + encrypted token storage + backend crypto/repository (ADR 006). **Still deferred:** OAuth / Connect Trello UI; authorize/callback/connect/disconnect routes; sync/boards using stored token.
 
 - Student opens Trello integration screen
 - Student enters Trello API key and token (not saved for MVP)
