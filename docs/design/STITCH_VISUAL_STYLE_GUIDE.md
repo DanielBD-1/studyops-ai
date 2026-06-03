@@ -135,7 +135,9 @@ The visual style is **Modern SaaS with High-Contrast / Bold** accents. It blends
 
 The palette is anchored in a **Deep Graphite (#0F172A)** base to provide a cinematic, focused environment. 
 
-- **Core Accents:** Electric Blue and Vibrant Violet are used primarily for AI-interactive elements, progress indicators, and primary CTAs. 
+**Production mapping (StudyOps, BX-I9B2c):** Live AI chrome uses Stitch v2.2 **AI Accent** **`#8B5CF6`** (`--color-ai-accent` in `frontend/src/styles/tokens.css`). The M3 YAML export above lists `secondary: #d0bcff` — legacy Stitch Material export; **do not** use **`#d0bcff`** for StudyOps AI/violet tokens. Authoritative v2.2 table: `docs/design/studyops_ai_visual_style_guide_v2_2.md`.
+
+- **Core Accents:** Electric Blue and Vibrant Violet (**`#8B5CF6`**) are used primarily for AI-interactive elements and progress indicators; primary CTAs remain electric blue.
 - **Surface Strategy:** Cards use a lighter Slate (#1E293B) with a 60-80% opacity and a 12px backdrop blur to achieve a premium glass effect.
 - **Subject Accents:** Amber, Rose, and Emerald are reserved for high-contrast subject labeling. Use these as 2px top-borders or soft outer glows on course-specific cards to differentiate content types at a glance.
 - **Neon Glows:** AI-generated content should feature a subtle "Inner Glow" or "Drop Shadow" using the Primary or Tertiary hex codes with low opacity to simulate light emission.
