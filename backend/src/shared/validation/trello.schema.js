@@ -49,6 +49,11 @@ export const trelloSyncBodySchema = z
 export const trelloConnectCompleteBodySchema = z
   .object({
     token: trelloCredentialSchema('Token'),
+    state: z
+      .string()
+      .trim()
+      .min(1, 'State is required')
+      .max(2048, 'State must be at most 2048 characters'),
   })
   .strict();
 

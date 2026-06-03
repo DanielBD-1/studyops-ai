@@ -39,7 +39,7 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 
 - **`POST /process`** on document-service is **internal-only** (backend orchestration). Browsers must not call it directly.
 - **Trello (manual MVP — live):** `POST /api/trello/boards`, `/boards/:boardId/lists`, `/sync` accept ephemeral `{ apiKey, token }` in the **body** only. Credentials are **not** stored in the database, browser storage, or logs. Frontend must not call `api.trello.com` directly.
-- **Trello OAuth foundation (A2 — not live):** `public.trello_connections` stores **encrypted** user tokens for a **future** connect flow. Table is **`service_role` only** — frontend must not access it via Supabase client. See [docs/security/trello-oauth-foundation.md](docs/security/trello-oauth-foundation.md) and ADR 006.
+- **Trello OAuth foundation (A2 + A3 + A4-STATE — not live for users):** `public.trello_connections` stores **encrypted** user tokens for a **future** connect flow. **A4-STATE** adds HMAC-signed OAuth state on authorize-url / connect/complete to block account-linking CSRF. Table is **`service_role` only** — frontend must not access it via Supabase client. See [docs/security/trello-oauth-foundation.md](docs/security/trello-oauth-foundation.md) and ADR 006.
 - **Generate (implemented):** `POST /api/study-materials/:materialId/generate` with strict empty body `{}`. Backend loads saved material `content` only after ownership checks. Frontend must not send `studyText`, `content`, `courseId`, `userId`, or `plan` in the generate body.
 - **Saved plan (implemented):** `GET` / `DELETE` `/api/study-materials/:materialId/generated-plan` — frontend loads/clears **active** plan via backend only; **no** direct Supabase client writes to `material_generated_plans`.
 - **Plan history (implemented — Phases 11A-1/2/3):** Multiple rows per material in `public.material_generated_plans` with exactly one **`is_active`**; history REST APIs — `GET …/generated-plans` (metadata only), `GET …/generated-plans/:planId`, `POST …/generated-plans/:planId/activate` (body `{}` — **no** Gemini), `DELETE …/generated-plans/:planId` (inactive only). Frontend history UI loads metadata list only; full plan fetched on **Preview** for inactive versions; **Restore** uses activate endpoint only.
@@ -60,15 +60,17 @@ The frontend must call the **Express API** with a Bearer JWT for data operations
 - User-supplied Trello **API key** and **token** are secrets — validate format only; **never** persist, log, or return them in responses.
 - Frontend clears credential state after sync; **never** use `localStorage` or `sessionStorage` for Trello credentials.
 
-**OAuth foundation (A2 — storage only; connect not live):**
+**OAuth foundation (A2 + A3 + A4-STATE — storage + backend connect; not live for users):**
 
 - Trello **user tokens** are tier-1 secrets. Encrypt at rest with **`TRELLO_TOKEN_ENCRYPTION_KEY`** (32-byte value, base64 in env — placeholders in `backend/.env.example` only).
-- **`TRELLO_TOKEN_ENCRYPTION_KEY`** and **`SUPABASE_SERVICE_ROLE_KEY`** are tier-1 secrets — backend only, never in frontend or `VITE_*`.
+- **`TRELLO_OAUTH_STATE_SECRET`** (optional, 32-byte base64) — dedicated HMAC key for OAuth state signing; **production should prefer a dedicated secret**; when unset, backend derives a separate key from **`TRELLO_TOKEN_ENCRYPTION_KEY`** with domain separation.
+- OAuth state is **stateless and not single-use**; replay within the **10-minute TTL** is an accepted MVP residual risk if `{ token, state }` plus session are captured — future hardening: single-use nonce persistence (see `docs/security/trello-oauth-foundation.md`).
+- **`TRELLO_TOKEN_ENCRYPTION_KEY`**, **`TRELLO_OAUTH_STATE_SECRET`**, and **`SUPABASE_SERVICE_ROLE_KEY`** are tier-1 secrets — backend only, never in frontend or `VITE_*`.
 - **`TRELLO_API_KEY`** is backend-only (Trello app key; optional until connect flow is enabled).
 - **`trello_connections`:** backend / **`service_role`** only. Frontend must **not** query this table. Future status APIs must expose metadata only (no token, IV, tag, or ciphertext).
 - Decrypted tokens must **never** be logged or sent to the client.
 
-**Security Review required** before merge for OAuth callback, connect/complete/disconnect routes, or any change that reads stored tokens in boards/lists/sync handlers.
+**Security Review required** before merge for OAuth callback frontend, connect/complete/disconnect route changes, **A4-STATE**-class state signing changes, or any change that reads stored tokens in boards/lists/sync handlers.
 
 ---
 
@@ -108,7 +110,7 @@ Request **Security Review** (see `AGENTS.md` and PR template) before merge when 
 - **Service-role data access** — any new `from('…')` using admin client
 - **CI / GitHub Actions** — secrets, permissions, `pull_request_target`, deploy steps
 - **Admin routes** or role checks
-- **Trello / Gemini** — credentials, logging, external API boundaries, `POST /process`, generate orchestration; **`trello_connections`**; OAuth callback/connect; **`TRELLO_TOKEN_ENCRYPTION_KEY`**
+- **Trello / Gemini** — credentials, logging, external API boundaries, `POST /process`, generate orchestration; **`trello_connections`**; OAuth callback/connect; **`TRELLO_TOKEN_ENCRYPTION_KEY`**, **`TRELLO_OAUTH_STATE_SECRET`**
 - **AI generated-plan persistence or read/render paths** — any change to how plans are written, loaded, cleared, or displayed (Phases 2L-a/b/c established the baseline)
 - **Governance / security docs** — when changing CI permissions, env documentation, or trust boundaries
 - **Frontend security** — token storage, XSS (`dangerouslySetInnerHTML`), exposing ownership fields
@@ -127,6 +129,6 @@ Supervisor Review and human approval gates still apply per `CONTRIBUTING.md`.
 - `CONTRIBUTING.md` — branch workflow and reviews
 - `AGENTS.md` — security anti-patterns
 - `docs/IMPLEMENTATION_STATUS.md` — built APIs, env boundaries, deferred work
-- `docs/security/trello-oauth-foundation.md` — Trello A2 storage boundaries
+- `docs/security/trello-oauth-foundation.md` — Trello A2/A3/A4-STATE storage and connect boundaries
 - `docs/adrs/006-trello-oauth-encrypted-connections.md` — encrypted connection decision
 - `docs/PRD.md` — permissions and API contract (MVP + future)

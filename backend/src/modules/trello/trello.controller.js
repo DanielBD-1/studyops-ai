@@ -105,7 +105,7 @@ export async function connectionStatus(req, res, next) {
  */
 export async function authorizeUrl(req, res, next) {
   try {
-    const data = buildAuthorizeUrl();
+    const data = buildAuthorizeUrl(req.user.id);
     sendSuccess(res, data);
   } catch (err) {
     next(err);
@@ -125,7 +125,11 @@ export async function connectComplete(req, res, next) {
   }
 
   try {
-    const data = await completeConnection(req.user.id, bodyParsed.data.token);
+    const data = await completeConnection(
+      req.user.id,
+      bodyParsed.data.token,
+      bodyParsed.data.state
+    );
     sendSuccess(res, data);
   } catch (err) {
     next(err);

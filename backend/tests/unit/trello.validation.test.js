@@ -119,19 +119,44 @@ describe('trello.validation', () => {
     assert.equal(parsed.success, false);
   });
 
-  it('connect complete schema accepts valid token', () => {
-    const parsed = trelloConnectCompleteBodySchema.safeParse({ token: 'valid-token' });
+  it('connect complete schema accepts valid token and state', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({
+      token: 'valid-token',
+      state: 'valid-state',
+    });
     assert.equal(parsed.success, true);
   });
 
+  it('connect complete schema rejects missing state', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({ token: 'valid-token' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('connect complete schema rejects missing token', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({ state: 'valid-state' });
+    assert.equal(parsed.success, false);
+  });
+
   it('connect complete schema rejects empty token', () => {
-    const parsed = trelloConnectCompleteBodySchema.safeParse({ token: '   ' });
+    const parsed = trelloConnectCompleteBodySchema.safeParse({
+      token: '   ',
+      state: 'valid-state',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('connect complete schema rejects empty state', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({
+      token: 'valid-token',
+      state: '   ',
+    });
     assert.equal(parsed.success, false);
   });
 
   it('connect complete schema rejects unknown fields', () => {
     const parsed = trelloConnectCompleteBodySchema.safeParse({
       token: 'valid-token',
+      state: 'valid-state',
       apiKey: 'extra',
     });
     assert.equal(parsed.success, false);

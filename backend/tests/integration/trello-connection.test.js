@@ -14,10 +14,12 @@ import {
   assertNoTrelloCredentialsInValue,
 } from '../helpers/mockSupabaseTrello.js';
 import { assertNoPlaintextTrelloTokenInValue } from '../helpers/mockSupabaseTrelloConnection.js';
+import { createTrelloOAuthState } from '../../src/modules/trello/trello-oauth-state.js';
 
 const TEST_API_KEY = 'integration-trello-api-key';
 const TEST_ENCRYPTION_KEY = randomBytes(32).toString('base64');
 const CONNECT_TOKEN = 'ATTAsecretPlaintextTokenForIntegrationTests';
+const OTHER_USER_ID = '22222222-2222-4222-8222-222222222222';
 
 applyTestEnv();
 process.env.TRELLO_API_KEY = TEST_API_KEY;
@@ -73,6 +75,32 @@ function request(url, options = {}) {
     if (payload) req.write(payload);
     req.end();
   });
+}
+
+/**
+ * @param {string} authorizeUrl
+ * @returns {string}
+ */
+function extractStateFromAuthorizeUrl(authorizeUrl) {
+  const url = new URL(authorizeUrl);
+  const returnUrl = url.searchParams.get('return_url');
+  assert.ok(returnUrl);
+  const callbackUrl = new URL(returnUrl);
+  const state = callbackUrl.searchParams.get('state');
+  assert.ok(state);
+  return state;
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {Record<string, string>} headers
+ */
+async function fetchConnectState(baseUrl, headers) {
+  const { statusCode, body } = await request(`${baseUrl}/api/trello/authorize-url`, {
+    headers,
+  });
+  assert.equal(statusCode, 200);
+  return extractStateFromAuthorizeUrl(body.data.authorizeUrl);
 }
 
 describe('trello connection API integration', () => {
@@ -133,9 +161,10 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/connect/complete returns 401 without Authorization', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
     assert.equal(statusCode, 401);
     assert.equal(body.error.code, 'AUTH_REQUIRED');
@@ -161,7 +190,7 @@ describe('trello connection API integration', () => {
     assertNoPlaintextTrelloTokenInValue(body);
   });
 
-  it('GET /api/trello/authorize-url returns authorizeUrl', async () => {
+  it('GET /api/trello/authorize-url returns authorizeUrl with state in return_url', async () => {
     const { statusCode, body } = await request(`${base()}/api/trello/authorize-url`, {
       headers: auth,
     });
@@ -169,17 +198,22 @@ describe('trello connection API integration', () => {
     assert.equal(statusCode, 200);
     assert.equal(body.success, true);
     assert.ok(typeof body.data.authorizeUrl === 'string');
+    assert.equal(body.data.state, undefined);
 
     const url = new URL(body.data.authorizeUrl);
     assert.equal(url.searchParams.get('response_type'), 'token');
     assert.equal(url.searchParams.get('callback_method'), 'fragment');
     assert.equal(url.searchParams.get('scope'), 'read,write');
     assert.equal(url.searchParams.get('expiration'), 'never');
-    assert.equal(
-      url.searchParams.get('return_url'),
-      'http://localhost:5173/trello/connect/callback'
-    );
+
+    const returnUrl = url.searchParams.get('return_url');
+    assert.ok(returnUrl);
+    assert.ok(returnUrl.startsWith('http://localhost:5173/trello/connect/callback?state='));
+
+    const state = extractStateFromAuthorizeUrl(body.data.authorizeUrl);
+    assert.ok(state.length > 0);
     assert.equal(body.data.authorizeUrl.includes(CONNECT_TOKEN), false);
+    assertNoPlaintextTrelloTokenInValue(body);
   });
 
   it('GET /api/trello/authorize-url returns 503 when TRELLO_API_KEY is missing', async () => {
@@ -197,13 +231,14 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/connect/complete returns 503 when TRELLO_API_KEY is missing', async () => {
+    const state = await fetchConnectState(base(), auth);
     delete process.env.TRELLO_API_KEY;
     resetEnvCacheForTests();
 
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     assert.equal(statusCode, 503);
@@ -213,11 +248,25 @@ describe('trello connection API integration', () => {
     assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
   });
 
-  it('POST /api/trello/connect/complete rejects empty token', async () => {
+  it('POST /api/trello/connect/complete rejects token-only body', async () => {
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: '   ' },
+      body: { token: CONNECT_TOKEN },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+    assertNoPlaintextTrelloTokenInValue(body);
+    assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
+  });
+
+  it('POST /api/trello/connect/complete rejects empty token', async () => {
+    const state = await fetchConnectState(base(), auth);
+    const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: '   ', state },
     });
 
     assert.equal(statusCode, 400);
@@ -225,15 +274,83 @@ describe('trello connection API integration', () => {
     assertNoPlaintextTrelloTokenInValue(body);
   });
 
-  it('POST /api/trello/connect/complete rejects unknown fields', async () => {
+  it('POST /api/trello/connect/complete rejects empty state', async () => {
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN, apiKey: 'extra' },
+      body: { token: CONNECT_TOKEN, state: '   ' },
     });
 
     assert.equal(statusCode, 400);
     assert.equal(body.error.code, 'VALIDATION_ERROR');
+    assertNoPlaintextTrelloTokenInValue(body);
+    assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
+  });
+
+  it('POST /api/trello/connect/complete rejects unknown fields', async () => {
+    const state = await fetchConnectState(base(), auth);
+    const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state, apiKey: 'extra' },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+    assertNoPlaintextTrelloTokenInValue(body);
+  });
+
+  it('POST /api/trello/connect/complete rejects tampered state', async () => {
+    let fetchCalled = false;
+
+    setTrelloFetchForTests(async () => {
+      fetchCalled = true;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'memberIntegration123', username: 'integration_user' }),
+      };
+    });
+
+    const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state: 'tampered.state.value' },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'TRELLO_OAUTH_STATE_INVALID');
+    assert.equal(body.error.message, 'Invalid or expired connection request.');
+    assert.equal(fetchCalled, false);
+    assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
+    assertNoPlaintextTrelloTokenInValue(body);
+    assert.equal(String(JSON.stringify(body)).includes(CONNECT_TOKEN), false);
+    assert.equal(String(JSON.stringify(body)).includes('tampered.state.value'), false);
+  });
+
+  it('POST /api/trello/connect/complete rejects foreign user state (CSRF simulation)', async () => {
+    let fetchCalled = false;
+    const foreignState = createTrelloOAuthState(OTHER_USER_ID);
+
+    setTrelloFetchForTests(async () => {
+      fetchCalled = true;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'memberIntegration123', username: 'integration_user' }),
+      };
+    });
+
+    const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state: foreignState },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'TRELLO_OAUTH_STATE_INVALID');
+    assert.equal(fetchCalled, false);
+    assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
     assertNoPlaintextTrelloTokenInValue(body);
   });
 
@@ -250,6 +367,8 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/connect/complete stores connection and returns metadata only', async () => {
+    const state = await fetchConnectState(base(), auth);
+
     setTrelloFetchForTests(async (url) => {
       assert.ok(url.includes('/members/me'));
       return {
@@ -262,7 +381,7 @@ describe('trello connection API integration', () => {
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     assert.equal(statusCode, 200);
@@ -278,6 +397,8 @@ describe('trello connection API integration', () => {
   });
 
   it('GET /api/trello/connection returns connected metadata only', async () => {
+    const state = await fetchConnectState(base(), auth);
+
     setTrelloFetchForTests(async () => ({
       ok: true,
       status: 200,
@@ -287,7 +408,7 @@ describe('trello connection API integration', () => {
     await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     const { statusCode, body } = await request(`${base()}/api/trello/connection`, {
@@ -302,6 +423,8 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/connect/complete returns TRELLO_AUTH_ERROR for invalid token', async () => {
+    const state = await fetchConnectState(base(), auth);
+
     setTrelloFetchForTests(async () => ({
       ok: false,
       status: 401,
@@ -311,7 +434,7 @@ describe('trello connection API integration', () => {
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     assert.equal(statusCode, 401);
@@ -320,6 +443,10 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/connect/complete returns safe error when encryption key is missing', async () => {
+    process.env.TRELLO_OAUTH_STATE_SECRET = randomBytes(32).toString('base64');
+    resetEnvCacheForTests();
+    const state = await fetchConnectState(base(), auth);
+
     delete process.env.TRELLO_TOKEN_ENCRYPTION_KEY;
     resetEnvCacheForTests();
 
@@ -332,7 +459,7 @@ describe('trello connection API integration', () => {
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     assert.equal(statusCode, 500);
@@ -343,6 +470,10 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/connect/complete returns safe error when encryption key is malformed', async () => {
+    process.env.TRELLO_OAUTH_STATE_SECRET = randomBytes(32).toString('base64');
+    resetEnvCacheForTests();
+    const state = await fetchConnectState(base(), auth);
+
     process.env.TRELLO_TOKEN_ENCRYPTION_KEY = 'not-valid-base64-key-material';
     resetEnvCacheForTests();
 
@@ -355,7 +486,7 @@ describe('trello connection API integration', () => {
     const { statusCode, body } = await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     assert.equal(statusCode, 500);
@@ -367,6 +498,8 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/disconnect removes connection and returns connected false', async () => {
+    const state = await fetchConnectState(base(), auth);
+
     setTrelloFetchForTests(async (url, options) => {
       if (options?.method === 'DELETE') {
         return { ok: true, status: 200, json: async () => ({ _value: null }) };
@@ -381,7 +514,7 @@ describe('trello connection API integration', () => {
     await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     const { statusCode, body } = await request(`${base()}/api/trello/disconnect`, {
@@ -409,6 +542,8 @@ describe('trello connection API integration', () => {
   });
 
   it('POST /api/trello/disconnect deletes local connection when revoke fails', async () => {
+    const state = await fetchConnectState(base(), auth);
+
     setTrelloFetchForTests(async (url, options) => {
       if (options?.method === 'DELETE') {
         return { ok: false, status: 401, json: async () => ({ message: 'invalid token' }) };
@@ -423,7 +558,7 @@ describe('trello connection API integration', () => {
     await request(`${base()}/api/trello/connect/complete`, {
       method: 'POST',
       headers: auth,
-      body: { token: CONNECT_TOKEN },
+      body: { token: CONNECT_TOKEN, state },
     });
 
     const { statusCode, body } = await request(`${base()}/api/trello/disconnect`, {

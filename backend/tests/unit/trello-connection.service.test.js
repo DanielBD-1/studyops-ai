@@ -17,6 +17,10 @@ import {
   disconnectConnection,
   getConnectionStatus,
 } from '../../src/modules/trello/trello-connection.service.js';
+import {
+  createTrelloOAuthState,
+  verifyTrelloOAuthState,
+} from '../../src/modules/trello/trello-oauth-state.js';
 
 const TEST_USER_ID = '11111111-1111-4111-8111-111111111111';
 const TEST_API_KEY = 'test-trello-api-key';
@@ -24,6 +28,20 @@ const TEST_ENCRYPTION_KEY = randomBytes(32).toString('base64');
 const PLAINTEXT_TOKEN = 'ATTAsecretPlaintextTokenForUnitTestsOnly';
 
 applyTestEnv();
+
+/**
+ * @param {string} authorizeUrl
+ * @returns {string}
+ */
+function extractStateFromAuthorizeUrl(authorizeUrl) {
+  const url = new URL(authorizeUrl);
+  const returnUrl = url.searchParams.get('return_url');
+  assert.ok(returnUrl);
+  const callbackUrl = new URL(returnUrl);
+  const state = callbackUrl.searchParams.get('state');
+  assert.ok(state);
+  return state;
+}
 
 describe('trello-connection.service', () => {
   /** @type {string | undefined} */
@@ -62,8 +80,8 @@ describe('trello-connection.service', () => {
     assert.deepEqual(result, { connected: false });
   });
 
-  it('buildAuthorizeUrl includes required query parameters', () => {
-    const { authorizeUrl } = buildAuthorizeUrl();
+  it('buildAuthorizeUrl(userId) embeds state in return_url', () => {
+    const { authorizeUrl } = buildAuthorizeUrl(TEST_USER_ID);
     const url = new URL(authorizeUrl);
 
     assert.equal(url.origin + url.pathname, 'https://trello.com/1/authorize');
@@ -73,10 +91,13 @@ describe('trello-connection.service', () => {
     assert.equal(url.searchParams.get('scope'), 'read,write');
     assert.equal(url.searchParams.get('expiration'), 'never');
     assert.equal(url.searchParams.get('name'), 'StudyOps');
-    assert.equal(
-      url.searchParams.get('return_url'),
-      'http://localhost:5173/trello/connect/callback'
-    );
+
+    const returnUrl = url.searchParams.get('return_url');
+    assert.ok(returnUrl);
+    assert.ok(returnUrl.startsWith('http://localhost:5173/trello/connect/callback?state='));
+
+    const state = extractStateFromAuthorizeUrl(authorizeUrl);
+    assert.doesNotThrow(() => verifyTrelloOAuthState(state, TEST_USER_ID));
     assert.equal(authorizeUrl.includes(PLAINTEXT_TOKEN), false);
   });
 
@@ -84,7 +105,19 @@ describe('trello-connection.service', () => {
     delete process.env.TRELLO_API_KEY;
     resetEnvCacheForTests();
 
-    assert.throws(() => buildAuthorizeUrl(), (err) => {
+    assert.throws(() => buildAuthorizeUrl(TEST_USER_ID), (err) => {
+      assert.equal(err.code, 'SERVER_ERROR');
+      assert.equal(err.status, 503);
+      assert.equal(err.message, 'Trello connect is not available');
+      return true;
+    });
+  });
+
+  it('buildAuthorizeUrl throws when signing config is missing', () => {
+    delete process.env.TRELLO_TOKEN_ENCRYPTION_KEY;
+    resetEnvCacheForTests();
+
+    assert.throws(() => buildAuthorizeUrl(TEST_USER_ID), (err) => {
       assert.equal(err.code, 'SERVER_ERROR');
       assert.equal(err.status, 503);
       assert.equal(err.message, 'Trello connect is not available');
@@ -95,9 +128,10 @@ describe('trello-connection.service', () => {
   it('completeConnection throws when TRELLO_API_KEY is missing', async () => {
     delete process.env.TRELLO_API_KEY;
     resetEnvCacheForTests();
+    const state = createTrelloOAuthState(TEST_USER_ID);
 
     await assert.rejects(
-      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN),
+      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state),
       (err) => {
         assert.equal(err.code, 'SERVER_ERROR');
         assert.equal(err.status, 503);
@@ -107,7 +141,9 @@ describe('trello-connection.service', () => {
     );
   });
 
-  it('completeConnection validates token and stores encrypted connection', async () => {
+  it('completeConnection(userId, token, state) validates token and stores encrypted connection', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
     setTrelloFetchForTests(async (url) => {
       assert.ok(url.includes('/members/me'));
       return {
@@ -117,7 +153,7 @@ describe('trello-connection.service', () => {
       };
     });
 
-    const result = await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN);
+    const result = await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state);
 
     assert.equal(result.connected, true);
     assert.equal(result.trelloMemberId, 'trelloMember123');
@@ -132,7 +168,34 @@ describe('trello-connection.service', () => {
     assert.equal(String(stored.token_ciphertext).includes(PLAINTEXT_TOKEN), false);
   });
 
+  it('completeConnection rejects invalid state before Trello fetch', async () => {
+    let fetchCalled = false;
+
+    setTrelloFetchForTests(async () => {
+      fetchCalled = true;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'trelloMember123', username: 'studyops_user' }),
+      };
+    });
+
+    await assert.rejects(
+      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, 'bad.state.value'),
+      (err) => {
+        assert.equal(err.code, 'TRELLO_OAUTH_STATE_INVALID');
+        assert.equal(err.status, 400);
+        return true;
+      }
+    );
+
+    assert.equal(fetchCalled, false);
+    assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
+  });
+
   it('completeConnection rejects invalid token', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
     setTrelloFetchForTests(async () => ({
       ok: false,
       status: 401,
@@ -140,7 +203,7 @@ describe('trello-connection.service', () => {
     }));
 
     await assert.rejects(
-      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN),
+      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state),
       (err) => {
         assert.equal(err.code, 'TRELLO_AUTH_ERROR');
         assert.equal(err.status, 401);
@@ -151,6 +214,10 @@ describe('trello-connection.service', () => {
   });
 
   it('completeConnection returns safe error when encryption key is missing', async () => {
+    process.env.TRELLO_OAUTH_STATE_SECRET = randomBytes(32).toString('base64');
+    resetEnvCacheForTests();
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
     delete process.env.TRELLO_TOKEN_ENCRYPTION_KEY;
     resetEnvCacheForTests();
 
@@ -161,7 +228,7 @@ describe('trello-connection.service', () => {
     }));
 
     await assert.rejects(
-      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN),
+      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state),
       (err) => {
         assert.equal(err.code, 'SERVER_ERROR');
         assert.equal(err.status, 500);
@@ -172,6 +239,10 @@ describe('trello-connection.service', () => {
   });
 
   it('completeConnection returns safe error when encryption key is malformed', async () => {
+    process.env.TRELLO_OAUTH_STATE_SECRET = randomBytes(32).toString('base64');
+    resetEnvCacheForTests();
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
     process.env.TRELLO_TOKEN_ENCRYPTION_KEY = 'not-valid-base64-key-material';
     resetEnvCacheForTests();
 
@@ -182,7 +253,7 @@ describe('trello-connection.service', () => {
     }));
 
     await assert.rejects(
-      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN),
+      () => completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state),
       (err) => {
         assert.equal(err.code, 'SERVER_ERROR');
         assert.equal(err.status, 500);
@@ -198,6 +269,7 @@ describe('trello-connection.service', () => {
   it('disconnectConnection revokes token and deletes local row', async () => {
     /** @type {string | undefined} */
     let deleteRequestUrl;
+    const state = createTrelloOAuthState(TEST_USER_ID);
 
     setTrelloFetchForTests(async (url, options) => {
       if (options?.method === 'DELETE') {
@@ -211,7 +283,7 @@ describe('trello-connection.service', () => {
       };
     });
 
-    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN);
+    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state);
     const result = await disconnectConnection(TEST_USER_ID);
 
     assert.deepEqual(result, { connected: false });
@@ -226,6 +298,8 @@ describe('trello-connection.service', () => {
   });
 
   it('disconnectConnection deletes local row when revoke fails', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
     setTrelloFetchForTests(async (url, options) => {
       if (options?.method === 'DELETE') {
         return { ok: false, status: 401, json: async () => ({ message: 'invalid token' }) };
@@ -237,7 +311,7 @@ describe('trello-connection.service', () => {
       };
     });
 
-    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN);
+    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state);
     const result = await disconnectConnection(TEST_USER_ID);
 
     assert.deepEqual(result, { connected: false });

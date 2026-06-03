@@ -7,6 +7,7 @@ import {
   getConnectionByUserId,
   upsertConnection,
 } from './trello-connection.repository.js';
+import { createTrelloOAuthState, verifyTrelloOAuthState } from './trello-oauth-state.js';
 
 const TRELLO_AUTHORIZE_BASE = 'https://trello.com/1/authorize';
 const TRELLO_SCOPES = 'read,write';
@@ -86,10 +87,14 @@ export async function getConnectionStatus(userId) {
   return mapMetadataToResponse(metadata);
 }
 
-export function buildAuthorizeUrl() {
+/**
+ * @param {string} userId
+ */
+export function buildAuthorizeUrl(userId) {
   const apiKey = requireTrelloApiKey();
   const frontendUrl = getEnv().FRONTEND_URL.replace(/\/$/, '');
-  const returnUrl = `${frontendUrl}/trello/connect/callback`;
+  const signedState = createTrelloOAuthState(userId);
+  const returnUrl = `${frontendUrl}/trello/connect/callback?state=${encodeURIComponent(signedState)}`;
 
   const url = new URL(TRELLO_AUTHORIZE_BASE);
   url.searchParams.set('key', apiKey);
@@ -106,8 +111,11 @@ export function buildAuthorizeUrl() {
 /**
  * @param {string} userId
  * @param {string} token
+ * @param {string} state
  */
-export async function completeConnection(userId, token) {
+export async function completeConnection(userId, token, state) {
+  verifyTrelloOAuthState(state, userId);
+
   const apiKey = requireTrelloApiKey();
 
   const memberResult = await getMemberMe({ apiKey, token });
