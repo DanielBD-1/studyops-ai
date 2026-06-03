@@ -924,6 +924,20 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+
+  .page--tasks .task-workspace__create .form-card,
+  .page--tasks .task-workspace__edit-card.form-card,
+  .page--flashcards .flashcard-library.form-card,
+  .page--flashcards .flashcard-library,
+  .page--flashcards .flashcards-workspace__create .form-card,
+  .page--trello .trello-workspace__flow-deck .trello-workspace__step.form-card,
+  .page--trello .trello-sync__submit,
+  .page--trello .trello-workspace__results-zone .trello-workspace__step--results.form-card,
+  .course-workspace__settings .form-card,
+  .course-workspace__create-material .form-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .dashboard-empty-cta {
@@ -1582,9 +1596,15 @@ a.dashboard-hero__cta.btn:hover {
 }
 
 .course-workspace__settings .form-card {
-  border-color: var(--color-border);
-  background: var(--color-bg-subtle);
-  box-shadow: none;
+  border-color: var(--color-glass-border);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .course-workspace__settings .form-card__title {
@@ -1623,9 +1643,15 @@ a.dashboard-hero__cta.btn:hover {
 }
 
 .course-workspace__create-material .form-card {
-  background: var(--color-surface);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
   border-color: var(--color-glass-border);
-  box-shadow: var(--elevation-1);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .document-shelf {
@@ -1680,8 +1706,14 @@ a.dashboard-hero__cta.btn:hover {
 .page--course-detail .course-workspace__materials-empty .empty-state {
   margin: 0;
   min-width: 0;
-  background: var(--color-bg-subtle);
-  border-color: var(--color-glass-border);
+  background: linear-gradient(
+    165deg,
+    rgba(30, 41, 59, 0.4) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px dashed var(--color-glass-border);
+  box-shadow: inset 0 1px 0 rgba(218, 226, 253, 0.04);
+  backdrop-filter: none;
 }
 
 .course-task-list {
@@ -1799,9 +1831,15 @@ a.dashboard-hero__cta.btn:hover {
 .page--tasks .task-workspace__create .form-card,
 .page--tasks .task-workspace__edit-card.form-card {
   border-color: var(--color-glass-border);
-  background: var(--color-surface);
-  box-shadow: var(--elevation-1);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
   border-top: 3px solid var(--color-primary-border);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .task-workspace__loading,
@@ -1944,16 +1982,28 @@ a.dashboard-hero__cta.btn:hover {
 .page--flashcards .flashcard-library {
   margin-bottom: 0;
   border-color: var(--color-glass-border);
-  background: var(--color-surface);
-  box-shadow: var(--elevation-1);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
   border-left: 3px solid var(--color-primary-border);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .page--flashcards .flashcards-workspace__create .form-card {
   border-color: var(--color-glass-border);
-  background: var(--color-surface);
-  box-shadow: var(--elevation-1);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
   border-top: 3px solid var(--color-primary-border);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .flashcards-workspace__loading,
@@ -2110,8 +2160,14 @@ a.dashboard-hero__cta.btn:hover {
 .page--trello .trello-workspace__flow-deck .trello-workspace__step.form-card {
   margin-bottom: 0;
   border-color: var(--color-glass-border);
-  background: var(--color-surface);
-  box-shadow: var(--elevation-1);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .page--trello .trello-workspace__step--credentials.form-card {
@@ -2167,12 +2223,18 @@ a.dashboard-hero__cta.btn:hover {
   margin-top: 0;
   margin-bottom: 0;
   padding: var(--space-5) var(--space-6);
-  background: var(--color-surface);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--elevation-1);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
   border-left: 3px solid var(--color-primary);
   min-width: 0;
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 .trello-sync__submit-actions {
@@ -2203,7 +2265,9 @@ a.dashboard-hero__cta.btn:hover {
 .page--trello .trello-workspace__results-zone .trello-workspace__step--results.form-card {
   margin-bottom: 0;
   border-color: var(--color-glass-border);
-  box-shadow: var(--elevation-1);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2708,10 +2772,14 @@ a.dashboard-hero__cta.btn:hover {
   margin: 0;
   padding: var(--space-6) var(--space-5);
   text-align: center;
-  background: var(--color-surface);
+  background: linear-gradient(
+    165deg,
+    var(--color-surface-raised) 0%,
+    var(--color-surface) 100%
+  );
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--elevation-2);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(218, 226, 253, 0.04);
   min-width: 0;
 }
 
