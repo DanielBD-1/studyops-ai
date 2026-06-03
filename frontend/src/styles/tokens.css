@@ -1,10 +1,10 @@
 :root {
-  /* Canvas & shell */
-  --color-bg: #0b1326;
-  --color-bg-subtle: #131b2e;
-  --color-bg-auth: linear-gradient(165deg, #0b1326 0%, #0f172a 45%, #131b2e 100%);
-  --color-shell-bg: rgba(30, 41, 59, 0.82);
-  --color-shell-border: rgba(51, 65, 85, 0.7);
+  /* Canvas & shell — Stitch v2.2: Canvas #0F172A, Shell #0B0F1A (BX-I9B2a) */
+  --color-bg: #0f172a;
+  --color-bg-subtle: #1a2332;
+  --color-bg-auth: linear-gradient(165deg, #0f172a 0%, #0b0f1a 45%, #1a2332 100%);
+  --color-shell-bg: rgba(11, 15, 26, 0.82);
+  --color-shell-border: rgba(51, 65, 85, 0.65);
 
   /* Glass surfaces */
   --color-surface: rgba(30, 41, 59, 0.72);
