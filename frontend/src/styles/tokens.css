@@ -29,12 +29,12 @@
   --color-primary-fill-hover: #1d4ed8;
   --color-focus-ring: var(--color-primary);
 
-  /* Violet AI accent */
-  --color-ai-accent: #d0bcff;
-  --color-ai-surface: rgba(208, 188, 255, 0.1);
-  --color-ai-gradient-end: rgba(208, 188, 255, 0.22);
-  --color-ai-gradient-end-soft: rgba(208, 188, 255, 0.14);
-  --color-ai-gradient-end-faint: rgba(208, 188, 255, 0.08);
+  /* Violet AI accent — Stitch v2.2 AI Accent #8B5CF6 (BX-I9B2c) */
+  --color-ai-accent: #8b5cf6;
+  --color-ai-surface: rgba(139, 92, 246, 0.1);
+  --color-ai-gradient-end: rgba(139, 92, 246, 0.22);
+  --color-ai-gradient-end-soft: rgba(139, 92, 246, 0.14);
+  --color-ai-gradient-end-faint: rgba(139, 92, 246, 0.08);
 
   /* Cyan data accent — Stitch v2.2 #06B6D4 (BX-I9B2b) */
   --color-data-accent: #06b6d4;
@@ -134,7 +134,7 @@
   --shadow-focus-subtle: 0 0 0 3px rgba(59, 130, 246, 0.22);
   --shadow-focus-field: 0 0 0 3px rgba(59, 130, 246, 0.28);
   --glow-primary: 0 0 15px rgba(59, 130, 246, 0.2);
-  --glow-ai: 0 0 15px rgba(208, 188, 255, 0.2);
+  --glow-ai: 0 0 15px rgba(139, 92, 246, 0.2);
   --elevation-1: var(--shadow-sm);
   --elevation-2: var(--shadow-md);
   --elevation-3: var(--shadow-lg);

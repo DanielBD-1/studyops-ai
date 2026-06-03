@@ -2365,7 +2365,7 @@ a.dashboard-hero__cta.btn:hover {
 .material-workspace__cockpit-ai .material-workspace__command-section + .material-workspace__command-section {
   margin-top: var(--space-5);
   padding-top: var(--space-5);
-  border-top: 1px solid rgba(208, 188, 255, 0.18);
+  border-top: 1px solid rgba(139, 92, 246, 0.18);
 }
 
 .material-workspace__cockpit-ai .material-workspace__plan .section__header-row,
@@ -2487,7 +2487,7 @@ a.dashboard-hero__cta.btn:hover {
     box-shadow:
       var(--elevation-2),
       var(--glow-ai),
-      inset 0 1px 0 rgba(208, 188, 255, 0.08);
+      inset 0 1px 0 rgba(139, 92, 246, 0.08);
     backdrop-filter: blur(var(--blur-glass));
     -webkit-backdrop-filter: blur(var(--blur-glass));
   }
@@ -2541,7 +2541,7 @@ a.dashboard-hero__cta.btn:hover {
     box-shadow:
       var(--elevation-2),
       var(--glow-ai),
-      inset 0 1px 0 rgba(208, 188, 255, 0.1);
+      inset 0 1px 0 rgba(139, 92, 246, 0.1);
     backdrop-filter: blur(var(--blur-glass));
     -webkit-backdrop-filter: blur(var(--blur-glass));
   }

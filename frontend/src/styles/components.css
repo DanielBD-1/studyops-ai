@@ -222,14 +222,14 @@
 }
 
 .form-card--plan {
-  border-color: rgba(208, 188, 255, 0.32);
+  border-color: rgba(139, 92, 246, 0.32);
   background: linear-gradient(
     165deg,
     var(--color-surface-raised) 0%,
     var(--color-surface) 50%,
     var(--color-ai-gradient-end-faint) 100%
   );
-  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(208, 188, 255, 0.06);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(139, 92, 246, 0.06);
 }
 
 .plan-output__flashcards {
@@ -910,7 +910,7 @@
     var(--color-ai-surface) 0%,
     var(--color-ai-gradient-end-soft) 100%
   );
-  border: 1px solid rgba(208, 188, 255, 0.32);
+  border: 1px solid rgba(139, 92, 246, 0.32);
   border-radius: var(--radius-lg);
   box-shadow: var(--elevation-1), var(--glow-ai);
 }
@@ -924,12 +924,12 @@
     var(--color-surface-raised) 0%,
     var(--color-ai-gradient-end-soft) 100%
   );
-  border: 1px solid rgba(208, 188, 255, 0.34);
+  border: 1px solid rgba(139, 92, 246, 0.34);
   border-radius: var(--radius-lg);
   border-top: 2px solid var(--color-ai-accent);
   box-shadow:
     var(--elevation-1),
-    inset 0 1px 0 rgba(208, 188, 255, 0.08);
+    inset 0 1px 0 rgba(139, 92, 246, 0.08);
   backdrop-filter: blur(var(--blur-glass));
   -webkit-backdrop-filter: blur(var(--blur-glass));
 }
@@ -940,18 +940,18 @@
 }
 
 .material-workspace__cockpit-ai .ai-panel__loading--active {
-  border-color: rgba(208, 188, 255, 0.42);
+  border-color: rgba(139, 92, 246, 0.42);
   border-style: dashed;
   background: linear-gradient(
     165deg,
     var(--color-surface) 0%,
     var(--color-ai-gradient-end-faint) 100%
   );
-  box-shadow: inset 0 0 0 1px rgba(208, 188, 255, 0.06), var(--glow-ai);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.06), var(--glow-ai);
 }
 
 .material-workspace__cockpit-ai .ai-panel__loading--active .loading {
-  border-color: rgba(208, 188, 255, 0.25);
+  border-color: rgba(139, 92, 246, 0.25);
   background: linear-gradient(
     165deg,
     var(--color-surface-raised) 0%,
@@ -1013,7 +1013,7 @@
     var(--color-surface) 0%,
     var(--color-ai-gradient-end-faint) 100%
   );
-  border: 1px dashed rgba(208, 188, 255, 0.38);
+  border: 1px dashed rgba(139, 92, 246, 0.38);
   border-radius: var(--radius-md);
 }
 
@@ -1062,7 +1062,7 @@
 
 .material-workspace__cockpit-ai .plan-output,
 .material-workspace__cockpit-ai .plan-history.form-card {
-  border-color: rgba(208, 188, 255, 0.3);
+  border-color: rgba(139, 92, 246, 0.3);
   background: linear-gradient(
     165deg,
     var(--color-surface-raised) 0%,
@@ -1070,7 +1070,7 @@
     var(--color-ai-gradient-end-faint) 100%
   );
   border-radius: var(--radius-lg);
-  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(208, 188, 255, 0.05);
+  box-shadow: var(--elevation-1), inset 0 1px 0 rgba(139, 92, 246, 0.05);
   backdrop-filter: blur(var(--blur-glass));
   -webkit-backdrop-filter: blur(var(--blur-glass));
 }
@@ -1080,11 +1080,11 @@
 }
 
 .material-workspace__cockpit-ai .plan-output__header {
-  border-bottom-color: rgba(208, 188, 255, 0.28);
+  border-bottom-color: rgba(139, 92, 246, 0.28);
 }
 
 .material-workspace__cockpit-ai .plan-output__footer {
-  border-top-color: rgba(208, 188, 255, 0.16);
+  border-top-color: rgba(139, 92, 246, 0.16);
 }
 
 .material-workspace__editor-card .form-card__title {
@@ -1205,7 +1205,7 @@
 .plan-output__header {
   margin-bottom: var(--space-5);
   padding-bottom: var(--space-4);
-  border-bottom: 1px solid rgba(208, 188, 255, 0.25);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .plan-output__body {
@@ -1250,7 +1250,7 @@
     var(--color-ai-surface) 0%,
     var(--color-surface) 100%
   );
-  border: 1px solid rgba(208, 188, 255, 0.28);
+  border: 1px solid rgba(139, 92, 246, 0.28);
   border-radius: var(--radius-md);
   box-shadow: var(--elevation-1), var(--glow-ai);
 }
@@ -1302,7 +1302,7 @@
     var(--color-bg-subtle) 0%,
     var(--color-ai-gradient-end-faint) 100%
   );
-  border-color: rgba(208, 188, 255, 0.22);
+  border-color: rgba(139, 92, 246, 0.22);
 }
 
 .plan-history__error {
@@ -2007,7 +2007,7 @@
     var(--color-bg-subtle) 0%,
     var(--color-surface) 100%
   );
-  border-color: rgba(208, 188, 255, 0.16);
+  border-color: rgba(139, 92, 246, 0.16);
 }
 
 .plan-history__item--active {
@@ -2017,7 +2017,7 @@
 }
 
 .material-workspace__cockpit-ai .plan-history__item--active {
-  border-color: rgba(208, 188, 255, 0.38);
+  border-color: rgba(139, 92, 246, 0.38);
   background: linear-gradient(
     165deg,
     var(--color-ai-surface) 0%,
@@ -2094,8 +2094,8 @@
     var(--color-editor-surface) 0%,
     var(--color-ai-gradient-end-faint) 100%
   );
-  border-color: rgba(208, 188, 255, 0.24);
-  box-shadow: inset 0 1px 0 rgba(208, 188, 255, 0.06);
+  border-color: rgba(139, 92, 246, 0.24);
+  box-shadow: inset 0 1px 0 rgba(139, 92, 246, 0.06);
 }
 
 .plan-history__preview-summary,
