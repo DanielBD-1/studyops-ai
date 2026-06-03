@@ -8,6 +8,10 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1),
   FRONTEND_URL: z.string().url(),
   DOCUMENT_SERVICE_URL: z.string().url().default('http://localhost:3002'),
+  /** Optional until Trello OAuth connect ships (A3+). */
+  TRELLO_API_KEY: z.string().min(1).optional(),
+  /** Base64-encoded 32-byte key for AES-256-GCM token encryption. */
+  TRELLO_TOKEN_ENCRYPTION_KEY: z.string().min(1).optional(),
 });
 
 /** @typedef {z.infer<typeof envSchema>} Env */
@@ -38,6 +42,16 @@ export function getEnv() {
     cached = parseEnv(process.env);
   }
   return cached;
+}
+
+/**
+ * Test-only: clear cached env after mutating process.env.
+ */
+export function resetEnvCacheForTests() {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('resetEnvCacheForTests is only available in test');
+  }
+  cached = null;
 }
 
 export { envSchema };
