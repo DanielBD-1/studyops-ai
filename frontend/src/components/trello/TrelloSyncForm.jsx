@@ -23,14 +23,14 @@ export default function TrelloSyncForm({
   return (
     <FormCard className="trello-workspace__step trello-workspace__step--credentials">
       <p className="trello-workspace__step-label" aria-hidden="true">
-        Step 1
+        Manual
       </p>
       <h2 className="trello-workspace__step-title form-card__title" id="trello-step-credentials">
-        Connect to Trello
+        Manual API credentials
       </h2>
       <p className="form-card__hint trello-workspace__trust-note">
-        Enter your API key and token below. They are used only for this session and are cleared
-        after sync — StudyOps never stores them.
+        Use only if you cannot connect a Trello account. Credentials are used only for this session
+        and are cleared after sync — StudyOps never stores them.
       </p>
       <div className="trello-sync__fields">
         <TrelloSyncFormFields

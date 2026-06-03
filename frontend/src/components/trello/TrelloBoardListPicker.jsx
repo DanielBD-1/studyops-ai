@@ -21,6 +21,7 @@ import LoadingState from '../ui/LoadingState.jsx';
  *   onBoardChange: (boardId: string) => void,
  *   onListChange: (listId: string) => void,
  *   disabled?: boolean,
+ *   credentialMode?: 'connected' | 'manual',
  * }} props
  */
 export default function TrelloBoardListPicker({
@@ -39,6 +40,7 @@ export default function TrelloBoardListPicker({
   onBoardChange,
   onListChange,
   disabled = false,
+  credentialMode = 'manual',
 }) {
   const boardOptions = mapTrelloNamedOptions(boards);
   const listOptions = mapTrelloNamedOptions(lists);
@@ -84,7 +86,9 @@ export default function TrelloBoardListPicker({
 
         {showEmptyBoards && (
           <p className="trello-picker__empty trello-picker__status" role="status">
-            No open boards found for these credentials.
+            {credentialMode === 'connected'
+              ? 'No open boards found for your connected account.'
+              : 'No open boards found for these credentials.'}
           </p>
         )}
 

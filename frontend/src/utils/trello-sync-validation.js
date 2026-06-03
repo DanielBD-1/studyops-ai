@@ -1,11 +1,17 @@
 export const TRELLO_SYNC_MAX_TASKS = 50;
 
+/** @typedef {'connected' | 'manual' | 'loading'} TrelloSyncCredentialMode */
+
 /**
  * @param {string} apiKey
  * @param {string} token
+ * @param {TrelloSyncCredentialMode} [mode]
  * @returns {{ valid: true } | { valid: false, message: string }}
  */
-export function validateTrelloLoadBoards(apiKey, token) {
+export function validateTrelloLoadBoards(apiKey, token, mode = 'manual') {
+  if (mode === 'connected' || mode === 'loading') {
+    return { valid: true };
+  }
   if (!apiKey.trim()) {
     return { valid: false, message: 'API key is required' };
   }
@@ -16,17 +22,11 @@ export function validateTrelloLoadBoards(apiKey, token) {
 }
 
 /**
- * @param {string} apiKey
- * @param {string} token
  * @param {string} listId
  * @param {string[]} selectedTaskIds
  * @returns {{ valid: true } | { valid: false, message: string }}
  */
-export function validateTrelloSyncForm(apiKey, token, listId, selectedTaskIds) {
-  const credentials = validateTrelloLoadBoards(apiKey, token);
-  if (!credentials.valid) {
-    return credentials;
-  }
+function validateTrelloSyncTargets(listId, selectedTaskIds) {
   if (!listId.trim()) {
     return { valid: false, message: 'Select a Trello list' };
   }
@@ -44,11 +44,37 @@ export function validateTrelloSyncForm(apiKey, token, listId, selectedTaskIds) {
  * @param {string} token
  * @param {string} listId
  * @param {string[]} selectedTaskIds
- * @param {boolean} syncing
+ * @param {TrelloSyncCredentialMode} [mode]
+ * @returns {{ valid: true } | { valid: false, message: string }}
  */
-export function isTrelloSyncSubmitDisabled(apiKey, token, listId, selectedTaskIds, syncing) {
-  if (syncing) {
+export function validateTrelloSyncForm(apiKey, token, listId, selectedTaskIds, mode = 'manual') {
+  if (mode !== 'connected' && mode !== 'loading') {
+    const credentials = validateTrelloLoadBoards(apiKey, token, 'manual');
+    if (!credentials.valid) {
+      return credentials;
+    }
+  }
+  return validateTrelloSyncTargets(listId, selectedTaskIds);
+}
+
+/**
+ * @param {string} apiKey
+ * @param {string} token
+ * @param {string} listId
+ * @param {string[]} selectedTaskIds
+ * @param {boolean} syncing
+ * @param {TrelloSyncCredentialMode} [mode]
+ */
+export function isTrelloSyncSubmitDisabled(
+  apiKey,
+  token,
+  listId,
+  selectedTaskIds,
+  syncing,
+  mode = 'manual'
+) {
+  if (syncing || mode === 'loading') {
     return true;
   }
-  return validateTrelloSyncForm(apiKey, token, listId, selectedTaskIds).valid !== true;
+  return validateTrelloSyncForm(apiKey, token, listId, selectedTaskIds, mode).valid !== true;
 }

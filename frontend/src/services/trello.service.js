@@ -149,10 +149,14 @@ export async function disconnectTrello() {
 }
 
 /**
- * @param {{ apiKey: string, token: string }} body
+ * @param {{ apiKey?: string, token?: string }} [credentials]
  * @returns {Promise<{ boards: TrelloNamedItem[] }>}
  */
-export async function fetchTrelloBoards(body) {
+export async function fetchTrelloBoards(credentials) {
+  const body =
+    credentials?.apiKey != null && credentials?.token != null
+      ? { apiKey: credentials.apiKey, token: credentials.token }
+      : {};
   const data = await request('/api/trello/boards', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -161,27 +165,33 @@ export async function fetchTrelloBoards(body) {
 }
 
 /**
- * @param {{ apiKey: string, token: string, boardId: string }} body
+ * @param {{ boardId: string, apiKey?: string, token?: string }} params
  * @returns {Promise<{ lists: TrelloNamedItem[] }>}
  */
 export async function fetchTrelloBoardLists({ apiKey, token, boardId }) {
+  const body =
+    apiKey != null && token != null ? { apiKey, token } : {};
   const data = await request(`/api/trello/boards/${encodeURIComponent(boardId)}/lists`, {
     method: 'POST',
-    body: JSON.stringify({ apiKey, token }),
+    body: JSON.stringify(body),
   });
   return /** @type {{ lists: TrelloNamedItem[] }} */ (data);
 }
 
 /**
  * @param {{
- *   apiKey: string,
- *   token: string,
  *   listId: string,
  *   taskIds: string[],
- * }} body
+ *   apiKey?: string,
+ *   token?: string,
+ * }} params
  * @returns {Promise<{ results: TrelloSyncResult[], summary: TrelloSyncSummary }>}
  */
-export async function syncTasksToTrello(body) {
+export async function syncTasksToTrello({ apiKey, token, listId, taskIds }) {
+  const body =
+    apiKey != null && token != null
+      ? { apiKey, token, listId, taskIds }
+      : { listId, taskIds };
   const data = await request('/api/trello/sync', {
     method: 'POST',
     body: JSON.stringify(body),
