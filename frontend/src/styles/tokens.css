@@ -18,15 +18,15 @@
   --color-text-muted: #c2c6d6;
   --color-text-subtle: #9aa3b5;
 
-  /* Electric blue primary */
-  --color-primary: #4d8eff;
-  --color-primary-hover: #3a7ae8;
-  --color-primary-subtle: rgba(77, 142, 255, 0.12);
-  --color-primary-border: rgba(77, 142, 255, 0.35);
+  /* Electric blue primary — Stitch v2.2 #3B82F6 (BX-I9B2b) */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-subtle: rgba(59, 130, 246, 0.12);
+  --color-primary-border: rgba(59, 130, 246, 0.35);
   --color-on-primary: #ffffff;
   /* Filled controls — darker fills for WCAG AA label contrast with on-primary */
-  --color-primary-fill: #3570e5;
-  --color-primary-fill-hover: #2d62cc;
+  --color-primary-fill: #2563eb;
+  --color-primary-fill-hover: #1d4ed8;
   --color-focus-ring: var(--color-primary);
 
   /* Violet AI accent */
@@ -36,8 +36,8 @@
   --color-ai-gradient-end-soft: rgba(208, 188, 255, 0.14);
   --color-ai-gradient-end-faint: rgba(208, 188, 255, 0.08);
 
-  /* Cyan data accent */
-  --color-data-accent: #4cd7f6;
+  /* Cyan data accent — Stitch v2.2 #06B6D4 (BX-I9B2b) */
+  --color-data-accent: #06b6d4;
 
   /* Semantic states on dark */
   --color-danger: #f2555a;
@@ -74,9 +74,9 @@
 
   /* Chart palette (values only — no chart UI in BX-I2) */
   --color-chart-track: rgba(51, 65, 85, 0.6);
-  --color-chart-fill: rgba(76, 215, 246, 0.5);
-  --color-chart-series-1: #4cd7f6;
-  --color-chart-series-2: #4d8eff;
+  --color-chart-fill: rgba(6, 182, 212, 0.5);
+  --color-chart-series-1: #06b6d4;
+  --color-chart-series-2: #3b82f6;
   --color-chart-series-3: #f59e0b;
 
   /* Disabled affordance */
@@ -130,10 +130,10 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.35);
   --shadow-auth: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-focus: 0 0 0 3px rgba(77, 142, 255, 0.35);
-  --shadow-focus-subtle: 0 0 0 3px rgba(77, 142, 255, 0.22);
-  --shadow-focus-field: 0 0 0 3px rgba(77, 142, 255, 0.28);
-  --glow-primary: 0 0 15px rgba(77, 142, 255, 0.2);
+  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  --shadow-focus-subtle: 0 0 0 3px rgba(59, 130, 246, 0.22);
+  --shadow-focus-field: 0 0 0 3px rgba(59, 130, 246, 0.28);
+  --glow-primary: 0 0 15px rgba(59, 130, 246, 0.2);
   --glow-ai: 0 0 15px rgba(208, 188, 255, 0.2);
   --elevation-1: var(--shadow-sm);
   --elevation-2: var(--shadow-md);
