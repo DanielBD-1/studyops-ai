@@ -17,7 +17,7 @@ const TRELLO_APP_NAME = 'StudyOps';
 /**
  * @returns {string}
  */
-function requireTrelloApiKey() {
+export function requireTrelloApiKey() {
   const apiKey = getEnv().TRELLO_API_KEY?.trim();
   if (!apiKey) {
     throw new ApiError('SERVER_ERROR', 'Trello connect is not available', 503);

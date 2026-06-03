@@ -1,12 +1,14 @@
 import {
   trelloBoardIdParamSchema,
-  trelloBoardListsBodySchema,
-  trelloBoardsBodySchema,
   trelloConnectCompleteBodySchema,
   trelloDisconnectBodySchema,
-  trelloSyncBodySchema,
 } from '../../shared/validation/trello.schema.js';
 import { sendSuccess, sendValidationError } from '../../shared/utils/response.js';
+import {
+  resolveTrelloBoardListsCredentials,
+  resolveTrelloDiscoveryCredentials,
+  resolveTrelloSyncRequest,
+} from './trello-credentials.resolver.js';
 import {
   buildAuthorizeUrl,
   completeConnection,
@@ -21,14 +23,9 @@ import { listTrelloBoardLists, listTrelloBoards, syncTasksToTrello } from './tre
  * @param {import('express').NextFunction} next
  */
 export async function boards(req, res, next) {
-  const bodyParsed = trelloBoardsBodySchema.safeParse(req.body);
-  if (!bodyParsed.success) {
-    sendValidationError(res, bodyParsed.error);
-    return;
-  }
-
   try {
-    const data = await listTrelloBoards(bodyParsed.data);
+    const { apiKey, token } = await resolveTrelloDiscoveryCredentials(req.user.id, req.body);
+    const data = await listTrelloBoards({ apiKey, token });
     sendSuccess(res, data);
   } catch (err) {
     next(err);
@@ -47,15 +44,11 @@ export async function boardLists(req, res, next) {
     return;
   }
 
-  const bodyParsed = trelloBoardListsBodySchema.safeParse(req.body);
-  if (!bodyParsed.success) {
-    sendValidationError(res, bodyParsed.error);
-    return;
-  }
-
   try {
+    const { apiKey, token } = await resolveTrelloBoardListsCredentials(req.user.id, req.body);
     const data = await listTrelloBoardLists({
-      ...bodyParsed.data,
+      apiKey,
+      token,
       boardId: paramsParsed.data.boardId,
     });
     sendSuccess(res, data);
@@ -70,14 +63,12 @@ export async function boardLists(req, res, next) {
  * @param {import('express').NextFunction} next
  */
 export async function sync(req, res, next) {
-  const bodyParsed = trelloSyncBodySchema.safeParse(req.body);
-  if (!bodyParsed.success) {
-    sendValidationError(res, bodyParsed.error);
-    return;
-  }
-
   try {
-    const data = await syncTasksToTrello(req.user.id, bodyParsed.data);
+    const { apiKey, token, listId, taskIds } = await resolveTrelloSyncRequest(
+      req.user.id,
+      req.body
+    );
+    const data = await syncTasksToTrello(req.user.id, { apiKey, token, listId, taskIds });
     sendSuccess(res, data);
   } catch (err) {
     next(err);

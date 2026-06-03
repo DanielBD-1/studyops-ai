@@ -12,9 +12,37 @@ const trelloCredentialsFields = {
   token: trelloCredentialSchema('Token'),
 };
 
+const trelloSyncPayloadFields = {
+  listId: z
+    .string()
+    .trim()
+    .min(1, 'List ID is required')
+    .max(64, 'List ID must be at most 64 characters'),
+  taskIds: z
+    .array(z.string().uuid('Invalid task id'))
+    .min(1, 'At least one task id is required')
+    .max(50, 'At most 50 task ids are allowed'),
+};
+
+const trelloSyncPayloadRefine = (data) => new Set(data.taskIds).size === data.taskIds.length;
+
+const trelloSyncPayloadRefineConfig = {
+  message: 'taskIds must not contain duplicates',
+  path: ['taskIds'],
+};
+
 export const trelloBoardsBodySchema = z.object(trelloCredentialsFields).strict();
 
 export const trelloBoardListsBodySchema = z.object(trelloCredentialsFields).strict();
+
+export const trelloBoardsStoredBodySchema = z.object({}).strict();
+
+export const trelloBoardListsStoredBodySchema = z.object({}).strict();
+
+export const trelloSyncStoredBodySchema = z
+  .object(trelloSyncPayloadFields)
+  .strict()
+  .refine(trelloSyncPayloadRefine, trelloSyncPayloadRefineConfig);
 
 export const trelloBoardIdParamSchema = z
   .object({
@@ -30,21 +58,10 @@ export const trelloBoardIdParamSchema = z
 export const trelloSyncBodySchema = z
   .object({
     ...trelloCredentialsFields,
-    listId: z
-      .string()
-      .trim()
-      .min(1, 'List ID is required')
-      .max(64, 'List ID must be at most 64 characters'),
-    taskIds: z
-      .array(z.string().uuid('Invalid task id'))
-      .min(1, 'At least one task id is required')
-      .max(50, 'At most 50 task ids are allowed'),
+    ...trelloSyncPayloadFields,
   })
   .strict()
-  .refine((data) => new Set(data.taskIds).size === data.taskIds.length, {
-    message: 'taskIds must not contain duplicates',
-    path: ['taskIds'],
-  });
+  .refine(trelloSyncPayloadRefine, trelloSyncPayloadRefineConfig);
 
 export const trelloConnectCompleteBodySchema = z
   .object({
@@ -58,3 +75,29 @@ export const trelloConnectCompleteBodySchema = z
   .strict();
 
 export const trelloDisconnectBodySchema = z.object({}).strict();
+
+/** @typedef {'stored' | 'manual' | 'partial'} TrelloCredentialMode */
+
+/**
+ * @param {unknown} body
+ * @returns {TrelloCredentialMode}
+ */
+export function classifyTrelloCredentialMode(body) {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return 'partial';
+  }
+
+  const record = /** @type {Record<string, unknown>} */ (body);
+  const hasApiKey = Object.prototype.hasOwnProperty.call(record, 'apiKey');
+  const hasToken = Object.prototype.hasOwnProperty.call(record, 'token');
+
+  if (!hasApiKey && !hasToken) {
+    return 'stored';
+  }
+
+  if (hasApiKey && hasToken) {
+    return 'manual';
+  }
+
+  return 'partial';
+}
