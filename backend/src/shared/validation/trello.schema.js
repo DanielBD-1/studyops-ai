@@ -76,6 +76,21 @@ export const trelloConnectCompleteBodySchema = z
 
 export const trelloDisconnectBodySchema = z.object({}).strict();
 
+const trelloResourceIdSchema = (label) =>
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required`)
+    .max(64, `${label} must be at most 64 characters`)
+    .regex(/^[a-zA-Z0-9]+$/, `Invalid ${label.toLowerCase()}`);
+
+export const trelloConnectionDefaultsBodySchema = z
+  .object({
+    boardId: trelloResourceIdSchema('Board ID'),
+    listId: trelloResourceIdSchema('List ID'),
+  })
+  .strict();
+
 /** @typedef {'stored' | 'manual' | 'partial'} TrelloCredentialMode */
 
 /**

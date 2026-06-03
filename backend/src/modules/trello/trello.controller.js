@@ -1,6 +1,7 @@
 import {
   trelloBoardIdParamSchema,
   trelloConnectCompleteBodySchema,
+  trelloConnectionDefaultsBodySchema,
   trelloDisconnectBodySchema,
 } from '../../shared/validation/trello.schema.js';
 import { sendSuccess, sendValidationError } from '../../shared/utils/response.js';
@@ -14,6 +15,7 @@ import {
   completeConnection,
   disconnectConnection,
   getConnectionStatus,
+  updateConnectionDefaults,
 } from './trello-connection.service.js';
 import { listTrelloBoardLists, listTrelloBoards, syncTasksToTrello } from './trello.service.js';
 
@@ -120,6 +122,30 @@ export async function connectComplete(req, res, next) {
       req.user.id,
       bodyParsed.data.token,
       bodyParsed.data.state
+    );
+    sendSuccess(res, data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function updateDefaults(req, res, next) {
+  const bodyParsed = trelloConnectionDefaultsBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const data = await updateConnectionDefaults(
+      req.user.id,
+      bodyParsed.data.boardId,
+      bodyParsed.data.listId
     );
     sendSuccess(res, data);
   } catch (err) {

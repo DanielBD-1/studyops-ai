@@ -72,6 +72,27 @@ function resolveDelete(state) {
   return { data: [{ user_id: userId }], error: null };
 }
 
+/**
+ * @param {Record<string, unknown>} state
+ */
+function resolveUpdate(state) {
+  const userId = state.filters.user_id;
+  const existing = connectionsByUserId.get(userId);
+  if (!existing) {
+    return { data: null, error: null };
+  }
+
+  const patch = /** @type {Record<string, unknown>} */ (state.update);
+  const updated = { ...existing, ...patch };
+  connectionsByUserId.set(userId, updated);
+
+  return resolveSelect({
+    ...state,
+    filters: { user_id: userId },
+    single: true,
+  });
+}
+
 function createTrelloConnectionsBuilder() {
   /** @type {Record<string, unknown>} */
   const state = {
@@ -93,6 +114,10 @@ function createTrelloConnectionsBuilder() {
       state.upsert = row;
       return builder;
     },
+    update(patch) {
+      state.update = patch;
+      return builder;
+    },
     delete() {
       state.delete = true;
       return builder;
@@ -109,6 +134,9 @@ function createTrelloConnectionsBuilder() {
       let result;
       if (state.delete) {
         result = resolveDelete(state);
+      } else if (state.update) {
+        state.returnColumns = state.columns;
+        result = resolveUpdate(state);
       } else if (state.upsert) {
         state.returnColumns = state.columns;
         result = resolveUpsert(state);

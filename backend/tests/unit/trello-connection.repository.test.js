@@ -14,6 +14,7 @@ import {
   decryptTokenForUser,
   deleteConnectionByUserId,
   getConnectionByUserId,
+  updateConnectionDefaults,
   upsertConnection,
 } from '../../src/modules/trello/trello-connection.repository.js';
 
@@ -130,5 +131,88 @@ describe('trello-connection.repository', () => {
     assert.equal(metadata?.trelloMemberId, 'second');
     assert.equal(metadata?.scopes, 'read,write');
     assert.equal(await decryptTokenForUser(TEST_USER_ID), 'ATTAsecondTokenValueForTests');
+  });
+
+  it('updateConnectionDefaults stores board and list ids', async () => {
+    await upsertConnection({
+      userId: TEST_USER_ID,
+      token: PLAINTEXT_TOKEN,
+      scopes: 'read,write',
+      trelloMemberId: 'trelloMember123',
+    });
+
+    const metadata = await updateConnectionDefaults(TEST_USER_ID, {
+      boardId: 'boardSaved123',
+      listId: 'listSaved456',
+    });
+
+    assert.equal(metadata.defaultBoardId, 'boardSaved123');
+    assert.equal(metadata.defaultListId, 'listSaved456');
+    assertNoPlaintextTrelloTokenInValue(metadata);
+  });
+
+  it('updateConnectionDefaults throws TRELLO_NOT_CONNECTED when missing row', async () => {
+    await assert.rejects(
+      () =>
+        updateConnectionDefaults(TEST_USER_ID, {
+          boardId: 'boardSaved123',
+          listId: 'listSaved456',
+        }),
+      (err) => {
+        assert.equal(err.code, 'TRELLO_NOT_CONNECTED');
+        assert.equal(err.status, 400);
+        return true;
+      }
+    );
+  });
+
+  it('upsertConnection preserves defaults when reconnecting same trello member', async () => {
+    await upsertConnection({
+      userId: TEST_USER_ID,
+      token: PLAINTEXT_TOKEN,
+      scopes: 'read,write',
+      trelloMemberId: 'trelloMember123',
+    });
+
+    await updateConnectionDefaults(TEST_USER_ID, {
+      boardId: 'boardSaved123',
+      listId: 'listSaved456',
+    });
+
+    await upsertConnection({
+      userId: TEST_USER_ID,
+      token: 'ATTAsecondTokenValueForTests',
+      scopes: 'read,write',
+      trelloMemberId: 'trelloMember123',
+    });
+
+    const metadata = await getConnectionByUserId(TEST_USER_ID);
+    assert.equal(metadata?.defaultBoardId, 'boardSaved123');
+    assert.equal(metadata?.defaultListId, 'listSaved456');
+  });
+
+  it('upsertConnection clears defaults when reconnecting different trello member', async () => {
+    await upsertConnection({
+      userId: TEST_USER_ID,
+      token: PLAINTEXT_TOKEN,
+      scopes: 'read,write',
+      trelloMemberId: 'trelloMember123',
+    });
+
+    await updateConnectionDefaults(TEST_USER_ID, {
+      boardId: 'boardSaved123',
+      listId: 'listSaved456',
+    });
+
+    await upsertConnection({
+      userId: TEST_USER_ID,
+      token: 'ATTAsecondTokenValueForTests',
+      scopes: 'read,write',
+      trelloMemberId: 'differentMember999',
+    });
+
+    const metadata = await getConnectionByUserId(TEST_USER_ID);
+    assert.equal(metadata?.defaultBoardId, null);
+    assert.equal(metadata?.defaultListId, null);
   });
 });

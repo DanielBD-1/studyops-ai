@@ -4,8 +4,10 @@ import { listAllTasks } from '../../services/tasks.service.js';
 import {
   fetchTrelloBoardLists,
   fetchTrelloBoards,
+  saveTrelloConnectionDefaults,
   syncTasksToTrello,
 } from '../../services/trello.service.js';
+import { resolveSavedBoardPreselect, resolveSavedListPreselect } from '../../utils/trello-defaults.js';
 import { mapTrelloSyncError } from '../../utils/trello-sync-errors.js';
 import {
   isTrelloSyncSubmitDisabled,
@@ -29,6 +31,8 @@ import LoadingState from '../ui/LoadingState.jsx';
  *   handleAuthError: (err: unknown) => Promise<boolean>,
  *   syncMode: TrelloSyncCredentialMode,
  *   connectedUsername?: string | null,
+ *   defaultBoardId?: string | null,
+ *   defaultListId?: string | null,
  * }} props
  */
 export default function TrelloSyncSection({
@@ -36,6 +40,8 @@ export default function TrelloSyncSection({
   handleAuthError,
   syncMode,
   connectedUsername = null,
+  defaultBoardId = null,
+  defaultListId = null,
 }) {
   const { refreshStats } = useDashboardRefresh();
   const [tasks, setTasks] = useState(
@@ -60,6 +66,9 @@ export default function TrelloSyncSection({
   const [listsAttempted, setListsAttempted] = useState(false);
   const [boardsError, setBoardsError] = useState(/** @type {string | null} */ (null));
   const [listsError, setListsError] = useState(/** @type {string | null} */ (null));
+  const [savedBoardNotice, setSavedBoardNotice] = useState(/** @type {string | null} */ (null));
+  const [savedListNotice, setSavedListNotice] = useState(/** @type {string | null} */ (null));
+  const [defaultsSaveError, setDefaultsSaveError] = useState(/** @type {string | null} */ (null));
   const [selectedTaskIds, setSelectedTaskIds] = useState(() => new Set());
 
   const [syncing, setSyncing] = useState(false);
@@ -102,6 +111,9 @@ export default function TrelloSyncSection({
     setListsAttempted(false);
     setBoardsError(null);
     setListsError(null);
+    setSavedBoardNotice(null);
+    setSavedListNotice(null);
+    setDefaultsSaveError(null);
   }, []);
 
   const clearSyncResults = useCallback(() => {
@@ -167,9 +179,82 @@ export default function TrelloSyncSection({
     loadTasks();
   }, [loadTasks]);
 
+  const persistConnectionDefaults = useCallback(
+    async (boardId, listId) => {
+      if (!isConnectedMode || !boardId || !listId) {
+        return;
+      }
+
+      setDefaultsSaveError(null);
+
+      try {
+        await saveTrelloConnectionDefaults({ boardId, listId });
+      } catch (err) {
+        if (await handleAuthError(err)) return;
+        setDefaultsSaveError(
+          'Could not save your default list. Your selection still works for this session.'
+        );
+      }
+    },
+    [handleAuthError, isConnectedMode]
+  );
+
+  const loadListsForBoard = useCallback(
+    async (boardId, options = {}) => {
+      const { savedListId: listIdToPreselect = null, skipListPreselect = false } = options;
+
+      setSelectedBoardId(boardId);
+      setSelectedListId('');
+      setLists([]);
+      setListsError(null);
+      setListsAttempted(false);
+      setSavedListNotice(null);
+
+      if (!boardId) {
+        return;
+      }
+
+      const validation = validateTrelloLoadBoards(apiKey, token, validationMode);
+      if (!validation.valid) {
+        setListsError(validation.message);
+        return;
+      }
+
+      setListsLoading(true);
+
+      try {
+        const data = isConnectedMode
+          ? await fetchTrelloBoardLists({ boardId })
+          : await fetchTrelloBoardLists({
+              apiKey: apiKey.trim(),
+              token: token.trim(),
+              boardId,
+            });
+        setLists(data.lists);
+        setListsAttempted(true);
+
+        if (isConnectedMode && !skipListPreselect && listIdToPreselect) {
+          const { listId, notice } = resolveSavedListPreselect(data.lists, listIdToPreselect);
+          setSelectedListId(listId);
+          setSavedListNotice(notice);
+        }
+      } catch (err) {
+        if (await handleAuthError(err)) return;
+        setListsError(mapTrelloSyncError(err, { mode: errorMode, context: 'lists' }));
+        setListsAttempted(true);
+      } finally {
+        setListsLoading(false);
+      }
+    },
+    [apiKey, token, validationMode, isConnectedMode, errorMode, handleAuthError]
+  );
+
   async function handleLoadBoards() {
     setBoardsError(null);
     setListsError(null);
+    setSavedBoardNotice(null);
+    setSavedListNotice(null);
+    setDefaultsSaveError(null);
     setValidationError(null);
 
     const validation = validateTrelloLoadBoards(apiKey, token, validationMode);
@@ -192,6 +277,14 @@ export default function TrelloSyncSection({
           });
       setBoards(data.boards);
       setBoardsAttempted(true);
+
+      if (isConnectedMode && defaultBoardId) {
+        const { boardId, notice } = resolveSavedBoardPreselect(data.boards, defaultBoardId);
+        setSavedBoardNotice(notice);
+        if (boardId) {
+          await loadListsForBoard(boardId, { savedListId: defaultListId });
+        }
+      }
     } catch (err) {
       if (await handleAuthError(err)) return;
       setBoardsError(mapTrelloSyncError(err, { mode: errorMode, context: 'boards' }));
@@ -202,44 +295,19 @@ export default function TrelloSyncSection({
   }
 
   async function handleBoardChange(boardId) {
-    setSelectedBoardId(boardId);
-    setSelectedListId('');
-    setLists([]);
-    setListsError(null);
-    setListsAttempted(false);
-
-    if (!boardId) {
-      return;
-    }
-
-    const validation = validateTrelloLoadBoards(apiKey, token, validationMode);
-    if (!validation.valid) {
-      setListsError(validation.message);
-      return;
-    }
-
-    setListsLoading(true);
-
-    try {
-      const data = isConnectedMode
-        ? await fetchTrelloBoardLists({ boardId })
-        : await fetchTrelloBoardLists({
-            apiKey: apiKey.trim(),
-            token: token.trim(),
-            boardId,
-          });
-      setLists(data.lists);
-    } catch (err) {
-      if (await handleAuthError(err)) return;
-      setListsError(mapTrelloSyncError(err, { mode: errorMode, context: 'lists' }));
-    } finally {
-      setListsLoading(false);
-      setListsAttempted(true);
-    }
+    setSavedBoardNotice(null);
+    setSavedListNotice(null);
+    await loadListsForBoard(boardId, { skipListPreselect: true });
   }
 
-  function handleListChange(listId) {
+  async function handleListChange(listId) {
     setSelectedListId(listId);
+
+    if (!isConnectedMode || !listId || !selectedBoardId) {
+      return;
+    }
+
+    await persistConnectionDefaults(selectedBoardId, listId);
   }
 
   function handleToggleTask(taskId) {
@@ -405,6 +473,9 @@ export default function TrelloSyncSection({
                     listsAttempted={listsAttempted}
                     boardsError={boardsError}
                     listsError={listsError}
+                    savedBoardNotice={savedBoardNotice}
+                    savedListNotice={savedListNotice}
+                    defaultsSaveError={defaultsSaveError}
                     loadBoardsDisabled={loadBoardsDisabled}
                     onLoadBoards={handleLoadBoards}
                     onBoardChange={handleBoardChange}
