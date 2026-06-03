@@ -381,7 +381,7 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Shipped danger/error color (BX-I9B2d, commit `ae5cfc8`):** Stitch v2.2 Error / Rose Red **`#E11D48`** in **`tokens.css`** only — **`--color-danger`** **`#e11d48`**; **`--color-danger-fill`** **`#be123c`** (**not** **`#e11d48`** on fill); **`--color-error`** **`#fda4af`** (**not** **`#e11d48`**); course accent rose tokens **unchanged**; **`components.css`** / **`layout.css`** untouched; danger/error visual QA **completed** in **BX-I9C** / **BX-I9C-Auth** — **Pass with notes** (review only).
 
-**Target (BX-I1 — remaining gaps):** source editor on a **darker well**; deferred font alignment; optional AI Generate gradient; optional **flashcard-study** glass polish.
+**Target (BX-I1 — remaining gaps):** source editor on a **darker well**; deferred font alignment; optional **BX-I10A2** Material-only AI Generate gradient.
 
 **Use:** Auth forms, create course/material, edit course title, edit material, task create/edit, flashcard create/edit, Trello credential steps.
 
@@ -411,7 +411,7 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **QA complete (BX-I9C + BX-I9C-Auth, 2026-06-03):** Final visual smoke after **BX-I9B1** + **BX-I9B2a**–**BX-I9B2d** — **review only**, **no** repo file changes. **Verdict:** **Pass with notes** on Vite dev **`http://localhost:5173`** at **~375px** / **1280px** / **1440px**; authenticated routes verified (dashboard, courses, course detail, material cockpit, tasks, flashcards, Trello partial, focus, admin forbidden, auth); radius/canvas/primary/cyan/AI/violet/danger/error held; material **Source | AI** side-by-side at desktop, stacked at **375px**; **Generate** CTA primary blue; **no** critical or blocking important issues; **not** final Stitch-perfect. Runtime test data only (**not** repo): **`bx-i9c-auth-20260603@example.test`**, **BX-I9C QA Course**, **BX-I9C QA Material**, **BX-I9C QA Task**.
 
-**Target presentation (BX-I1 — remaining gaps):** Optional AI Generate gradient; optional **flashcard-study** glass polish; optional glass/elevation pass — each **separate-gated**, **not automatic**. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
+**Target presentation (BX-I1 — remaining gaps):** Optional **BX-I10A2** Material-only AI Generate gradient; optional glass/elevation pass — each **separate-gated**, **not automatic**. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
 
 **Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column. AI column should read as **“command stack”** in hierarchy—equal weight to source editor, not an afterthought sidebar.
 
@@ -438,6 +438,8 @@ Presentation families map to existing React/CSS. **No new components or behavior
 **Implementation:** `FlashcardStudy` — `flashcard-study__card`, question/answer reveal, `flashcard-study__counter`, prev/next.
 
 **Variants:** `flashcard-study--plan` (from generated plan), `flashcard-study--library` (saved DB cards).
+
+**Shipped presentation (BX-I10A1, commit `e62c1b0`):** Flashcard study glass polish in **`components.css`** only — centered frosted glass study stage (gradient surface, glass border, backdrop blur, max-width cap); improved Q/A hierarchy (label badges, larger card type, inner glass card); counter/header typography polish; **`flashcard-study--plan`** violet accent preserved; **FlashcardStudy** behavior unchanged (reveal, prev/next, counter, plain-text only); **Generate** CTA remains primary blue; logged-in smoke **Pass with notes** on **`/flashcards`** and material saved study at **~375px** / **1280px** — **`flashcard-study--plan`** live QA deferred when no plan flashcards on test material.
 
 ### 6.7 Plan History Row (`plan-history`)
 
@@ -836,6 +838,7 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-03 | **Phase BX-I10A1** (implementation) + **DOCS-BX-I10A1** — Flashcard study glass polish in `components.css` only (commit `e62c1b0`); frosted centered study stage; Q/A hierarchy; library variant smoke-verified; **FlashcardStudy** behavior unchanged; §6.6 updated; **BX-I10A2** AI Generate gradient proposed, not started |
 | 2026-06-03 | **Phase DOCS-BX-I9C** — **BX-I9C** + **BX-I9C-Auth** final visual QA recorded (**Pass with notes**, review only, no repo changes); §6.2 + §6.3 updated; optional polish (AI Generate gradient, flashcard-study, glass/elevation) remains separate-gated |
 | 2026-06-03 | **Phase BX-I9B2d** (implementation) + **DOCS-BX-I9B2d-HOUSEKEEPING** — Stitch v2.2 danger/error in `tokens.css` only (`--color-danger` #E11D48; fill #BE123C not #E11D48; `--color-error` #FDA4AF not #E11D48; course rose accents unchanged; stale red check passed); §6.2 + §6.3 updated; **BX-I9B2** color sub-sequence complete |
 | 2026-06-03 | **Phase BX-I9B2c** (implementation) + **DOCS-BX-I9B2c-HOUSEKEEPING** — Stitch v2.2 AI/violet in `tokens.css` (`--color-ai-accent` #8B5CF6; AI rgba family rgb(139, 92, 246); `--glow-ai` re-based) + mechanical lavender sweep in `components.css` (20) and `layout.css` (3); alphas preserved; no primary/cyan/danger/radius/canvas/shell changes; Generate CTA remains primary blue; §6.2 + §6.3 updated; next likely **BX-I9B2d** danger/error color alignment proposed (planning only) |
