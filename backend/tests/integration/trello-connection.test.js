@@ -571,4 +571,154 @@ describe('trello connection API integration', () => {
     assert.deepEqual(body.data, { connected: false });
     assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
   });
+
+  it('PATCH /api/trello/connection/defaults returns 401 without Authorization', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/connection/defaults`, {
+      method: 'PATCH',
+      body: { boardId: 'board123', listId: 'list456' },
+    });
+
+    assert.equal(statusCode, 401);
+    assert.equal(body.error.code, 'AUTH_REQUIRED');
+  });
+
+  it('PATCH /api/trello/connection/defaults returns TRELLO_NOT_CONNECTED when disconnected', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/connection/defaults`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { boardId: 'board123', listId: 'list456' },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'TRELLO_NOT_CONNECTED');
+    assertNoPlaintextTrelloTokenInValue(body);
+    assertNoTrelloCredentialsInValue(body);
+  });
+
+  it('PATCH /api/trello/connection/defaults rejects invalid boardId', async () => {
+    const { statusCode, body } = await request(`${base()}/api/trello/connection/defaults`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { boardId: 'bad-board!', listId: 'list456' },
+    });
+
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+    assertNoPlaintextTrelloTokenInValue(body);
+  });
+
+  it('PATCH /api/trello/connection/defaults stores defaults for connected user', async () => {
+    const state = await fetchConnectState(base(), auth);
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'memberIntegration123', username: 'integration_user' }),
+    }));
+
+    await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state },
+    });
+
+    const { statusCode, body } = await request(`${base()}/api/trello/connection/defaults`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { boardId: 'boardSaved123', listId: 'listSaved456' },
+    });
+
+    assert.equal(statusCode, 200);
+    assert.equal(body.data.connected, true);
+    assert.equal(body.data.defaultBoardId, 'boardSaved123');
+    assert.equal(body.data.defaultListId, 'listSaved456');
+    assertNoPlaintextTrelloTokenInValue(body);
+    assertNoTrelloCredentialsInValue(body);
+
+    const stored = getMockTrelloConnections().get(TEST_USER_ID);
+    assert.equal(stored?.default_board_id, 'boardSaved123');
+    assert.equal(stored?.default_list_id, 'listSaved456');
+  });
+
+  it('PATCH /api/trello/connection/defaults preserves defaults after reconnect same member', async () => {
+    const state = await fetchConnectState(base(), auth);
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'memberIntegration123', username: 'integration_user' }),
+    }));
+
+    await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state },
+    });
+
+    await request(`${base()}/api/trello/connection/defaults`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { boardId: 'boardSaved123', listId: 'listSaved456' },
+    });
+
+    const secondState = await fetchConnectState(base(), auth);
+    await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state: secondState },
+    });
+
+    const { statusCode, body } = await request(`${base()}/api/trello/connection`, {
+      headers: auth,
+    });
+
+    assert.equal(statusCode, 200);
+    assert.equal(body.data.defaultBoardId, 'boardSaved123');
+    assert.equal(body.data.defaultListId, 'listSaved456');
+    assertNoPlaintextTrelloTokenInValue(body);
+  });
+
+  it('PATCH /api/trello/connection/defaults clears defaults after reconnect different member', async () => {
+    const state = await fetchConnectState(base(), auth);
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'memberIntegration123', username: 'integration_user' }),
+    }));
+
+    await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state },
+    });
+
+    await request(`${base()}/api/trello/connection/defaults`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { boardId: 'boardSaved123', listId: 'listSaved456' },
+    });
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'otherMember999', username: 'other_user' }),
+    }));
+
+    const secondState = await fetchConnectState(base(), auth);
+    await request(`${base()}/api/trello/connect/complete`, {
+      method: 'POST',
+      headers: auth,
+      body: { token: CONNECT_TOKEN, state: secondState },
+    });
+
+    const { statusCode, body } = await request(`${base()}/api/trello/connection`, {
+      headers: auth,
+    });
+
+    assert.equal(statusCode, 200);
+    assert.equal(body.data.defaultBoardId, null);
+    assert.equal(body.data.defaultListId, null);
+    assertNoPlaintextTrelloTokenInValue(body);
+  });
 });

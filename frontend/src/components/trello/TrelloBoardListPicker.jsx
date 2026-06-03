@@ -16,6 +16,9 @@ import LoadingState from '../ui/LoadingState.jsx';
  *   listsAttempted: boolean,
  *   boardsError: string | null,
  *   listsError: string | null,
+ *   savedBoardNotice?: string | null,
+ *   savedListNotice?: string | null,
+ *   defaultsSaveError?: string | null,
  *   loadBoardsDisabled: boolean,
  *   onLoadBoards: () => void,
  *   onBoardChange: (boardId: string) => void,
@@ -35,6 +38,9 @@ export default function TrelloBoardListPicker({
   listsAttempted,
   boardsError,
   listsError,
+  savedBoardNotice = null,
+  savedListNotice = null,
+  defaultsSaveError = null,
   loadBoardsDisabled,
   onLoadBoards,
   onBoardChange,
@@ -84,6 +90,12 @@ export default function TrelloBoardListPicker({
           </div>
         )}
 
+        {savedBoardNotice && (
+          <p className="trello-picker__empty trello-picker__status" role="status">
+            {savedBoardNotice}
+          </p>
+        )}
+
         {showEmptyBoards && (
           <p className="trello-picker__empty trello-picker__status" role="status">
             {credentialMode === 'connected'
@@ -122,6 +134,18 @@ export default function TrelloBoardListPicker({
           <div className="trello-picker__message">
             <ErrorMessage message={listsError} />
           </div>
+        )}
+
+        {savedListNotice && (
+          <p className="trello-picker__empty trello-picker__status" role="status">
+            {savedListNotice}
+          </p>
+        )}
+
+        {defaultsSaveError && (
+          <p className="trello-picker__empty trello-picker__status" role="status">
+            {defaultsSaveError}
+          </p>
         )}
 
         {showEmptyLists && (

@@ -149,6 +149,18 @@ export async function disconnectTrello() {
 }
 
 /**
+ * @param {{ boardId: string, listId: string }} body
+ * @returns {Promise<TrelloConnectionConnected>}
+ */
+export async function saveTrelloConnectionDefaults(body) {
+  const data = await request('/api/trello/connection/defaults', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+  return /** @type {TrelloConnectionConnected} */ (data);
+}
+
+/**
  * @param {{ apiKey?: string, token?: string }} [credentials]
  * @returns {Promise<{ boards: TrelloNamedItem[] }>}
  */

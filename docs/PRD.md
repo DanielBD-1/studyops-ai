@@ -42,7 +42,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Trello frontend board/list picker** (Phase **4B-2**) — **`/trello`**: Load boards → select board → load lists → select list; **`fetchTrelloBoards`** / **`fetchTrelloBoardLists`** call backend discovery endpoints only; manual listId lookup **not** required for main flow; **`syncTasksToTrello`** sends selected list id as `listId`
 - **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker — **primary path when connected (A5B + A5A):** `{}` / `{ listId, taskIds }` only; **manual fallback when disconnected (ADR 004):** ephemeral apiKey/token in POST body
 - **Trello account connection (A2–A5C):** Trello **implicit/token authorization** with **encrypted backend token storage** and **connected-account sync** — **not** a full enterprise **OAuth2 authorization-code** flow. **`trello_connections`** + crypto (**A2**); connect routes (**A3**); HMAC-signed state (**A4-STATE**); Connect/Disconnect + **`/trello/connect/callback`** (**A4-FRONTEND** — **live**); stored-token boards/lists/sync when body omits `apiKey`/`token` (**A5A**); **`/trello`** primary sync when connected — `{}` / `{ listId, taskIds }` only (**A5B**); connected + manual credentials → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** (**A5C**). Reviews: Supervisor + Security **PASS** / approved with notes per phase
-- **Still deferred:** board/list persistence; Trello card update/delete; force re-sync
+- **Still deferred:** Trello card update/delete; force re-sync
 - **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
 - **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion)
 - **Focus Sessions frontend UI** (Phase **4C-2**) — protected **`/focus/:taskId`**; **Start Focus** on pending tasks; fixed **25**-minute display countdown; complete sends **`{ completedTask }` only**; **no** pause/resume, duration picker, or browser storage
@@ -76,7 +76,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 ### Still deferred (requires separate approval)
 
 - **`GET /api/admin/logs`** / **`api_logs`** table; admin **user list**; **role management** UI; Gemini/system error metrics for admin
-- Trello board/list **persistence**; card update/delete; force re-sync — **note:** **A2–A5C** (encrypted storage, backend connect, signed state, Connect/Disconnect UI + callback, backend stored-token mode, **frontend connected-account sync UX**, **backend manual-credential hardening while connected**) in repo; **connected-account sync is the primary `/trello` UX** when linked; manual fallback when **disconnected** only (ADR 004)
+- Trello card update/delete; force re-sync — **note:** **A2–A6** (encrypted storage, backend connect, signed state, Connect/Disconnect UI + callback, backend stored-token mode, **frontend connected-account sync UX**, **backend manual-credential hardening while connected**, **board/list persistence**) in repo; **connected-account sync is the primary `/trello` UX** when linked; manual fallback when **disconnected** only (ADR 004)
 - Course-level **`POST /api/courses/:courseId/generate`** with client `studyText`; route **`/courses/:id/generate`**
 - PDF upload/parsing
 - Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** (invalidation-only **5C.1** refresh is implemented)
@@ -1143,6 +1143,15 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 - Best-effort Trello token revoke; hard-deletes local `trello_connections` row
 - Returns: `{ connected: false }`
 - **User-facing:** **Disconnect** on **`/trello`**
+
+**PATCH /api/trello/connection/defaults** - Save preferred board/list (**implemented** — **A6**)
+
+- Auth: **`requireAuth`**
+- Body: `{ boardId, listId }` strict (Trello-safe alphanumeric ids; max 64 chars)
+- Connected users only — updates authenticated user's `trello_connections.default_board_id` / `default_list_id`
+- Returns connected metadata only (same flat shape as **GET /connection**); **no** token/ciphertext
+- Not connected → **`TRELLO_NOT_CONNECTED`** / **400**
+- **User-facing:** connected **`/trello`** auto-saves on list selection; preselects saved board/list after **Load boards** when still available
 
 ---
 
@@ -2460,7 +2469,7 @@ Show:
 Possible future features:
 
 - PDF upload and parsing
-- Trello board/list persistence; Trello card update/delete; OAuth single-use state nonce (connect/sync **A2–A5C** shipped)
+- Trello card update/delete; OAuth single-use state nonce (connect/sync **A2–A6** shipped)
 - Google Calendar integration
 - advanced spaced repetition
 - recommendation engine for "what to study today"

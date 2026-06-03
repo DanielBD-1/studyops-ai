@@ -651,7 +651,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Unchanged from 4A-2:** Password apiKey/token; credentials cleared after backend sync attempt; backend-only `POST /api/trello/sync`; max 50 tasks.
 
-**Post-A5C note (current):** Stored-token sync (**A5A**), connected-account frontend sync (**A5B**), and connected manual-credential block (**A5C**) are **shipped**. **Still deferred:** board/list **persistence**; Trello card update/delete; force re-sync; single-use OAuth state nonce persistence. **When connected:** primary sync uses **`POST /api/trello/boards`** `{}`, **`/boards/:boardId/lists`** `{}`, **`/sync`** `{ listId, taskIds }` — **no** `apiKey`/`token` from frontend; connected + manual credentials → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400**. **When disconnected:** manual apiKey/token fallback only (ADR 004). **At 4A-3 ship (historical):** manual apiKey/token was the only active sync path; connect UI and stored-token sync shipped in **A4–A5C**.
+**Post-A5C note (current):** Stored-token sync (**A5A**), connected-account frontend sync (**A5B**), connected manual-credential block (**A5C**), and board/list persistence (**A6**) are **shipped**. **Still deferred:** Trello card update/delete; force re-sync; single-use OAuth state nonce persistence. **When connected:** primary sync uses **`POST /api/trello/boards`** `{}`, **`/boards/:boardId/lists`** `{}`, **`/sync`** `{ listId, taskIds }` — **no** `apiKey`/`token` from frontend; connected + manual credentials → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400**. **When disconnected:** manual apiKey/token fallback only (ADR 004). **At 4A-3 ship (historical):** manual apiKey/token was the only active sync path; connect UI and stored-token sync shipped in **A4–A5C**.
 
 ---
 
@@ -748,7 +748,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 **Not in A3 (was deferred at A3 — now shipped or still deferred):**
 
 - **Shipped:** frontend callback **`/trello/connect/callback`** (**A4-FRONTEND**); Connect/Disconnect on **`/trello`**; stored-token boards/lists/sync (**A5A**); connected-account sync UX (**A5B**); connected + manual credentials blocked (**A5C**)
-- **Still deferred:** board/list persistence; Trello card update/delete; force re-sync
+- **Still deferred:** Trello card update/delete; force re-sync
 
 **Moved to A4-STATE (see below):** OAuth signed **state** protection on authorize-url / connect/complete.
 
@@ -814,9 +814,31 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 
 **Not in A5C (deferred):**
 
-- Board/list persistence; Trello card update/delete; force re-sync
+- Trello card update/delete; force re-sync
 
 **See:** `docs/security/trello-oauth-foundation.md`, `docs/workflows/trello-sync-workflow.md`, ADR [006](adrs/006-trello-oauth-encrypted-connections.md)
+
+---
+
+## Implemented — Trello board/list persistence (Phase TRELLO-A6)
+
+**Connected mode only** — persists preferred Trello board/list on `trello_connections.default_board_id` / `default_list_id` (schema from **A2**). Builds on **A5A**–**A5C** connected-account sync. **No migration.** Manual fallback when disconnected unchanged (no server defaults; no browser storage).
+
+| Item | Detail |
+|------|--------|
+| Route | **`PATCH /api/trello/connection/defaults`** — body `{ boardId, listId }` strict; **`requireAuth`**; connected users only |
+| Response | Sanitized connected metadata (same flat shape as **`GET /api/trello/connection`**) — includes updated `defaultBoardId` / `defaultListId`; **no** token/ciphertext |
+| Not connected | **`TRELLO_NOT_CONNECTED`** / **400** |
+| Reconnect | Same `trello_member_id` → preserve defaults; different member → clear defaults |
+| Disconnect | Hard-delete row → defaults removed (unchanged **A3**) |
+| Frontend **`/trello`** | Passes saved defaults from connection into sync section; after **Load boards**, preselects saved board/list when still available; auto-saves on list selection (connected); inline notice when saved board/list missing; non-blocking error if save fails |
+| Storage | DB via backend only — **not** localStorage/sessionStorage |
+
+**Not in A6 (deferred):**
+
+- Auto-load boards on mount; Trello card update/delete; force re-sync
+
+**See:** `docs/database/012-trello-connections-schema-and-rls.md`, `docs/security/trello-oauth-foundation.md`
 
 ---
 
@@ -923,7 +945,7 @@ Tests (frontend): `cd frontend && npm test` includes `flashcard-study.test.js`; 
 **Post-A4 status (at ship time / later shipped or still deferred):**
 
 - **Shipped after A4:** backend stored-token mode (**A5A**); frontend connected-account sync (**A5B**); backend manual-credential hardening while connected (**A5C**)
-- **Still deferred:** board/list persistence; Trello card update/delete; force re-sync; single-use OAuth state nonce persistence
+- **Still deferred:** Trello card update/delete; force re-sync; single-use OAuth state nonce persistence
 
 **Frontend connected-account sync:** shipped in **TRELLO-OAUTH-A5B** (see above).
 
@@ -2815,7 +2837,7 @@ All routes below match `frontend/src/App.jsx`. Protected workspace routes render
 - Material **navigation** links from task cards; **filtering** tasks by `materialId`; **bulk create** flashcards; **AI/Gemini** flashcard generation on `/flashcards`; **plan import** on **`/flashcards`** (global page); **course-level** flashcard management; known/unknown tracking; spaced repetition; Anki; pagination/rate limiting; **URL-persisted** flashcard filters (in-memory filters shipped in **3B-f**); optional shared CRUD form extraction; link from `/courses` to `/flashcards` ( **`public.flashcards` table + RLS** in **3B-b**; **backend API** in **3B-c**; **material-detail** in **3B-d**–**3B-e** + **plan import dedupe** in **10B**; **global page** in **3B-f**–**3B-g**; **plan JSON study** in **3B-a**; **plan tasks** import in **3A-f** superseded by **10B**); edit **completed** tasks or mark incomplete (pending-only edit shipped in **3A-c.1**); **URL-persisted** task filters (in-memory filters shipped in **3A-c.2** / **3A-d** / **3A-e**)
 - Saved generated **plan library** beyond material-scoped history (DB retains up to **10** rows per material with one **active** since **11A-1**; history REST APIs in **11A-2**; material-detail history UI in **11A-3** — metadata list, lazy preview, restore, delete inactive)
 - Course-level `POST /api/courses/:courseId/generate` with client `studyText` (PRD-style paste on course page)
-- Trello **post-A5C (still deferred):** **board/list persistence**; Trello card **update/delete**; **force re-sync**. **A2–A5C complete:** encrypted storage, backend connect, signed state, Connect/Disconnect UI + callback, backend stored-token mode, frontend connected-account sync UX, backend manual-credential hardening while connected
+- Trello **post-A6 (still deferred):** Trello card **update/delete**; **force re-sync**. **A2–A6 complete:** encrypted storage, backend connect, signed state, Connect/Disconnect UI + callback, backend stored-token mode, frontend connected-account sync UX, backend manual-credential hardening while connected, board/list persistence
 - **Dashboard polling / WebSockets / cross-tab sync / visibility refetch** — **5C.1** ships invalidation-only manual/cross-page refresh only (PRD §12.5 intent); **no** polling, WebSockets, **`BroadcastChannel`**, or browser storage sync
 - **`api_logs`** table and **`GET /api/admin/logs`**; admin **user list** / **role management** UI; Gemini/system error metrics for admin dashboard (deferred — no **`api_logs`** table; **`/admin`** ships **aggregate stats UI only** — **`GET /api/admin/access-check`** + **`GET /api/admin/stats`**)
 - Production deployment strategy; observability / APM; payments

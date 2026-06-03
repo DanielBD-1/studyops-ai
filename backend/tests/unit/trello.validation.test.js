@@ -8,6 +8,7 @@ import {
   trelloBoardsBodySchema,
   trelloBoardsStoredBodySchema,
   trelloConnectCompleteBodySchema,
+  trelloConnectionDefaultsBodySchema,
   trelloDisconnectBodySchema,
   trelloSyncBodySchema,
   trelloSyncStoredBodySchema,
@@ -229,6 +230,31 @@ describe('trello.validation', () => {
     const parsed = trelloSyncStoredBodySchema.safeParse({
       listId: 'list123',
       taskIds: [id, id],
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('connection defaults schema accepts valid boardId and listId', () => {
+    const parsed = trelloConnectionDefaultsBodySchema.safeParse({
+      boardId: 'abc123XYZ',
+      listId: 'list456',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('connection defaults schema rejects invalid boardId characters', () => {
+    const parsed = trelloConnectionDefaultsBodySchema.safeParse({
+      boardId: 'board-id!',
+      listId: 'list456',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('connection defaults schema rejects unknown fields', () => {
+    const parsed = trelloConnectionDefaultsBodySchema.safeParse({
+      boardId: 'abc123',
+      listId: 'list456',
+      apiKey: 'key',
     });
     assert.equal(parsed.success, false);
   });

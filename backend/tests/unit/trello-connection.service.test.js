@@ -16,6 +16,7 @@ import {
   completeConnection,
   disconnectConnection,
   getConnectionStatus,
+  updateConnectionDefaults,
 } from '../../src/modules/trello/trello-connection.service.js';
 import {
   createTrelloOAuthState,
@@ -316,5 +317,72 @@ describe('trello-connection.service', () => {
 
     assert.deepEqual(result, { connected: false });
     assert.equal(getMockTrelloConnections().has(TEST_USER_ID), false);
+  });
+
+  it('updateConnectionDefaults returns connected metadata with saved defaults', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'trelloMember123', username: 'studyops_user' }),
+    }));
+
+    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state);
+
+    const result = await updateConnectionDefaults(
+      TEST_USER_ID,
+      'boardSaved123',
+      'listSaved456'
+    );
+
+    assert.equal(result.connected, true);
+    assert.equal(result.defaultBoardId, 'boardSaved123');
+    assert.equal(result.defaultListId, 'listSaved456');
+    assertNoPlaintextTrelloTokenInValue(result);
+  });
+
+  it('completeConnection preserves defaults when reconnecting same trello member', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'trelloMember123', username: 'studyops_user' }),
+    }));
+
+    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state);
+    await updateConnectionDefaults(TEST_USER_ID, 'boardSaved123', 'listSaved456');
+
+    const secondState = createTrelloOAuthState(TEST_USER_ID);
+    const result = await completeConnection(TEST_USER_ID, 'ATTAsecondTokenValueForTests', secondState);
+
+    assert.equal(result.defaultBoardId, 'boardSaved123');
+    assert.equal(result.defaultListId, 'listSaved456');
+  });
+
+  it('completeConnection clears defaults when reconnecting different trello member', async () => {
+    const state = createTrelloOAuthState(TEST_USER_ID);
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'trelloMember123', username: 'studyops_user' }),
+    }));
+
+    await completeConnection(TEST_USER_ID, PLAINTEXT_TOKEN, state);
+    await updateConnectionDefaults(TEST_USER_ID, 'boardSaved123', 'listSaved456');
+
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'differentMember999', username: 'other_user' }),
+    }));
+
+    const secondState = createTrelloOAuthState(TEST_USER_ID);
+    const result = await completeConnection(TEST_USER_ID, 'ATTAsecondTokenValueForTests', secondState);
+
+    assert.equal(result.defaultBoardId, null);
+    assert.equal(result.defaultListId, null);
   });
 });

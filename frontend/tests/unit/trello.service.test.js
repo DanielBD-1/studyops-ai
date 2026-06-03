@@ -8,6 +8,7 @@ import {
   fetchTrelloAuthorizeUrl,
   completeTrelloConnection,
   disconnectTrello,
+  saveTrelloConnectionDefaults,
   __setApiFetchForTests,
   __setAccessTokenForTests,
   ApiRequestError,
@@ -103,6 +104,25 @@ beforeEach(() => {
       return {
         success: true,
         data: { connected: false },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    }
+
+    if (path === '/api/trello/connection/defaults') {
+      return {
+        success: true,
+        data: {
+          connected: true,
+          trelloMemberId: 'member-123',
+          trelloUsername: 'studyops_user',
+          scopes: 'read,write',
+          expirationPolicy: 'never',
+          expiresAt: null,
+          defaultBoardId: FAKE_BOARD_ID,
+          defaultListId: FAKE_LIST_ID,
+          connectedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
         meta: { timestamp: new Date().toISOString() },
       };
     }
@@ -346,5 +366,27 @@ describe('trello.service', () => {
     const body = JSON.parse(String(disconnectCall.init.body));
     assert.deepEqual(body, {});
     assert.equal(data.connected, false);
+  });
+
+  it('saveTrelloConnectionDefaults sends PATCH with boardId and listId', async () => {
+    const data = await saveTrelloConnectionDefaults({
+      boardId: FAKE_BOARD_ID,
+      listId: FAKE_LIST_ID,
+    });
+
+    const defaultsCall = calls.find((c) => c.path === '/api/trello/connection/defaults');
+    assert.ok(defaultsCall);
+    assert.equal(defaultsCall.init.method, 'PATCH');
+    assert.equal(defaultsCall.token, TOKEN);
+
+    const body = JSON.parse(String(defaultsCall.init.body));
+    assert.equal(body.boardId, FAKE_BOARD_ID);
+    assert.equal(body.listId, FAKE_LIST_ID);
+    assert.equal('apiKey' in body, false);
+    assert.equal('token' in body, false);
+
+    assert.equal(data.connected, true);
+    assert.equal(data.defaultBoardId, FAKE_BOARD_ID);
+    assert.equal(data.defaultListId, FAKE_LIST_ID);
   });
 });

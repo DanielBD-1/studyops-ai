@@ -13,6 +13,7 @@ const oauthSources = [
   'utils/trello-connect-errors.js',
   'utils/trello-oauth-exchange-guard.js',
   'utils/trello-sync-errors.js',
+  'utils/trello-defaults.js',
   'pages/TrelloConnectCallbackPage.jsx',
   'components/trello/TrelloConnectionPanel.jsx',
   'services/trello.service.js',
@@ -100,5 +101,6 @@ describe('trello oauth security boundaries', () => {
     assert.match(source, /syncTasksToTrello\(\{\s*listId:/);
     assert.equal(source.includes('localStorage'), false);
     assert.equal(source.includes('sessionStorage'), false);
+    assert.equal(source.includes('saveTrelloConnectionDefaults'), true);
   });
 });

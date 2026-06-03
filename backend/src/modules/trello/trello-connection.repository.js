@@ -105,9 +105,19 @@ export async function upsertConnection(input) {
     trelloUsername = null,
     expirationPolicy = null,
     expiresAt = null,
-    defaultBoardId = null,
-    defaultListId = null,
   } = input;
+
+  const existing = await getConnectionByUserId(userId);
+
+  /** @type {string | null} */
+  let defaultBoardId = null;
+  /** @type {string | null} */
+  let defaultListId = null;
+
+  if (existing && existing.trelloMemberId === trelloMemberId) {
+    defaultBoardId = existing.defaultBoardId;
+    defaultListId = existing.defaultListId;
+  }
 
   const encrypted = encryptTrelloToken(token);
 
@@ -124,7 +134,7 @@ export async function upsertConnection(input) {
     trello_username: trelloUsername,
     default_board_id: defaultBoardId,
     default_list_id: defaultListId,
-    connected_at: new Date().toISOString(),
+    connected_at: existing?.connectedAt ?? new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
@@ -136,6 +146,38 @@ export async function upsertConnection(input) {
 
   if (error) {
     throw new ApiError('DATABASE_ERROR', 'Failed to save Trello connection', 500);
+  }
+
+  return toConnectionMetadata(data);
+}
+
+/**
+ * @param {string} userId
+ * @param {{ boardId: string, listId: string }} defaults
+ * @returns {Promise<TrelloConnectionMetadata>}
+ */
+export async function updateConnectionDefaults(userId, defaults) {
+  const { data, error } = await getSupabaseAdmin()
+    .from('trello_connections')
+    .update({
+      default_board_id: defaults.boardId,
+      default_list_id: defaults.listId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .select(CONNECTION_COLUMNS)
+    .maybeSingle();
+
+  if (error) {
+    throw new ApiError('DATABASE_ERROR', 'Failed to update Trello connection defaults', 500);
+  }
+
+  if (!data) {
+    throw new ApiError(
+      'TRELLO_NOT_CONNECTED',
+      'Connect your Trello account or provide API credentials.',
+      400
+    );
   }
 
   return toConnectionMetadata(data);

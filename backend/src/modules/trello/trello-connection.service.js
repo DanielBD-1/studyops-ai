@@ -5,6 +5,7 @@ import {
   decryptTokenForUser,
   deleteConnectionByUserId,
   getConnectionByUserId,
+  updateConnectionDefaults as updateConnectionDefaultsInRepository,
   upsertConnection,
 } from './trello-connection.repository.js';
 import { createTrelloOAuthState, verifyTrelloOAuthState } from './trello-oauth-state.js';
@@ -137,6 +138,16 @@ export async function completeConnection(userId, token, state) {
   } catch (err) {
     throwSafeConnectConfigError(err);
   }
+}
+
+/**
+ * @param {string} userId
+ * @param {string} boardId
+ * @param {string} listId
+ */
+export async function updateConnectionDefaults(userId, boardId, listId) {
+  const metadata = await updateConnectionDefaultsInRepository(userId, { boardId, listId });
+  return mapMetadataToResponse(metadata);
 }
 
 /**

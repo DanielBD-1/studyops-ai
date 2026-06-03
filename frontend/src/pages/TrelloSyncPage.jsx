@@ -158,6 +158,8 @@ export default function TrelloSyncPage() {
           handleAuthError={handleAuthError}
           syncMode={syncMode}
           connectedUsername={connectedUsername}
+          defaultBoardId={connection?.defaultBoardId ?? null}
+          defaultListId={connection?.defaultListId ?? null}
         />
       )}
     </main>
