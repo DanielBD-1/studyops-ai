@@ -45,3 +45,11 @@ export const trelloSyncBodySchema = z
     message: 'taskIds must not contain duplicates',
     path: ['taskIds'],
   });
+
+export const trelloConnectCompleteBodySchema = z
+  .object({
+    token: trelloCredentialSchema('Token'),
+  })
+  .strict();
+
+export const trelloDisconnectBodySchema = z.object({}).strict();

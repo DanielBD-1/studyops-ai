@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import { applyTestEnv } from '../helpers/testEnv.js';
 import {
   createCard,
+  deleteToken,
   getBoardLists,
   getBoards,
+  getMemberMe,
   setTrelloFetchForTests,
   trelloClientErrorMessage,
 } from '../../src/clients/trello.client.js';
@@ -286,6 +288,91 @@ describe('trello.client', () => {
         trelloClientErrorMessage(result.code, 'lists'),
         'Failed to load Trello lists'
       );
+    }
+  });
+
+  it('getMemberMe returns member id and username on success', async () => {
+    /** @type {string | undefined} */
+    let requestUrl;
+    setTrelloFetchForTests(async (url) => {
+      requestUrl = url;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'member123', username: 'trello_user' }),
+      };
+    });
+
+    const result = await getMemberMe({ apiKey: 'secret-api-key', token: 'secret-token' });
+
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.deepEqual(result.member, { id: 'member123', username: 'trello_user' });
+    }
+    assert.ok(requestUrl?.includes('/members/me'));
+    assert.ok(requestUrl?.includes('fields=id%2Cusername'));
+    assert.equal(JSON.stringify(result).includes('secret-token'), false);
+  });
+
+  it('getMemberMe maps 401 to TRELLO_AUTH without raw Trello body', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: 'invalid token' }),
+    }));
+
+    const result = await getMemberMe({ apiKey: 'k', token: 't' });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.code, 'TRELLO_AUTH');
+      assert.equal(
+        trelloClientErrorMessage(result.code, 'member'),
+        'Trello authentication failed'
+      );
+      assert.equal(JSON.stringify(result).includes('invalid token'), false);
+    }
+  });
+
+  it('getMemberMe maps malformed payload to TRELLO_ERROR', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ username: 'missing-id' }),
+    }));
+
+    const result = await getMemberMe({ apiKey: 'k', token: 't' });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.code, 'TRELLO_ERROR');
+    }
+  });
+
+  it('deleteToken succeeds on 200 response', async () => {
+    /** @type {string | undefined} */
+    let requestUrl;
+    setTrelloFetchForTests(async (url, options) => {
+      requestUrl = url;
+      assert.equal(options?.method, 'DELETE');
+      return { ok: true, status: 200, json: async () => ({ _value: null }) };
+    });
+
+    const result = await deleteToken({ apiKey: 'secret-api-key', token: 'secret-token' });
+    assert.equal(result.ok, true);
+    assert.ok(requestUrl?.includes('/tokens/'));
+    assert.equal(JSON.stringify(result).includes('secret-token'), false);
+  });
+
+  it('deleteToken maps 401 to TRELLO_AUTH without failing caller contract', async () => {
+    setTrelloFetchForTests(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: 'invalid token' }),
+    }));
+
+    const result = await deleteToken({ apiKey: 'k', token: 't' });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.code, 'TRELLO_AUTH');
     }
   });
 });

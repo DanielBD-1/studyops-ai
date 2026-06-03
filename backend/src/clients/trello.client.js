@@ -14,7 +14,7 @@ export function setTrelloFetchForTests(fn) {
 }
 
 /**
- * @typedef {'card' | 'boards' | 'lists'} TrelloClientContext
+ * @typedef {'card' | 'boards' | 'lists' | 'member'} TrelloClientContext
  */
 
 /**
@@ -35,10 +35,12 @@ export function trelloClientErrorMessage(code, context = 'card') {
     case 'TRELLO_TIMEOUT':
       if (context === 'boards') return 'Failed to load Trello boards';
       if (context === 'lists') return 'Failed to load Trello lists';
+      if (context === 'member') return 'Failed to validate Trello connection';
       return 'Failed to create Trello card';
     default:
       if (context === 'boards') return 'Failed to load Trello boards';
       if (context === 'lists') return 'Failed to load Trello lists';
+      if (context === 'member') return 'Failed to validate Trello connection';
       return 'Failed to create Trello card';
   }
 }
@@ -326,4 +328,125 @@ export async function getBoardLists({ apiKey, token, boardId }) {
   }
 
   return { ok: true, lists: result.items };
+}
+
+/**
+ * @param {{ apiKey: string, token: string }} credentials
+ * @returns {Promise<
+ *   | { ok: true, member: { id: string, username: string | null } }
+ *   | { ok: false, code: 'TRELLO_AUTH' | 'TRELLO_RATE_LIMIT' | 'TRELLO_TIMEOUT' | 'TRELLO_ERROR' }
+ * >}
+ */
+export async function getMemberMe({ apiKey, token }) {
+  const fetchFn = fetchFnOverride ?? fetch;
+  const startedAt = Date.now();
+
+  let response;
+  try {
+    response = await fetchFn(
+      buildAuthenticatedUrl('/members/me', apiKey, token, { fields: 'id,username' }),
+      {
+        method: 'GET',
+        signal: AbortSignal.timeout(TRELLO_TIMEOUT_MS),
+      }
+    );
+  } catch (err) {
+    const durationMs = Date.now() - startedAt;
+    const isTimeout =
+      err &&
+      typeof err === 'object' &&
+      'name' in err &&
+      /** @type {{ name?: string }} */ (err).name === 'TimeoutError';
+
+    logTrelloClientEvent(isTimeout ? 'trello_timeout' : 'trello_network_error', durationMs);
+
+    return { ok: false, code: isTimeout ? 'TRELLO_TIMEOUT' : 'TRELLO_ERROR' };
+  }
+
+  const durationMs = Date.now() - startedAt;
+  const httpStatus = response.status;
+
+  if (response.ok) {
+    let payload;
+    try {
+      payload = await response.json();
+    } catch {
+      logTrelloClientEvent('trello_member_invalid_response', durationMs, { httpStatus });
+      return { ok: false, code: 'TRELLO_ERROR' };
+    }
+
+    if (!payload || typeof payload !== 'object' || typeof payload.id !== 'string') {
+      logTrelloClientEvent('trello_member_invalid_response', durationMs, { httpStatus });
+      return { ok: false, code: 'TRELLO_ERROR' };
+    }
+
+    const username =
+      typeof payload.username === 'string' && payload.username.trim()
+        ? payload.username.trim()
+        : null;
+
+    logTrelloClientEvent('trello_member_loaded', durationMs, { httpStatus });
+
+    return { ok: true, member: { id: payload.id, username } };
+  }
+
+  const code = mapHttpStatusToCode(httpStatus);
+
+  logTrelloClientEvent('trello_api_error', durationMs, {
+    httpStatus,
+    trelloErrorCode: code,
+  });
+
+  return { ok: false, code };
+}
+
+/**
+ * @param {{ apiKey: string, token: string }} credentials
+ * @returns {Promise<
+ *   | { ok: true }
+ *   | { ok: false, code: 'TRELLO_AUTH' | 'TRELLO_RATE_LIMIT' | 'TRELLO_TIMEOUT' | 'TRELLO_ERROR' }
+ * >}
+ */
+export async function deleteToken({ apiKey, token }) {
+  const fetchFn = fetchFnOverride ?? fetch;
+  const startedAt = Date.now();
+
+  let response;
+  try {
+    response = await fetchFn(
+      buildAuthenticatedUrl(`/tokens/${encodeURIComponent(token)}`, apiKey, token),
+      {
+        method: 'DELETE',
+        signal: AbortSignal.timeout(TRELLO_TIMEOUT_MS),
+      }
+    );
+  } catch (err) {
+    const durationMs = Date.now() - startedAt;
+    const isTimeout =
+      err &&
+      typeof err === 'object' &&
+      'name' in err &&
+      /** @type {{ name?: string }} */ (err).name === 'TimeoutError';
+
+    logTrelloClientEvent(isTimeout ? 'trello_timeout' : 'trello_network_error', durationMs);
+
+    return { ok: false, code: isTimeout ? 'TRELLO_TIMEOUT' : 'TRELLO_ERROR' };
+  }
+
+  const durationMs = Date.now() - startedAt;
+  const httpStatus = response.status;
+
+  if (response.ok) {
+    logTrelloClientEvent('trello_token_deleted', durationMs, { httpStatus });
+    return { ok: true };
+  }
+
+  const code = mapHttpStatusToCode(httpStatus);
+
+  logTrelloClientEvent('trello_token_delete_failed', durationMs, {
+    httpStatus,
+    trelloErrorCode: code,
+  });
+
+  return { ok: false, code };
 }

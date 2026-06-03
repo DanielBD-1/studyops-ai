@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
 import {
+  createTrelloConnectionMockSupabaseClient,
+} from './mockSupabaseTrelloConnection.js';
+import {
   createTasksMockSupabaseClient,
   getMockTasks,
   OWN_TASK_ID,
   TEST_USER_ID,
   OWN_COURSE_ID,
 } from './mockSupabaseTasks.js';
+
+export { resetMockTrelloConnections, getMockTrelloConnections } from './mockSupabaseTrelloConnection.js';
 
 export {
   TEST_USER_ID,
@@ -177,6 +182,7 @@ function createTrelloSyncLogsBuilder() {
 export function createTrelloMockSupabaseClient() {
   const base = createTasksMockSupabaseClient();
   const baseFrom = base.from.bind(base);
+  const connectionClient = createTrelloConnectionMockSupabaseClient();
 
   return {
     ...base,
@@ -186,6 +192,9 @@ export function createTrelloMockSupabaseClient() {
       }
       if (table === 'trello_sync_logs') {
         return createTrelloSyncLogsBuilder();
+      }
+      if (table === 'trello_connections') {
+        return connectionClient.from(table);
       }
       return baseFrom(table);
     },

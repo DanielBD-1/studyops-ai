@@ -2,9 +2,17 @@ import {
   trelloBoardIdParamSchema,
   trelloBoardListsBodySchema,
   trelloBoardsBodySchema,
+  trelloConnectCompleteBodySchema,
+  trelloDisconnectBodySchema,
   trelloSyncBodySchema,
 } from '../../shared/validation/trello.schema.js';
 import { sendSuccess, sendValidationError } from '../../shared/utils/response.js';
+import {
+  buildAuthorizeUrl,
+  completeConnection,
+  disconnectConnection,
+  getConnectionStatus,
+} from './trello-connection.service.js';
 import { listTrelloBoardLists, listTrelloBoards, syncTasksToTrello } from './trello.service.js';
 
 /**
@@ -70,6 +78,74 @@ export async function sync(req, res, next) {
 
   try {
     const data = await syncTasksToTrello(req.user.id, bodyParsed.data);
+    sendSuccess(res, data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function connectionStatus(req, res, next) {
+  try {
+    const data = await getConnectionStatus(req.user.id);
+    sendSuccess(res, data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function authorizeUrl(req, res, next) {
+  try {
+    const data = buildAuthorizeUrl();
+    sendSuccess(res, data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function connectComplete(req, res, next) {
+  const bodyParsed = trelloConnectCompleteBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const data = await completeConnection(req.user.id, bodyParsed.data.token);
+    sendSuccess(res, data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function disconnect(req, res, next) {
+  const bodyParsed = trelloDisconnectBodySchema.safeParse(req.body);
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const data = await disconnectConnection(req.user.id);
     sendSuccess(res, data);
   } catch (err) {
     next(err);

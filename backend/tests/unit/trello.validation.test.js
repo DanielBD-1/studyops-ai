@@ -4,6 +4,8 @@ import {
   trelloBoardIdParamSchema,
   trelloBoardListsBodySchema,
   trelloBoardsBodySchema,
+  trelloConnectCompleteBodySchema,
+  trelloDisconnectBodySchema,
   trelloSyncBodySchema,
 } from '../../src/shared/validation/trello.schema.js';
 
@@ -114,6 +116,34 @@ describe('trello.validation', () => {
       ...VALID_BODY,
       extra: true,
     });
+    assert.equal(parsed.success, false);
+  });
+
+  it('connect complete schema accepts valid token', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({ token: 'valid-token' });
+    assert.equal(parsed.success, true);
+  });
+
+  it('connect complete schema rejects empty token', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({ token: '   ' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('connect complete schema rejects unknown fields', () => {
+    const parsed = trelloConnectCompleteBodySchema.safeParse({
+      token: 'valid-token',
+      apiKey: 'extra',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('disconnect schema accepts empty object', () => {
+    const parsed = trelloDisconnectBodySchema.safeParse({});
+    assert.equal(parsed.success, true);
+  });
+
+  it('disconnect schema rejects non-empty body', () => {
+    const parsed = trelloDisconnectBodySchema.safeParse({ force: true });
     assert.equal(parsed.success, false);
   });
 });
