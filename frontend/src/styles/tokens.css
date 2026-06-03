@@ -119,8 +119,9 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  /* Stitch Round Eight — sm = smaller inputs / compact controls; md = cards / primary controls */
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 14px;
   --radius-xl: 18px;
 
