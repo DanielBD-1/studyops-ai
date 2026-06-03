@@ -2,9 +2,14 @@
 
 **Owner:** Orchestrator  
 **Prerequisite:** Phase 3 tasks exist (task list + DB)  
-**ADR gate:** 004, 005 (mandatory). **OAuth account connect:** ADR 006 + **A3** + **A4-STATE** + **A4-FRONTEND** (Connect/Disconnect + callback on **`/trello`**) — **separate** from this manual sync workflow. **Backend stored-token mode:** **A5A** shipped on **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** when body omits `apiKey`/`token` keys. **Frontend stored-token sync:** **A5B** — **not** shipped; **not** this workflow.
+**ADR gate:** 004, 005 (mandatory). **OAuth account connect:** ADR 006 + **A3** + **A4-STATE** + **A4-FRONTEND** (Connect/Disconnect + callback on **`/trello`**). **Backend stored-token mode:** **A5A** on **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** when body omits `apiKey`/`token` keys. **Frontend connected-account sync:** **A5B** — when connected, **`/trello`** uses stored-token mode (frontend `{}` / `{ listId, taskIds }` only).
 
-**Current live UI sync path:** Manual apiKey/token in POST body (ADR 004) — **unchanged on `/trello`**. Phases **A2–A4-FRONTEND** added encrypted storage, backend connect routes, signed state, and account connection UI. **A5A** added backend stored-token support; **A5B** is required before the frontend switches to connected-account sync.
+**Current `/trello` UX:**
+
+- **Connected (primary):** Connect account (**A4-FRONTEND**); Load boards → pick board/list → sync tasks — frontend sends **no** `apiKey`/`token` keys (**A5B** + **A5A**).
+- **Disconnected / manual fallback:** Connect prompt; collapsed **Advanced manual credentials**; ephemeral apiKey/token in POST body (ADR 004).
+
+Phases **A2–A5B** added encrypted storage, backend connect routes, signed state, account connection UI, backend stored-token support, and frontend connected-account sync.
 
 ---
 
