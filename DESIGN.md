@@ -372,7 +372,7 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Purpose:** Primary **forms and editors**—the “instrument” the student works in.
 
-**Implementation:** `FormCard` (+ `material-workspace__editor-card` on material detail): instrument surface, `elevation-2`, optional **left accent** on source editor. **Target (BX-I1):** source editor on a **darker well**; glass instrument card on graphite canvas when tokens are updated.
+**Implementation:** `FormCard` (+ `material-workspace__editor-card` on material detail): instrument surface, `elevation-2`, optional **left accent** on source editor. **Shipped presentation (BX-I8E, commit `52b7b78`):** global **`.form-card`** baseline uses subtle raised gradient + **`--color-glass-border`** in **`components.css`** only; **`.form-card--ai`** / **`.form-card--plan`** and page-specific **`layout.css`** rules (e.g. **`.page--auth .form-card`**) preserved. **Target (BX-I1 — remaining gaps):** source editor on a **darker well**; deferred token/radius/font alignment.
 
 **Use:** Auth forms, create course/material, edit course title, edit material, task create/edit, flashcard create/edit, Trello credential steps.
 
@@ -388,7 +388,9 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Shipped presentation (BX-I8D):** Motion micro-pass in **`components.css`** + **`base.css`** (commit **`51cdc77`**) — processing opacity pulse on **`.ai-panel__loading--active .loading`** during real generate only; one-shot **`plan-fade-in`** on success status, plan history preview, and focus session complete; **`prefers-reduced-motion`** disables pulse/entrances/press transforms. **No** JSX/API/behavior/copy changes.
 
-**Target presentation (BX-I1 — remaining gaps):** Global control/card shape alignment — see proposed **BX-I8E**. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
+**Shipped presentation (BX-I8E, commit `52b7b78`):** Shared controls / card baselines in **`components.css`** only — global **`.form-card`** and **`.source-card`** glass-border alignment; **`.link-btn--primary`** / **`--danger`** parity with **`.btn`** (unused in JSX until adopted); **`.alert--success`** parity with error alerts; **`layout.css`** / **`tokens.css`** / **`base.css`** untouched; optional command-band/hero/empty-CTA unification **not shipped**.
+
+**Target presentation (BX-I1 — remaining gaps):** Deferred token/radius/font/AI-gradient alignment; optional AI Generate gradient; optional **flashcard-study** glass polish. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
 
 **Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column. AI column should read as **“command stack”** in hierarchy—equal weight to source editor, not an afterthought sidebar.
 
@@ -813,6 +815,7 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-03 | **Phase BX-I8E** (implementation) + **DOCS-BX-I8E-HOUSEKEEPING** — Shared controls / card surfaces in `components.css` only (`.form-card` / `.source-card` glass-border baselines; `.link-btn` / `.alert--success` parity; layout/tokens/base untouched; optional scope not shipped; Style Guide v2.2 check passed); §6.2 + §6.3 updated; deferred token/radius/gradient follow-ups proposed |
 | 2026-06-03 | **Phase BX-I8D** (implementation) + **DOCS-BX-I8D-HOUSEKEEPING** — Motion micro-pass in `components.css` + `base.css` (processing pulse on real AI lane only; one-shot success/preview/focus entrances; `prefers-reduced-motion` guards; no JSX/JS/API/routes/tokens; BX-I7/BX-I8B/BX-I8C layouts preserved); §6.3 + §6.9 + §8.2 + §10 updated; next likely **BX-I8E** proposed |
 | 2026-06-03 | **Phase BX-I8C** (implementation) + **DOCS-BX-I8C-HOUSEKEEPING** — Auth + PageHeader intro chrome in `components.css` + `layout.css` (glass `.page--auth .form-card`, intro `.page-header--intro` band + top gradient, `.auth-brand` polish; course accent header preserved; 375px stacked; BX-I7/BX-I8B layouts preserved; no tokens/base/JSX/API/auth behavior/copy/logging changes); §4.2 + §6.3 updated; next likely BX-I8D–BX-I8E proposed |
 | 2026-06-03 | **Phase BX-I8B** (implementation) + **DOCS-BX-I8B-HOUSEKEEPING** — AI command surfaces polish in `components.css` + `layout.css` on `/study-materials/:materialId` (stronger violet/glass on AI command column; Generate CTA remains primary blue; 375px stacked; BX-I7F layout preserved; no tokens/JSX/API/behavior changes); §6.3 updated; next likely BX-I8C–BX-I8E proposed |
