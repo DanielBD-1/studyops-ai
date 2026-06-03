@@ -40,13 +40,13 @@
   --color-data-accent: #06b6d4;
 
   /* Semantic states on dark */
-  --color-danger: #f2555a;
-  --color-danger-hover: #d94449;
-  --color-danger-fill: #d63a3f;
-  --color-danger-fill-hover: #c93237;
-  --color-danger-subtle: rgba(242, 85, 90, 0.12);
-  --color-danger-border: rgba(255, 180, 171, 0.35);
-  --color-error: #ffb4ab;
+  --color-danger: #e11d48;
+  --color-danger-hover: #be123c;
+  --color-danger-fill: #be123c;
+  --color-danger-fill-hover: #9f1239;
+  --color-danger-subtle: rgba(225, 29, 72, 0.12);
+  --color-danger-border: rgba(251, 113, 133, 0.35);
+  --color-error: #fda4af;
   --color-success: #34d399;
   --color-success-subtle: rgba(52, 211, 153, 0.12);
   --color-success-border: rgba(52, 211, 153, 0.35);

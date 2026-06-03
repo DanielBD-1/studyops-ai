@@ -379,7 +379,9 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Shipped AI/violet color (BX-I9B2c, commit `19d444e`):** Stitch v2.2 AI Accent **`#8B5CF6`** in **`tokens.css`** — **`--color-ai-accent`** and AI rgba family re-based to **rgb(139, 92, 246)**; **`--glow-ai`** re-based; mechanical lavender sweep in **`components.css`** (**20**) and **`layout.css`** (**3**); alphas preserved; **no** primary/cyan/danger/radius/canvas/shell changes; **Generate** CTA remains primary blue; authenticated visual smoke **recommended before merge** — **not blocking**.
 
-**Target (BX-I1 — remaining gaps):** source editor on a **darker well**; deferred font alignment; **BX-I9B2d** danger/error color alignment — **planning only**.
+**Shipped danger/error color (BX-I9B2d, commit `ae5cfc8`):** Stitch v2.2 Error / Rose Red **`#E11D48`** in **`tokens.css`** only — **`--color-danger`** **`#e11d48`**; **`--color-danger-fill`** **`#be123c`** (**not** **`#e11d48`** on fill); **`--color-error`** **`#fda4af`** (**not** **`#e11d48`**); course accent rose tokens **unchanged**; **`components.css`** / **`layout.css`** untouched; merge QA **recommended** (danger border vs course rose border) — **not blocking**.
+
+**Target (BX-I1 — remaining gaps):** source editor on a **darker well**; deferred font alignment; optional AI Generate gradient; optional **flashcard-study** glass polish.
 
 **Use:** Auth forms, create course/material, edit course title, edit material, task create/edit, flashcard create/edit, Trello credential steps.
 
@@ -405,7 +407,9 @@ Presentation families map to existing React/CSS. **No new components or behavior
 
 **Shipped presentation (BX-I9B2c, commit `19d444e`):** AI/violet color alignment in **`tokens.css`** + mechanical lavender sweep in **`components.css`** / **`layout.css`** — Stitch **`#8B5CF6`**; AI column / AI chrome uses unified violet family; **Generate** CTA remains primary blue; authenticated visual smoke **recommended before merge** (material AI cockpit, dashboard hero violet tint, AppShell accent strip, auth brand gradient) — **not blocking**.
 
-**Target presentation (BX-I1 — remaining gaps):** Deferred **BX-I9B2d** danger/error color alignment (**planning only**); optional AI Generate gradient; optional **flashcard-study** glass polish. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
+**Shipped presentation (BX-I9B2d, commit `ae5cfc8`):** Danger/error color alignment in **`tokens.css`** only — Stitch Error / Rose Red **`#E11D48`** family; filled destructive controls use **`#be123c`** fill for WCAG AA white labels; error copy uses lighter **`#fda4af`**; course rose accents **unchanged**; indirect cascade via existing danger/error CSS vars **expected**; merge QA **recommended** (danger vs rose borders, delete/error surfaces) — **not blocking**.
+
+**Target presentation (BX-I1 — remaining gaps):** Optional AI Generate gradient; optional **flashcard-study** glass polish; final visual QA / smoke pass. Auth + PageHeader intro chrome shipped in **BX-I8C** (commit **`8008dc1`**). **Generated plan artifact**, **plan history**, **import toolbar**, and **plan flashcard study card** share the same command-column visual family.
 
 **Rules:** **One primary** per state (Generate vs Processing). Do not compete visually with **Save changes** in the source column. AI column should read as **“command stack”** in hierarchy—equal weight to source editor, not an afterthought sidebar.
 
@@ -830,6 +834,7 @@ Phases **2J**, **8A**, **8C**, and **B1–B3** established:
 | 2026-05-30 | **8B/9B** — 8C AppShell/cockpit; implemented screens §7.14–7.18 |
 | 2026-06-01 | **Phase A** — Approved hybrid identity; design references (§3); layout modes + Source\|AI (§4); component families (§6); AI workspace rules (§8); bounded plan history in scope; `tokens.css` authority; screenshot drift; contradictions resolved; no chat UI |
 | 2026-06-01 | **Phase A clarification** — Enjoyable/modern/motivating direction; target audience; fun definition; design balance (trust, clarity, motivation, delight, focus); anti dry/CRUD/gamified feelings |
+| 2026-06-03 | **Phase BX-I9B2d** (implementation) + **DOCS-BX-I9B2d-HOUSEKEEPING** — Stitch v2.2 danger/error in `tokens.css` only (`--color-danger` #E11D48; fill #BE123C not #E11D48; `--color-error` #FDA4AF not #E11D48; course rose accents unchanged; stale red check passed); §6.2 + §6.3 updated; **BX-I9B2** color sub-sequence complete; next likely final visual QA / smoke pass |
 | 2026-06-03 | **Phase BX-I9B2c** (implementation) + **DOCS-BX-I9B2c-HOUSEKEEPING** — Stitch v2.2 AI/violet in `tokens.css` (`--color-ai-accent` #8B5CF6; AI rgba family rgb(139, 92, 246); `--glow-ai` re-based) + mechanical lavender sweep in `components.css` (20) and `layout.css` (3); alphas preserved; no primary/cyan/danger/radius/canvas/shell changes; Generate CTA remains primary blue; §6.2 + §6.3 updated; next likely **BX-I9B2d** danger/error color alignment proposed (planning only) |
 | 2026-06-03 | **Phase BX-I9B2b** (implementation) + **DOCS-BX-I9B2b-HOUSEKEEPING** — Stitch v2.2 primary/cyan color in `tokens.css` only (`--color-primary` #3B82F6; fill #2563EB / #1D4ED8 not #3B82F6; `--color-data-accent` #06B6D4; chart/focus/glow re-based); no canvas/shell/AI/violet/danger/radius changes; no components/layout/JSX/API changes; §6.2 + §6.3 updated |
 | 2026-06-03 | **Phase BX-I9B2a** (implementation) + **DOCS-BX-I9B2a-HOUSEKEEPING** — Stitch v2.2 canvas/shell color in `tokens.css` only (`--color-bg` #0F172A; harmonized bg-subtle, bg-auth, shell-bg, shell-border); no radius or accent-token changes; no components/layout/JSX/API changes; §6.2 + §6.3 updated |
