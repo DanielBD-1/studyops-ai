@@ -6,7 +6,7 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 
 **Product platform:** **Browser-based web application only** — not a native mobile app, Android/iOS app, phone app, or app-store product. Responsive layout in the browser (including narrow viewports) is in scope; that is not mobile-app product scope.
 
-**Current status:** Functional MVP through admin aggregate stats, plus later phases (**10B**, **11A**, **12A-1**, presentation **B1**–**B4**, **BX-I***, **Trello OAuth A2–A5C**). Authoritative phase list and APIs: **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** · starting point: **[docs/CURRENT_STATE.md](docs/CURRENT_STATE.md)** · history/pitfalls: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. **Trello account connect + connected-account sync (A2–A5C)** are **live** on **`/trello`** (manual fallback when disconnected only). Future work (**admin logs** / user management / role management, Trello board/list persistence, course-level generate, PDF upload, dashboard polling/WebSockets/cross-tab sync, spaced repetition, payments, production deployment, etc.) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+**Current status:** Initial MVP baseline is **complete**; StudyOps AI is an **actively developed web product** with many post-MVP phases already merged (**10B**, **11A**, **12A-1**, presentation **B1**–**B4**, **BX-I***, **Trello OAuth A2–A6**, Gemini generate UX polish). Further work continues **only** through explicitly approved phases. Authoritative shipped state: **[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)** · starting point: **[docs/CURRENT_STATE.md](docs/CURRENT_STATE.md)** · post-MVP framing: **[docs/POST_MVP.md](docs/POST_MVP.md)** · history/pitfalls: **[docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md)**. **Trello account connect + connected-account sync + board/list defaults (A2–A6)** are **live** on **`/trello`** (manual apiKey/token fallback when **disconnected** only). Future work (**admin logs** / user management / role management, Trello card update/delete / force re-sync, course-level generate, PDF upload, dashboard polling/WebSockets/cross-tab sync, spaced repetition, payments, production deployment, etc.) requires explicit human approval — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ## What works today
 
@@ -31,7 +31,8 @@ Web app that helps students turn study material into summaries, tasks, flashcard
 - **Trello OAuth backend stored-token mode (A5A)** — **`POST /api/trello/boards`**, **`/lists`**, **`/sync`** support stored-token mode when body omits `apiKey`/`token`; manual mode unchanged
 - **Trello OAuth frontend connected-account sync (A5B)** — **`/trello`** uses connected-account sync when linked; manual fallback when disconnected; **Supervisor Pass with notes + Security PASS**
 - **Trello OAuth backend manual-credential hardening (A5C)** — connected + manual `{ apiKey, token }` → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400**; manual fallback when disconnected only; **Supervisor Pass with notes + Security approved with notes**
-- **Trello not implemented (deferred)** — board/list persistence; Trello card update/delete; force re-sync
+- **Trello board/list defaults persistence (A6)** — **`PATCH /api/trello/connection/defaults`** saves preferred board/list on `trello_connections`; connected **`/trello`** preselects saved defaults after **Load boards**; auto-saves on list selection
+- **Trello not implemented (deferred)** — Trello card update/delete; force re-sync
 - **document-service** — `POST /process` (internal; Gemini key server-side only)
 - **CI** — lint, tests, frontend build on Node.js 22
 
@@ -133,7 +134,8 @@ GitHub Actions runs the same lint → test → build steps on **Node.js 22**.
 | Doc | Use for |
 |-----|---------|
 | [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) | **What is built now** (routes, APIs, env, deferred work); **operating constraints** (Free Tier, cost gates, Gemini quota) |
-| [docs/PRD.md](docs/PRD.md) | MVP product spec (includes future scope) |
+| [docs/PRD.md](docs/PRD.md) | Product spec (MVP contract + future scope; verify shipped state in IMPLEMENTATION_STATUS) |
+| [docs/POST_MVP.md](docs/POST_MVP.md) | Post-MVP framing — initial MVP closed; future work still gated |
 | [docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md) | Completed phases and pitfalls |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | PR workflow, reviews, lint |
 | [SECURITY.md](SECURITY.md) | Secrets, keys, Security Review triggers |

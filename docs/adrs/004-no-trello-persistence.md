@@ -1,6 +1,6 @@
-# ADR 004: No Trello Credential Persistence (MVP)
+# ADR 004: No Manual Trello Credential Persistence (MVP)
 
-**Status:** Accepted — **partially superseded for user tokens** by [ADR 006](006-trello-oauth-encrypted-connections.md) when OAuth connect ships (A3+). **Manual MVP flow below remains live today** — users still enter apiKey/token per sync; nothing is read from `trello_connections` in production routes yet.
+**Status:** Accepted — **partially superseded for encrypted user Trello tokens** by [ADR 006](006-trello-oauth-encrypted-connections.md) and **Trello OAuth A2–A6** (connect, stored-token sync, board/list defaults). **Manual apiKey/token flow below remains live as disconnected fallback only.**
 
 **Date:** 2026-05-20  
 **Deciders:** Project team (MVP)
@@ -9,28 +9,30 @@
 
 ## Context
 
-Trello integration requires API key and token. Persisting credentials introduces encryption key management, breach risk, and GDPR-adjacent concerns—out of MVP scope per PRD.
+Trello integration requires API key and token. Persisting **manual** credentials introduces encryption key management, breach risk, and GDPR-adjacent concerns—out of initial MVP scope per PRD.
+
+Post-MVP, **encrypted user Trello tokens** in `trello_connections` (ADR 006, phases A2–A6) supersede this ADR for **connected-account** mode only. **Manual** apiKey/token remains ephemeral per this ADR when the user is **disconnected**.
 
 ---
 
-## Decision
+## Decision (historical — manual MVP)
 
-For MVP, **Trello API key and token are never stored** in:
+For the original manual MVP, **Trello API key and token are never stored** in:
 
 - Database
 - Server session store
 - Logs
 - API responses
 
-**Flow:**
+**Flow (disconnected fallback — still live today):**
 
-1. User enters credentials + List ID in frontend form
-2. Frontend sends `POST /api/trello/sync` with `{ apiKey, token, listId, taskIds }` in **body**
+1. User expands **Advanced manual credentials** and enters apiKey/token + selects board/list
+2. Frontend sends `POST /api/trello/boards`, `/lists`, `/sync` with `{ apiKey, token, ... }` in **body**
 3. Backend uses credentials for immediate Trello API calls
 4. Backend writes `trello_sync_logs` **without** credentials
 5. Credentials discarded after request; frontend clears credential state after sync
 
-Optional `POST /api/trello/boards` uses same ephemeral pattern.
+When **connected**, stored encrypted user token mode (ADR 006) is primary — frontend sends `{}` / `{ listId, taskIds }` only.
 
 ---
 
@@ -38,28 +40,28 @@ Optional `POST /api/trello/boards` uses same ephemeral pattern.
 
 **Positive:**
 
-- No encryption infrastructure for MVP
-- Reduced leak surface from DB dumps
+- No encryption infrastructure required for manual-only MVP
+- Reduced leak surface from DB dumps for manual credentials
 
-**Negative:**
+**Negative (manual mode only):**
 
-- User re-enters credentials each sync session
-- UX warning required: "Credentials are not saved"
+- User re-enters manual credentials each disconnected sync session
+- UX warning required when using manual fallback
 
 ---
 
 ## Compliance Rules for Agents
 
-- **Today:** No **use** of `trello_connections` in live sync/boards/lists routes — manual body credentials only.
-- **Foundation (A2):** `trello_connections` exists for **future OAuth** — see ADR 006; do not wire stored tokens without an approved connect phase + Security Review.
-- Never log `apiKey` or `token` (manual or OAuth).
-- Never return credentials in GET responses.
-- Credentials **only** in POST body for manual MVP—never query params (see PRD 10.5).
+- **`trello_connections` IS used in production** for OAuth connect, stored-token boards/lists/sync (**A5A**), and board/list defaults (**A6**). See ADR 006.
+- **Manual apiKey/token:** Never store in DB, browser storage, logs, or API responses. Disconnected fallback only (**A5C** blocks manual credentials when connected).
+- **Encrypted user tokens (ADR 006):** Stored at rest in `trello_connections` only; never log, never return plaintext/decrypted token to frontend.
+- Never log manual `apiKey` or `token`.
+- Manual credentials **only** in POST body when disconnected—never query params (see PRD 10.5).
 
 ---
 
 ## References
 
 - PRD Section 7.6, 10.5
-- ADR 005 (List ID handling)
-- ADR 006 (encrypted connection storage — OAuth foundation)
+- ADR 005 (List ID handling — board/list picker is live)
+- ADR 006 (encrypted connection storage — OAuth A2–A6)

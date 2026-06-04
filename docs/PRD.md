@@ -1,18 +1,19 @@
 # PRD — StudyOps AI (Version 2.0)
 
-**Last Updated:** 2026-06-04 (docs: **DOCS-CONSISTENCY-FIX** — Trello A2–A5C live; admin log UI still deferred)
+**Last Updated:** 2026-06-04 (docs: **POST-MVP-LANGUAGE-A1** — post-MVP framing; Trello **A2–A6**; admin log UI still deferred)
 **Status:** Ready for Implementation
 
 ---
 
 ## How to use this document
 
-**This PRD contains product vision, target MVP requirements, future scope, and features that are not yet built.** Sections below describe the full MVP contract—including routes, APIs, and behaviors that may still be **deferred** in the repository.
+**This PRD contains product vision, target MVP requirements, future scope, and features that are not yet built.** Sections below describe the full MVP contract—including routes, APIs, and behaviors that may still be **deferred** in the repository. **Some MVP-era sections (e.g. §10.5 manual-only Trello) are historical** — for stored user tokens and connected sync, see ADR 006 and **`docs/IMPLEMENTATION_STATUS.md`** (Trello **A2–A6**).
 
 **For actual shipped state, use:**
 
 - **`docs/CURRENT_STATE.md`** — short owner/agent starting point (phase gates, suspended work)
 - **`docs/IMPLEMENTATION_STATUS.md`** — authoritative detail on what is built today
+- **`docs/POST_MVP.md`** — post-MVP framing (initial MVP closed; future work still gated)
 
 Do **not** treat PRD body text alone as proof a feature is live. When PRD and implementation docs disagree on **shipped behavior**, **`IMPLEMENTATION_STATUS`** wins.
 
@@ -41,7 +42,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Trello backend board/list discovery** (Phase **4B-1** + **A5A**) — **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; **stored mode** `{}` when connected (**A5A**) or manual `{ apiKey, token }` when disconnected; backend proxies to Trello; returns sanitized `{ boards: [{ id, name }] }` / `{ lists: [{ id, name }] }` only; **no** DB writes; **no** credential storage. **Approved refinement:** two endpoints (lazy list load after board pick) instead of one nested boards+lists response in older PRD examples
 - **Trello frontend board/list picker** (Phase **4B-2**) — **`/trello`**: Load boards → select board → load lists → select list; **`fetchTrelloBoards`** / **`fetchTrelloBoardLists`** call backend discovery endpoints only; manual listId lookup **not** required for main flow; **`syncTasksToTrello`** sends selected list id as `listId`
 - **Trello sync + picker (end-to-end):** 4A-0 logs + 4A-1 sync API + 4A-2/4A-3 UI + 4B-1 discovery + 4B-2 picker — **primary path when connected (A5B + A5A):** `{}` / `{ listId, taskIds }` only; **manual fallback when disconnected (ADR 004):** ephemeral apiKey/token in POST body
-- **Trello account connection (A2–A5C):** Trello **implicit/token authorization** with **encrypted backend token storage** and **connected-account sync** — **not** a full enterprise **OAuth2 authorization-code** flow. **`trello_connections`** + crypto (**A2**); connect routes (**A3**); HMAC-signed state (**A4-STATE**); Connect/Disconnect + **`/trello/connect/callback`** (**A4-FRONTEND** — **live**); stored-token boards/lists/sync when body omits `apiKey`/`token` (**A5A**); **`/trello`** primary sync when connected — `{}` / `{ listId, taskIds }` only (**A5B**); connected + manual credentials → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** (**A5C**). Reviews: Supervisor + Security **PASS** / approved with notes per phase
+- **Trello account connection (A2–A6):** Trello **implicit/token authorization** with **encrypted backend token storage**, **connected-account sync**, and **board/list defaults** — **not** a full enterprise **OAuth2 authorization-code** flow. **`trello_connections`** + crypto (**A2**); connect routes (**A3**); HMAC-signed state (**A4-STATE**); Connect/Disconnect + **`/trello/connect/callback`** (**A4-FRONTEND** — **live**); stored-token boards/lists/sync when body omits `apiKey`/`token` (**A5A**); **`/trello`** primary sync when connected — `{}` / `{ listId, taskIds }` only (**A5B**); connected + manual credentials → **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** (**A5C**); board/list defaults (**A6**). Reviews: Supervisor + Security **PASS** / approved with notes per phase
 - **Still deferred:** Trello card update/delete; force re-sync
 - **`focus_sessions` table + RLS** (Phase **4C-0**) — `public.focus_sessions` **applied on Supabase** (**2026-05-29**); duration semantics: provisional ceiling at start, actual minutes after complete
 - **Focus Sessions backend API** (Phase **4C-1**) — `POST /api/focus` (start for owned pending task; `{ taskId, durationMinutes? }`); `POST /api/focus/:sessionId/complete` (`{ completedTask }`; server-side actual minutes; optional task completion)
@@ -300,7 +301,7 @@ The MVP will include:
 The following are intentionally excluded from the first version:
 
 - full PDF upload and parsing
-- full **OAuth2 authorization-code** Trello integration (shipped today: **implicit/token connect** + encrypted storage + connected-account sync — **A2–A5C**; see built summary above)
+- full **OAuth2 authorization-code** Trello integration (shipped today: **implicit/token connect** + encrypted storage + connected-account sync + board/list defaults — **A2–A6**; see built summary above)
 - Google Calendar integration
 - Google Maps integration
 - Stripe or payments
@@ -1411,11 +1412,13 @@ Forbidden patterns:
 
 ---
 
-## 10.5 Trello Token Handling (MVP)
+## 10.5 Trello Token Handling (MVP — historical manual flow; superseded for connected users)
 
-### MVP Approach: No Persistence
+> **Current truth (2026-06):** Connected users use encrypted stored tokens (**ADR 006**, **A2–A6**). Manual apiKey/token below applies **only when disconnected**. See **`docs/IMPLEMENTATION_STATUS.md`** and PRD §7.6 connected flow.
 
-For MVP, Trello credentials are **NOT stored in database**.
+### MVP Approach: No Persistence (manual credentials only)
+
+For the original manual MVP, **manual** Trello apiKey and token are **NOT stored in database** when using disconnected fallback.
 
 **Flow:**
 
