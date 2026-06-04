@@ -45,6 +45,14 @@ import {
   formatPlanImportSummaryMessage,
   importPlanTasksFromPlan,
 } from '../utils/plan-import.js';
+import { formatGenerateError } from '../utils/generate-errors.js';
+import {
+  getDraftContentLength,
+  getDraftContentLengthStatus,
+  getStudyMaterialReadiness,
+  isGenerateReady,
+  STUDY_MATERIAL_CONTENT_MAX,
+} from '../utils/study-material-readiness.js';
 import { updateStudyMaterialFormSchema } from '../utils/validation.js';
 
 export default function StudyMaterialDetail() {
@@ -112,6 +120,11 @@ export default function StudyMaterialDetail() {
       content !== material.content ||
       sourceType !== (material.sourceType === 'paste' ? 'paste' : 'manual'));
 
+  const generateReadiness = getStudyMaterialReadiness({
+    savedContent: material?.content,
+    hasUnsavedChanges,
+  });
+
   const generateDisabled =
     loading ||
     planLoading ||
@@ -119,7 +132,7 @@ export default function StudyMaterialDetail() {
     saving ||
     deleting ||
     importingAny ||
-    hasUnsavedChanges;
+    !isGenerateReady(generateReadiness.status);
 
   const handleAuthError = useCallback(
     async (err) => {
@@ -318,9 +331,7 @@ export default function StudyMaterialDetail() {
         setNotFound(true);
         return;
       }
-      setGenerateError(
-        err instanceof Error ? err.message : 'Failed to generate study plan'
-      );
+      setGenerateError(formatGenerateError(err));
     } finally {
       setGenerating(false);
     }
@@ -547,6 +558,9 @@ export default function StudyMaterialDetail() {
 
   const sourceTypeLabel = sourceType === 'paste' ? 'Pasted text' : 'Manual entry';
 
+  const draftContentLength = getDraftContentLength(content);
+  const draftContentLengthStatus = getDraftContentLengthStatus(content);
+
   const showPlanSection = planLoading || plan != null || planLoadError != null;
 
   const planTasks = plan && Array.isArray(plan.tasks) ? plan.tasks : [];
@@ -634,6 +648,16 @@ export default function StudyMaterialDetail() {
                   reading
                   required
                 />
+                <p
+                  className={`material-workspace__char-count material-workspace__char-count--${draftContentLengthStatus}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {draftContentLength.toLocaleString()} /{' '}
+                  {STUDY_MATERIAL_CONTENT_MAX.toLocaleString()} characters
+                  {draftContentLengthStatus === 'too_short' && ' — at least 100 required'}
+                  {draftContentLengthStatus === 'too_long' && ' — over maximum length'}
+                </p>
                 {saveError && <ErrorMessage message={saveError} />}
                 <div className="material-workspace__editor-actions">
                   <Button
@@ -663,11 +687,18 @@ export default function StudyMaterialDetail() {
                 Uses your last saved material to build a summary, tasks, and flashcards.
               </p>
             </div>
-            {hasUnsavedChanges && (
-              <p className="ai-panel__hint ai-panel__hint--warning" role="status">
-                Save changes before generating — generation uses your last saved material.
-              </p>
-            )}
+            <p
+              className={`material-workspace__generate-readiness material-workspace__generate-readiness--${generateReadiness.status}`}
+              role="status"
+            >
+              {generateReadiness.message}
+              {generateReadiness.status === 'ready' && (
+                <span className="material-workspace__generate-readiness-meta">
+                  {' '}
+                  ({generateReadiness.savedLength.toLocaleString()} saved characters)
+                </span>
+              )}
+            </p>
             {generateError && <ErrorMessage message={generateError} />}
             <div className="ai-panel__actions">
               <Button variant="primary" disabled={generateDisabled} onClick={handleGenerate}>
