@@ -8,12 +8,13 @@ Instructions for Claude (and Claude Code) in this repository. **AGENTS.md** and 
 
 1. Read `docs/IMPLEMENTATION_STATUS.md` — what is built vs deferred (especially APIs and generate route); note **operating constraints** (Free Tier, cost gates, Gemini quota).
 2. Read `docs/AGENT_MEMORY.md` for phase history and pitfalls.
-3. Read `docs/PRD.md` sections relevant to the task (future MVP scope).
-4. Read `AGENTS.md` (roles, approval phrases, off-limits, DoD).
-5. Complete **ADR Understanding Gate** (cite ADRs 001–005 that apply).
-6. Open the **explicit workflow** for the phase—do not self-delegate dynamically.
-7. Read `DESIGN.md` only for **approved frontend UI** work—not for backend, DB, security, or docs-only phases.
-8. **Code phases:** run `npm run lint` and `npm test` in each touched package; `npm run build` in `frontend/` if frontend changed. **Docs-only phases:** no lint/test unless non-doc files change.
+3. Read `docs/PRD.md` sections relevant to the task (product intent and future scope).
+4. Read `docs/POST_MVP.md` — initial MVP closed; future work still gated.
+5. Read `AGENTS.md` (roles, approval phrases, off-limits, DoD).
+6. Complete **ADR Understanding Gate** (cite ADRs 001–006 that apply).
+7. Open the **explicit workflow** for the phase—do not self-delegate dynamically.
+8. Read `DESIGN.md` only for **approved frontend UI** work—not for backend, DB, security, or docs-only phases.
+9. **Code phases:** run `npm run lint` and `npm test` in each touched package; `npm run build` in `frontend/` if frontend changed. **Docs-only phases:** no lint/test unless non-doc files change.
 
 ---
 
@@ -37,7 +38,7 @@ StudyOps AI is a **browser-based web application only** — not a mobile app, na
 ## Behavioral Rules
 
 - **Web only:** Do not introduce mobile/native/app-store product direction. Responsive CSS for narrow browser viewports is allowed and is **not** mobile-app scope.
-- **MVP only:** Do not add PDF upload, OAuth, payments, polling, Redux, or credential storage unless the human explicitly expands scope.
+- **Product scope gates:** Do not add PDF upload, payments, polling, Redux, admin logs, spaced repetition, production deployment, or Trello card lifecycle features unless the human explicitly approves a phase. **Trello OAuth A2–A6 is shipped** — do not treat connect/stored-token sync as out of scope.
 - **Minimal cost:** Do not add paid APIs, new subscriptions, paid storage tiers, or other cost-increasing architecture without explicit human approval (see `AGENTS.md` and `IMPLEMENTATION_STATUS` operating constraints).
 - **Planning ≠ implementation:** Do not write application code or apply migrations until the human gives **`approved — implement Phase X`** (or equivalent)—planning approval alone is insufficient.
 - **No packages without approval:** Do not run `npm install` or add dependencies without human approval (see AGENTS.md).
@@ -70,7 +71,8 @@ React (frontend)
 | Responses | `success` / `data` / `error` / `meta` envelope |
 | Errors | Use PRD error codes (`AUTH_REQUIRED`, `GEMINI_INVALID_RESPONSE`, etc.) |
 | Logging | Redact prompts, credentials, and PII in api_logs |
-| Trello sync | `POST /api/trello/sync` body: `{ apiKey, token, listId, taskIds }` |
+| Trello sync (connected) | `POST /api/trello/boards` `{}`, `/boards/:boardId/lists` `{}`, `/sync` `{ listId, taskIds }` when connected |
+| Trello sync (manual fallback) | `POST /api/trello/sync` body: `{ apiKey, token, listId, taskIds }` when **disconnected** only |
 | Generation (implemented) | `POST /api/study-materials/:materialId/generate` with body `{}`; backend loads saved owned `content`, validates plan, UPSERTs **latest** row; frontend load/clear via `GET`/`DELETE` `.../generated-plan`; plain-text display |
 | Generation (PRD deferred) | `POST /api/courses/:courseId/generate` with client `studyText` — not implemented |
 
@@ -94,7 +96,7 @@ Use:
 - Never commit secrets or suggest committing `.env`.
 - Never call Gemini or document-service from frontend code. Frontend uses backend only (e.g. `POST /api/study-materials/:materialId/generate`).
 - Never put `GEMINI_API_KEY` or service role in frontend env.
-- Never persist Trello credentials.
+- Never persist **manual** Trello apiKey/token in DB, browser storage, or logs. Encrypted user tokens in `trello_connections` are shipped (ADR 006) — never return or log plaintext/decrypted tokens.
 - Do not add client POST of `plan` JSON or direct frontend Supabase writes to `material_generated_plans`.
 - Never skip backend Zod validation before persisting Gemini output; request **Security Review** for changes to plan write/read/render paths.
 

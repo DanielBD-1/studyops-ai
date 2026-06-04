@@ -10,11 +10,11 @@ StudyOps AI helps students turn pasted study text into summaries, tasks, flashca
 
 **Product platform:** StudyOps AI is a **browser-based web application only** (React in the browser). It is **not** a mobile app, native mobile app, Android/iOS app, phone app, app-store product, or mobile-first/native product. Responsive CSS supports **narrow responsive browser viewports** in the same web app — that is **not** mobile-app scope.
 
-**Architecture (MVP):** React frontend → Express modular monolith → HTTP → Document Processing microservice → Gemini API. Supabase Auth + PostgreSQL.
+**Architecture:** React frontend → Express modular monolith → HTTP → Document Processing microservice → Gemini API. Supabase Auth + PostgreSQL.
 
-**Read first:** `docs/IMPLEMENTATION_STATUS.md` (what is built today), `docs/AGENT_MEMORY.md` (phase history), `docs/PRD.md` (MVP intent and future scope), relevant `docs/adrs/*.md`, the workflow for your phase, and `DESIGN.md` only for approved frontend UI work.
+**Read first:** `docs/IMPLEMENTATION_STATUS.md` (what is built today), `docs/CURRENT_STATE.md` (starting point), `docs/POST_MVP.md` (post-MVP framing), `docs/AGENT_MEMORY.md` (phase history), `docs/PRD.md` (product intent and future scope), relevant `docs/adrs/*.md`, the workflow for your phase, and `DESIGN.md` only for approved frontend UI work.
 
-**Built today (summary):** Auth complete; courses complete; study materials complete; material-scoped generate + persisted latest generated plan complete; tasks API and UI complete; flashcards API and UI complete; Trello board/list picker + sync complete; focus sessions complete; dashboard stats backend/frontend complete; admin auth foundation, aggregate stats API, and frontend **`/admin`** UI complete. For details, rely on **`docs/IMPLEMENTATION_STATUS.md`** — course-level paste-generate, admin logs/user management, and several polish items remain deferred.
+**Built today (summary):** Auth complete; courses complete; study materials complete; material-scoped generate + persisted latest generated plan + plan history complete; tasks API and UI complete; flashcards API and UI complete; **Trello OAuth connect (A2–A4)**, connected-account sync (A5A–A5B), manual-credential hardening (A5C), board/list defaults persistence (A6), board/list picker + sync complete; focus sessions complete; dashboard stats backend/frontend complete; admin auth foundation, aggregate stats API, and frontend **`/admin`** UI complete. For details, rely on **`docs/IMPLEMENTATION_STATUS.md`** — course-level paste-generate, admin logs/user management, PDF upload, spaced repetition, production deployment, and several polish items remain deferred.
 
 ---
 
@@ -68,7 +68,7 @@ Pre-commit hooks for lint/secrets are **not** installed yet; run lint locally an
 
 Before implementing any feature that touches architecture, validation, Trello, or service boundaries:
 
-1. Read `docs/adrs/001` through `005` (or the subset listed in your workflow).
+1. Read `docs/adrs/001` through `006` (or the subset listed in your workflow).
 2. In your plan or PR description, state: **which ADRs apply** and **how the change complies**.
 3. If a change conflicts with an ADR, **stop** and request human approval to amend the ADR—do not silently diverge.
 
@@ -77,23 +77,28 @@ Before implementing any feature that touches architecture, validation, Trello, o
 | 001 | Modular monolith for main backend |
 | 002 | Separate document processing service |
 | 003 | Zod validation everywhere specified |
-| 004 | No Trello credential persistence |
+| 004 | No manual Trello apiKey/token persistence (partially superseded by 006 for encrypted user tokens) |
 | 005 | Manual Trello List ID input (MVP) |
+| 006 | Encrypted Trello connection storage (OAuth connect + stored-token sync + A6 defaults) |
 
 ---
 
-## MVP Scope Boundaries
+## Product scope & approval gates
 
-**In scope:** See PRD Section 3 (auth, courses, paste text, AI generation, tasks, flashcards, Trello sync with manual credentials/list ID, focus sessions, student/admin dashboards, CI).
+**Initial MVP baseline is complete.** StudyOps AI is an actively developed web product; many post-MVP phases are already merged. **Future work is not rejected merely because it is beyond MVP** — it still requires explicit human approval, cost review, Security Review when applicable, and migration approval when applicable. See **`docs/POST_MVP.md`**.
+
+**Shipped core (summary):** See PRD Section 3 and **`docs/IMPLEMENTATION_STATUS.md`** (auth, courses, paste text, AI generation, tasks, flashcards, Trello OAuth A2–A6 with connected-account sync, focus sessions, student/admin dashboards, CI).
 
 **Out of scope — do not implement without explicit human approval:**
 
-- PDF upload/parsing, Trello OAuth, Google Calendar/Maps, payments, **native mobile / app-store product** (see **Product platform** below — responsive web in the browser remains in scope)
+- PDF upload/parsing, Google Calendar/Maps, payments, **native mobile / app-store product** (see **Product platform** below — responsive web in the browser remains in scope)
 - Real-time collaboration, advanced spaced repetition, full AI chat
-- Background polling, mass Trello sync, deleting Trello cards
+- Background polling, mass Trello sync, Trello card update/delete, force re-sync
+- Admin logs / `api_logs` UI, user management, role management UI
 - Full microservices for every module, GDPR/data retention tooling
 - Docker/production deployment strategy, load testing/APM
-- Redux, WebSockets, optimistic dashboard updates, credential persistence
+- Redux, WebSockets, optimistic dashboard updates
+- **Manual** Trello apiKey/token persistence in DB, browser storage, or logs (encrypted user tokens per ADR 006 are shipped — never return or log them)
 
 **Cost & external services (out of scope without approval):** Paid third-party APIs, new SaaS subscriptions, paid storage tiers, or other **cost-increasing** dependencies — same explicit approval gate as new npm packages. Assume **Free Tier / minimal-cost** operation unless the human approves otherwise (see `docs/IMPLEMENTATION_STATUS.md` § Operating constraints).
 
@@ -192,7 +197,7 @@ Agents **may** read `.env.example` and must keep placeholders only—never real 
 4. **Zod:** Validate env, request bodies, and Gemini output per ADR 003.
 5. **API format:** `{ success, data|error, meta }` per PRD Section 8.5.
 6. **Ownership:** Every query filters by authenticated user; admin is explicit exception for logs/stats.
-7. **Trello:** Credentials in POST body only; never persist; clear from frontend state after sync.
+7. **Trello:** When **connected**, primary UX uses stored encrypted user token (ADR 006) — frontend sends `{}` / `{ listId, taskIds }` only; **A6** persists board/list defaults on `trello_connections`. When **disconnected**, manual apiKey/token in POST body only — **never** persist manual credentials in DB, browser storage, or logs; clear from frontend state after sync. Never return or log plaintext or decrypted Trello tokens.
 8. **Dashboard:** Manual refetch after mutations—no polling/WebSockets.
 9. **Tests:** Mock external APIs; no live Gemini/Trello in CI.
 10. **Lint:** Run `npm run lint` in `backend/`, `document-service/`, and `frontend/` before claiming work complete. CI runs the same commands after `npm ci`. Use `npm run lint:fix` only for mechanical fixes you review; do not add new ESLint plugins or change rule severity without human approval.

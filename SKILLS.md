@@ -25,7 +25,7 @@ Index of **when** to apply specialized agent behavior. Skills are not separate n
 | Auth, admin, Trello, Gemini, env | Security Review | `docs/workflows/security-review-workflow.md` + `.claude/agents/security-review-agent.md` |
 | Update memory after merge | Documentation | `.claude/agents/documentation-agent.md` |
 | PRD vs ADR vs memory conflict | Conflict Resolution | `docs/workflows/conflict-resolution-workflow.md` |
-| Architecture decision context | ADR Gate | `docs/adrs/001`–`005` + AGENTS.md |
+| Architecture decision context | ADR Gate | `docs/adrs/001`–`006` + AGENTS.md |
 
 ---
 
@@ -34,14 +34,14 @@ Index of **when** to apply specialized agent behavior. Skills are not separate n
 Before coding:
 
 ```
-1. List applicable ADRs (001–005).
+1. List applicable ADRs (001–006).
 2. One sentence each: how this task complies.
 3. If none apply, state why (rare).
 ```
 
 ---
 
-## PRD-Aligned Skills (MVP)
+## PRD-Aligned Skills (shipped core)
 
 ### Authentication & Courses
 
@@ -51,7 +51,7 @@ Before coding:
 
 ### Study Plan Generation
 
-- Paste text only (no PDF in MVP).
+- Paste text only — **PDF upload/parsing is not implemented without explicit approval**.
 - Call document-service per ADR 002; validate with `GeminiOutputSchema` (PRD Section 8).
 - Never save unvalidated AI output.
 
@@ -62,7 +62,9 @@ Before coding:
 
 ### Trello
 
-- Manual API key, token; **board/list picker** via **`POST /api/trello/boards`** and **`POST /api/trello/boards/:boardId/lists`**; sync via **`POST /api/trello/sync`**; POST body only; no persistence (ADR 004, 005).
+- **Connected account (primary when linked):** **`POST /api/trello/boards`** `{}`, **`/boards/:boardId/lists`** `{}`, **`/sync`** `{ listId, taskIds }` — no manual credentials from frontend (**A5A + A5B**).
+- **Board/list defaults:** **`PATCH /api/trello/connection/defaults`** when connected (**A6**).
+- **Manual fallback (disconnected only):** ephemeral apiKey/token in POST body; **never** stored in DB or browser storage (ADR 004 for manual credentials; ADR 006 for encrypted user tokens).
 - Partial success per task in response (`success` \| `failed` \| `skipped`).
 
 ### Focus & Dashboard
