@@ -69,6 +69,11 @@ async function request(path, init = {}) {
  *   answer: string,
  *   tags: string[],
  *   source: string,
+ *   mastery: 'new' | 'learning' | 'known',
+ *   lastReviewedAt: string | null,
+ *   reviewCount: number,
+ *   knownCount: number,
+ *   unknownCount: number,
  *   createdAt: string,
  *   updatedAt: string,
  * }} Flashcard
@@ -131,4 +136,16 @@ export async function updateFlashcard(flashcardId, body) {
 export async function deleteFlashcard(flashcardId) {
   const data = await request(`/api/flashcards/${flashcardId}`, { method: 'DELETE' });
   return /** @type {{ deleted: boolean }} */ (data);
+}
+
+/**
+ * @param {string} flashcardId
+ * @param {{ outcome: 'known' | 'unknown' }} body
+ */
+export async function reviewFlashcard(flashcardId, body) {
+  const data = await request(`/api/flashcards/${flashcardId}/review`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return /** @type {{ flashcard: Flashcard }} */ (data);
 }

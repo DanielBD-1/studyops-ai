@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Button from '../ui/Button.jsx';
+import ErrorMessage from '../ui/ErrorMessage.jsx';
 import {
+  buildStudySetKey,
   canNavigateFlashcards,
   formatCardCounter,
   getNextIndex,
@@ -9,23 +11,42 @@ import {
 
 /**
  * @param {{
- *   flashcards: Array<{ question: string, answer: string, tags?: string[] }>,
+ *   flashcards: Array<{ id?: string, question: string, answer: string, tags?: string[], mastery?: string, reviewCount?: number }>,
  *   title?: string,
  *   className?: string,
+ *   onReviewOutcome?: (flashcardId: string, outcome: 'known' | 'unknown') => void | Promise<void>,
+ *   reviewing?: boolean,
+ *   reviewError?: string | null,
+ *   reviewSuccessMessage?: string | null,
  * }} props
  */
-export default function FlashcardStudy({ flashcards, title = 'Flashcards', className = '' }) {
+export default function FlashcardStudy({
+  flashcards,
+  title = 'Flashcards',
+  className = '',
+  onReviewOutcome,
+  reviewing = false,
+  reviewError = null,
+  reviewSuccessMessage = null,
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
 
   const total = flashcards.length;
   const card = flashcards[currentIndex];
   const showNav = canNavigateFlashcards(total);
+  const studySetKey = useMemo(() => buildStudySetKey(flashcards), [flashcards]);
 
   useEffect(() => {
     setCurrentIndex(0);
     setRevealed(false);
-  }, [flashcards]);
+  }, [studySetKey, flashcards.length]);
+
+  useEffect(() => {
+    if (total > 0 && currentIndex >= total) {
+      setCurrentIndex(total - 1);
+    }
+  }, [currentIndex, total]);
 
   function goNext() {
     setCurrentIndex((index) => getNextIndex(index, total));
@@ -40,6 +61,14 @@ export default function FlashcardStudy({ flashcards, title = 'Flashcards', class
   if (!card) {
     return null;
   }
+
+  const canReview = Boolean(onReviewOutcome && revealed && card.id);
+  const reviewBusy = reviewing;
+  const showReviewMeta =
+    card.id &&
+    typeof card.reviewCount === 'number' &&
+    card.reviewCount > 0 &&
+    card.mastery;
 
   const sectionClass = ['flashcard-study', 'plan-block', className].filter(Boolean).join(' ');
 
@@ -66,6 +95,11 @@ export default function FlashcardStudy({ flashcards, title = 'Flashcards', class
         {Array.isArray(card.tags) && card.tags.length > 0 ? (
           <p className="plan-block__meta">Tags: {card.tags.join(', ')}</p>
         ) : null}
+        {showReviewMeta ? (
+          <p className="plan-block__meta flashcard-study__review-meta">
+            Mastery: {card.mastery} · Reviews: {card.reviewCount}
+          </p>
+        ) : null}
       </article>
 
       <div className="form-row flashcard-study__actions">
@@ -74,17 +108,52 @@ export default function FlashcardStudy({ flashcards, title = 'Flashcards', class
             Show answer
           </Button>
         ) : null}
+        {canReview ? (
+          <>
+            <Button
+              type="button"
+              variant="primary"
+              disabled={reviewBusy}
+              onClick={() => {
+                if (card.id) {
+                  onReviewOutcome?.(card.id, 'known');
+                }
+              }}
+            >
+              {reviewBusy ? 'Saving…' : 'Known'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={reviewBusy}
+              onClick={() => {
+                if (card.id) {
+                  onReviewOutcome?.(card.id, 'unknown');
+                }
+              }}
+            >
+              {reviewBusy ? 'Saving…' : 'Unknown'}
+            </Button>
+          </>
+        ) : null}
         {showNav ? (
           <>
-            <Button type="button" variant="secondary" onClick={goPrevious}>
+            <Button type="button" variant="secondary" onClick={goPrevious} disabled={reviewBusy}>
               Previous
             </Button>
-            <Button type="button" variant="secondary" onClick={goNext}>
+            <Button type="button" variant="secondary" onClick={goNext} disabled={reviewBusy}>
               Next
             </Button>
           </>
         ) : null}
       </div>
+
+      {reviewSuccessMessage ? (
+        <p className="plan-panel__status plan-panel__status--success flashcard-study__review-success">
+          {reviewSuccessMessage}
+        </p>
+      ) : null}
+      {reviewError ? <ErrorMessage message={reviewError} /> : null}
     </section>
   );
 }
