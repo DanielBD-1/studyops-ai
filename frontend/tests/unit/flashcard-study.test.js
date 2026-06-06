@@ -5,6 +5,7 @@ import {
   formatCardCounter,
   getNextIndex,
   getPreviousIndex,
+  buildStudySetKey,
 } from '../../src/utils/flashcard-study.js';
 
 describe('flashcard-study formatCardCounter', () => {
@@ -40,6 +41,23 @@ describe('flashcard-study navigation', () => {
   it('allows navigation when more than one card', () => {
     assert.equal(canNavigateFlashcards(2), true);
     assert.equal(canNavigateFlashcards(30), true);
+  });
+});
+
+describe('flashcard-study buildStudySetKey', () => {
+  it('uses stable id keys so review metadata updates do not change the key', () => {
+    const before = [{ id: 'card-1', question: 'Q', answer: 'A' }];
+    const after = [{ id: 'card-1', question: 'Q', answer: 'A' }];
+    assert.equal(buildStudySetKey(before), buildStudySetKey(after));
+  });
+
+  it('changes key when cards are added or removed', () => {
+    const one = [{ id: 'a', question: 'Q1', answer: 'A1' }];
+    const two = [
+      { id: 'a', question: 'Q1', answer: 'A1' },
+      { id: 'b', question: 'Q2', answer: 'A2' },
+    ];
+    assert.notEqual(buildStudySetKey(one), buildStudySetKey(two));
   });
 });
 

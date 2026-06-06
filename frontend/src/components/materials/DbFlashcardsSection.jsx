@@ -26,6 +26,8 @@ import FlashcardStudy from './FlashcardStudy.jsx';
  *   createCourseFlashcard: typeof import('../../services/flashcards.service.js').createCourseFlashcard,
  *   updateFlashcard: typeof import('../../services/flashcards.service.js').updateFlashcard,
  *   deleteFlashcard: typeof import('../../services/flashcards.service.js').deleteFlashcard,
+ *   reviewFlashcard: typeof import('../../services/flashcards.service.js').reviewFlashcard,
+ *   onFlashcardUpdated?: (flashcard: import('../../services/flashcards.service.js').Flashcard) => void,
  *   handleAuthError: (err: unknown) => Promise<boolean>,
  *   disabled?: boolean,
  * }} props
@@ -41,6 +43,8 @@ export default function DbFlashcardsSection({
   createCourseFlashcard,
   updateFlashcard,
   deleteFlashcard,
+  reviewFlashcard,
+  onFlashcardUpdated,
   handleAuthError,
   disabled = false,
 }) {
@@ -62,12 +66,20 @@ export default function DbFlashcardsSection({
   const [deletingId, setDeletingId] = useState(/** @type {string | null} */ (null));
   const [actionError, setActionError] = useState(/** @type {string | null} */ (null));
   const [successMessage, setSuccessMessage] = useState(/** @type {string | null} */ (null));
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState(/** @type {string | null} */ (null));
+  const [reviewSuccessMessage, setReviewSuccessMessage] = useState(
+    /** @type {string | null} */ (null)
+  );
 
-  const busy = disabled || creating || savingEdit || deletingId !== null;
+  const busy = disabled || creating || savingEdit || deletingId !== null || reviewing;
   const studyCards = flashcards.map((card) => ({
+    id: card.id,
     question: card.question,
     answer: card.answer,
     tags: card.tags,
+    mastery: card.mastery,
+    reviewCount: card.reviewCount,
   }));
 
   function cancelCreate() {
@@ -206,6 +218,32 @@ export default function DbFlashcardsSection({
     }
   }
 
+  /**
+   * @param {string} flashcardId
+   * @param {'known' | 'unknown'} outcome
+   */
+  async function handleReviewOutcome(flashcardId, outcome) {
+    setReviewError(null);
+    setReviewSuccessMessage(null);
+    setReviewing(true);
+    try {
+      const data = await reviewFlashcard(flashcardId, { outcome });
+      onFlashcardUpdated?.(data.flashcard);
+      setReviewSuccessMessage(
+        outcome === 'known' ? 'Marked as known.' : 'Marked as unknown.'
+      );
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+        setReviewError('Flashcard not found');
+        return;
+      }
+      setReviewError(err instanceof Error ? err.message : 'Failed to save review');
+    } finally {
+      setReviewing(false);
+    }
+  }
+
   return (
     <FormCard title="Flashcard library" className="flashcard-library flashcard-library--material">
       <p className="flashcard-library__intro plan-disclaimer">
@@ -299,6 +337,10 @@ export default function DbFlashcardsSection({
                 flashcards={studyCards}
                 title="Study saved cards"
                 className="flashcard-study--library"
+                onReviewOutcome={handleReviewOutcome}
+                reviewing={reviewing}
+                reviewError={reviewError}
+                reviewSuccessMessage={reviewSuccessMessage}
               />
             </div>
           )}

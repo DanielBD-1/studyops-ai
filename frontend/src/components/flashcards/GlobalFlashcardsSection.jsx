@@ -6,6 +6,7 @@ import {
   createCourseFlashcard,
   deleteFlashcard,
   listFlashcards,
+  reviewFlashcard,
   updateFlashcard,
 } from '../../services/flashcards.service.js';
 import { listMaterials } from '../../services/study-materials.service.js';
@@ -70,11 +71,16 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   const [deletingId, setDeletingId] = useState(/** @type {string | null} */ (null));
   const [actionError, setActionError] = useState(/** @type {string | null} */ (null));
   const [successMessage, setSuccessMessage] = useState(/** @type {string | null} */ (null));
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState(/** @type {string | null} */ (null));
+  const [reviewSuccessMessage, setReviewSuccessMessage] = useState(
+    /** @type {string | null} */ (null)
+  );
 
   const courseTitleById = new Map(courses.map((c) => [c.id, c.title]));
   const materialTitleById = new Map(materials.map((m) => [m.id, m.title]));
 
-  const busy = creating || savingEdit || deletingId !== null;
+  const busy = creating || savingEdit || deletingId !== null || reviewing;
   const showMaterialFilter = courseFilter !== 'all' && courses.some((c) => c.id === courseFilter);
   const canShowCreate = courses.length > 0;
   const showGlobalEmpty =
@@ -86,9 +92,12 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     materialFilter === 'all';
 
   const studyCards = flashcards.map((card) => ({
+    id: card.id,
     question: card.question,
     answer: card.answer,
     tags: card.tags,
+    mastery: card.mastery,
+    reviewCount: card.reviewCount,
   }));
 
   function cancelCreate() {
@@ -423,6 +432,34 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     }
   }
 
+  /**
+   * @param {string} flashcardId
+   * @param {'known' | 'unknown'} outcome
+   */
+  async function handleReviewOutcome(flashcardId, outcome) {
+    setReviewError(null);
+    setReviewSuccessMessage(null);
+    setReviewing(true);
+    try {
+      const data = await reviewFlashcard(flashcardId, { outcome });
+      setFlashcards((prev) =>
+        prev.map((card) => (card.id === data.flashcard.id ? data.flashcard : card))
+      );
+      setReviewSuccessMessage(
+        outcome === 'known' ? 'Marked as known.' : 'Marked as unknown.'
+      );
+    } catch (err) {
+      if (await handleAuthError(err)) return;
+      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+        setReviewError('Flashcard not found');
+        return;
+      }
+      setReviewError(err instanceof Error ? err.message : 'Failed to save review');
+    } finally {
+      setReviewing(false);
+    }
+  }
+
   return (
     <section className="section flashcards-workspace__main" aria-label="Flashcard library">
       <div className="flashcards-workspace__command-band flashcards-workspace__command-band--deck">
@@ -654,6 +691,10 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
                 flashcards={studyCards}
                 title="Study filtered cards"
                 className="flashcard-study--library"
+                onReviewOutcome={handleReviewOutcome}
+                reviewing={reviewing}
+                reviewError={reviewError}
+                reviewSuccessMessage={reviewSuccessMessage}
               />
             </div>
 

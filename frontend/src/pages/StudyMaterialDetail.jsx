@@ -29,6 +29,7 @@ import {
   createCourseFlashcard,
   deleteFlashcard,
   listFlashcards,
+  reviewFlashcard,
   updateFlashcard,
 } from '../services/flashcards.service.js';
 import {
@@ -851,6 +852,12 @@ export default function StudyMaterialDetail() {
           createCourseFlashcard={createCourseFlashcard}
           updateFlashcard={updateFlashcard}
           deleteFlashcard={deleteFlashcard}
+          reviewFlashcard={reviewFlashcard}
+          onFlashcardUpdated={(updated) => {
+            setDbFlashcards((prev) =>
+              prev.map((card) => (card.id === updated.id ? updated : card))
+            );
+          }}
           handleAuthError={handleAuthError}
           disabled={flashcardsCrudDisabled}
         />

@@ -5,6 +5,7 @@ import {
   createCourseFlashcard,
   updateFlashcard,
   deleteFlashcard,
+  reviewFlashcard,
   __setApiFetchForTests,
   __setAccessTokenForTests,
   ApiRequestError,
@@ -23,6 +24,11 @@ const MOCK_FLASHCARD = {
   answer: 'Integration is the inverse of differentiation.',
   tags: ['calculus'],
   source: 'manual',
+  mastery: 'new',
+  lastReviewedAt: null,
+  reviewCount: 0,
+  knownCount: 0,
+  unknownCount: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
@@ -178,6 +184,76 @@ describe('flashcards.service', () => {
     assert.equal(calls[0].path, `/api/flashcards/${FLASHCARD_ID}`);
     assert.equal(calls[0].init.method, 'DELETE');
     assert.equal(calls[0].token, TOKEN);
+  });
+
+  it('reviewFlashcard POSTs outcome known to /review', async () => {
+    const reviewed = {
+      ...MOCK_FLASHCARD,
+      mastery: 'known',
+      lastReviewedAt: '2026-06-06T12:00:00.000Z',
+      reviewCount: 1,
+      knownCount: 1,
+      unknownCount: 0,
+    };
+
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { flashcard: reviewed },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    const data = await reviewFlashcard(FLASHCARD_ID, { outcome: 'known' });
+    assert.equal(data.flashcard.mastery, 'known');
+    assert.equal(calls[0].path, `/api/flashcards/${FLASHCARD_ID}/review`);
+    assert.equal(calls[0].init.method, 'POST');
+    assert.equal(calls[0].token, TOKEN);
+    const body = JSON.parse(String(calls[0].init.body));
+    assert.equal(body.outcome, 'known');
+    assert.equal(body.userId, undefined);
+  });
+
+  it('reviewFlashcard POSTs outcome unknown to /review', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: {
+          flashcard: {
+            ...MOCK_FLASHCARD,
+            mastery: 'learning',
+            reviewCount: 1,
+            unknownCount: 1,
+          },
+        },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await reviewFlashcard(FLASHCARD_ID, { outcome: 'unknown' });
+    assert.equal(calls[0].path, `/api/flashcards/${FLASHCARD_ID}/review`);
+    const body = JSON.parse(String(calls[0].init.body));
+    assert.equal(body.outcome, 'unknown');
+  });
+
+  it('reviewFlashcard propagates ApiRequestError on API failure envelope', async () => {
+    __setApiFetchForTests(async () => ({
+      success: false,
+      error: { code: 'NOT_FOUND', message: 'Flashcard not found' },
+      meta: { timestamp: new Date().toISOString() },
+    }));
+
+    await assert.rejects(
+      () => reviewFlashcard(FLASHCARD_ID, { outcome: 'known' }),
+      (err) => {
+        assert.ok(err instanceof ApiRequestError);
+        assert.equal(err.code, 'NOT_FOUND');
+        assert.equal(err.message, 'Flashcard not found');
+        return true;
+      }
+    );
   });
 
   it('propagates ApiRequestError on API failure envelope', async () => {

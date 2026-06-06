@@ -38,3 +38,12 @@ export function getPreviousIndex(currentIndex, total) {
 export function canNavigateFlashcards(total) {
   return total > 1;
 }
+
+/**
+ * Stable identity for a study deck — metadata-only updates keep the same key.
+ * @param {Array<{ id?: string, question: string, answer: string }>} flashcards
+ * @returns {string}
+ */
+export function buildStudySetKey(flashcards) {
+  return flashcards.map((card) => card.id ?? `${card.question}\0${card.answer}`).join('\n');
+}
