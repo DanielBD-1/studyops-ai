@@ -10,6 +10,10 @@ import {
   deleteTask,
 } from '../../services/tasks.service.js';
 import { listMaterials } from '../../services/study-materials.service.js';
+import {
+  filterTasksByMaterial,
+  resetMaterialFilterForCourseChange,
+} from '../../utils/task-filters.js';
 import { createTaskFormSchema, updateTaskFormSchema } from '../../utils/validation.js';
 import TaskCard from './TaskCard.jsx';
 import Button from '../ui/Button.jsx';
@@ -38,6 +42,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   const [statusFilter, setStatusFilter] = useState(
     /** @type {'all' | 'pending' | 'completed'} */ ('all')
   );
+  const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
+  const [filterMaterials, setFilterMaterials] = useState(
+    /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
+  );
+  const [loadingFilterMaterials, setLoadingFilterMaterials] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(/** @type {string | null} */ (null));
   const [editTitle, setEditTitle] = useState('');
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState('');
@@ -134,6 +143,43 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     loadTasks();
   }, [loadTasks]);
 
+  const showMaterialFilter =
+    courseFilter !== 'all' && courses.some((c) => c.id === courseFilter);
+
+  useEffect(() => {
+    if (!showMaterialFilter) {
+      setFilterMaterials([]);
+      setLoadingFilterMaterials(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    async function loadCourseMaterials() {
+      setLoadingFilterMaterials(true);
+      try {
+        const data = await listMaterials(courseFilter);
+        if (!cancelled) {
+          setFilterMaterials(data.materials);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        if (await handleAuthError(err)) return;
+        setFilterMaterials([]);
+      } finally {
+        if (!cancelled) {
+          setLoadingFilterMaterials(false);
+        }
+      }
+    }
+
+    loadCourseMaterials();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [courseFilter, showMaterialFilter, handleAuthError]);
+
   useEffect(() => {
     if (!showCreate || !createCourseId || !courses.some((c) => c.id === createCourseId)) {
       setCreateMaterials([]);
@@ -202,6 +248,17 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     cancelEdit();
     setActionError(null);
     setCourseFilter(course);
+    setMaterialFilter(resetMaterialFilterForCourseChange());
+  }
+
+  /**
+   * @param {'all' | string} material
+   */
+  function handleMaterialFilterChange(material) {
+    cancelCreate();
+    cancelEdit();
+    setActionError(null);
+    setMaterialFilter(material);
   }
 
   /**
@@ -391,7 +448,12 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     { value: 'completed', label: 'Completed' },
   ];
 
-  const materialTitleById = new Map(editMaterials.map((m) => [m.id, m.title]));
+  const materialTitleById = new Map([
+    ...filterMaterials.map((m) => [m.id, m.title]),
+    ...editMaterials.map((m) => [m.id, m.title]),
+  ]);
+
+  const displayedTasks = filterTasksByMaterial(tasks, materialFilter, filterMaterials);
 
   const editingTask = tasks.find((t) => t.id === editingTaskId);
 
@@ -400,7 +462,16 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     !error &&
     tasks.length === 0 &&
     courseFilter === 'all' &&
-    statusFilter === 'all';
+    statusFilter === 'all' &&
+    materialFilter === 'all';
+
+  const showFilterEmpty =
+    !loading &&
+    !error &&
+    displayedTasks.length === 0 &&
+    !showGlobalEmpty &&
+    !(tasks.length === 0 && statusFilter === 'pending') &&
+    !(tasks.length === 0 && statusFilter === 'completed');
 
   return (
     <section className="section task-workspace__main" aria-label="Study task command">
@@ -437,6 +508,29 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                 ))}
               </select>
             </label>
+
+            {showMaterialFilter ? (
+              <label
+                htmlFor="global-tasks-material-filter"
+                className="field task-workspace__material-field"
+              >
+                Study material
+                <select
+                  id="global-tasks-material-filter"
+                  value={materialFilter}
+                  onChange={(e) => handleMaterialFilterChange(e.target.value)}
+                  className="field__select"
+                  disabled={busy || loadingFilterMaterials}
+                >
+                  <option value="all">All materials in course</option>
+                  {filterMaterials.map((material) => (
+                    <option key={material.id} value={material.id}>
+                      {material.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
             <div className="filter-toolbar__segment task-workspace__status-segment">
               {STATUS_FILTERS.map((f) => {
@@ -612,16 +706,16 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         <p className="section__meta task-workspace__filter-empty">No completed tasks.</p>
       )}
 
-      {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'all' && (
+      {showFilterEmpty && (
         <p className="section__meta task-workspace__filter-empty">
           No tasks match the selected filters.
         </p>
       )}
 
-      {!loading && !error && tasks.length > 0 && (
+      {!loading && !error && displayedTasks.length > 0 && (
         <div className="task-workspace__list-zone">
           <ul className="card-list task-list task-workspace__list" aria-label="Study tasks">
-          {tasks.map((task) =>
+          {displayedTasks.map((task) =>
             editingTaskId === task.id ? (
               <li key={task.id} className="task-workspace__list-item">
               <FormCard title="Edit study task" className="task-workspace__edit-card">
