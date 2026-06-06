@@ -91,7 +91,15 @@ export default function TaskCard({
           <p className="source-card__meta task-card__description">{task.description}</p>
         ) : null}
         {task.materialId ? (
-          <p className="source-card__meta">Material: {materialLabel ?? 'unavailable'}</p>
+          <p className="source-card__meta">
+            Material:{' '}
+            <Link
+              className="source-card__link"
+              to={`/study-materials/${task.materialId}`}
+            >
+              {materialLabel ?? 'View study material'}
+            </Link>
+          </p>
         ) : null}
       </div>
 
