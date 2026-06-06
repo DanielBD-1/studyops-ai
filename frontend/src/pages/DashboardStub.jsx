@@ -454,6 +454,20 @@ export default function DashboardStub() {
               <div className="dashboard-cockpit__row dashboard-cockpit__row--compact">
                 <StatBand title="Learning assets" bandClass="dashboard-band--assets">
                   <StatItem label="Flashcards" value={stats.totalFlashcards} />
+                  <StatItem
+                    label="Due now"
+                    value={stats.dueFlashcardsCount ?? 0}
+                    detail={
+                      stats.dueFlashcardsCount > 0 ? (
+                        <>
+                          Ready for review ·{' '}
+                          <Link to="/flashcards" className="link-btn link-btn--secondary">
+                            Review flashcards
+                          </Link>
+                        </>
+                      ) : undefined
+                    }
+                  />
                 </StatBand>
 
                 <StatBand title="Trello" bandClass="dashboard-band--trello">

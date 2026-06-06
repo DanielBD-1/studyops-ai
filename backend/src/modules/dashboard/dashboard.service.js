@@ -49,6 +49,7 @@ async function countExact(query) {
  */
 export async function getDashboardStats(userId) {
   const supabase = getSupabaseAdmin();
+  const nowIso = new Date().toISOString();
 
   const [
     totalCourses,
@@ -58,6 +59,7 @@ export async function getDashboardStats(userId) {
     pendingTasks,
     completedTasks,
     totalFlashcards,
+    dueFlashcardsCount,
     completedFocusSessions,
     trelloSyncedTasks,
     focusResult,
@@ -112,6 +114,13 @@ export async function getDashboardStats(userId) {
     ),
     countExact(
       supabase
+        .from('flashcards')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .or(`next_review_at.is.null,next_review_at.lte.${nowIso}`)
+    ),
+    countExact(
+      supabase
         .from('focus_sessions')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
@@ -157,6 +166,7 @@ export async function getDashboardStats(userId) {
     pendingTasks,
     completedTasks,
     totalFlashcards,
+    dueFlashcardsCount,
     totalFocusMinutes,
     completedFocusSessions,
     trelloSyncedTasks,

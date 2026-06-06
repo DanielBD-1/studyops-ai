@@ -74,6 +74,28 @@ function applyCommonFilters(state, rows) {
 }
 
 /**
+ * Filters flashcards due for review: next_review_at IS NULL OR next_review_at <= lte ISO.
+ *
+ * @param {string} orFilter
+ * @param {Array<Record<string, unknown>>} rows
+ */
+function applyFlashcardDueOrFilter(orFilter, rows) {
+  const lteMatch = orFilter.match(/next_review_at\.lte\.(.+)/);
+  const lteIso = lteMatch ? lteMatch[1] : null;
+
+  return rows.filter((row) => {
+    const nextReviewAt = row.next_review_at;
+    if (nextReviewAt == null) {
+      return true;
+    }
+    if (lteIso && typeof nextReviewAt === 'string') {
+      return nextReviewAt <= lteIso;
+    }
+    return false;
+  });
+}
+
+/**
  * @param {Record<string, unknown>} state
  * @param {Array<Record<string, unknown>>} rows
  */
@@ -265,6 +287,7 @@ function createFlashcardsBuilder() {
   const state = {
     filters: {},
     notNullColumns: [],
+    orFilter: undefined,
   };
 
   const builder = {
@@ -278,6 +301,10 @@ function createFlashcardsBuilder() {
       state.filters[column] = value;
       return builder;
     },
+    or(filter) {
+      state.orFilter = filter;
+      return builder;
+    },
     not(column, operator, value) {
       if (operator === 'is' && value === null) {
         state.notNullColumns.push(column);
@@ -285,8 +312,15 @@ function createFlashcardsBuilder() {
       return builder;
     },
     then(onFulfilled, onRejected) {
-      const rows = getMockFlashcards().map((card) => ({ ...card }));
-      const result = resolveCountOrRows(state, rows);
+      let rows = getMockFlashcards().map((card) => ({ ...card }));
+      rows = applyCommonFilters(state, rows);
+      if (typeof state.orFilter === 'string') {
+        rows = applyFlashcardDueOrFilter(state.orFilter, rows);
+      }
+      const result = resolveCountOrRows(
+        { ...state, filters: {}, notNullColumns: [], coursesUserIdFilter: undefined },
+        rows
+      );
       return Promise.resolve(result).then(onFulfilled, onRejected);
     },
   };
