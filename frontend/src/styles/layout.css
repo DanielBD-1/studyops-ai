@@ -2511,6 +2511,110 @@ a.dashboard-hero__cta.btn:hover {
   margin-bottom: var(--space-3);
 }
 
+.material-workspace__related-tasks {
+  margin-top: var(--space-10);
+  padding-top: var(--space-8);
+  border-top: 2px solid var(--color-border);
+}
+
+.material-workspace__related-tasks .section__header-row {
+  margin-bottom: var(--space-5);
+}
+
+.material-related-tasks__loading {
+  min-width: 0;
+}
+
+.material-related-tasks__loading .loading {
+  margin: 0 0 var(--space-4);
+}
+
+.material-related-tasks__error {
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.material-related-tasks__error .alert {
+  margin-bottom: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.material-related-tasks__error-actions {
+  margin-top: var(--space-4);
+}
+
+.material-related-tasks__empty {
+  margin: 0 0 var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.material-related-tasks__counts {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.material-related-tasks__list {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.material-related-tasks__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.material-related-tasks__status {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.material-related-tasks__status--pending {
+  color: var(--color-primary);
+}
+
+.material-related-tasks__status--completed {
+  color: var(--color-text-muted);
+}
+
+.material-related-tasks__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.material-related-tasks__meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.material-related-tasks__more {
+  margin: 0 0 var(--space-4);
+}
+
+.material-related-tasks__course-link {
+  margin-top: var(--space-2);
+  margin-bottom: 0;
+}
+
 .material-workspace__library {
   margin-top: var(--space-10);
   padding-top: var(--space-8);
@@ -2640,6 +2744,7 @@ a.dashboard-hero__cta.btn:hover {
     min-height: 14rem;
   }
 
+  .material-workspace__related-tasks,
   .material-workspace__library {
     margin-top: var(--space-8);
     padding-top: var(--space-6);

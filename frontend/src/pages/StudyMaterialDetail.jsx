@@ -11,6 +11,7 @@ import LoadingState from '../components/ui/LoadingState.jsx';
 import Textarea from '../components/ui/Textarea.jsx';
 import { ApiRequestError } from '../services/courses.service.js';
 import DbFlashcardsSection from '../components/materials/DbFlashcardsSection.jsx';
+import MaterialRelatedTasksSection from '../components/materials/MaterialRelatedTasksSection.jsx';
 import GeneratedPlanSection from '../components/materials/GeneratedPlanSection.jsx';
 import GeneratedPlanHistorySection from '../components/materials/GeneratedPlanHistorySection.jsx';
 import {
@@ -108,8 +109,13 @@ export default function StudyMaterialDetail() {
   const [importFlashcardsProgress, setImportFlashcardsProgress] = useState(
     /** @type {string | null} */ (null)
   );
+  const [relatedTasksRefreshKey, setRelatedTasksRefreshKey] = useState(0);
 
   const importingAny = importing || importingFlashcards;
+
+  function refreshRelatedTasks() {
+    setRelatedTasksRefreshKey((key) => key + 1);
+  }
 
   const flashcardsCrudDisabled =
     saving || deleting || generating || clearing || importingAny;
@@ -432,6 +438,7 @@ export default function StudyMaterialDetail() {
         setImportSuccess(formatPlanImportSummaryMessage(result.summary, 'tasks'));
         setImportProgress(null);
         refreshStats();
+        refreshRelatedTasks();
         return;
       }
 
@@ -441,6 +448,7 @@ export default function StudyMaterialDetail() {
         setImportError(formatPlanImportSummaryMessage(result.summary, 'tasks'));
         if (result.summary.imported > 0) {
           refreshStats();
+          refreshRelatedTasks();
         }
       } else {
         setImportError(
@@ -813,6 +821,14 @@ export default function StudyMaterialDetail() {
           </div>
         </aside>
       </div>
+
+      <MaterialRelatedTasksSection
+        courseId={material.courseId}
+        materialId={materialId}
+        materialTitle={material.title}
+        handleAuthError={handleAuthError}
+        refreshKey={relatedTasksRefreshKey}
+      />
 
       <section
         className="section material-workspace__library"
