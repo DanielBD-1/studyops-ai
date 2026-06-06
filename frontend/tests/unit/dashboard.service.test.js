@@ -17,6 +17,7 @@ const MOCK_STATS = {
   pendingTasks: 4,
   completedTasks: 6,
   totalFlashcards: 8,
+  dueFlashcardsCount: 3,
   totalFocusMinutes: 90,
   completedFocusSessions: 3,
   trelloSyncedTasks: 2,

@@ -1,5 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const dashboardStubSource = readFileSync(
+  join(__dirname, '../../src/pages/DashboardStub.jsx'),
+  'utf8'
+);
 import {
   formatFocusMinutes,
   formatTaskCompletionPercent,
@@ -54,6 +63,7 @@ const recommendationBaseStats = {
   pendingTasks: 0,
   completedTasks: 4,
   totalFlashcards: 0,
+  dueFlashcardsCount: 0,
   totalFocusMinutes: 30,
   completedFocusSessions: 1,
   trelloSyncedTasks: 0,
@@ -257,6 +267,7 @@ describe('dashboard-recommendation', () => {
         pendingTasks: 0,
         completedTasks: 0,
         totalFlashcards: 0,
+        dueFlashcardsCount: 0,
         totalFocusMinutes: 0,
         completedFocusSessions: 0,
         trelloSyncedTasks: 0,
@@ -265,6 +276,17 @@ describe('dashboard-recommendation', () => {
 
       assert.equal(recommendation?.kind, 'no-courses');
     });
+  });
+});
+
+describe('DashboardStub due flashcards stat', () => {
+  it('shows Due now in Learning assets with dueFlashcardsCount and link when due', () => {
+    assert.match(dashboardStubSource, /label="Due now"/);
+    assert.match(dashboardStubSource, /stats\.dueFlashcardsCount/);
+    assert.match(dashboardStubSource, /Ready for review/);
+    assert.match(dashboardStubSource, /to="\/flashcards"/);
+    assert.match(dashboardStubSource, /Review flashcards/);
+    assert.match(dashboardStubSource, /stats\.dueFlashcardsCount > 0/);
   });
 });
 

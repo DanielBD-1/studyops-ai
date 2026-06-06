@@ -8,6 +8,9 @@ import {
   seedDashboardMixedData,
   seedDashboardEmptyUserData,
   OWN_COURSE_ID,
+  OWN_MATERIAL_ID,
+  TEST_USER_ID,
+  getMockFlashcards,
 } from '../helpers/mockSupabaseDashboard.js';
 
 applyTestEnv();
@@ -76,6 +79,8 @@ function assertNoSensitiveFields(value, path = 'root') {
     'content',
     'plan',
     'description',
+    'question',
+    'answer',
     'apiKey',
     'token',
     'trelloCardId',
@@ -137,6 +142,7 @@ describe('dashboard API integration', () => {
       pendingTasks: 0,
       completedTasks: 0,
       totalFlashcards: 0,
+      dueFlashcardsCount: 0,
       totalFocusMinutes: 0,
       completedFocusSessions: 0,
       trelloSyncedTasks: 0,
@@ -157,6 +163,7 @@ describe('dashboard API integration', () => {
     assert.equal(data.totalGeneratedPlans, 1);
     assert.equal(data.totalTasks, 3);
     assert.equal(data.totalFlashcards, 1);
+    assert.equal(data.dueFlashcardsCount, 1);
     assert.equal(data.completedFocusSessions, 2);
     assert.equal(data.totalFocusMinutes, 30);
     assert.equal(data.trelloSyncedTasks, 1);
@@ -212,6 +219,47 @@ describe('dashboard API integration', () => {
         totalFlashcards: 1,
       },
     ]);
+  });
+
+  it('counts dueFlashcardsCount for null and past next_review_at and excludes future and other users', async () => {
+    getMockFlashcards().push(
+      {
+        id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: OWN_MATERIAL_ID,
+        question: 'Past due question?',
+        answer: 'Past due answer.',
+        tags: [],
+        source: 'manual',
+        next_review_at: '2020-01-01T00:00:00.000Z',
+        created_at: '2026-01-10T00:00:00.000Z',
+        updated_at: '2026-01-10T00:00:00.000Z',
+      },
+      {
+        id: '11111111-1111-4111-8111-111111111112',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        question: 'Future due question?',
+        answer: 'Future due answer.',
+        tags: [],
+        source: 'manual',
+        next_review_at: '2099-01-01T00:00:00.000Z',
+        created_at: '2026-01-10T00:00:00.000Z',
+        updated_at: '2026-01-10T00:00:00.000Z',
+      }
+    );
+
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.totalFlashcards, 3);
+    assert.equal(res.body.data.dueFlashcardsCount, 2);
+    assert.equal(typeof res.body.data.dueFlashcardsCount, 'number');
+    assertNoSensitiveFields(res.body.data);
   });
 
   it('response data contains no sensitive fields', async () => {

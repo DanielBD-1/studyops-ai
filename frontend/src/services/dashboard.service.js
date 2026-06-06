@@ -79,6 +79,7 @@ async function request(path, init = {}) {
  *   pendingTasks: number,
  *   completedTasks: number,
  *   totalFlashcards: number,
+ *   dueFlashcardsCount: number,
  *   totalFocusMinutes: number,
  *   completedFocusSessions: number,
  *   trelloSyncedTasks: number,
