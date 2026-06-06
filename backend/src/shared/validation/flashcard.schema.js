@@ -58,3 +58,11 @@ export const updateFlashcardBodySchema = z
     message: 'At least one field is required',
   });
 
+export const flashcardOutcomeSchema = z.enum(['known', 'unknown']);
+
+export const reviewFlashcardBodySchema = z
+  .object({
+    outcome: flashcardOutcomeSchema,
+  })
+  .strict();
+

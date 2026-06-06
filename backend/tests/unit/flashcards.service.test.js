@@ -24,6 +24,7 @@ import {
   updateFlashcard,
   deleteFlashcard,
   getOwnedFlashcardOrThrow,
+  reviewFlashcard,
 } from '../../src/modules/flashcards/flashcards.service.js';
 
 applyTestEnv();
@@ -43,6 +44,11 @@ describe('flashcards.service', () => {
     assert.equal(mapped.materialId, row.material_id);
     assert.equal(mapped.question, row.question);
     assert.equal(mapped.answer, row.answer);
+    assert.equal(mapped.mastery, 'new');
+    assert.equal(mapped.lastReviewedAt, null);
+    assert.equal(mapped.reviewCount, 0);
+    assert.equal(mapped.knownCount, 0);
+    assert.equal(mapped.unknownCount, 0);
   });
 
   it('listFlashcards returns only own flashcards', async () => {
@@ -153,6 +159,8 @@ describe('flashcards.service', () => {
     assert.equal(created.courseId, OWN_COURSE_ID);
     assert.deepEqual(created.tags, ['tag1']);
     assert.equal(created.source, 'manual');
+    assert.equal(created.mastery, 'new');
+    assert.equal(created.reviewCount, 0);
     assert.equal('userId' in created, false);
   });
 
@@ -189,6 +197,44 @@ describe('flashcards.service', () => {
   it('updateFlashcard allows clearing materialId with null', async () => {
     const updated = await updateFlashcard(TEST_USER_ID, OWN_FLASHCARD_ID, { materialId: null });
     assert.equal(updated.materialId, null);
+  });
+
+  it('reviewFlashcard with known outcome updates mastery and counts', async () => {
+    const reviewed = await reviewFlashcard(TEST_USER_ID, OWN_FLASHCARD_ID, {
+      outcome: 'known',
+    });
+    assert.equal(reviewed.mastery, 'known');
+    assert.equal(reviewed.reviewCount, 1);
+    assert.equal(reviewed.knownCount, 1);
+    assert.equal(reviewed.unknownCount, 0);
+    assert.ok(reviewed.lastReviewedAt);
+    assert.equal('userId' in reviewed, false);
+  });
+
+  it('reviewFlashcard with unknown outcome sets learning and increments unknown count', async () => {
+    const reviewed = await reviewFlashcard(TEST_USER_ID, OWN_FLASHCARD_ID, {
+      outcome: 'unknown',
+    });
+    assert.equal(reviewed.mastery, 'learning');
+    assert.equal(reviewed.reviewCount, 2);
+    assert.equal(reviewed.knownCount, 1);
+    assert.equal(reviewed.unknownCount, 1);
+    assert.ok(reviewed.lastReviewedAt);
+  });
+
+  it('reviewFlashcard returns 404 for another users flashcard', async () => {
+    await assert.rejects(
+      () =>
+        reviewFlashcard(TEST_USER_ID, OTHER_USER_FLASHCARD_ID, {
+          outcome: 'known',
+        }),
+      (err) => {
+        assert.ok(err instanceof ApiError);
+        assert.equal(err.status, 404);
+        assert.equal(err.message, 'Flashcard not found');
+        return true;
+      },
+    );
   });
 
   it('deleteFlashcard returns deleted true for owned card', async () => {

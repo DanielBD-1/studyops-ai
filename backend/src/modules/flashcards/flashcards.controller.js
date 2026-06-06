@@ -2,6 +2,7 @@ import {
   listFlashcardsQuerySchema,
   createFlashcardBodySchema,
   updateFlashcardBodySchema,
+  reviewFlashcardBodySchema,
   flashcardIdParamSchema,
 } from '../../shared/validation/flashcard.schema.js';
 import { courseIdParamSchema } from '../../shared/validation/schemas.js';
@@ -11,6 +12,7 @@ import {
   createFlashcard,
   updateFlashcard,
   deleteFlashcard,
+  reviewFlashcard,
 } from './flashcards.service.js';
 
 /**
@@ -79,6 +81,36 @@ export async function update(req, res, next) {
 
   try {
     const flashcard = await updateFlashcard(
+      req.user.id,
+      paramsParsed.data.flashcardId,
+      bodyParsed.data,
+    );
+    sendSuccess(res, { flashcard });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function review(req, res, next) {
+  const paramsParsed = flashcardIdParamSchema.safeParse(req.params);
+  if (!paramsParsed.success) {
+    sendValidationError(res, paramsParsed.error);
+    return;
+  }
+
+  const bodyParsed = reviewFlashcardBodySchema.safeParse(req.body ?? {});
+  if (!bodyParsed.success) {
+    sendValidationError(res, bodyParsed.error);
+    return;
+  }
+
+  try {
+    const flashcard = await reviewFlashcard(
       req.user.id,
       paramsParsed.data.flashcardId,
       bodyParsed.data,
