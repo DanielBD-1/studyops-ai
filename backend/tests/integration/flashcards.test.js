@@ -10,6 +10,7 @@ import {
   OWN_MATERIAL_ID,
   OTHER_USER_MATERIAL_ID,
   OWN_FLASHCARD_ID,
+  OWN_COURSE_LEVEL_FLASHCARD_ID,
   OTHER_USER_FLASHCARD_ID,
 } from '../helpers/mockSupabaseFlashcards.js';
 
@@ -309,6 +310,98 @@ describe('flashcards API integration', () => {
     });
     assert.equal(statusCode, 400);
     assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('POST /api/flashcards/:flashcardId/review returns 401 without Authorization', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
+      {
+        method: 'POST',
+        body: { outcome: 'known' },
+      },
+    );
+    assert.equal(statusCode, 401);
+    assert.equal(body.error.code, 'AUTH_REQUIRED');
+  });
+
+  it('POST review rejects invalid outcome', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: { outcome: 'maybe' },
+      },
+    );
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('POST review rejects forbidden body fields', async () => {
+    for (const forbidden of ['mastery', 'reviewCount', 'knownCount', 'unknownCount', 'userId', 'lastReviewedAt']) {
+      const { statusCode, body } = await request(
+        `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
+        {
+          method: 'POST',
+          headers: auth,
+          body: {
+            outcome: 'known',
+            [forbidden]: 'forbidden',
+          },
+        },
+      );
+      assert.equal(statusCode, 400, `expected 400 for forbidden field ${forbidden}`);
+      assert.equal(body.error.code, 'VALIDATION_ERROR');
+    }
+  });
+
+  it('POST review returns 404 for wrong-owner flashcard', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/flashcards/${OTHER_USER_FLASHCARD_ID}/review`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: { outcome: 'known' },
+      },
+    );
+    assert.equal(statusCode, 404);
+    assert.equal(body.error.message, 'Flashcard not found');
+  });
+
+  it('POST review with known outcome returns updated flashcard', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: { outcome: 'known' },
+      },
+    );
+    assert.equal(statusCode, 200);
+    const card = body.data.flashcard;
+    assert.equal(card.mastery, 'known');
+    assert.equal(card.reviewCount, 1);
+    assert.equal(card.knownCount, 1);
+    assert.equal(card.unknownCount, 0);
+    assert.ok(card.lastReviewedAt);
+    assert.equal('userId' in card, false);
+  });
+
+  it('POST review with unknown outcome returns learning mastery', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: { outcome: 'unknown' },
+      },
+    );
+    assert.equal(statusCode, 200);
+    const card = body.data.flashcard;
+    assert.equal(card.mastery, 'learning');
+    assert.equal(card.reviewCount, 2);
+    assert.equal(card.knownCount, 1);
+    assert.equal(card.unknownCount, 1);
   });
 
   it('returns 404 for wrong-owner flashcard on PATCH', async () => {

@@ -38,9 +38,22 @@ export function resetFlashcardsMockTelemetry() {
  *   answer: string,
  *   tags: string[] | null,
  *   source: string,
+ *   mastery: string,
+ *   last_reviewed_at: string | null,
+ *   review_count: number,
+ *   known_count: number,
+ *   unknown_count: number,
  *   created_at: string,
  *   updated_at: string,
  * }>} */
+const DEFAULT_REVIEW_STATE = {
+  mastery: 'new',
+  last_reviewed_at: null,
+  review_count: 0,
+  known_count: 0,
+  unknown_count: 0,
+};
+
 const flashcards = [
   {
     id: OWN_FLASHCARD_ID,
@@ -51,6 +64,7 @@ const flashcards = [
     answer: 'The derivative of x^2 is 2x.',
     tags: ['calculus'],
     source: 'manual',
+    ...DEFAULT_REVIEW_STATE,
     created_at: '2026-01-10T00:00:00.000Z',
     updated_at: '2026-01-10T00:00:00.000Z',
   },
@@ -63,6 +77,7 @@ const flashcards = [
     answer: 'A flashcard not linked to any study material.',
     tags: ['general'],
     source: 'manual',
+    ...DEFAULT_REVIEW_STATE,
     created_at: '2026-01-08T00:00:00.000Z',
     updated_at: '2026-01-08T00:00:00.000Z',
   },
@@ -75,6 +90,7 @@ const flashcards = [
     answer: 'Other user answer.',
     tags: null,
     source: 'manual',
+    ...DEFAULT_REVIEW_STATE,
     created_at: '2026-01-09T00:00:00.000Z',
     updated_at: '2026-01-09T00:00:00.000Z',
   },
@@ -162,6 +178,7 @@ function resolveFlashcardsInsert(state) {
     answer: state.insert.answer,
     tags: state.insert.tags ?? [],
     source: state.insert.source ?? 'manual',
+    ...DEFAULT_REVIEW_STATE,
     created_at: '2026-01-11T00:00:00.000Z',
     updated_at: '2026-01-11T00:00:00.000Z',
   };

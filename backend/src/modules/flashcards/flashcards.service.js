@@ -3,7 +3,7 @@ import { ApiError } from '../../shared/errors/ApiError.js';
 import { assertCourseOwned } from '../study-materials/study-materials.service.js';
 
 const FLASHCARD_COLUMNS =
-  'id, course_id, material_id, question, answer, tags, source, created_at, updated_at';
+  'id, course_id, material_id, question, answer, tags, source, mastery, last_reviewed_at, review_count, known_count, unknown_count, created_at, updated_at';
 
 const MATERIAL_OWNERSHIP_SELECT = 'id, course_id, courses!inner(id)';
 
@@ -58,6 +58,11 @@ function handleFlashcardError(error) {
  *   answer: string,
  *   tags: string[] | null,
  *   source: string,
+ *   mastery?: string,
+ *   last_reviewed_at?: string | null,
+ *   review_count?: number,
+ *   known_count?: number,
+ *   unknown_count?: number,
  *   created_at: string,
  *   updated_at: string,
  * }} row
@@ -71,6 +76,11 @@ export function mapFlashcard(row) {
     answer: row.answer,
     tags: row.tags ?? [],
     source: row.source,
+    mastery: row.mastery ?? 'new',
+    lastReviewedAt: row.last_reviewed_at ?? null,
+    reviewCount: row.review_count ?? 0,
+    knownCount: row.known_count ?? 0,
+    unknownCount: row.unknown_count ?? 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -329,5 +339,42 @@ export async function deleteFlashcard(userId, flashcardId) {
   }
 
   return { deleted: true };
+}
+
+/**
+ * @param {string} userId
+ * @param {string} flashcardId
+ * @param {{ outcome: 'known' | 'unknown' }} input
+ */
+export async function reviewFlashcard(userId, flashcardId, input) {
+  const existing = await getOwnedFlashcardOrThrow(userId, flashcardId);
+  const isKnown = input.outcome === 'known';
+  const now = new Date().toISOString();
+
+  const updateRow = {
+    mastery: isKnown ? 'known' : 'learning',
+    last_reviewed_at: now,
+    review_count: existing.reviewCount + 1,
+    known_count: existing.knownCount + (isKnown ? 1 : 0),
+    unknown_count: existing.unknownCount + (isKnown ? 0 : 1),
+  };
+
+  const { data, error } = await getSupabaseAdmin()
+    .from('flashcards')
+    .update(updateRow)
+    .eq('id', flashcardId)
+    .eq('user_id', userId)
+    .select(FLASHCARD_COLUMNS)
+    .single();
+
+  if (error) {
+    handleFlashcardError(error);
+  }
+
+  if (!data) {
+    throw new ApiError('NOT_FOUND', 'Flashcard not found', 404);
+  }
+
+  return mapFlashcard(data);
 }
 
