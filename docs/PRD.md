@@ -29,7 +29,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 
 - Auth, profiles, courses API/UI, study materials API/UI (`study_materials` applied)
 - **`material_generated_plans`** — one latest validated plan per study material (Phase 2L-a applied on Supabase)
-- **`study_tasks`** — manual task table + RLS (Phase **3A-a**); **manual backend API** (Phase **3A-b**); **course-level task UI** on `/courses/:id` (Phases **3A-c**–**3A-c.3**: list, create, filters, edit, `materialId` link/unlink); **global task UI** on `/tasks` (Phases **3A-d**–**3A-e**: cross-course list, course/status filters, **create** with required course picker + optional material link, edit/complete/delete)
+- **`study_tasks`** — manual task table + RLS (Phase **3A-a**); **manual backend API** (Phase **3A-b**); **course-level task UI** on `/courses/:id` (Phases **3A-c**–**3A-c.3**: list, create, filters, edit, `materialId` link/unlink; **TASK-MATERIAL-FILTERS-A2**: study material filter); **global task UI** on `/tasks` (Phases **3A-d**–**3A-e**: cross-course list, course/status filters, **create** with required course picker + optional material link, edit/complete/delete; **TASK-MATERIAL-FILTERS-A2**: study material filter when a specific course is selected)
 - **document-service:** `POST /process` (internal; `GEMINI_API_KEY` in document-service only)
 - **Backend generate + saved plan:** `POST /api/study-materials/:materialId/generate` — body **`{}`**; Zod-validated UPSERT; `GET` / `DELETE` `.../generated-plan`; returns `{ materialId, courseId, plan, savedAt }`
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks** into `study_tasks` (sequential create, material-linked); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **manual create/edit/delete** saved flashcards (inline forms, **3B-e**); **import plan flashcards** into `public.flashcards` (sequential `POST /api/courses/:id/flashcards`, validate-all-before-POST); **flashcard study UI** from `plan.flashcards` (flip/reveal, unchanged **3B-a**); plain text rendering
@@ -95,11 +95,13 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Course-level **manual task UI** (list / create / complete / delete) | **Yes** (3A-c on `/courses/:id`) |
 | Edit **pending** course tasks (`title`, `description`, `priority`, `estimated minutes`) | **Yes** (3A-c.1 — `PATCH /api/tasks/:taskId`; **no** edit on completed tasks) |
 | Task **status filters** (All / Pending / Completed) on course tasks | **Yes** (3A-c.2 — in-memory, not URL-persisted) |
+| **Study material filter** on course tasks (frontend-only; composes with status) | **Yes** (TASK-MATERIAL-FILTERS-A2 — filters already-loaded tasks by `task.materialId`; uses course-page materials; unknown filter id shows all tasks) |
 | **`materialId`** linking on course tasks (create / edit / unlink) | **Yes** (3A-c.3 on `/courses/:id`; 3A-d edit on `/tasks` via lazy `listMaterials`) |
 | Global **`/tasks`** UI (list, course/status filters, edit/complete/delete, course link) | **Yes** (3A-d — in-memory filters) |
+| Global **`/tasks`** **study material filter** (only when a specific course is selected) | **Yes** (TASK-MATERIAL-FILTERS-A2 — `listMaterials` for selected course; course change resets material filter; frontend-only) |
 | Create task on **`/tasks`** (required owned-course dropdown; optional `materialId`; `POST /api/courses/:courseId/tasks`) | **Yes** (3A-e — hidden on Completed filter / no courses) |
 | Material **navigation** links from task cards (`TaskCard` **`Link`** to **`/study-materials/:materialId`**) | **Yes** (TASK-MATERIAL-LINKS-A1 — `materialLabel` or fallback **View study material**) |
-| **Filter** tasks by `materialId`; URL-persisted task filters | **Deferred** |
+| Backend **`GET /api/tasks?materialId=`** / **`GET /api/courses/:id/tasks?materialId=`**; URL-persisted task filters; material detail task band; “tasks without material” filter | **Deferred** |
 | Start Focus backend API (`POST /api/focus`, complete endpoint) | **Yes** (4C-1) |
 | Start Focus UI (`/focus/:taskId`; pending tasks only; display-only timer) | **Yes** (4C-2 — **no** pause/resume or duration picker) |
 | Mark task incomplete after focus | **Deferred** (future) |
