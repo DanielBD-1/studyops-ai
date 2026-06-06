@@ -57,3 +57,33 @@ export function resolveFlashcardListFilters({
 export function resetMaterialFilterForCourseChange() {
   return 'all';
 }
+
+/**
+ * Client-side review-state filter for flashcards already loaded from the API.
+ * Unknown filter values return all cards (defensive).
+ *
+ * @param {{ mastery?: string }[]} flashcards
+ * @param {'all' | 'needs_review' | 'new' | 'learning' | 'known' | string} reviewFilter
+ * @returns {{ mastery?: string }[]}
+ */
+export function filterFlashcardsByReviewState(flashcards, reviewFilter) {
+  if (!Array.isArray(flashcards) || flashcards.length === 0) {
+    return [];
+  }
+
+  switch (reviewFilter) {
+    case 'needs_review':
+      return flashcards.filter(
+        (card) => card.mastery === 'new' || card.mastery === 'learning'
+      );
+    case 'new':
+      return flashcards.filter((card) => card.mastery === 'new');
+    case 'learning':
+      return flashcards.filter((card) => card.mastery === 'learning');
+    case 'known':
+      return flashcards.filter((card) => card.mastery === 'known');
+    case 'all':
+    default:
+      return flashcards;
+  }
+}

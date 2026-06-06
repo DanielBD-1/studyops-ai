@@ -6,6 +6,7 @@ import {
   buildUpdateFlashcardBody,
   truncateFlashcardQuestion,
 } from '../../utils/flashcard-form.js';
+import { filterFlashcardsByReviewState } from '../../utils/flashcard-filters.js';
 import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
 import FormCard from '../ui/FormCard.jsx';
@@ -71,9 +72,13 @@ export default function DbFlashcardsSection({
   const [reviewSuccessMessage, setReviewSuccessMessage] = useState(
     /** @type {string | null} */ (null)
   );
+  const [reviewFilter, setReviewFilter] = useState(
+    /** @type {'all' | 'needs_review' | 'new' | 'learning' | 'known'} */ ('all')
+  );
 
   const busy = disabled || creating || savingEdit || deletingId !== null || reviewing;
-  const studyCards = flashcards.map((card) => ({
+  const displayedFlashcards = filterFlashcardsByReviewState(flashcards, reviewFilter);
+  const studyCards = displayedFlashcards.map((card) => ({
     id: card.id,
     question: card.question,
     answer: card.answer,
@@ -272,6 +277,28 @@ export default function DbFlashcardsSection({
 
       {!loading && !error && (
         <>
+          {flashcards.length > 0 && (
+            <label
+              htmlFor="material-flashcards-review-filter"
+              className="field flashcard-library__review-filter"
+            >
+              Review state
+              <select
+                id="material-flashcards-review-filter"
+                value={reviewFilter}
+                onChange={(e) => setReviewFilter(e.target.value)}
+                className="field__select"
+                disabled={busy}
+              >
+                <option value="all">All</option>
+                <option value="needs_review">New + Learning</option>
+                <option value="new">New</option>
+                <option value="learning">Learning</option>
+                <option value="known">Known</option>
+              </select>
+            </label>
+          )}
+
           {!showCreate && editingId === null && (
             <p className="section__actions flashcard-library__create-cta">
               <Button type="button" variant="primary" onClick={openCreate} disabled={busy}>
@@ -331,7 +358,15 @@ export default function DbFlashcardsSection({
             </div>
           )}
 
-          {flashcards.length > 0 && (
+          {flashcards.length > 0 &&
+            displayedFlashcards.length === 0 &&
+            !showCreate && (
+              <p className="section__meta flashcard-library__filter-empty">
+                No flashcards match the selected filters.
+              </p>
+            )}
+
+          {displayedFlashcards.length > 0 && (
             <div className="flashcard-library__study">
               <FlashcardStudy
                 flashcards={studyCards}
@@ -345,14 +380,14 @@ export default function DbFlashcardsSection({
             </div>
           )}
 
-          {flashcards.length > 0 && (
+          {displayedFlashcards.length > 0 && (
             <section
               className="flashcard-library__manage plan-block"
               aria-label="Manage saved flashcards"
             >
               <h3 className="plan-block__title">Your saved cards</h3>
               <ul className="flashcard-library__list plan-block__list">
-                {flashcards.map((card) =>
+                {displayedFlashcards.map((card) =>
                   editingId === card.id ? (
                     <li key={card.id} className="plan-block__item flashcard-library__item">
                       <form onSubmit={handleUpdate} className="form-stack">
@@ -431,7 +466,7 @@ export default function DbFlashcardsSection({
             </section>
           )}
 
-          {flashcards.length > 0 && !showCreate && editingId === null && (
+          {displayedFlashcards.length > 0 && !showCreate && editingId === null && (
             <p className="section__actions flashcard-library__create-cta">
               <Button type="button" variant="primary" onClick={openCreate} disabled={busy}>
                 Add another flashcard
