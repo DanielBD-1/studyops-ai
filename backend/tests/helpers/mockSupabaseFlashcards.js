@@ -43,6 +43,8 @@ export function resetFlashcardsMockTelemetry() {
  *   review_count: number,
  *   known_count: number,
  *   unknown_count: number,
+ *   next_review_at: string | null,
+ *   review_interval_days: number,
  *   created_at: string,
  *   updated_at: string,
  * }>} */
@@ -52,6 +54,8 @@ const DEFAULT_REVIEW_STATE = {
   review_count: 0,
   known_count: 0,
   unknown_count: 0,
+  next_review_at: null,
+  review_interval_days: 0,
 };
 
 const flashcards = [

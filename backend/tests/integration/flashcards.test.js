@@ -103,6 +103,8 @@ describe('flashcards API integration', () => {
     for (const card of body.data.flashcards) {
       assert.equal(card.courseId, OWN_COURSE_ID);
       assert.equal('userId' in card, false);
+      assert.equal('nextReviewAt' in card, true);
+      assert.equal('reviewIntervalDays' in card, true);
     }
   });
 
@@ -284,7 +286,17 @@ describe('flashcards API integration', () => {
   });
 
   it('POST rejects forbidden body fields', async () => {
-    for (const forbidden of ['userId', 'courseId', 'source', 'createdAt', 'updatedAt']) {
+    for (const forbidden of [
+      'userId',
+      'courseId',
+      'source',
+      'createdAt',
+      'updatedAt',
+      'nextReviewAt',
+      'reviewIntervalDays',
+      'mastery',
+      'reviewCount',
+    ]) {
       const { statusCode, body } = await request(
         `${base()}/api/courses/${OWN_COURSE_ID}/flashcards`,
         {
@@ -338,7 +350,16 @@ describe('flashcards API integration', () => {
   });
 
   it('POST review rejects forbidden body fields', async () => {
-    for (const forbidden of ['mastery', 'reviewCount', 'knownCount', 'unknownCount', 'userId', 'lastReviewedAt']) {
+    for (const forbidden of [
+      'mastery',
+      'reviewCount',
+      'knownCount',
+      'unknownCount',
+      'userId',
+      'lastReviewedAt',
+      'nextReviewAt',
+      'reviewIntervalDays',
+    ]) {
       const { statusCode, body } = await request(
         `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
         {
@@ -368,7 +389,7 @@ describe('flashcards API integration', () => {
     assert.equal(body.error.message, 'Flashcard not found');
   });
 
-  it('POST review with known outcome returns updated flashcard', async () => {
+  it('POST review with known outcome returns updated flashcard with scheduling', async () => {
     const { statusCode, body } = await request(
       `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
       {
@@ -384,10 +405,12 @@ describe('flashcards API integration', () => {
     assert.equal(card.knownCount, 1);
     assert.equal(card.unknownCount, 0);
     assert.ok(card.lastReviewedAt);
+    assert.equal(card.reviewIntervalDays, 1);
+    assert.ok(card.nextReviewAt);
     assert.equal('userId' in card, false);
   });
 
-  it('POST review with unknown outcome returns learning mastery', async () => {
+  it('POST review with unknown outcome returns learning mastery and resets scheduling', async () => {
     const { statusCode, body } = await request(
       `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}/review`,
       {
@@ -402,6 +425,34 @@ describe('flashcards API integration', () => {
     assert.equal(card.reviewCount, 2);
     assert.equal(card.knownCount, 1);
     assert.equal(card.unknownCount, 1);
+    assert.equal(card.reviewIntervalDays, 0);
+    assert.ok(card.nextReviewAt);
+  });
+
+  it('PATCH rejects forbidden scheduling and review state fields', async () => {
+    for (const forbidden of [
+      'nextReviewAt',
+      'reviewIntervalDays',
+      'mastery',
+      'reviewCount',
+      'knownCount',
+      'unknownCount',
+      'lastReviewedAt',
+    ]) {
+      const { statusCode, body } = await request(
+        `${base()}/api/flashcards/${OWN_COURSE_LEVEL_FLASHCARD_ID}`,
+        {
+          method: 'PATCH',
+          headers: auth,
+          body: {
+            question: 'Should not update scheduling?',
+            [forbidden]: 'forbidden',
+          },
+        },
+      );
+      assert.equal(statusCode, 400, `expected 400 for forbidden field ${forbidden}`);
+      assert.equal(body.error.code, 'VALIDATION_ERROR');
+    }
   });
 
   it('returns 404 for wrong-owner flashcard on PATCH', async () => {

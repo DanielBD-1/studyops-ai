@@ -1,9 +1,10 @@
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { assertCourseOwned } from '../study-materials/study-materials.service.js';
+import { computeNextReviewState } from './flashcard-scheduling.js';
 
 const FLASHCARD_COLUMNS =
-  'id, course_id, material_id, question, answer, tags, source, mastery, last_reviewed_at, review_count, known_count, unknown_count, created_at, updated_at';
+  'id, course_id, material_id, question, answer, tags, source, mastery, last_reviewed_at, review_count, known_count, unknown_count, next_review_at, review_interval_days, created_at, updated_at';
 
 const MATERIAL_OWNERSHIP_SELECT = 'id, course_id, courses!inner(id)';
 
@@ -63,6 +64,8 @@ function handleFlashcardError(error) {
  *   review_count?: number,
  *   known_count?: number,
  *   unknown_count?: number,
+ *   next_review_at?: string | null,
+ *   review_interval_days?: number,
  *   created_at: string,
  *   updated_at: string,
  * }} row
@@ -81,6 +84,8 @@ export function mapFlashcard(row) {
     reviewCount: row.review_count ?? 0,
     knownCount: row.known_count ?? 0,
     unknownCount: row.unknown_count ?? 0,
+    nextReviewAt: row.next_review_at ?? null,
+    reviewIntervalDays: row.review_interval_days ?? 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -349,14 +354,24 @@ export async function deleteFlashcard(userId, flashcardId) {
 export async function reviewFlashcard(userId, flashcardId, input) {
   const existing = await getOwnedFlashcardOrThrow(userId, flashcardId);
   const isKnown = input.outcome === 'known';
-  const now = new Date().toISOString();
+  const now = new Date();
+  const scheduling = computeNextReviewState(
+    {
+      mastery: existing.mastery,
+      reviewIntervalDays: existing.reviewIntervalDays,
+    },
+    input.outcome,
+    now,
+  );
 
   const updateRow = {
-    mastery: isKnown ? 'known' : 'learning',
-    last_reviewed_at: now,
+    mastery: scheduling.mastery,
+    last_reviewed_at: now.toISOString(),
     review_count: existing.reviewCount + 1,
     known_count: existing.knownCount + (isKnown ? 1 : 0),
     unknown_count: existing.unknownCount + (isKnown ? 0 : 1),
+    next_review_at: scheduling.nextReviewAt,
+    review_interval_days: scheduling.reviewIntervalDays,
   };
 
   const { data, error } = await getSupabaseAdmin()

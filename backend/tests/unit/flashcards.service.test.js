@@ -49,6 +49,8 @@ describe('flashcards.service', () => {
     assert.equal(mapped.reviewCount, 0);
     assert.equal(mapped.knownCount, 0);
     assert.equal(mapped.unknownCount, 0);
+    assert.equal(mapped.nextReviewAt, null);
+    assert.equal(mapped.reviewIntervalDays, 0);
   });
 
   it('listFlashcards returns only own flashcards', async () => {
@@ -161,6 +163,8 @@ describe('flashcards.service', () => {
     assert.equal(created.source, 'manual');
     assert.equal(created.mastery, 'new');
     assert.equal(created.reviewCount, 0);
+    assert.equal(created.nextReviewAt, null);
+    assert.equal(created.reviewIntervalDays, 0);
     assert.equal('userId' in created, false);
   });
 
@@ -199,7 +203,7 @@ describe('flashcards.service', () => {
     assert.equal(updated.materialId, null);
   });
 
-  it('reviewFlashcard with known outcome updates mastery and counts', async () => {
+  it('reviewFlashcard with known outcome updates mastery, counts, and scheduling', async () => {
     const reviewed = await reviewFlashcard(TEST_USER_ID, OWN_FLASHCARD_ID, {
       outcome: 'known',
     });
@@ -208,10 +212,12 @@ describe('flashcards.service', () => {
     assert.equal(reviewed.knownCount, 1);
     assert.equal(reviewed.unknownCount, 0);
     assert.ok(reviewed.lastReviewedAt);
+    assert.equal(reviewed.reviewIntervalDays, 1);
+    assert.ok(reviewed.nextReviewAt);
     assert.equal('userId' in reviewed, false);
   });
 
-  it('reviewFlashcard with unknown outcome sets learning and increments unknown count', async () => {
+  it('reviewFlashcard with unknown outcome sets learning, increments unknown count, and resets scheduling', async () => {
     const reviewed = await reviewFlashcard(TEST_USER_ID, OWN_FLASHCARD_ID, {
       outcome: 'unknown',
     });
@@ -220,6 +226,8 @@ describe('flashcards.service', () => {
     assert.equal(reviewed.knownCount, 1);
     assert.equal(reviewed.unknownCount, 1);
     assert.ok(reviewed.lastReviewedAt);
+    assert.equal(reviewed.reviewIntervalDays, 0);
+    assert.ok(reviewed.nextReviewAt);
   });
 
   it('reviewFlashcard returns 404 for another users flashcard', async () => {
