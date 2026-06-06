@@ -101,7 +101,8 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Global **`/tasks`** **study material filter** (only when a specific course is selected) | **Yes** (TASK-MATERIAL-FILTERS-A2 — `listMaterials` for selected course; course change resets material filter; frontend-only) |
 | Create task on **`/tasks`** (required owned-course dropdown; optional `materialId`; `POST /api/courses/:courseId/tasks`) | **Yes** (3A-e — hidden on Completed filter / no courses) |
 | Material **navigation** links from task cards (`TaskCard` **`Link`** to **`/study-materials/:materialId`**) | **Yes** (TASK-MATERIAL-LINKS-A1 — `materialLabel` or fallback **View study material**) |
-| Backend **`GET /api/tasks?materialId=`** / **`GET /api/courses/:id/tasks?materialId=`**; URL-persisted task filters; material detail task band; “tasks without material” filter | **Deferred** |
+| Material detail **Related study tasks** read-only band (saved DB tasks linked to current material; client-side filter over `listCourseTasks`) | **Yes** (TASK-MATERIAL-DETAIL-A3 — up to 5 compact preview rows; pending before completed; refreshes after plan task import; **no** TaskCard/CRUD/Focus in band) |
+| Backend **`GET /api/tasks?materialId=`** / **`GET /api/courses/:id/tasks?materialId=`**; URL-persisted task filters; “tasks without material” filter | **Deferred** |
 | Start Focus backend API (`POST /api/focus`, complete endpoint) | **Yes** (4C-1) |
 | Start Focus UI (`/focus/:taskId`; pending tasks only; display-only timer) | **Yes** (4C-2 — **no** pause/resume or duration picker) |
 | Mark task incomplete after focus | **Deferred** (future) |
