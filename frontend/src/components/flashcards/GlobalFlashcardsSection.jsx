@@ -16,6 +16,7 @@ import {
   truncateFlashcardQuestion,
 } from '../../utils/flashcard-form.js';
 import {
+  filterFlashcardsByReviewState,
   resetMaterialFilterForCourseChange,
   resolveFlashcardListFilters,
 } from '../../utils/flashcard-filters.js';
@@ -44,6 +45,9 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   const [error, setError] = useState(/** @type {string | null} */ (null));
   const [courseFilter, setCourseFilter] = useState(/** @type {'all' | string} */ ('all'));
   const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
+  const [reviewFilter, setReviewFilter] = useState(
+    /** @type {'all' | 'needs_review' | 'new' | 'learning' | 'known'} */ ('all')
+  );
   const [materials, setMaterials] = useState(
     /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
   );
@@ -91,7 +95,9 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     courseFilter === 'all' &&
     materialFilter === 'all';
 
-  const studyCards = flashcards.map((card) => ({
+  const displayedFlashcards = filterFlashcardsByReviewState(flashcards, reviewFilter);
+
+  const studyCards = displayedFlashcards.map((card) => ({
     id: card.id,
     question: card.question,
     answer: card.answer,
@@ -251,6 +257,16 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     setActionError(null);
     setSuccessMessage(null);
     setMaterialFilter(material);
+  }
+
+  /**
+   * @param {'all' | 'needs_review' | 'new' | 'learning' | 'known'} filter
+   */
+  function handleReviewFilterChange(filter) {
+    cancelEdit();
+    setActionError(null);
+    setSuccessMessage(null);
+    setReviewFilter(filter);
   }
 
   function openCreateForm() {
@@ -521,6 +537,26 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
                 </select>
               </label>
             ) : null}
+
+            <label
+              htmlFor="global-flashcards-review-filter"
+              className="field flashcards-workspace__review-field"
+            >
+              Review state
+              <select
+                id="global-flashcards-review-filter"
+                value={reviewFilter}
+                onChange={(e) => handleReviewFilterChange(e.target.value)}
+                className="field__select"
+                disabled={busy}
+              >
+                <option value="all">All</option>
+                <option value="needs_review">New + Learning</option>
+                <option value="new">New</option>
+                <option value="learning">Learning</option>
+                <option value="known">Known</option>
+              </select>
+            </label>
           </div>
 
           {canShowCreate && !showCreate && editingId === null && !loading && !error && (
@@ -684,7 +720,17 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
             </p>
           )}
 
-        {!loading && !error && flashcards.length > 0 && (
+        {!loading &&
+          !error &&
+          flashcards.length > 0 &&
+          displayedFlashcards.length === 0 &&
+          !showCreate && (
+            <p className="section__meta flashcards-workspace__filter-empty">
+              No flashcards match the selected filters.
+            </p>
+          )}
+
+        {!loading && !error && displayedFlashcards.length > 0 && (
           <>
             <div className="flashcards-workspace__study-zone flashcard-library__study">
               <FlashcardStudy
@@ -704,7 +750,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
             >
               <h3 className="plan-block__title">Your saved cards</h3>
               <ul className="flashcard-library__list plan-block__list flashcards-workspace__list">
-                {flashcards.map((card) =>
+                {displayedFlashcards.map((card) =>
                   editingId === card.id ? (
                     <li
                       key={card.id}

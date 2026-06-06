@@ -69,10 +69,24 @@ describe('saved DB flashcard parent wiring', () => {
     assert.match(dbSectionSource, /onFlashcardUpdated\?\.\(data\.flashcard\)/);
   });
 
+  it('DbFlashcardsSection filters saved cards by review state before study and manage list', () => {
+    assert.match(dbSectionSource, /filterFlashcardsByReviewState/);
+    assert.match(dbSectionSource, /displayedFlashcards = filterFlashcardsByReviewState/);
+    assert.match(dbSectionSource, /value="needs_review">New \+ Learning</);
+    assert.match(dbSectionSource, /No flashcards match the selected filters\./);
+  });
+
   it('GlobalFlashcardsSection merges reviewed flashcard into local state', () => {
     assert.match(globalSectionSource, /id: card\.id/);
     assert.match(globalSectionSource, /onReviewOutcome=\{handleReviewOutcome\}/);
     assert.match(globalSectionSource, /setFlashcards\(\(prev\) =>[\s\S]*data\.flashcard\.id/);
     assert.match(globalSectionSource, /reviewFlashcard\(flashcardId, \{ outcome \}\)/);
+  });
+
+  it('GlobalFlashcardsSection filters saved cards by review state before study and manage list', () => {
+    assert.match(globalSectionSource, /filterFlashcardsByReviewState/);
+    assert.match(globalSectionSource, /displayedFlashcards = filterFlashcardsByReviewState/);
+    assert.match(globalSectionSource, /value="needs_review">New \+ Learning</);
+    assert.match(globalSectionSource, /Review state/);
   });
 });

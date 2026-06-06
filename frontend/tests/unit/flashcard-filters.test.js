@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  filterFlashcardsByReviewState,
   resolveFlashcardListFilters,
   resetMaterialFilterForCourseChange,
 } from '../../src/utils/flashcard-filters.js';
@@ -104,5 +105,53 @@ describe('resolveFlashcardListFilters', () => {
 describe('resetMaterialFilterForCourseChange', () => {
   it('returns all', () => {
     assert.equal(resetMaterialFilterForCourseChange(), 'all');
+  });
+});
+
+const reviewCards = [
+  { id: '1', mastery: 'new' },
+  { id: '2', mastery: 'learning' },
+  { id: '3', mastery: 'known' },
+  { id: '4', mastery: 'new' },
+];
+
+describe('filterFlashcardsByReviewState', () => {
+  it('returns all cards for all filter', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(reviewCards, 'all'), reviewCards);
+  });
+
+  it('returns new and learning cards for needs_review', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(reviewCards, 'needs_review'), [
+      { id: '1', mastery: 'new' },
+      { id: '2', mastery: 'learning' },
+      { id: '4', mastery: 'new' },
+    ]);
+  });
+
+  it('returns only new cards for new filter', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(reviewCards, 'new'), [
+      { id: '1', mastery: 'new' },
+      { id: '4', mastery: 'new' },
+    ]);
+  });
+
+  it('returns only learning cards for learning filter', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(reviewCards, 'learning'), [
+      { id: '2', mastery: 'learning' },
+    ]);
+  });
+
+  it('returns only known cards for known filter', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(reviewCards, 'known'), [
+      { id: '3', mastery: 'known' },
+    ]);
+  });
+
+  it('returns all cards for unknown filter value', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(reviewCards, 'invalid'), reviewCards);
+  });
+
+  it('returns empty array for empty input', () => {
+    assert.deepEqual(filterFlashcardsByReviewState([], 'needs_review'), []);
   });
 });
