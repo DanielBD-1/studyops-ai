@@ -8,6 +8,7 @@ import {
   completeTask,
   deleteTask,
 } from '../../services/tasks.service.js';
+import { filterTasksByMaterial } from '../../utils/task-filters.js';
 import { createTaskFormSchema, updateTaskFormSchema } from '../../utils/validation.js';
 import TaskCard from './TaskCard.jsx';
 import Button from '../ui/Button.jsx';
@@ -52,6 +53,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
   const [statusFilter, setStatusFilter] = useState(
     /** @type {'all' | 'pending' | 'completed'} */ ('all')
   );
+  const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
 
   const [createMaterialId, setCreateMaterialId] = useState('');
   const [editMaterialId, setEditMaterialId] = useState('');
@@ -116,6 +118,18 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setCreateMaterialId('');
     setActionError(null);
     setStatusFilter(filter);
+  }
+
+  /**
+   * @param {'all' | string} material
+   */
+  function handleMaterialFilterChange(material) {
+    cancelEdit();
+    setShowCreate(false);
+    setCreateError(null);
+    setCreateMaterialId('');
+    setActionError(null);
+    setMaterialFilter(material);
   }
 
   useEffect(() => {
@@ -280,6 +294,24 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     (materials ?? []).map((m) => [m.id, m.title])
   );
 
+  const displayedTasks = filterTasksByMaterial(tasks, materialFilter, materials ?? []);
+
+  const showCourseEmpty =
+    !loading &&
+    !error &&
+    tasks.length === 0 &&
+    !showCreate &&
+    statusFilter === 'all' &&
+    materialFilter === 'all';
+
+  const showFilterEmpty =
+    !loading &&
+    !error &&
+    displayedTasks.length === 0 &&
+    !showCourseEmpty &&
+    !(tasks.length === 0 && statusFilter === 'pending') &&
+    !(tasks.length === 0 && statusFilter === 'completed');
+
   return (
     <section className="section course-workspace__tasks">
       <div className="section__header-row">
@@ -288,6 +320,23 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       </div>
 
       <div className="filter-toolbar filter-toolbar--segmented course-workspace__task-filters">
+        <label htmlFor="course-tasks-material-filter" className="field">
+          Study material
+          <select
+            id="course-tasks-material-filter"
+            value={materialFilter}
+            onChange={(e) => handleMaterialFilterChange(e.target.value)}
+            className="field__select"
+            disabled={busy}
+          >
+            <option value="all">All materials in course</option>
+            {(materials ?? []).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.title}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="filter-toolbar__segment">
         {FILTERS.map((f) => (
           <Button
@@ -314,7 +363,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
         </>
       )}
 
-      {!loading && !error && tasks.length === 0 && !showCreate && statusFilter === 'all' && (
+      {showCourseEmpty && (
         <EmptyState
           headline="No study tasks yet"
           description="Add a manual task to track work for this course."
@@ -335,9 +384,15 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
         <p className="section__meta course-workspace__tasks-filter-empty">No completed tasks.</p>
       )}
 
-      {!loading && !error && tasks.length > 0 && (
+      {showFilterEmpty && (
+        <p className="section__meta course-workspace__tasks-filter-empty">
+          No tasks match the selected filters.
+        </p>
+      )}
+
+      {!loading && !error && displayedTasks.length > 0 && (
         <div className="card-list course-task-list">
-          {tasks.map((task) =>
+          {displayedTasks.map((task) =>
             editingTaskId === task.id ? (
               <FormCard key={task.id} title="Edit study task">
                 <form onSubmit={handleUpdate} className="form-stack">
