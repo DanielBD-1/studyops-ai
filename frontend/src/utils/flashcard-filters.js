@@ -59,12 +59,31 @@ export function resetMaterialFilterForCourseChange() {
 }
 
 /**
+ * Whether a saved DB flashcard is due for review based on SRS-lite nextReviewAt.
+ *
+ * @param {{ nextReviewAt?: string | null }} card
+ * @param {Date} [now]
+ * @returns {boolean}
+ */
+export function isFlashcardDueNow(card, now = new Date()) {
+  const { nextReviewAt } = card;
+  if (nextReviewAt == null || nextReviewAt === '') {
+    return true;
+  }
+  const ts = Date.parse(nextReviewAt);
+  if (Number.isNaN(ts)) {
+    return true;
+  }
+  return ts <= now.getTime();
+}
+
+/**
  * Client-side review-state filter for flashcards already loaded from the API.
  * Unknown filter values return all cards (defensive).
  *
- * @param {{ mastery?: string }[]} flashcards
- * @param {'all' | 'needs_review' | 'new' | 'learning' | 'known' | string} reviewFilter
- * @returns {{ mastery?: string }[]}
+ * @param {{ mastery?: string, nextReviewAt?: string | null }[]} flashcards
+ * @param {'all' | 'due_now' | 'needs_review' | 'new' | 'learning' | 'known' | string} reviewFilter
+ * @returns {{ mastery?: string, nextReviewAt?: string | null }[]}
  */
 export function filterFlashcardsByReviewState(flashcards, reviewFilter) {
   if (!Array.isArray(flashcards) || flashcards.length === 0) {
@@ -72,6 +91,8 @@ export function filterFlashcardsByReviewState(flashcards, reviewFilter) {
   }
 
   switch (reviewFilter) {
+    case 'due_now':
+      return flashcards.filter((card) => isFlashcardDueNow(card));
     case 'needs_review':
       return flashcards.filter(
         (card) => card.mastery === 'new' || card.mastery === 'learning'

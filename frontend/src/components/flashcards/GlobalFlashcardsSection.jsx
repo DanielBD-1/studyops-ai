@@ -46,7 +46,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   const [courseFilter, setCourseFilter] = useState(/** @type {'all' | string} */ ('all'));
   const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
   const [reviewFilter, setReviewFilter] = useState(
-    /** @type {'all' | 'needs_review' | 'new' | 'learning' | 'known'} */ ('all')
+    /** @type {'all' | 'due_now' | 'needs_review' | 'new' | 'learning' | 'known'} */ ('all')
   );
   const [materials, setMaterials] = useState(
     /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
@@ -260,7 +260,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   }
 
   /**
-   * @param {'all' | 'needs_review' | 'new' | 'learning' | 'known'} filter
+   * @param {'all' | 'due_now' | 'needs_review' | 'new' | 'learning' | 'known'} filter
    */
   function handleReviewFilterChange(filter) {
     cancelEdit();
@@ -551,6 +551,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
                 disabled={busy}
               >
                 <option value="all">All</option>
+                <option value="due_now">Due now</option>
                 <option value="needs_review">New + Learning</option>
                 <option value="new">New</option>
                 <option value="learning">Learning</option>
@@ -726,7 +727,9 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
           displayedFlashcards.length === 0 &&
           !showCreate && (
             <p className="section__meta flashcards-workspace__filter-empty">
-              No flashcards match the selected filters.
+              {reviewFilter === 'due_now'
+                ? 'No flashcards are due for review right now.'
+                : 'No flashcards match the selected filters.'}
             </p>
           )}
 
