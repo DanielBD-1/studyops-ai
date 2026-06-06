@@ -94,3 +94,27 @@ describe('saved DB flashcard parent wiring', () => {
     assert.match(globalSectionSource, /Review state/);
   });
 });
+
+describe('dashboard stats invalidation after review', () => {
+  it('DbFlashcardsSection refreshes dashboard stats only after successful review', () => {
+    assert.match(
+      dbSectionSource,
+      /async function handleReviewOutcome[\s\S]*?await reviewFlashcard[\s\S]*?onFlashcardUpdated\?\.\(data\.flashcard\)[\s\S]*?refreshStats\(\)[\s\S]*?} catch/
+    );
+    assert.doesNotMatch(
+      dbSectionSource,
+      /async function handleReviewOutcome[\s\S]*?refreshStats\(\)[\s\S]*?await reviewFlashcard/
+    );
+  });
+
+  it('GlobalFlashcardsSection refreshes dashboard stats only after successful review', () => {
+    assert.match(
+      globalSectionSource,
+      /async function handleReviewOutcome[\s\S]*?await reviewFlashcard[\s\S]*?setFlashcards\(\(prev\) =>[\s\S]*?refreshStats\(\)[\s\S]*?} catch/
+    );
+    assert.doesNotMatch(
+      globalSectionSource,
+      /async function handleReviewOutcome[\s\S]*?refreshStats\(\)[\s\S]*?await reviewFlashcard/
+    );
+  });
+});
