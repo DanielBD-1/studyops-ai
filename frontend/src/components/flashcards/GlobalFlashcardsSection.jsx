@@ -464,6 +464,7 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
       setReviewSuccessMessage(
         outcome === 'known' ? 'Marked as known.' : 'Marked as unknown.'
       );
+      refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
