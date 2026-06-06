@@ -2,7 +2,7 @@
 
 **Purpose:** Short starting point for the owner and for agents. Read this first, then drill into linked docs.
 
-**Last updated:** 2026-06-04 (Phase **DOCS-CONSISTENCY-FIX** — stale Trello OAuth/A5 deferred language removed from **PRD**, **README**, **IMPLEMENTATION_STATUS**, **AGENT_MEMORY**; prior **DOCS-TRELLO-OAUTH-A5C** — Trello OAuth **A5C** backend manual-credential hardening documented; Supervisor **Pass with notes**; Security **Security approved with notes**; **`npm test` 448 pass; `npm run lint` pass**; connected users must use stored-token mode or disconnect before manual credentials; **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** when connected + manual `{ apiKey, token }`; manual fallback remains available/collapsed when **disconnected**; **A5B** connected-account sync remains primary **`/trello` UX**. Prior **DOCS-TRELLO-OAUTH-A5B** — **A5B** frontend connected-account sync; prior **DOCS-TRELLO-OAUTH-A5A** — **A5A** backend stored-token mode; deferred optional follow-ups remain **separate-gated** — **not automatic**)
+**Last updated:** 2026-06-06 (Phase **DOCS-TASK-MATERIAL-LINKS-A1** — **TASK-MATERIAL-LINKS-A1** **`TaskCard`** material navigation links documented; prior **DOCS-CONSISTENCY-FIX** — stale Trello OAuth/A5 deferred language removed from **PRD**, **README**, **IMPLEMENTATION_STATUS**, **AGENT_MEMORY**; prior **DOCS-TRELLO-OAUTH-A5C** — Trello OAuth **A5C** backend manual-credential hardening documented; Supervisor **Pass with notes**; Security **Security approved with notes**; **`npm test` 448 pass; `npm run lint` pass**; connected users must use stored-token mode or disconnect before manual credentials; **`TRELLO_MANUAL_CREDENTIALS_NOT_ALLOWED`** / **400** when connected + manual `{ apiKey, token }`; manual fallback remains available/collapsed when **disconnected**; **A5B** connected-account sync remains primary **`/trello` UX**. Prior **DOCS-TRELLO-OAUTH-A5B** — **A5B** frontend connected-account sync; prior **DOCS-TRELLO-OAUTH-A5A** — **A5A** backend stored-token mode; deferred optional follow-ups remain **separate-gated** — **not automatic**)
 
 ---
 
@@ -61,6 +61,8 @@ StudyOps AI is an **actively developed web product**: initial MVP baseline **com
 
 | Phase | Status | Notes |
 |-------|--------|-------|
+| **TASK-MATERIAL-LINKS-A1** | **Complete** | Frontend-only — **`TaskCard`** material **`Link`** to **`/study-materials/:materialId`** when `task.materialId` set; link text from `materialLabel` or fallback **View study material**; no material line when `materialId` absent; **no** backend/API/database/migration changes; Security Review **not required**; **`npm test`**, lint, build passed; GitHub CI on **main** green; global **`/tasks`** may show fallback when title unresolved |
+| **DOCS-TASK-MATERIAL-LINKS-A1** | **Complete** | Documentation-only — records **TASK-MATERIAL-LINKS-A1** shipped behavior; **no** repo code changes |
 | **DOCS-WEB-ONLY** | **Complete** | Product scope clarification — StudyOps is **web-only**; 375px = responsive browser viewport; agent terminology; Stitch = web UI reference only. **Documentation only.** |
 | **DOCS-A1** | **Complete** | Source-of-truth cleanup (CURRENT_STATE, AGENT_MEMORY, PRD clarifications). |
 | **DOCS-A2** | **Complete** | Documentation reality-check audit only — no file changes. |
@@ -145,7 +147,7 @@ Full detail: **`docs/IMPLEMENTATION_STATUS.md`**.
 | **Auth** | Register, login, protected routes, profiles + admin role |
 | **Courses & materials** | CRUD; material detail editor |
 | **AI generate** | Material-scoped `POST …/generate` body `{}`; persisted plan; history (max 10/material); import tasks/flashcards with dedupe (**10B**) |
-| **Tasks** | Course + global UI; filters; edit pending; focus link |
+| **Tasks** | Course + global UI; filters; edit pending; focus link; **`TaskCard`** material **`Link`** to **`/study-materials/:materialId`** when `materialId` set (**TASK-MATERIAL-LINKS-A1** — `materialLabel` or fallback **View study material**) |
 | **Flashcards** | Material + global UI; plan study + saved library CRUD |
 | **Trello** | **A6:** board/list defaults persistence. **Primary UI sync (A5B):** when connected, boards/lists/sync use stored backend token — frontend sends `{}` / `{ listId, taskIds }` only; manual apiKey/token hidden. **Manual fallback:** collapsed advanced credentials when **disconnected** only. **A5C:** connected + manual `{ apiKey, token }` → **400**. **A2–A4-FRONTEND:** connect + callback. **A5A:** stored-token mode on boards/lists/sync API |
 | **Focus** | 25-min timer MVP; start/complete |
@@ -181,6 +183,7 @@ Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` d
 - Course-level paste-generate (`POST /api/courses/:courseId/generate`)
 - PDF upload/parsing; Trello card update/delete; force re-sync; payments; spaced repetition; **production deployment** (cloud/hosted — local dev + CI only today)
 - Dashboard polling / WebSockets / cross-tab sync
+- Filter tasks by `materialId`; URL-persisted task filters; material-scoped task bands on material detail (**TASK-MATERIAL-LINKS-A1** shipped **`TaskCard`** material navigation only)
 - `api_logs` / admin logs UI
 
 ---
