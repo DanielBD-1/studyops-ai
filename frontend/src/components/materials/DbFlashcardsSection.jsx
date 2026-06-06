@@ -73,7 +73,7 @@ export default function DbFlashcardsSection({
     /** @type {string | null} */ (null)
   );
   const [reviewFilter, setReviewFilter] = useState(
-    /** @type {'all' | 'needs_review' | 'new' | 'learning' | 'known'} */ ('all')
+    /** @type {'all' | 'due_now' | 'needs_review' | 'new' | 'learning' | 'known'} */ ('all')
   );
 
   const busy = disabled || creating || savingEdit || deletingId !== null || reviewing;
@@ -291,6 +291,7 @@ export default function DbFlashcardsSection({
                 disabled={busy}
               >
                 <option value="all">All</option>
+                <option value="due_now">Due now</option>
                 <option value="needs_review">New + Learning</option>
                 <option value="new">New</option>
                 <option value="learning">Learning</option>
@@ -362,7 +363,9 @@ export default function DbFlashcardsSection({
             displayedFlashcards.length === 0 &&
             !showCreate && (
               <p className="section__meta flashcard-library__filter-empty">
-                No flashcards match the selected filters.
+                {reviewFilter === 'due_now'
+                  ? 'No flashcards are due for review right now.'
+                  : 'No flashcards match the selected filters.'}
               </p>
             )}
 

@@ -72,7 +72,9 @@ describe('saved DB flashcard parent wiring', () => {
   it('DbFlashcardsSection filters saved cards by review state before study and manage list', () => {
     assert.match(dbSectionSource, /filterFlashcardsByReviewState/);
     assert.match(dbSectionSource, /displayedFlashcards = filterFlashcardsByReviewState/);
+    assert.match(dbSectionSource, /value="due_now">Due now</);
     assert.match(dbSectionSource, /value="needs_review">New \+ Learning</);
+    assert.match(dbSectionSource, /No flashcards are due for review right now\./);
     assert.match(dbSectionSource, /No flashcards match the selected filters\./);
   });
 
@@ -86,7 +88,9 @@ describe('saved DB flashcard parent wiring', () => {
   it('GlobalFlashcardsSection filters saved cards by review state before study and manage list', () => {
     assert.match(globalSectionSource, /filterFlashcardsByReviewState/);
     assert.match(globalSectionSource, /displayedFlashcards = filterFlashcardsByReviewState/);
+    assert.match(globalSectionSource, /value="due_now">Due now</);
     assert.match(globalSectionSource, /value="needs_review">New \+ Learning</);
+    assert.match(globalSectionSource, /No flashcards are due for review right now\./);
     assert.match(globalSectionSource, /Review state/);
   });
 });

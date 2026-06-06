@@ -74,6 +74,8 @@ async function request(path, init = {}) {
  *   reviewCount: number,
  *   knownCount: number,
  *   unknownCount: number,
+ *   nextReviewAt: string | null,
+ *   reviewIntervalDays: number,
  *   createdAt: string,
  *   updatedAt: string,
  * }} Flashcard

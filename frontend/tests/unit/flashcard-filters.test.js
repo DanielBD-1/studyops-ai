@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   filterFlashcardsByReviewState,
+  isFlashcardDueNow,
   resolveFlashcardListFilters,
   resetMaterialFilterForCourseChange,
 } from '../../src/utils/flashcard-filters.js';
@@ -153,5 +154,67 @@ describe('filterFlashcardsByReviewState', () => {
 
   it('returns empty array for empty input', () => {
     assert.deepEqual(filterFlashcardsByReviewState([], 'needs_review'), []);
+  });
+});
+
+const FIXED_NOW = new Date('2026-06-07T12:00:00.000Z');
+
+describe('isFlashcardDueNow', () => {
+  it('returns true when nextReviewAt is null', () => {
+    assert.equal(isFlashcardDueNow({ nextReviewAt: null }, FIXED_NOW), true);
+  });
+
+  it('returns true when nextReviewAt is undefined', () => {
+    assert.equal(isFlashcardDueNow({}, FIXED_NOW), true);
+  });
+
+  it('returns true when nextReviewAt is empty string', () => {
+    assert.equal(isFlashcardDueNow({ nextReviewAt: '' }, FIXED_NOW), true);
+  });
+
+  it('returns true for invalid date string', () => {
+    assert.equal(isFlashcardDueNow({ nextReviewAt: 'not-a-date' }, FIXED_NOW), true);
+  });
+
+  it('returns true for past timestamp', () => {
+    assert.equal(
+      isFlashcardDueNow({ nextReviewAt: '2026-06-06T12:00:00.000Z' }, FIXED_NOW),
+      true
+    );
+  });
+
+  it('returns true for timestamp equal to now', () => {
+    assert.equal(
+      isFlashcardDueNow({ nextReviewAt: '2026-06-07T12:00:00.000Z' }, FIXED_NOW),
+      true
+    );
+  });
+
+  it('returns false for future timestamp', () => {
+    assert.equal(
+      isFlashcardDueNow({ nextReviewAt: '2026-06-08T12:00:00.000Z' }, FIXED_NOW),
+      false
+    );
+  });
+});
+
+const dueCards = [
+  { id: '1', nextReviewAt: null },
+  { id: '2', nextReviewAt: '2020-01-01T00:00:00.000Z' },
+  { id: '3', nextReviewAt: '2099-01-01T00:00:00.000Z' },
+  { id: '4', nextReviewAt: 'not-a-date' },
+];
+
+describe('filterFlashcardsByReviewState due_now', () => {
+  it('returns only due cards for due_now filter', () => {
+    assert.deepEqual(filterFlashcardsByReviewState(dueCards, 'due_now'), [
+      { id: '1', nextReviewAt: null },
+      { id: '2', nextReviewAt: '2020-01-01T00:00:00.000Z' },
+      { id: '4', nextReviewAt: 'not-a-date' },
+    ]);
+  });
+
+  it('returns empty array for empty input with due_now', () => {
+    assert.deepEqual(filterFlashcardsByReviewState([], 'due_now'), []);
   });
 });
