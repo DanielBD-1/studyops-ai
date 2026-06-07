@@ -168,6 +168,36 @@ describe('dashboard-recommendation', () => {
       assert.equal(recommendation?.primaryCta.to, '/courses');
     });
 
+    it('recommends pending tasks over due flashcards when both exist', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 3,
+        completedTasks: 1,
+        totalTasks: 4,
+        dueFlashcardsCount: 5,
+        totalFlashcards: 10,
+        courseStats: [
+          {
+            courseId: 'course-a',
+            courseName: 'Alpha',
+            totalTasks: 2,
+            completedTasks: 0,
+            totalFlashcards: 0,
+          },
+          {
+            courseId: 'course-b',
+            courseName: 'Beta',
+            totalTasks: 2,
+            completedTasks: 1,
+            totalFlashcards: 0,
+          },
+        ],
+      });
+
+      assert.equal(recommendation?.kind, 'pending-tasks');
+      assert.equal(recommendation?.primaryCta.to, '/tasks');
+    });
+
     it('recommends pending tasks with optional most-pending course', () => {
       const recommendation = deriveDashboardRecommendation({
         ...recommendationBaseStats,
@@ -199,11 +229,12 @@ describe('dashboard-recommendation', () => {
       assert.match(recommendation?.context ?? '', /Most pending: Alpha/);
     });
 
-    it('recommends generating plans when active-plan gap exists', () => {
+    it('recommends generating plans when active-plan gap exists and no flashcards are due', () => {
       const recommendation = deriveDashboardRecommendation({
         ...recommendationBaseStats,
         totalStudyMaterials: 3,
         totalGeneratedPlans: 1,
+        dueFlashcardsCount: 0,
       });
 
       assert.equal(recommendation?.kind, 'plan-gap');
@@ -211,10 +242,39 @@ describe('dashboard-recommendation', () => {
       assert.equal(recommendation?.primaryCta.to, '/courses');
     });
 
-    it('recommends flashcards when no pending tasks remain', () => {
+    it('recommends due flashcards over plan-gap when cards are due', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        totalStudyMaterials: 3,
+        totalGeneratedPlans: 1,
+        totalFlashcards: 8,
+        dueFlashcardsCount: 2,
+      });
+
+      assert.equal(recommendation?.kind, 'due-flashcards');
+      assert.match(recommendation?.headline ?? '', /2 flashcards due for review/);
+      assert.equal(recommendation?.primaryCta.label, 'Review due flashcards');
+      assert.equal(recommendation?.primaryCta.to, '/flashcards?reviewState=due_now');
+    });
+
+    it('recommends due flashcards with singular headline when one card is due', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        totalFlashcards: 10,
+        dueFlashcardsCount: 1,
+      });
+
+      assert.equal(recommendation?.kind, 'due-flashcards');
+      assert.match(recommendation?.headline ?? '', /1 flashcard due for review/);
+      assert.equal(recommendation?.primaryCta.to, '/flashcards?reviewState=due_now');
+      assert.match(recommendation?.context ?? '', /review schedule/);
+    });
+
+    it('recommends generic flashcards when none are due', () => {
       const recommendation = deriveDashboardRecommendation({
         ...recommendationBaseStats,
         totalFlashcards: 5,
+        dueFlashcardsCount: 0,
       });
 
       assert.equal(recommendation?.kind, 'flashcards');
