@@ -97,12 +97,13 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Task **status filters** (All / Pending / Completed) on course tasks | **Yes** (3A-c.2 — in-memory, not URL-persisted) |
 | **Study material filter** on course tasks (frontend-only; composes with status) | **Yes** (TASK-MATERIAL-FILTERS-A2 — filters already-loaded tasks by `task.materialId`; uses course-page materials; unknown filter id shows all tasks) |
 | **`materialId`** linking on course tasks (create / edit / unlink) | **Yes** (3A-c.3 on `/courses/:id`; 3A-d edit on `/tasks` via lazy `listMaterials`) |
-| Global **`/tasks`** UI (list, course/status filters, edit/complete/delete, course link) | **Yes** (3A-d — in-memory filters) |
+| Global **`/tasks`** UI (list, course/status filters, edit/complete/delete, course link) | **Yes** (3A-d — course/status filters; **TASK-MATERIAL-FILTERS-E1** URL sync on **`/tasks`**) |
 | Global **`/tasks`** **study material filter** (only when a specific course is selected) | **Yes** (TASK-MATERIAL-FILTERS-A2 — `listMaterials` for selected course; course change resets material filter; frontend-only) |
+| Global **`/tasks`** **URL-persisted filters** (`courseId`, `materialId`, `status`; Back/Forward; defaults omitted) | **Yes** (TASK-MATERIAL-FILTERS-E1 — **`materialId`** client-side only; **no** backend **`?materialId=`**; **no** **`/courses/:id`** URL filters) |
 | Create task on **`/tasks`** (required owned-course dropdown; optional `materialId`; `POST /api/courses/:courseId/tasks`) | **Yes** (3A-e — hidden on Completed filter / no courses) |
 | Material **navigation** links from task cards (`TaskCard` **`Link`** to **`/study-materials/:materialId`**) | **Yes** (TASK-MATERIAL-LINKS-A1 — `materialLabel` or fallback **View study material**) |
 | Material detail **Related study tasks** read-only band (saved DB tasks linked to current material; client-side filter over `listCourseTasks`) | **Yes** (TASK-MATERIAL-DETAIL-A3 — up to 5 compact preview rows; pending before completed; refreshes after plan task import; **no** TaskCard/CRUD/Focus in band) |
-| Backend **`GET /api/tasks?materialId=`** / **`GET /api/courses/:id/tasks?materialId=`**; URL-persisted task filters; “tasks without material” filter | **Deferred** |
+| Backend **`GET /api/tasks?materialId=`** / **`GET /api/courses/:id/tasks?materialId=`**; URL-persisted task filters on **`/courses/:id`**; “tasks without material” filter | **Deferred** (**`/tasks`** URL-persisted filters shipped in **TASK-MATERIAL-FILTERS-E1** — **`courseId`**, **`materialId`**, **`status`**; **`materialId`** client-side only) |
 | Start Focus backend API (`POST /api/focus`, complete endpoint) | **Yes** (4C-1) |
 | Start Focus UI (`/focus/:taskId`; pending tasks only; display-only timer) | **Yes** (4C-2 — **no** pause/resume or duration picker) |
 | Mark task incomplete after focus | **Deferred** (future) |
