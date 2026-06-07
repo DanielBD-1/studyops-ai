@@ -35,7 +35,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks/flashcards** via **10B** import APIs (`POST .../import/tasks`, `POST .../import/flashcards`; server-set **`source='plan'`**, dedupe); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **manual create/edit/delete** saved flashcards (inline forms, **3B-e**); **Known/Unknown review**, mastery filter, and **Due now** filter on saved DB cards (**FLASHCARD-REVIEW-A2**–**A4b**); **Plan JSON flashcards** from `plan.flashcards` (flip/reveal only, **3B-a** — **no** review API); plain text rendering
 - **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**; review + SRS-lite scheduling columns (**FLASHCARD-REVIEW-A1**, **A4a**)
 - **Flashcards backend API** (Phases **3B-c** + **FLASHCARD-REVIEW-A1** + **A4a**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; **`POST /api/flashcards/:flashcardId/review`** (`{ outcome: "known" | "unknown" }` strict); auth + ownership filters; SRS-lite scheduling computed server-side on review
-- **Flashcards frontend integration** (Phases **3B-d**–**3B-g** + **FLASHCARD-REVIEW-A2**–**A4b**) — material-detail saved list, **10B** plan import, manual CRUD, Known/Unknown review, mastery + Due now filters; **global `/flashcards`** page (create, list, study, course/material/review filters, edit/delete); **dashboard `dueFlashcardsCount`** (**A4c**). **Still deferred:** course-level flashcard management; full SM-2/Anki
+- **Flashcards frontend integration** (Phases **3B-d**–**3B-g** + **FLASHCARD-REVIEW-A2**–**A5a**) — material-detail saved list, **10B** plan import, manual CRUD, Known/Unknown review, mastery + Due now filters; **global `/flashcards`** page (create, list, study, course/material/review filters, edit/delete, URL-persisted filters — **A5a**); **dashboard `dueFlashcardsCount`** (**A4c**) + **Ready for review** deep link (**A5a**). **Still deferred:** course-level flashcard management; full SM-2/Anki
 - **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
 - **Trello backend sync API** (Phase **4A-1**) — `POST /api/trello/sync` with manual `{ apiKey, token, listId, taskIds }` in body; native `fetch` Trello client; per-task `results[]` with `status` enum `success` \| `failed` \| `skipped` (approved refinement vs PRD boolean `success` example); updates `study_tasks.trello_card_id` on success; appends `trello_sync_logs` for owned tasks; **credentials never stored**
 - **Trello frontend sync UI** (Phase **4A-2** + **4A-3** polish) — protected **`/trello`**; user enters apiKey/token, selects owned tasks (max 50), frontend calls StudyOps backend only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
@@ -81,7 +81,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 - Course-level **`POST /api/courses/:courseId/generate`** with client `studyText`; route **`/courses/:id/generate`**
 - PDF upload/parsing
 - Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** (invalidation-only **5C.1** refresh is implemented)
-- Full SRS (SM-2 / Anki, `ease_factor`, per-review history table); flashcard backend `?due=now` / `?mastery=`; URL-persisted flashcard filters; dashboard charts; admin due-card metrics; notifications/calendar reminders; payments
+- Full SRS (SM-2 / Anki, `ease_factor`, per-review history table); flashcard backend `?due=now` / `?mastery=`; URL-persisted flashcard filters on **`/study-materials/:materialId`**; dashboard charts; admin due-card metrics; notifications/calendar reminders; payments
 - Production deployment strategy; observability / APM
 - Further UI styling beyond **8C-3D** (explicit approval required)
 
@@ -112,8 +112,10 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Import generated **plan tasks** into **`study_tasks`** | **Yes** (Phase **10B** — `POST /api/study-materials/:materialId/import/tasks`; server-set **`source='plan'`**; dedupe) |
 | Import generated **plan flashcards** into **`public.flashcards`** | **Yes** (Phase **10B** — `POST /api/study-materials/:materialId/import/flashcards`; server-set **`source='plan'`**; dedupe; plan not cleared) |
 | Material-detail **manual flashcard CRUD** (create, edit, delete saved rows) | **Yes** (3B-e on `/study-materials/:materialId`) |
-| Global **`/flashcards`** page (create, list, study, filter, edit/delete saved rows) | **Yes** (3B-f + **3B-g** — create with required course + optional material) |
-| Flashcard **advanced study** (saved DB vs plan JSON) | **Partially shipped** — **saved DB flashcards:** Known/Unknown review (**A2**), mastery filter (**A3**), Due now filter (**A4b**), SRS-lite scheduling on review (**A4a**), dashboard **`dueFlashcardsCount`** (**A4c**). **Plan JSON flashcards** (**3B-a**): flip/reveal only — **no** review API. **Deferred:** course-level management; bulk create; full SM-2/Anki; backend `?due=now` / `?mastery=`; URL-persisted filters; dashboard charts; admin due cards |
+| Global **`/flashcards`** page (create, list, study, filter, edit/delete saved rows) | **Yes** (3B-f + **3B-g** — create with required course + optional material; **FLASHCARD-REVIEW-A5a** URL-persisted filters) |
+| Global **`/flashcards`** **URL-persisted filters** (`courseId`, `materialId`, `reviewState`; Back/Forward; defaults omitted; **`reviewState`** client-side only) | **Yes** (FLASHCARD-REVIEW-A5a — **no** backend **`?due=now`** / **`?mastery=`**; **no** URL filters on **`/study-materials/:materialId`**) |
+| Dashboard **Ready for review** deep link to Due now flashcards (`/flashcards?reviewState=due_now` when `dueFlashcardsCount > 0`) | **Yes** (FLASHCARD-REVIEW-A5a — hero / recommendation logic unchanged) |
+| Flashcard **advanced study** (saved DB vs plan JSON) | **Partially shipped** — **saved DB flashcards:** Known/Unknown review (**A2**), mastery filter (**A3**), Due now filter (**A4b**), SRS-lite scheduling on review (**A4a**), dashboard **`dueFlashcardsCount`** (**A4c**), **`/flashcards`** URL-persisted filters (**A5a**). **Plan JSON flashcards** (**3B-a**): flip/reveal only — **no** review API. **Deferred:** course-level management; bulk create; full SM-2/Anki; backend `?due=now` / `?mastery=`; URL-persisted filters on material detail; dashboard charts; admin due cards |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
 | Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) |
@@ -1079,7 +1081,7 @@ Frontend: Generate / load / clear on **`/study-materials/:materialId`**; plain-t
 
 ### Flashcards
 
-**Implemented (Phases 3B-c through 3B-g + FLASHCARD-REVIEW-A1–A4c):** Backend REST (3B-c) + review endpoint (**A1**, **A4a**); material-detail frontend (3B-d **10B** list/import; 3B-e manual CRUD; **A2** Known/Unknown; **A3** mastery filter; **A4b** Due now filter); global **`/flashcards`** (3B-f/3B-g list/filter/study/edit/delete/create + review filters) — see `docs/IMPLEMENTATION_STATUS.md`. **Saved DB flashcards** load via `GET` (optionally filtered by `courseId` / `materialId` only — **no** `?due=now` / `?mastery=`); create via `POST /api/courses/:id/flashcards`; global edit/delete via `PATCH` / `DELETE`; plan import on material detail via **`POST /api/study-materials/:materialId/import/flashcards`** (**10B**). **Plan JSON** flip/reveal study (**3B-a**) has **no** review API.
+**Implemented (Phases 3B-c through 3B-g + FLASHCARD-REVIEW-A1–A5a):** Backend REST (3B-c) + review endpoint (**A1**, **A4a**); material-detail frontend (3B-d **10B** list/import; 3B-e manual CRUD; **A2** Known/Unknown; **A3** mastery filter; **A4b** Due now filter); global **`/flashcards`** (3B-f/3B-g list/filter/study/edit/delete/create + review filters + **A5a** URL-persisted filters) — see `docs/IMPLEMENTATION_STATUS.md`. **Saved DB flashcards** load via `GET` (optionally filtered by `courseId` / `materialId` only — **no** `?due=now` / `?mastery=`); create via `POST /api/courses/:id/flashcards`; global edit/delete via `PATCH` / `DELETE`; plan import on material detail via **`POST /api/study-materials/:materialId/import/flashcards`** (**10B**). **Plan JSON** flip/reveal study (**3B-a**) has **no** review API.
 
 **GET /api/flashcards** - List flashcards
 
@@ -1111,7 +1113,7 @@ Frontend: Generate / load / clear on **`/study-materials/:materialId`**; plain-t
 
 Wrong-owner or missing resources → neutral **404** (Course / Study material / Flashcard not found).
 
-**Deferred:** Bulk create; AI/Gemini flashcard generation; plan import on `/flashcards`; course-level flashcard management; **full SRS** (SM-2/Anki, `ease_factor`, per-review history table); backend `?due=now` / `?mastery=`; pagination/rate limiting; URL-persisted flashcard filters; dashboard charts; admin due-card metrics; notifications/calendar reminders.
+**Deferred:** Bulk create; AI/Gemini flashcard generation; plan import on `/flashcards`; course-level flashcard management; **full SRS** (SM-2/Anki, `ease_factor`, per-review history table); backend `?due=now` / `?mastery=`; pagination/rate limiting; URL-persisted flashcard filters on **`/study-materials/:materialId`**; dashboard charts; admin due-card metrics; notifications/calendar reminders.
 
 ---
 
@@ -1198,7 +1200,7 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 **GET /api/dashboard/stats** - Get student stats (**implemented** — Phases **5B** + **FLASHCARD-REVIEW-A4c**)
 
 - Returns aggregate counts only (no plan JSON, flashcard Q/A, or credentials). **`dueFlashcardsCount`** — owned saved DB flashcards where **`next_review_at IS NULL OR next_review_at <= now`** (count only).
-- **Frontend (`/dashboard`):** **At a glance** → **Learning assets** shows **Due now** stat; when **`dueFlashcardsCount > 0`**, **Ready for review** links to **`/flashcards`** only (**no** URL query params / deep link to Due now filter).
+- **Frontend (`/dashboard`):** **At a glance** → **Learning assets** shows **Due now** stat; when **`dueFlashcardsCount > 0`**, **Ready for review** links to **`/flashcards?reviewState=due_now`** (**FLASHCARD-REVIEW-A5a** deep link; hero / recommendation logic unchanged).
 
 ```json
 {
@@ -2448,7 +2450,7 @@ Show:
 ### 10. Flashcards Page
 
 **Header:** "Flashcards"
-**Filters:** Course dropdown; material dropdown (when course selected); **Review state** (All, Due now, New + Learning, New, Learning, Known) — client-side over loaded cards (**no** URL-persisted filters; **no** backend `?mastery=` / `?due=now`)
+**Filters:** Course dropdown; material dropdown (when course selected); **Review state** (All, Due now, New + Learning, New, Learning, Known) — client-side over loaded cards (**FLASHCARD-REVIEW-A5a** URL-persisted on **`/flashcards`** via **`courseId`**, **`materialId`**, **`reviewState`**; **`reviewState`** not sent to backend; **no** backend `?mastery=` / `?due=now`)
 
 **Flashcard Display (saved DB flashcards):**
 
