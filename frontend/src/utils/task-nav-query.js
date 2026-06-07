@@ -2,6 +2,9 @@ import { materialIdSchema } from './validation.js';
 
 const uuidParamSchema = materialIdSchema;
 
+/** @type {readonly ['pending', 'completed']} */
+const TASK_STATUS_QUERY_VALUES = ['pending', 'completed'];
+
 /**
  * @param {string | null} value
  * @returns {string | undefined}
@@ -16,14 +19,27 @@ function parseUuidQueryParam(value) {
 }
 
 /**
+ * @param {string | null} value
+ * @returns {'pending' | 'completed' | undefined}
+ */
+function parseStatusQueryParam(value) {
+  if (value == null || value.trim() === '') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return TASK_STATUS_QUERY_VALUES.includes(trimmed) ? trimmed : undefined;
+}
+
+/**
  * @param {string} searchString
- * @returns {{ courseId?: string, materialId?: string }}
+ * @returns {{ courseId?: string, materialId?: string, status?: 'pending' | 'completed' }}
  */
 export function parseTasksPageSearchParams(searchString) {
   const normalized = searchString.startsWith('?') ? searchString.slice(1) : searchString;
   const params = new URLSearchParams(normalized);
 
-  /** @type {{ courseId?: string, materialId?: string }} */
+  /** @type {{ courseId?: string, materialId?: string, status?: 'pending' | 'completed' }} */
   const result = {};
 
   const courseId = parseUuidQueryParam(params.get('courseId'));
@@ -36,30 +52,79 @@ export function parseTasksPageSearchParams(searchString) {
     result.materialId = materialId;
   }
 
+  const status = parseStatusQueryParam(params.get('status'));
+  if (status) {
+    result.status = status;
+  }
+
   return result;
 }
 
 /**
- * Resolve initial /tasks filter state from URL query params and loaded ownership lists.
+ * Build canonical /tasks query string from filter state. Omits default/all values.
+ *
+ * @param {{
+ *   courseFilter?: 'all' | string,
+ *   materialFilter?: 'all' | string,
+ *   statusFilter?: 'all' | 'pending' | 'completed',
+ * }} filters
+ * @returns {string} Query string without leading "?" (empty when all defaults).
+ */
+export function buildTasksPageSearchParams({
+  courseFilter = 'all',
+  materialFilter = 'all',
+  statusFilter = 'all',
+} = {}) {
+  const params = new URLSearchParams();
+  const courseId = courseFilter !== 'all' ? courseFilter : undefined;
+  const materialId = materialFilter !== 'all' ? materialFilter : undefined;
+  const status =
+    statusFilter === 'pending' || statusFilter === 'completed' ? statusFilter : undefined;
+
+  if (courseId) {
+    params.set('courseId', courseId);
+  }
+
+  if (courseId && materialId) {
+    params.set('materialId', materialId);
+  }
+
+  if (status) {
+    params.set('status', status);
+  }
+
+  return params.toString();
+}
+
+/**
+ * Resolve /tasks filter state from URL query params and loaded ownership lists.
  *
  * @param {{
  *   courseId?: string,
  *   materialId?: string,
+ *   status?: 'pending' | 'completed',
  *   courses: { id: string }[],
  *   materials: { id: string }[],
  * }} input
- * @returns {{ courseFilter: 'all' | string, materialFilter: 'all' | string }}
+ * @returns {{
+ *   courseFilter: 'all' | string,
+ *   materialFilter: 'all' | string,
+ *   statusFilter: 'all' | 'pending' | 'completed',
+ * }}
  */
-export function resolveInitialTaskFilters({ courseId, materialId, courses, materials }) {
+export function resolveInitialTaskFilters({ courseId, materialId, status, courses, materials }) {
+  const statusFilter =
+    status === 'pending' || status === 'completed' ? status : 'all';
+
   if (!courseId || !courses.some((course) => course.id === courseId)) {
-    return { courseFilter: 'all', materialFilter: 'all' };
+    return { courseFilter: 'all', materialFilter: 'all', statusFilter };
   }
 
   if (!materialId || !materials.some((material) => material.id === materialId)) {
-    return { courseFilter: courseId, materialFilter: 'all' };
+    return { courseFilter: courseId, materialFilter: 'all', statusFilter };
   }
 
-  return { courseFilter: courseId, materialFilter: materialId };
+  return { courseFilter: courseId, materialFilter: materialId, statusFilter };
 }
 
 /**

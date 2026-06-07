@@ -7,6 +7,7 @@ import {
 } from '../../src/utils/task-filters.js';
 import {
   buildTasksPageMaterialLink,
+  buildTasksPageSearchParams,
   parseTasksPageSearchParams,
   resolveInitialTaskFilters,
 } from '../../src/utils/task-nav-query.js';
@@ -71,6 +72,15 @@ describe('parseTasksPageSearchParams', () => {
     assert.deepEqual(parseTasksPageSearchParams('?'), {});
   });
 
+  it('parses valid courseId, materialId, and status=pending', () => {
+    assert.deepEqual(
+      parseTasksPageSearchParams(
+        `?courseId=${COURSE_A}&materialId=${MATERIAL_A}&status=pending`
+      ),
+      { courseId: COURSE_A, materialId: MATERIAL_A, status: 'pending' }
+    );
+  });
+
   it('parses valid courseId and materialId', () => {
     assert.deepEqual(
       parseTasksPageSearchParams(`?courseId=${COURSE_A}&materialId=${MATERIAL_A}`),
@@ -78,16 +88,110 @@ describe('parseTasksPageSearchParams', () => {
     );
   });
 
+  it('parses valid status=pending only', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?status=pending'), { status: 'pending' });
+  });
+
+  it('parses valid status=completed only', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?status=completed'), { status: 'completed' });
+  });
+
   it('ignores invalid UUID params', () => {
     assert.deepEqual(parseTasksPageSearchParams('?courseId=not-a-uuid&materialId=bad'), {});
+  });
+
+  it('ignores invalid status values', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?status=all'), {});
+    assert.deepEqual(parseTasksPageSearchParams('?status=in_progress'), {});
+    assert.deepEqual(parseTasksPageSearchParams('?status='), {});
+  });
+
+  it('ignores unknown query params', () => {
+    assert.deepEqual(
+      parseTasksPageSearchParams(`?courseId=${COURSE_A}&foo=bar&status=pending`),
+      { courseId: COURSE_A, status: 'pending' }
+    );
+  });
+});
+
+describe('buildTasksPageSearchParams', () => {
+  it('returns empty string for all defaults', () => {
+    assert.equal(buildTasksPageSearchParams(), '');
+    assert.equal(
+      buildTasksPageSearchParams({
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'all',
+      }),
+      ''
+    );
+  });
+
+  it('builds course only', () => {
+    assert.equal(buildTasksPageSearchParams({ courseFilter: COURSE_A }), `courseId=${COURSE_A}`);
+  });
+
+  it('builds status only', () => {
+    assert.equal(buildTasksPageSearchParams({ statusFilter: 'pending' }), 'status=pending');
+  });
+
+  it('builds course + material + status with stable key order', () => {
+    assert.equal(
+      buildTasksPageSearchParams({
+        courseFilter: COURSE_A,
+        materialFilter: MATERIAL_A,
+        statusFilter: 'pending',
+      }),
+      `courseId=${COURSE_A}&materialId=${MATERIAL_A}&status=pending`
+    );
+  });
+
+  it('omits all/default values', () => {
+    assert.equal(
+      buildTasksPageSearchParams({
+        courseFilter: COURSE_A,
+        materialFilter: 'all',
+        statusFilter: 'all',
+      }),
+      `courseId=${COURSE_A}`
+    );
+  });
+
+  it('does not emit materialId without courseId', () => {
+    assert.equal(
+      buildTasksPageSearchParams({
+        courseFilter: 'all',
+        materialFilter: MATERIAL_A,
+        statusFilter: 'pending',
+      }),
+      'status=pending'
+    );
   });
 });
 
 describe('resolveInitialTaskFilters', () => {
-  it('returns all/all for empty search resolution input', () => {
+  it('returns all/all/all for empty search resolution input', () => {
+    assert.deepEqual(resolveInitialTaskFilters({ courses, materials }), {
+      courseFilter: 'all',
+      materialFilter: 'all',
+      statusFilter: 'all',
+    });
+  });
+
+  it('applies valid courseId, materialId, and status', () => {
     assert.deepEqual(
-      resolveInitialTaskFilters({ courses, materials }),
-      { courseFilter: 'all', materialFilter: 'all' }
+      resolveInitialTaskFilters({
+        courseId: COURSE_A,
+        materialId: MATERIAL_A,
+        status: 'pending',
+        courses,
+        materials,
+      }),
+      {
+        courseFilter: COURSE_A,
+        materialFilter: MATERIAL_A,
+        statusFilter: 'pending',
+      }
     );
   });
 
@@ -99,7 +203,11 @@ describe('resolveInitialTaskFilters', () => {
         courses,
         materials,
       }),
-      { courseFilter: COURSE_A, materialFilter: MATERIAL_A }
+      {
+        courseFilter: COURSE_A,
+        materialFilter: MATERIAL_A,
+        statusFilter: 'all',
+      }
     );
   });
 
@@ -111,31 +219,45 @@ describe('resolveInitialTaskFilters', () => {
         courses,
         materials,
       }),
-      { courseFilter: COURSE_A, materialFilter: 'all' }
+      {
+        courseFilter: COURSE_A,
+        materialFilter: 'all',
+        statusFilter: 'all',
+      }
     );
   });
 
-  it('ignores materialId without a valid courseId', () => {
+  it('ignores materialId without a valid courseId but keeps valid status', () => {
     assert.deepEqual(
       resolveInitialTaskFilters({
         courseId: undefined,
         materialId: MATERIAL_A,
+        status: 'pending',
         courses,
         materials,
       }),
-      { courseFilter: 'all', materialFilter: 'all' }
+      {
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'pending',
+      }
     );
   });
 
-  it('ignores unknown courseId', () => {
+  it('ignores unknown courseId but keeps valid status', () => {
     assert.deepEqual(
       resolveInitialTaskFilters({
         courseId: UNKNOWN_COURSE,
         materialId: MATERIAL_A,
+        status: 'completed',
         courses,
         materials,
       }),
-      { courseFilter: 'all', materialFilter: 'all' }
+      {
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'completed',
+      }
     );
   });
 
@@ -144,10 +266,31 @@ describe('resolveInitialTaskFilters', () => {
       resolveInitialTaskFilters({
         courseId: COURSE_A,
         materialId: UNKNOWN_MATERIAL,
+        status: 'pending',
         courses,
         materials,
       }),
-      { courseFilter: COURSE_A, materialFilter: 'all' }
+      {
+        courseFilter: COURSE_A,
+        materialFilter: 'all',
+        statusFilter: 'pending',
+      }
+    );
+  });
+
+  it('falls back invalid status to all', () => {
+    assert.deepEqual(
+      resolveInitialTaskFilters({
+        courseId: COURSE_A,
+        status: 'in_progress',
+        courses,
+        materials,
+      }),
+      {
+        courseFilter: COURSE_A,
+        materialFilter: 'all',
+        statusFilter: 'all',
+      }
     );
   });
 });
