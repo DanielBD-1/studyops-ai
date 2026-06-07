@@ -15,6 +15,7 @@ import {
   resetMaterialFilterForCourseChange,
 } from '../../utils/task-filters.js';
 import {
+  buildTasksPageSearchParams,
   parseTasksPageSearchParams,
   resolveInitialTaskFilters,
 } from '../../utils/task-nav-query.js';
@@ -36,14 +37,9 @@ import Textarea from '../ui/Textarea.jsx';
  */
 export default function GlobalTasksSection({ courses, handleAuthError }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { refreshStats } = useDashboardRefresh();
-  const parsedQuery = useMemo(
-    () => parseTasksPageSearchParams(searchParams.toString()),
-    [searchParams]
-  );
-  const courseQueryInitDone = useRef(false);
-  const materialQueryInitDone = useRef(false);
+  const skipUrlSyncRef = useRef(false);
   const focusReturnTo = useMemo(() => {
     const query = searchParams.toString();
     return query ? `/tasks?${query}` : '/tasks';
@@ -158,13 +154,34 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     loadTasks();
   }, [loadTasks]);
 
-  useEffect(() => {
-    if (courseQueryInitDone.current) {
-      return;
-    }
+  /**
+   * @param {{
+   *   courseFilter: 'all' | string,
+   *   materialFilter: 'all' | string,
+   *   statusFilter: 'all' | 'pending' | 'completed',
+   * }} filters
+   * @param {{ replace?: boolean }} [options]
+   */
+  const pushFiltersToUrl = useCallback(
+    (filters, options = {}) => {
+      const { replace = false } = options;
+      const canonical = buildTasksPageSearchParams(filters);
+      const current = searchParams.toString();
+      if (canonical === current) {
+        return;
+      }
+      skipUrlSyncRef.current = true;
+      setSearchParams(
+        canonical ? new URLSearchParams(canonical) : new URLSearchParams(),
+        { replace }
+      );
+    },
+    [searchParams, setSearchParams]
+  );
 
-    if (!parsedQuery.courseId) {
-      courseQueryInitDone.current = true;
+  useEffect(() => {
+    if (skipUrlSyncRef.current) {
+      skipUrlSyncRef.current = false;
       return;
     }
 
@@ -172,20 +189,75 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       return;
     }
 
-    courseQueryInitDone.current = true;
+    const parsed = parseTasksPageSearchParams(searchParams.toString());
+    const courseInUrl = parsed.courseId;
+    const materialInUrl = parsed.materialId;
+    const courseKnown = Boolean(courseInUrl && courses.some((c) => c.id === courseInUrl));
 
-    const { courseFilter: initialCourse } = resolveInitialTaskFilters({
-      courseId: parsedQuery.courseId,
-      materialId: undefined,
+    const awaitingMaterials =
+      courseKnown &&
+      materialInUrl &&
+      (courseFilter !== courseInUrl || loadingFilterMaterials);
+
+    if (awaitingMaterials) {
+      const partial = resolveInitialTaskFilters({
+        courseId: courseInUrl,
+        materialId: undefined,
+        status: parsed.status,
+        courses,
+        materials: [],
+      });
+
+      if (partial.courseFilter !== courseFilter) {
+        setCourseFilter(partial.courseFilter);
+      }
+      if (partial.statusFilter !== statusFilter) {
+        setStatusFilter(partial.statusFilter);
+      }
+      return;
+    }
+
+    const resolved = resolveInitialTaskFilters({
+      courseId: parsed.courseId,
+      materialId: parsed.materialId,
+      status: parsed.status,
       courses,
-      materials: [],
+      materials: filterMaterials,
     });
 
-    if (initialCourse !== 'all') {
-      setCourseFilter(initialCourse);
-      loadTasks({ courseFilter: initialCourse });
+    if (resolved.courseFilter !== courseFilter) {
+      setCourseFilter(resolved.courseFilter);
     }
-  }, [courses, parsedQuery.courseId, loadTasks]);
+    if (resolved.materialFilter !== materialFilter) {
+      setMaterialFilter(resolved.materialFilter);
+    }
+    if (resolved.statusFilter !== statusFilter) {
+      setStatusFilter(resolved.statusFilter);
+    }
+
+    const canonical = buildTasksPageSearchParams({
+      courseFilter: resolved.courseFilter,
+      materialFilter: resolved.materialFilter,
+      statusFilter: resolved.statusFilter,
+    });
+    const current = searchParams.toString();
+    if (canonical !== current) {
+      skipUrlSyncRef.current = true;
+      setSearchParams(
+        canonical ? new URLSearchParams(canonical) : new URLSearchParams(),
+        { replace: true }
+      );
+    }
+  }, [
+    searchParams,
+    courses,
+    filterMaterials,
+    loadingFilterMaterials,
+    courseFilter,
+    materialFilter,
+    statusFilter,
+    setSearchParams,
+  ]);
 
   const showMaterialFilter =
     courseFilter !== 'all' && courses.some((c) => c.id === courseFilter);
@@ -223,48 +295,6 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       cancelled = true;
     };
   }, [courseFilter, showMaterialFilter, handleAuthError]);
-
-  useEffect(() => {
-    if (materialQueryInitDone.current) {
-      return;
-    }
-
-    if (!parsedQuery.materialId) {
-      materialQueryInitDone.current = true;
-      return;
-    }
-
-    if (!parsedQuery.courseId || courseFilter !== parsedQuery.courseId) {
-      if (courseQueryInitDone.current) {
-        materialQueryInitDone.current = true;
-      }
-      return;
-    }
-
-    if (loadingFilterMaterials) {
-      return;
-    }
-
-    materialQueryInitDone.current = true;
-
-    const { materialFilter: initialMaterial } = resolveInitialTaskFilters({
-      courseId: parsedQuery.courseId,
-      materialId: parsedQuery.materialId,
-      courses,
-      materials: filterMaterials,
-    });
-
-    if (initialMaterial !== 'all') {
-      setMaterialFilter(initialMaterial);
-    }
-  }, [
-    parsedQuery.courseId,
-    parsedQuery.materialId,
-    courseFilter,
-    filterMaterials,
-    loadingFilterMaterials,
-    courses,
-  ]);
 
   useEffect(() => {
     if (!showCreate || !createCourseId || !courses.some((c) => c.id === createCourseId)) {
@@ -333,8 +363,14 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     cancelCreate();
     cancelEdit();
     setActionError(null);
+    const nextMaterial = resetMaterialFilterForCourseChange();
     setCourseFilter(course);
-    setMaterialFilter(resetMaterialFilterForCourseChange());
+    setMaterialFilter(nextMaterial);
+    pushFiltersToUrl({
+      courseFilter: course,
+      materialFilter: nextMaterial,
+      statusFilter,
+    });
   }
 
   /**
@@ -345,6 +381,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     cancelEdit();
     setActionError(null);
     setMaterialFilter(material);
+    pushFiltersToUrl({
+      courseFilter,
+      materialFilter: material,
+      statusFilter,
+    });
   }
 
   /**
@@ -355,6 +396,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     cancelEdit();
     setActionError(null);
     setStatusFilter(filter);
+    pushFiltersToUrl({
+      courseFilter,
+      materialFilter,
+      statusFilter: filter,
+    });
   }
 
   function openCreateForm() {
@@ -418,6 +464,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       if (statusFilter === 'completed') {
         setStatusFilter('pending');
       }
+      pushFiltersToUrl({
+        courseFilter: createdCourseId,
+        materialFilter,
+        statusFilter: nextStatusFilter,
+      });
       await loadTasks({ courseFilter: createdCourseId, statusFilter: nextStatusFilter });
       refreshStats();
     } catch (err) {
