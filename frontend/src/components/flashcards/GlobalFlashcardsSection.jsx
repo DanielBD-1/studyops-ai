@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import { ApiRequestError } from '../../services/courses.service.js';
 import {
@@ -20,6 +20,11 @@ import {
   resetMaterialFilterForCourseChange,
   resolveFlashcardListFilters,
 } from '../../utils/flashcard-filters.js';
+import {
+  buildFlashcardsPageSearchParams,
+  parseFlashcardsPageSearchParams,
+  resolveInitialFlashcardFilters,
+} from '../../utils/flashcard-nav-query.js';
 import FlashcardStudy from '../materials/FlashcardStudy.jsx';
 import Button from '../ui/Button.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
@@ -37,6 +42,8 @@ import Textarea from '../ui/Textarea.jsx';
  */
 export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const skipUrlSyncRef = useRef(false);
   const { refreshStats } = useDashboardRefresh();
   const [flashcards, setFlashcards] = useState(
     /** @type {import('../../services/flashcards.service.js').Flashcard[]} */ ([])
@@ -167,6 +174,111 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     loadFlashcards();
   }, [loadFlashcards]);
 
+  /**
+   * @param {{
+   *   courseFilter: 'all' | string,
+   *   materialFilter: 'all' | string,
+   *   reviewFilter: 'all' | 'due_now' | 'needs_review' | 'new' | 'learning' | 'known',
+   * }} filters
+   * @param {{ replace?: boolean }} [options]
+   */
+  const pushFiltersToUrl = useCallback(
+    (filters, options = {}) => {
+      const { replace = false } = options;
+      const canonical = buildFlashcardsPageSearchParams(filters);
+      const current = searchParams.toString();
+      if (canonical === current) {
+        return;
+      }
+      skipUrlSyncRef.current = true;
+      setSearchParams(
+        canonical ? new URLSearchParams(canonical) : new URLSearchParams(),
+        { replace }
+      );
+    },
+    [searchParams, setSearchParams]
+  );
+
+  useEffect(() => {
+    if (skipUrlSyncRef.current) {
+      skipUrlSyncRef.current = false;
+      return;
+    }
+
+    if (courses.length === 0) {
+      return;
+    }
+
+    const parsed = parseFlashcardsPageSearchParams(searchParams.toString());
+    const courseInUrl = parsed.courseId;
+    const materialInUrl = parsed.materialId;
+    const courseKnown = Boolean(courseInUrl && courses.some((c) => c.id === courseInUrl));
+
+    const awaitingMaterials =
+      courseKnown &&
+      materialInUrl &&
+      (courseFilter !== courseInUrl || materialsLoading);
+
+    if (awaitingMaterials) {
+      const partial = resolveInitialFlashcardFilters({
+        courseId: courseInUrl,
+        materialId: undefined,
+        reviewState: parsed.reviewState,
+        courses,
+        materials: [],
+      });
+
+      if (partial.courseFilter !== courseFilter) {
+        setCourseFilter(partial.courseFilter);
+      }
+      if (partial.reviewFilter !== reviewFilter) {
+        setReviewFilter(partial.reviewFilter);
+      }
+      return;
+    }
+
+    const resolved = resolveInitialFlashcardFilters({
+      courseId: parsed.courseId,
+      materialId: parsed.materialId,
+      reviewState: parsed.reviewState,
+      courses,
+      materials,
+    });
+
+    if (resolved.courseFilter !== courseFilter) {
+      setCourseFilter(resolved.courseFilter);
+    }
+    if (resolved.materialFilter !== materialFilter) {
+      setMaterialFilter(resolved.materialFilter);
+    }
+    if (resolved.reviewFilter !== reviewFilter) {
+      setReviewFilter(resolved.reviewFilter);
+    }
+
+    const canonical = buildFlashcardsPageSearchParams({
+      courseFilter: resolved.courseFilter,
+      materialFilter: resolved.materialFilter,
+      reviewFilter: resolved.reviewFilter,
+    });
+    const current = searchParams.toString();
+    if (canonical !== current) {
+      skipUrlSyncRef.current = true;
+      setSearchParams(
+        canonical ? new URLSearchParams(canonical) : new URLSearchParams(),
+        { replace: true }
+      );
+    }
+  }, [
+    searchParams,
+    courses,
+    materials,
+    materialsLoading,
+    courseFilter,
+    materialFilter,
+    reviewFilter,
+    setSearchParams,
+  ]);
+
   useEffect(() => {
     if (!showMaterialFilter) {
       setMaterials([]);
@@ -244,8 +356,14 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     cancelCreate();
     setActionError(null);
     setSuccessMessage(null);
+    const nextMaterial = resetMaterialFilterForCourseChange();
     setCourseFilter(course);
-    setMaterialFilter(resetMaterialFilterForCourseChange());
+    setMaterialFilter(nextMaterial);
+    pushFiltersToUrl({
+      courseFilter: course,
+      materialFilter: nextMaterial,
+      reviewFilter,
+    });
   }
 
   /**
@@ -257,6 +375,11 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     setActionError(null);
     setSuccessMessage(null);
     setMaterialFilter(material);
+    pushFiltersToUrl({
+      courseFilter,
+      materialFilter: material,
+      reviewFilter,
+    });
   }
 
   /**
@@ -267,6 +390,11 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
     setActionError(null);
     setSuccessMessage(null);
     setReviewFilter(filter);
+    pushFiltersToUrl({
+      courseFilter,
+      materialFilter,
+      reviewFilter: filter,
+    });
   }
 
   function openCreateForm() {
@@ -351,6 +479,11 @@ export default function GlobalFlashcardsSection({ courses, handleAuthError }) {
 
       setCourseFilter(createdCourseId);
       setMaterialFilter(nextMaterialFilter);
+      pushFiltersToUrl({
+        courseFilter: createdCourseId,
+        materialFilter: nextMaterialFilter,
+        reviewFilter,
+      });
 
       await loadFlashcards({
         courseFilter: createdCourseId,

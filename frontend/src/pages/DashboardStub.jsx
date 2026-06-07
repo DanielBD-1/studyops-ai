@@ -17,6 +17,7 @@ import {
   deriveCoursePendingTasks,
   deriveDashboardRecommendation,
 } from '../utils/dashboard-recommendation.js';
+import { buildFlashcardsPageDueNowLink } from '../utils/flashcard-nav-query.js';
 
 /**
  * @param {{ label: string, value: number | string, detail?: string }} props
@@ -461,7 +462,10 @@ export default function DashboardStub() {
                       stats.dueFlashcardsCount > 0 ? (
                         <>
                           Ready for review ·{' '}
-                          <Link to="/flashcards" className="link-btn link-btn--secondary">
+                          <Link
+                            to={buildFlashcardsPageDueNowLink()}
+                            className="link-btn link-btn--secondary"
+                          >
                             Review flashcards
                           </Link>
                         </>
