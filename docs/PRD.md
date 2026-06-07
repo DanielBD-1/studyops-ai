@@ -1,6 +1,6 @@
 # PRD — StudyOps AI (Version 2.0)
 
-**Last Updated:** 2026-06-07 (docs: **DOCS-FLASHCARD-REVIEW-A5b** — auto-advance after successful Known/Unknown on saved DB flashcards; full SM-2/Anki still deferred)
+**Last Updated:** 2026-06-07 (docs: **DOCS-FLASHCARD-REVIEW-A5c** — dashboard hero due-flashcard-aware recommendation; full SM-2/Anki still deferred)
 **Status:** Ready for Implementation
 
 ---
@@ -21,7 +21,7 @@ Do **not** treat PRD body text alone as proof a feature is live. When PRD and im
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section is a **historical summary only** and may lag the latest merged phases (e.g. **11A-3** plan history, **10B** import dedupe, **FLASHCARD-REVIEW-A1**–**A5b** SRS-lite review on saved DB flashcards, **12A-1** material cockpit, **B1**–**B3** presentation polish). It does **not** replace MVP sections below (future scope remains valid). **Authoritative shipped state:** **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/CURRENT_STATE.md`**; phase history in **`docs/AGENT_MEMORY.md`**.
+This section is a **historical summary only** and may lag the latest merged phases (e.g. **11A-3** plan history, **10B** import dedupe, **FLASHCARD-REVIEW-A1**–**A5c** SRS-lite review on saved DB flashcards + dashboard due-flashcard hero, **12A-1** material cockpit, **B1**–**B3** presentation polish). It does **not** replace MVP sections below (future scope remains valid). **Authoritative shipped state:** **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/CURRENT_STATE.md`**; phase history in **`docs/AGENT_MEMORY.md`**.
 
 ### Built (summary — functional MVP through 6A-3 and later phases; see IMPLEMENTATION_STATUS for current detail)
 
@@ -35,7 +35,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks/flashcards** via **10B** import APIs (`POST .../import/tasks`, `POST .../import/flashcards`; server-set **`source='plan'`**, dedupe); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **manual create/edit/delete** saved flashcards (inline forms, **3B-e**); **Known/Unknown review**, mastery filter, and **Due now** filter on saved DB cards (**FLASHCARD-REVIEW-A2**–**A4b**); **Plan JSON flashcards** from `plan.flashcards` (flip/reveal only, **3B-a** — **no** review API); plain text rendering
 - **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**; review + SRS-lite scheduling columns (**FLASHCARD-REVIEW-A1**, **A4a**)
 - **Flashcards backend API** (Phases **3B-c** + **FLASHCARD-REVIEW-A1** + **A4a**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; **`POST /api/flashcards/:flashcardId/review`** (`{ outcome: "known" | "unknown" }` strict); auth + ownership filters; SRS-lite scheduling computed server-side on review
-- **Flashcards frontend integration** (Phases **3B-d**–**3B-g** + **FLASHCARD-REVIEW-A2**–**A5b**) — material-detail saved list, **10B** plan import, manual CRUD, Known/Unknown review with auto-advance after successful review (**A5b**), mastery + Due now filters; **global `/flashcards`** page (create, list, study, course/material/review filters, edit/delete, URL-persisted filters — **A5a**); **dashboard `dueFlashcardsCount`** (**A4c**) + **Ready for review** deep link (**A5a**). **Still deferred:** course-level flashcard management; full SM-2/Anki
+- **Flashcards frontend integration** (Phases **3B-d**–**3B-g** + **FLASHCARD-REVIEW-A2**–**A5c**) — material-detail saved list, **10B** plan import, manual CRUD, Known/Unknown review with auto-advance after successful review (**A5b**), mastery + Due now filters; **global `/flashcards`** page (create, list, study, course/material/review filters, edit/delete, URL-persisted filters — **A5a**); **dashboard `dueFlashcardsCount`** (**A4c**) + **Ready for review** deep link (**A5a**) + **due-flashcard-aware hero recommendation** (**A5c**). **Still deferred:** course-level flashcard management; full SM-2/Anki
 - **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
 - **Trello backend sync API** (Phase **4A-1**) — `POST /api/trello/sync` with manual `{ apiKey, token, listId, taskIds }` in body; native `fetch` Trello client; per-task `results[]` with `status` enum `success` \| `failed` \| `skipped` (approved refinement vs PRD boolean `success` example); updates `study_tasks.trello_card_id` on success; appends `trello_sync_logs` for owned tasks; **credentials never stored**
 - **Trello frontend sync UI** (Phase **4A-2** + **4A-3** polish) — protected **`/trello`**; user enters apiKey/token, selects owned tasks (max 50), frontend calls StudyOps backend only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
@@ -114,8 +114,9 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Material-detail **manual flashcard CRUD** (create, edit, delete saved rows) | **Yes** (3B-e on `/study-materials/:materialId`) |
 | Global **`/flashcards`** page (create, list, study, filter, edit/delete saved rows) | **Yes** (3B-f + **3B-g** — create with required course + optional material; **FLASHCARD-REVIEW-A5a** URL-persisted filters) |
 | Global **`/flashcards`** **URL-persisted filters** (`courseId`, `materialId`, `reviewState`; Back/Forward; defaults omitted; **`reviewState`** client-side only) | **Yes** (FLASHCARD-REVIEW-A5a — **no** backend **`?due=now`** / **`?mastery=`**; **no** URL filters on **`/study-materials/:materialId`**) |
-| Dashboard **Ready for review** deep link to Due now flashcards (`/flashcards?reviewState=due_now` when `dueFlashcardsCount > 0`) | **Yes** (FLASHCARD-REVIEW-A5a — hero / recommendation logic unchanged) |
-| Flashcard **advanced study** (saved DB vs plan JSON) | **Partially shipped** — **saved DB flashcards:** Known/Unknown review (**A2**), auto-advance after successful review (**A5b**), mastery filter (**A3**), Due now filter (**A4b**), SRS-lite scheduling on review (**A4a**), dashboard **`dueFlashcardsCount`** (**A4c**), **`/flashcards`** URL-persisted filters (**A5a**). **Plan JSON flashcards** (**3B-a**): flip/reveal only — **no** review API. **Deferred:** course-level management; bulk create; full SM-2/Anki; backend `?due=now` / `?mastery=`; URL-persisted filters on material detail; dashboard charts; admin due cards |
+| Dashboard **Ready for review** deep link to Due now flashcards (`/flashcards?reviewState=due_now` when `dueFlashcardsCount > 0`) | **Yes** (FLASHCARD-REVIEW-A5a — **At a glance** stat band) |
+| Dashboard hero **due-flashcard-aware** recommendation (`deriveDashboardRecommendation`; **`due-flashcards`** when **`pendingTasks === 0`** and **`dueFlashcardsCount > 0`**; primary CTA **`/flashcards?reviewState=due_now`**; **`pending-tasks`** wins when pending) | **Yes** (FLASHCARD-REVIEW-A5c — frontend-only; uses existing **`dueFlashcardsCount`**; **`DashboardStub.jsx`** unchanged) |
+| Flashcard **advanced study** (saved DB vs plan JSON) | **Partially shipped** — **saved DB flashcards:** Known/Unknown review (**A2**), auto-advance after successful review (**A5b**), mastery filter (**A3**), Due now filter (**A4b**), SRS-lite scheduling on review (**A4a**), dashboard **`dueFlashcardsCount`** (**A4c**), **`/flashcards`** URL-persisted filters (**A5a**), dashboard due-flashcard-aware hero (**A5c**). **Plan JSON flashcards** (**3B-a**): flip/reveal only — **no** review API. **Deferred:** course-level management; bulk create; full SM-2/Anki; backend `?due=now` / `?mastery=`; URL-persisted filters on material detail; dashboard charts; admin due cards |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
 | Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) |
@@ -134,7 +135,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Focus Sessions manual smoke (**4C-3**) | **Yes** — passed **2026-05-29**; MVP complete through DB + backend + frontend + smoke |
 | Backend **`GET /api/dashboard/stats`** (aggregate user-owned stats) | **Yes** (5B + **FLASHCARD-REVIEW-A4c** — counts only; includes **`dueFlashcardsCount`**; no plan JSON/content/credentials/Q/A) |
 | Dashboard **`totalFocusMinutes`** (backend stat) | **Yes** (5B — completed sessions only) |
-| Student dashboard **frontend UI** (`/dashboard`) | **Yes** (5C — consumes **5B** stats API; read-only; mount fetch + **Try again** + **Refresh stats**) |
+| Student dashboard **frontend UI** (`/dashboard`) | **Yes** (5C — consumes **5B** stats API; read-only; mount fetch + **Try again** + **Refresh stats**; rule-based **“What should I study next?”** hero with due-flashcard-aware recommendation — **BX-I3** + **FLASHCARD-REVIEW-A5c**) |
 | **`DashboardContext`/cross-page dashboard refresh after mutations** | **Yes** (5C.1 — invalidation-only **`refreshStats()`**; stats remain local to **`DashboardStub`**; **not** a global stats cache) |
 | Dashboard **polling / WebSockets / cross-tab sync / visibility refetch** | **Deferred** — **5C.1** implements PRD §12.5 manual refetch-after-mutations only |
 | Admin auth foundation (`requireAdmin`, `GET /api/admin/access-check`) | **Yes** (6A-1) |
@@ -257,7 +258,7 @@ The MVP will include:
 - display generated flashcards
 - basic question/answer view
 
-**Implemented today (saved DB flashcards — beyond MVP-era flip-only scope):** Known/Unknown review after reveal; auto-advance to next card after successful review (**FLASHCARD-REVIEW-A5b**); client-side mastery and **Due now** filters; SRS-lite scheduling via **`POST /api/flashcards/:flashcardId/review`** (not full SM-2/Anki). **Plan JSON flashcards** on material detail remain flip/reveal preview only — no review persistence.
+**Implemented today (saved DB flashcards — beyond MVP-era flip-only scope):** Known/Unknown review after reveal; auto-advance to next card after successful review (**FLASHCARD-REVIEW-A5b**); client-side mastery and **Due now** filters; SRS-lite scheduling via **`POST /api/flashcards/:flashcardId/review`** (not full SM-2/Anki); dashboard **`dueFlashcardsCount`** and due-flashcard-aware hero recommendation when no pending tasks (**FLASHCARD-REVIEW-A4c** + **A5c**). **Plan JSON flashcards** on material detail remain flip/reveal preview only — no review persistence.
 
 **Trello integration**
 
@@ -1081,7 +1082,7 @@ Frontend: Generate / load / clear on **`/study-materials/:materialId`**; plain-t
 
 ### Flashcards
 
-**Implemented (Phases 3B-c through 3B-g + FLASHCARD-REVIEW-A1–A5b):** Backend REST (3B-c) + review endpoint (**A1**, **A4a**); material-detail frontend (3B-d **10B** list/import; 3B-e manual CRUD; **A2** Known/Unknown; **A3** mastery filter; **A4b** Due now filter; **A5b** auto-advance after successful review); global **`/flashcards`** (3B-f/3B-g list/filter/study/edit/delete/create + review filters + **A5a** URL-persisted filters) — see `docs/IMPLEMENTATION_STATUS.md`. **Saved DB flashcards** load via `GET` (optionally filtered by `courseId` / `materialId` only — **no** `?due=now` / `?mastery=`); create via `POST /api/courses/:id/flashcards`; global edit/delete via `PATCH` / `DELETE`; plan import on material detail via **`POST /api/study-materials/:materialId/import/flashcards`** (**10B**). **Plan JSON** flip/reveal study (**3B-a**) has **no** review API.
+**Implemented (Phases 3B-c through 3B-g + FLASHCARD-REVIEW-A1–A5c):** Backend REST (3B-c) + review endpoint (**A1**, **A4a**); material-detail frontend (3B-d **10B** list/import; 3B-e manual CRUD; **A2** Known/Unknown; **A3** mastery filter; **A4b** Due now filter; **A5b** auto-advance after successful review); global **`/flashcards`** (3B-f/3B-g list/filter/study/edit/delete/create + review filters + **A5a** URL-persisted filters); dashboard due-flashcard-aware hero recommendation (**A5c**) — see `docs/IMPLEMENTATION_STATUS.md`. **Saved DB flashcards** load via `GET` (optionally filtered by `courseId` / `materialId` only — **no** `?due=now` / `?mastery=`); create via `POST /api/courses/:id/flashcards`; global edit/delete via `PATCH` / `DELETE`; plan import on material detail via **`POST /api/study-materials/:materialId/import/flashcards`** (**10B**). **Plan JSON** flip/reveal study (**3B-a**) has **no** review API.
 
 **GET /api/flashcards** - List flashcards
 
@@ -1200,7 +1201,9 @@ Wrong-owner or missing resources → neutral **404** (Course / Study material / 
 **GET /api/dashboard/stats** - Get student stats (**implemented** — Phases **5B** + **FLASHCARD-REVIEW-A4c**)
 
 - Returns aggregate counts only (no plan JSON, flashcard Q/A, or credentials). **`dueFlashcardsCount`** — owned saved DB flashcards where **`next_review_at IS NULL OR next_review_at <= now`** (count only).
-- **Frontend (`/dashboard`):** **At a glance** → **Learning assets** shows **Due now** stat; when **`dueFlashcardsCount > 0`**, **Ready for review** links to **`/flashcards?reviewState=due_now`** (**FLASHCARD-REVIEW-A5a** deep link; hero / recommendation logic unchanged).
+- **Frontend (`/dashboard`):**
+  - **At a glance** → **Learning assets** shows **Due now** stat; when **`dueFlashcardsCount > 0`**, **Ready for review** links to **`/flashcards?reviewState=due_now`** (**FLASHCARD-REVIEW-A5a** deep link).
+  - **Hero / recommendation** (**FLASHCARD-REVIEW-A5c**, **BX-I3**): rule-based **`deriveDashboardRecommendation`** uses existing **`dueFlashcardsCount`**. When **`pendingTasks > 0`**, **`pending-tasks`** still wins. When **`pendingTasks === 0`** and **`dueFlashcardsCount > 0`**, hero recommends due flashcard review (**kind** **`due-flashcards`**) with primary CTA **`/flashcards?reviewState=due_now`**. When **`dueFlashcardsCount === 0`** and **`totalFlashcards > 0`**, generic **`flashcards`** recommendation remains. Priority: **no-courses → pending-tasks → due-flashcards → plan-gap → flashcards → add-tasks-or-plans → empty-workspace → caught-up**. Frontend-only — **`DashboardStub.jsx`** unchanged.
 
 ```json
 {
@@ -2294,7 +2297,15 @@ Show:
 **Implemented today — Learning assets / At a glance:**
 
 - **Due now:** `dueFlashcardsCount` (saved DB flashcards due for SRS-lite review)
-- When count **> 0:** **Ready for review** link to **`/flashcards`** (no query params)
+- When count **> 0:** **Ready for review** link to **`/flashcards?reviewState=due_now`** (**FLASHCARD-REVIEW-A5a**)
+
+**Implemented today — Hero / recommendation (rule-based, not AI):**
+
+- **“What should I study next?”** via **`deriveDashboardRecommendation`** (**BX-I3** + **FLASHCARD-REVIEW-A5c**)
+- Uses existing **`dueFlashcardsCount`** from dashboard stats — **no** new stats fields
+- When **`pendingTasks > 0`:** **`pending-tasks`** recommendation wins
+- When **`pendingTasks === 0`** and **`dueFlashcardsCount > 0`:** **`due-flashcards`** hero; primary CTA **`Review due flashcards`** → **`/flashcards?reviewState=due_now`**
+- When **`dueFlashcardsCount === 0`** and flashcards exist: generic **`flashcards`** recommendation unchanged
 
 **Course Progress (Bottom Section):**
 
@@ -2519,7 +2530,7 @@ Possible future features:
 - Trello card update/delete; OAuth single-use state nonce (connect/sync **A2–A6** shipped)
 - Google Calendar integration
 - full SM-2 / Anki spaced repetition (`ease_factor`, per-review history table, notifications/calendar) — SRS-lite on saved DB flashcards is already shipped
-- recommendation engine for "what to study today"
+- AI recommendation engine for "what to study today" (rule-based dashboard hero with due-flashcard awareness is shipped — **BX-I3** + **FLASHCARD-REVIEW-A5c**)
 - email reminders
 - deployment to cloud
 - more advanced admin dashboard
