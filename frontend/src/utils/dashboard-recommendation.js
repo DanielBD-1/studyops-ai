@@ -1,3 +1,5 @@
+import { buildFlashcardsPageDueNowLink } from './flashcard-nav-query.js';
+
 /**
  * @typedef {import('../services/dashboard.service.js').DashboardStats} DashboardStats
  * @typedef {import('../services/dashboard.service.js').DashboardCourseStat} DashboardCourseStat
@@ -49,6 +51,7 @@ export function findMostPendingCourse(courseStats) {
  *   kind:
  *     | 'no-courses'
  *     | 'pending-tasks'
+ *     | 'due-flashcards'
  *     | 'plan-gap'
  *     | 'flashcards'
  *     | 'add-tasks-or-plans'
@@ -75,6 +78,7 @@ export function deriveDashboardRecommendation(stats) {
   const totalStudyMaterials = stats.totalStudyMaterials ?? 0;
   const totalGeneratedPlans = stats.totalGeneratedPlans ?? 0;
   const totalFlashcards = stats.totalFlashcards ?? 0;
+  const dueFlashcardsCount = stats.dueFlashcardsCount ?? 0;
   const totalTasks = stats.totalTasks ?? 0;
   const completedTasks = stats.completedTasks ?? 0;
   const courseStats = stats.courseStats ?? [];
@@ -115,6 +119,19 @@ export function deriveDashboardRecommendation(stats) {
     }
 
     return recommendation;
+  }
+
+  if (dueFlashcardsCount > 0) {
+    const flashcardWord = dueFlashcardsCount === 1 ? 'flashcard' : 'flashcards';
+    return {
+      kind: 'due-flashcards',
+      headline: `${dueFlashcardsCount} ${flashcardWord} due for review.`,
+      context: 'Based on your review schedule and study stats.',
+      primaryCta: {
+        label: 'Review due flashcards',
+        to: buildFlashcardsPageDueNowLink(),
+      },
+    };
   }
 
   if (totalStudyMaterials > totalGeneratedPlans) {
