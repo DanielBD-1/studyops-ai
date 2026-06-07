@@ -284,7 +284,7 @@ describe('DashboardStub due flashcards stat', () => {
     assert.match(dashboardStubSource, /label="Due now"/);
     assert.match(dashboardStubSource, /stats\.dueFlashcardsCount/);
     assert.match(dashboardStubSource, /Ready for review/);
-    assert.match(dashboardStubSource, /to="\/flashcards"/);
+    assert.match(dashboardStubSource, /buildFlashcardsPageDueNowLink/);
     assert.match(dashboardStubSource, /Review flashcards/);
     assert.match(dashboardStubSource, /stats\.dueFlashcardsCount > 0/);
   });
