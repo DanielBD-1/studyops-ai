@@ -19,11 +19,40 @@ const tasks = [
   { id: '2', materialId: MATERIAL_B },
   { id: '3', materialId: null },
   { id: '4' },
+  { id: '5', materialId: '' },
 ];
 
 describe('filterTasksByMaterial', () => {
   it('returns all tasks when material filter is all', () => {
     assert.deepEqual(filterTasksByMaterial(tasks, 'all', materials), tasks);
+  });
+
+  it('returns unlinked tasks when material filter is none (null materialId)', () => {
+    const filtered = filterTasksByMaterial(tasks, 'none', materials);
+    assert.deepEqual(
+      filtered.map((t) => t.id),
+      ['3', '4', '5']
+    );
+  });
+
+  it('returns unlinked tasks when material filter is none (missing materialId)', () => {
+    const onlyMissing = [{ id: 'a' }, { id: 'b', materialId: MATERIAL_A }];
+    assert.deepEqual(filterTasksByMaterial(onlyMissing, 'none', materials), [{ id: 'a' }]);
+  });
+
+  it('returns unlinked tasks when material filter is none (empty string materialId)', () => {
+    assert.deepEqual(filterTasksByMaterial([{ id: 'x', materialId: '' }], 'none', materials), [
+      { id: 'x', materialId: '' },
+    ]);
+  });
+
+  it('excludes linked tasks when material filter is none', () => {
+    const filtered = filterTasksByMaterial(tasks, 'none', materials);
+    assert.ok(!filtered.some((t) => t.materialId === MATERIAL_A || t.materialId === MATERIAL_B));
+  });
+
+  it('returns an empty array when material filter is none and tasks is empty', () => {
+    assert.deepEqual(filterTasksByMaterial([], 'none', materials), []);
   });
 
   it('returns tasks linked to the selected material', () => {

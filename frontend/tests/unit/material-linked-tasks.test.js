@@ -100,6 +100,17 @@ describe('parseTasksPageSearchParams', () => {
     assert.deepEqual(parseTasksPageSearchParams('?courseId=not-a-uuid&materialId=bad'), {});
   });
 
+  it('parses materialId=none when courseId is present', () => {
+    assert.deepEqual(
+      parseTasksPageSearchParams(`?courseId=${COURSE_A}&materialId=none`),
+      { courseId: COURSE_A, materialId: 'none' }
+    );
+  });
+
+  it('parses materialId=none without courseId in raw parse (resolve falls back)', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?materialId=none'), { materialId: 'none' });
+  });
+
   it('ignores invalid status values', () => {
     assert.deepEqual(parseTasksPageSearchParams('?status=all'), {});
     assert.deepEqual(parseTasksPageSearchParams('?status=in_progress'), {});
@@ -162,6 +173,27 @@ describe('buildTasksPageSearchParams', () => {
       buildTasksPageSearchParams({
         courseFilter: 'all',
         materialFilter: MATERIAL_A,
+        statusFilter: 'pending',
+      }),
+      'status=pending'
+    );
+  });
+
+  it('builds course + materialId=none', () => {
+    assert.equal(
+      buildTasksPageSearchParams({
+        courseFilter: COURSE_A,
+        materialFilter: 'none',
+      }),
+      `courseId=${COURSE_A}&materialId=none`
+    );
+  });
+
+  it('omits materialId=none when courseFilter is all', () => {
+    assert.equal(
+      buildTasksPageSearchParams({
+        courseFilter: 'all',
+        materialFilter: 'none',
         statusFilter: 'pending',
       }),
       'status=pending'
@@ -290,6 +322,56 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: 'all',
         statusFilter: 'all',
+      }
+    );
+  });
+
+  it('applies materialFilter none when course is valid and materialId is none', () => {
+    assert.deepEqual(
+      resolveInitialTaskFilters({
+        courseId: COURSE_A,
+        materialId: 'none',
+        courses,
+        materials: [],
+      }),
+      {
+        courseFilter: COURSE_A,
+        materialFilter: 'none',
+        statusFilter: 'all',
+      }
+    );
+  });
+
+  it('falls back to all/all when course is unknown and materialId is none', () => {
+    assert.deepEqual(
+      resolveInitialTaskFilters({
+        courseId: UNKNOWN_COURSE,
+        materialId: 'none',
+        status: 'pending',
+        courses,
+        materials,
+      }),
+      {
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'pending',
+      }
+    );
+  });
+
+  it('ignores materialId=none without a valid courseId but keeps valid status', () => {
+    assert.deepEqual(
+      resolveInitialTaskFilters({
+        courseId: undefined,
+        materialId: 'none',
+        status: 'pending',
+        courses,
+        materials,
+      }),
+      {
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'pending',
       }
     );
   });

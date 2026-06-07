@@ -312,6 +312,9 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     !(tasks.length === 0 && statusFilter === 'pending') &&
     !(tasks.length === 0 && statusFilter === 'completed');
 
+  const showUnlinkedFilterEmpty = showFilterEmpty && materialFilter === 'none';
+  const showGenericFilterEmpty = showFilterEmpty && materialFilter !== 'none';
+
   return (
     <section className="section course-workspace__tasks">
       <div className="section__header-row">
@@ -330,6 +333,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
             disabled={busy}
           >
             <option value="all">All materials in course</option>
+            <option value="none">Tasks without material</option>
             {(materials ?? []).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.title}
@@ -384,7 +388,13 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
         <p className="section__meta course-workspace__tasks-filter-empty">No completed tasks.</p>
       )}
 
-      {showFilterEmpty && (
+      {showUnlinkedFilterEmpty && (
+        <p className="section__meta course-workspace__tasks-filter-empty">
+          No tasks without a study material link in this course.
+        </p>
+      )}
+
+      {showGenericFilterEmpty && (
         <p className="section__meta course-workspace__tasks-filter-empty">
           No tasks match the selected filters.
         </p>

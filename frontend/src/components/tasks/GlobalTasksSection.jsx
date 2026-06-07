@@ -197,6 +197,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     const awaitingMaterials =
       courseKnown &&
       materialInUrl &&
+      materialInUrl !== 'none' &&
       (courseFilter !== courseInUrl || loadingFilterMaterials);
 
     if (awaitingMaterials) {
@@ -610,6 +611,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     !(tasks.length === 0 && statusFilter === 'pending') &&
     !(tasks.length === 0 && statusFilter === 'completed');
 
+  const showUnlinkedFilterEmpty = showFilterEmpty && materialFilter === 'none';
+  const showGenericFilterEmpty = showFilterEmpty && materialFilter !== 'none';
+
   return (
     <section className="section task-workspace__main" aria-label="Study task command">
       <div className="task-workspace__command-band task-workspace__command-band--deck">
@@ -660,6 +664,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                   disabled={busy || loadingFilterMaterials}
                 >
                   <option value="all">All materials in course</option>
+                  <option value="none">Tasks without material</option>
                   {filterMaterials.map((material) => (
                     <option key={material.id} value={material.id}>
                       {material.title}
@@ -843,7 +848,13 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         <p className="section__meta task-workspace__filter-empty">No completed tasks.</p>
       )}
 
-      {showFilterEmpty && (
+      {showUnlinkedFilterEmpty && (
+        <p className="section__meta task-workspace__filter-empty">
+          No tasks without a study material link in this course.
+        </p>
+      )}
+
+      {showGenericFilterEmpty && (
         <p className="section__meta task-workspace__filter-empty">
           No tasks match the selected filters.
         </p>
