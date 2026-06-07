@@ -1,6 +1,6 @@
 # PRD — StudyOps AI (Version 2.0)
 
-**Last Updated:** 2026-06-07 (docs: **DOCS-PRD-FLASHCARD-REVIEW-ALIGNMENT** — SRS-lite flashcard review on saved DB cards; full SM-2/Anki still deferred)
+**Last Updated:** 2026-06-07 (docs: **DOCS-FLASHCARD-REVIEW-A5b** — auto-advance after successful Known/Unknown on saved DB flashcards; full SM-2/Anki still deferred)
 **Status:** Ready for Implementation
 
 ---
@@ -21,7 +21,7 @@ Do **not** treat PRD body text alone as proof a feature is live. When PRD and im
 
 ## Implementation Status — see `docs/IMPLEMENTATION_STATUS.md` for the latest source of truth
 
-This section is a **historical summary only** and may lag the latest merged phases (e.g. **11A-3** plan history, **10B** import dedupe, **FLASHCARD-REVIEW-A1**–**A4c** SRS-lite review on saved DB flashcards, **12A-1** material cockpit, **B1**–**B3** presentation polish). It does **not** replace MVP sections below (future scope remains valid). **Authoritative shipped state:** **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/CURRENT_STATE.md`**; phase history in **`docs/AGENT_MEMORY.md`**.
+This section is a **historical summary only** and may lag the latest merged phases (e.g. **11A-3** plan history, **10B** import dedupe, **FLASHCARD-REVIEW-A1**–**A5b** SRS-lite review on saved DB flashcards, **12A-1** material cockpit, **B1**–**B3** presentation polish). It does **not** replace MVP sections below (future scope remains valid). **Authoritative shipped state:** **`docs/IMPLEMENTATION_STATUS.md`** and **`docs/CURRENT_STATE.md`**; phase history in **`docs/AGENT_MEMORY.md`**.
 
 ### Built (summary — functional MVP through 6A-3 and later phases; see IMPLEMENTATION_STATUS for current detail)
 
@@ -35,7 +35,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 - **Frontend:** `/study-materials/:materialId` — Generate, load saved plan on visit, Clear via DELETE; **import plan tasks/flashcards** via **10B** import APIs (`POST .../import/tasks`, `POST .../import/flashcards`; server-set **`source='plan'`**, dedupe); **saved DB flashcards** section (`GET /api/flashcards?materialId=`); **manual create/edit/delete** saved flashcards (inline forms, **3B-e**); **Known/Unknown review**, mastery filter, and **Due now** filter on saved DB cards (**FLASHCARD-REVIEW-A2**–**A4b**); **Plan JSON flashcards** from `plan.flashcards` (flip/reveal only, **3B-a** — **no** review API); plain text rendering
 - **`flashcards` table + RLS** (Phase **3B-b**) — `public.flashcards` **applied on Supabase**; review + SRS-lite scheduling columns (**FLASHCARD-REVIEW-A1**, **A4a**)
 - **Flashcards backend API** (Phases **3B-c** + **FLASHCARD-REVIEW-A1** + **A4a**) — `GET /api/flashcards`; `POST /api/courses/:id/flashcards`; `PATCH` / `DELETE /api/flashcards/:flashcardId`; **`POST /api/flashcards/:flashcardId/review`** (`{ outcome: "known" | "unknown" }` strict); auth + ownership filters; SRS-lite scheduling computed server-side on review
-- **Flashcards frontend integration** (Phases **3B-d**–**3B-g** + **FLASHCARD-REVIEW-A2**–**A5a**) — material-detail saved list, **10B** plan import, manual CRUD, Known/Unknown review, mastery + Due now filters; **global `/flashcards`** page (create, list, study, course/material/review filters, edit/delete, URL-persisted filters — **A5a**); **dashboard `dueFlashcardsCount`** (**A4c**) + **Ready for review** deep link (**A5a**). **Still deferred:** course-level flashcard management; full SM-2/Anki
+- **Flashcards frontend integration** (Phases **3B-d**–**3B-g** + **FLASHCARD-REVIEW-A2**–**A5b**) — material-detail saved list, **10B** plan import, manual CRUD, Known/Unknown review with auto-advance after successful review (**A5b**), mastery + Due now filters; **global `/flashcards`** page (create, list, study, course/material/review filters, edit/delete, URL-persisted filters — **A5a**); **dashboard `dueFlashcardsCount`** (**A4c**) + **Ready for review** deep link (**A5a**). **Still deferred:** course-level flashcard management; full SM-2/Anki
 - **`trello_sync_logs` table + RLS** (Phase **4A-0**) — `public.trello_sync_logs` **applied on Supabase**; append-only audit rows; **no** credential columns (ADR 004); status `success` \| `failed` \| `skipped`
 - **Trello backend sync API** (Phase **4A-1**) — `POST /api/trello/sync` with manual `{ apiKey, token, listId, taskIds }` in body; native `fetch` Trello client; per-task `results[]` with `status` enum `success` \| `failed` \| `skipped` (approved refinement vs PRD boolean `success` example); updates `study_tasks.trello_card_id` on success; appends `trello_sync_logs` for owned tasks; **credentials never stored**
 - **Trello frontend sync UI** (Phase **4A-2** + **4A-3** polish) — protected **`/trello`**; user enters apiKey/token, selects owned tasks (max 50), frontend calls StudyOps backend only (**no** direct Trello API from browser); displays summary + per-task results; credentials cleared after sync attempt; **not** stored in localStorage/sessionStorage/URL
@@ -115,7 +115,7 @@ This section is a **historical summary only** and may lag the latest merged phas
 | Global **`/flashcards`** page (create, list, study, filter, edit/delete saved rows) | **Yes** (3B-f + **3B-g** — create with required course + optional material; **FLASHCARD-REVIEW-A5a** URL-persisted filters) |
 | Global **`/flashcards`** **URL-persisted filters** (`courseId`, `materialId`, `reviewState`; Back/Forward; defaults omitted; **`reviewState`** client-side only) | **Yes** (FLASHCARD-REVIEW-A5a — **no** backend **`?due=now`** / **`?mastery=`**; **no** URL filters on **`/study-materials/:materialId`**) |
 | Dashboard **Ready for review** deep link to Due now flashcards (`/flashcards?reviewState=due_now` when `dueFlashcardsCount > 0`) | **Yes** (FLASHCARD-REVIEW-A5a — hero / recommendation logic unchanged) |
-| Flashcard **advanced study** (saved DB vs plan JSON) | **Partially shipped** — **saved DB flashcards:** Known/Unknown review (**A2**), mastery filter (**A3**), Due now filter (**A4b**), SRS-lite scheduling on review (**A4a**), dashboard **`dueFlashcardsCount`** (**A4c**), **`/flashcards`** URL-persisted filters (**A5a**). **Plan JSON flashcards** (**3B-a**): flip/reveal only — **no** review API. **Deferred:** course-level management; bulk create; full SM-2/Anki; backend `?due=now` / `?mastery=`; URL-persisted filters on material detail; dashboard charts; admin due cards |
+| Flashcard **advanced study** (saved DB vs plan JSON) | **Partially shipped** — **saved DB flashcards:** Known/Unknown review (**A2**), auto-advance after successful review (**A5b**), mastery filter (**A3**), Due now filter (**A4b**), SRS-lite scheduling on review (**A4a**), dashboard **`dueFlashcardsCount`** (**A4c**), **`/flashcards`** URL-persisted filters (**A5a**). **Plan JSON flashcards** (**3B-a**): flip/reveal only — **no** review API. **Deferred:** course-level management; bulk create; full SM-2/Anki; backend `?due=now` / `?mastery=`; URL-persisted filters on material detail; dashboard charts; admin due cards |
 | Route `/courses/:id/generate` | **Deferred** — use `/study-materials/:materialId` |
 | Table **`study_tasks`** + manual backend API | **Yes** (3A-a/b) — course + global UI (3A-c–3A-e) + plan task import (3A-f) |
 | Table **`flashcards`** + RLS | **Yes** (3B-b applied on Supabase) |
@@ -257,7 +257,7 @@ The MVP will include:
 - display generated flashcards
 - basic question/answer view
 
-**Implemented today (saved DB flashcards — beyond MVP-era flip-only scope):** Known/Unknown review after reveal; client-side mastery and **Due now** filters; SRS-lite scheduling via **`POST /api/flashcards/:flashcardId/review`** (not full SM-2/Anki). **Plan JSON flashcards** on material detail remain flip/reveal preview only — no review persistence.
+**Implemented today (saved DB flashcards — beyond MVP-era flip-only scope):** Known/Unknown review after reveal; auto-advance to next card after successful review (**FLASHCARD-REVIEW-A5b**); client-side mastery and **Due now** filters; SRS-lite scheduling via **`POST /api/flashcards/:flashcardId/review`** (not full SM-2/Anki). **Plan JSON flashcards** on material detail remain flip/reveal preview only — no review persistence.
 
 **Trello integration**
 
@@ -590,7 +590,7 @@ The Document Processing Microservice is separated because Gemini processing has 
 
 **Implemented today — two surfaces:**
 
-- **Saved DB flashcards** (`public.flashcards` on material detail and **`/flashcards`**): flip/reveal study; after reveal, **Known** / **Unknown** call **`POST /api/flashcards/:flashcardId/review`**; client-side mastery and **Due now** filters over already-loaded cards; review state and SRS-lite scheduling returned in camelCase from the API.
+- **Saved DB flashcards** (`public.flashcards` on material detail and **`/flashcards`**): flip/reveal study; after reveal, **Known** / **Unknown** call **`POST /api/flashcards/:flashcardId/review`**; on successful review, auto-advance to next card and reset reveal (**FLASHCARD-REVIEW-A5b**); client-side mastery and **Due now** filters over already-loaded cards; review state and SRS-lite scheduling returned in camelCase from the API.
 - **Plan JSON flashcards** (generated plan preview on material detail): flip/reveal only — **no** review API and **no** persisted review state.
 
 **Success criteria:**
@@ -1081,7 +1081,7 @@ Frontend: Generate / load / clear on **`/study-materials/:materialId`**; plain-t
 
 ### Flashcards
 
-**Implemented (Phases 3B-c through 3B-g + FLASHCARD-REVIEW-A1–A5a):** Backend REST (3B-c) + review endpoint (**A1**, **A4a**); material-detail frontend (3B-d **10B** list/import; 3B-e manual CRUD; **A2** Known/Unknown; **A3** mastery filter; **A4b** Due now filter); global **`/flashcards`** (3B-f/3B-g list/filter/study/edit/delete/create + review filters + **A5a** URL-persisted filters) — see `docs/IMPLEMENTATION_STATUS.md`. **Saved DB flashcards** load via `GET` (optionally filtered by `courseId` / `materialId` only — **no** `?due=now` / `?mastery=`); create via `POST /api/courses/:id/flashcards`; global edit/delete via `PATCH` / `DELETE`; plan import on material detail via **`POST /api/study-materials/:materialId/import/flashcards`** (**10B**). **Plan JSON** flip/reveal study (**3B-a**) has **no** review API.
+**Implemented (Phases 3B-c through 3B-g + FLASHCARD-REVIEW-A1–A5b):** Backend REST (3B-c) + review endpoint (**A1**, **A4a**); material-detail frontend (3B-d **10B** list/import; 3B-e manual CRUD; **A2** Known/Unknown; **A3** mastery filter; **A4b** Due now filter; **A5b** auto-advance after successful review); global **`/flashcards`** (3B-f/3B-g list/filter/study/edit/delete/create + review filters + **A5a** URL-persisted filters) — see `docs/IMPLEMENTATION_STATUS.md`. **Saved DB flashcards** load via `GET` (optionally filtered by `courseId` / `materialId` only — **no** `?due=now` / `?mastery=`); create via `POST /api/courses/:id/flashcards`; global edit/delete via `PATCH` / `DELETE`; plan import on material detail via **`POST /api/study-materials/:materialId/import/flashcards`** (**10B**). **Plan JSON** flip/reveal study (**3B-a**) has **no** review API.
 
 **GET /api/flashcards** - List flashcards
 
