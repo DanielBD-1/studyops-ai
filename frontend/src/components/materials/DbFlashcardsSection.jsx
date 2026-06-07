@@ -226,6 +226,7 @@ export default function DbFlashcardsSection({
   /**
    * @param {string} flashcardId
    * @param {'known' | 'unknown'} outcome
+   * @returns {Promise<boolean>}
    */
   async function handleReviewOutcome(flashcardId, outcome) {
     setReviewError(null);
@@ -238,13 +239,15 @@ export default function DbFlashcardsSection({
         outcome === 'known' ? 'Marked as known.' : 'Marked as unknown.'
       );
       refreshStats();
+      return true;
     } catch (err) {
-      if (await handleAuthError(err)) return;
+      if (await handleAuthError(err)) return false;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
         setReviewError('Flashcard not found');
-        return;
+        return false;
       }
       setReviewError(err instanceof Error ? err.message : 'Failed to save review');
+      return false;
     } finally {
       setReviewing(false);
     }

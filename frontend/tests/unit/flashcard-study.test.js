@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canNavigateFlashcards,
+  computeIndexAfterSuccessfulReview,
   formatCardCounter,
   getNextIndex,
   getPreviousIndex,
@@ -58,6 +59,39 @@ describe('flashcard-study buildStudySetKey', () => {
       { id: 'b', question: 'Q2', answer: 'A2' },
     ];
     assert.notEqual(buildStudySetKey(one), buildStudySetKey(two));
+  });
+});
+
+describe('flashcard-study computeIndexAfterSuccessfulReview', () => {
+  const deck = [
+    { id: 'a', question: 'Q1', answer: 'A1' },
+    { id: 'b', question: 'Q2', answer: 'A2' },
+    { id: 'c', question: 'Q3', answer: 'A3' },
+  ];
+
+  it('advances to the next card when the reviewed card stays in the deck', () => {
+    assert.equal(computeIndexAfterSuccessfulReview(1, 'b', deck), 2);
+  });
+
+  it('wraps to the first card when reviewing the last card in an unchanged deck', () => {
+    assert.equal(computeIndexAfterSuccessfulReview(2, 'c', deck), 0);
+  });
+
+  it('keeps the same slot when the reviewed card leaves the filtered deck', () => {
+    const afterDueReview = [
+      { id: 'a', question: 'Q1', answer: 'A1' },
+      { id: 'c', question: 'Q3', answer: 'A3' },
+    ];
+    assert.equal(computeIndexAfterSuccessfulReview(1, 'b', afterDueReview), 1);
+  });
+
+  it('clamps when the reviewed card was last in a shrinking deck', () => {
+    const afterLastReview = [{ id: 'a', question: 'Q1', answer: 'A1' }];
+    assert.equal(computeIndexAfterSuccessfulReview(1, 'b', afterLastReview), 0);
+  });
+
+  it('returns 0 for an empty deck', () => {
+    assert.equal(computeIndexAfterSuccessfulReview(0, 'a', []), 0);
   });
 });
 

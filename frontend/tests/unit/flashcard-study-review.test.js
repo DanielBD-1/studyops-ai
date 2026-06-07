@@ -46,6 +46,25 @@ describe('FlashcardStudy review UI gates', () => {
     assert.match(flashcardStudySource, /buildStudySetKey\(flashcards\)/);
     assert.match(flashcardStudySource, /from '\.\.\/\.\.\/utils\/flashcard-study\.js'/);
     assert.match(flashcardStudySource, /useEffect\([\s\S]*?\[studySetKey, flashcards\.length\]/);
+    assert.match(flashcardStudySource, /skipDeckResetRef\.current \|\| pendingAdvanceRef\.current/);
+  });
+
+  it('auto-advances after successful review using pending advance and updated deck props', () => {
+    assert.match(flashcardStudySource, /pendingAdvanceRef/);
+    assert.match(flashcardStudySource, /computeIndexAfterSuccessfulReview/);
+    assert.match(
+      flashcardStudySource,
+      /if \(result !== true\)[\s\S]*?skipDeckResetRef\.current = true[\s\S]*?pendingAdvanceRef\.current = \{ reviewedCardId, indexBeforeReview \}/
+    );
+    assert.match(
+      flashcardStudySource,
+      /useEffect\([\s\S]*?pendingAdvanceRef\.current[\s\S]*?computeIndexAfterSuccessfulReview[\s\S]*?setRevealed\(false\)[\s\S]*?\[flashcards, studySetKey\]/
+    );
+  });
+
+  it('does not auto-advance when review handler does not return true', () => {
+    assert.match(flashcardStudySource, /await onReviewOutcome\(reviewedCardId, outcome\)/);
+    assert.match(flashcardStudySource, /if \(result !== true\)/);
   });
 
   it('shows review error and success feedback without hiding the card', () => {
@@ -67,6 +86,7 @@ describe('saved DB flashcard parent wiring', () => {
     assert.match(dbSectionSource, /onReviewOutcome=\{handleReviewOutcome\}/);
     assert.match(dbSectionSource, /reviewFlashcard\(flashcardId, \{ outcome \}\)/);
     assert.match(dbSectionSource, /onFlashcardUpdated\?\.\(data\.flashcard\)/);
+    assert.match(dbSectionSource, /return true;/);
   });
 
   it('DbFlashcardsSection filters saved cards by review state before study and manage list', () => {
@@ -83,6 +103,7 @@ describe('saved DB flashcard parent wiring', () => {
     assert.match(globalSectionSource, /onReviewOutcome=\{handleReviewOutcome\}/);
     assert.match(globalSectionSource, /setFlashcards\(\(prev\) =>[\s\S]*data\.flashcard\.id/);
     assert.match(globalSectionSource, /reviewFlashcard\(flashcardId, \{ outcome \}\)/);
+    assert.match(globalSectionSource, /return true;/);
   });
 
   it('GlobalFlashcardsSection filters saved cards by review state before study and manage list', () => {

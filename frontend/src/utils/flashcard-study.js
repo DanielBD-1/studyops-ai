@@ -47,3 +47,30 @@ export function canNavigateFlashcards(total) {
 export function buildStudySetKey(flashcards) {
   return flashcards.map((card) => card.id ?? `${card.question}\0${card.answer}`).join('\n');
 }
+
+/**
+ * Study index after a successful review — uses the post-merge filtered deck.
+ *
+ * @param {number} indexBeforeReview
+ * @param {string} reviewedCardId
+ * @param {Array<{ id?: string }>} nextFlashcards
+ * @returns {number}
+ */
+export function computeIndexAfterSuccessfulReview(
+  indexBeforeReview,
+  reviewedCardId,
+  nextFlashcards
+) {
+  const nextTotal = nextFlashcards.length;
+  if (nextTotal === 0) {
+    return 0;
+  }
+
+  const reviewedStillPresent = nextFlashcards.some((card) => card.id === reviewedCardId);
+
+  if (!reviewedStillPresent) {
+    return Math.min(indexBeforeReview, nextTotal - 1);
+  }
+
+  return getNextIndex(indexBeforeReview, nextTotal);
+}

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
 import {
   buildStudySetKey,
   canNavigateFlashcards,
+  computeIndexAfterSuccessfulReview,
   formatCardCounter,
   getNextIndex,
   getPreviousIndex,
@@ -14,7 +15,10 @@ import {
  *   flashcards: Array<{ id?: string, question: string, answer: string, tags?: string[], mastery?: string, reviewCount?: number }>,
  *   title?: string,
  *   className?: string,
- *   onReviewOutcome?: (flashcardId: string, outcome: 'known' | 'unknown') => void | Promise<void>,
+ *   onReviewOutcome?: (
+ *     flashcardId: string,
+ *     outcome: 'known' | 'unknown'
+ *   ) => void | Promise<void | boolean>,
  *   reviewing?: boolean,
  *   reviewError?: string | null,
  *   reviewSuccessMessage?: string | null,
@@ -31,6 +35,9 @@ export default function FlashcardStudy({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  /** @type {import('react').MutableRefObject<{ reviewedCardId: string, indexBeforeReview: number } | null>} */
+  const pendingAdvanceRef = useRef(null);
+  const skipDeckResetRef = useRef(false);
 
   const total = flashcards.length;
   const card = flashcards[currentIndex];
@@ -38,9 +45,29 @@ export default function FlashcardStudy({
   const studySetKey = useMemo(() => buildStudySetKey(flashcards), [flashcards]);
 
   useEffect(() => {
+    if (skipDeckResetRef.current || pendingAdvanceRef.current) {
+      return;
+    }
     setCurrentIndex(0);
     setRevealed(false);
   }, [studySetKey, flashcards.length]);
+
+  useEffect(() => {
+    const pending = pendingAdvanceRef.current;
+    if (!pending) {
+      return;
+    }
+
+    const nextIndex = computeIndexAfterSuccessfulReview(
+      pending.indexBeforeReview,
+      pending.reviewedCardId,
+      flashcards
+    );
+    pendingAdvanceRef.current = null;
+    skipDeckResetRef.current = false;
+    setCurrentIndex(nextIndex);
+    setRevealed(false);
+  }, [flashcards, studySetKey]);
 
   useEffect(() => {
     if (total > 0 && currentIndex >= total) {
@@ -56,6 +83,26 @@ export default function FlashcardStudy({
   function goPrevious() {
     setCurrentIndex((index) => getPreviousIndex(index, total));
     setRevealed(false);
+  }
+
+  /**
+   * @param {'known' | 'unknown'} outcome
+   */
+  async function handleReviewOutcomeClick(outcome) {
+    if (!card?.id || !onReviewOutcome) {
+      return;
+    }
+
+    const indexBeforeReview = currentIndex;
+    const reviewedCardId = card.id;
+    const result = await onReviewOutcome(reviewedCardId, outcome);
+
+    if (result !== true) {
+      return;
+    }
+
+    skipDeckResetRef.current = true;
+    pendingAdvanceRef.current = { reviewedCardId, indexBeforeReview };
   }
 
   if (!card) {
@@ -114,11 +161,7 @@ export default function FlashcardStudy({
               type="button"
               variant="primary"
               disabled={reviewBusy}
-              onClick={() => {
-                if (card.id) {
-                  onReviewOutcome?.(card.id, 'known');
-                }
-              }}
+              onClick={() => handleReviewOutcomeClick('known')}
             >
               {reviewBusy ? 'Saving…' : 'Known'}
             </Button>
@@ -126,11 +169,7 @@ export default function FlashcardStudy({
               type="button"
               variant="secondary"
               disabled={reviewBusy}
-              onClick={() => {
-                if (card.id) {
-                  onReviewOutcome?.(card.id, 'unknown');
-                }
-              }}
+              onClick={() => handleReviewOutcomeClick('unknown')}
             >
               {reviewBusy ? 'Saving…' : 'Unknown'}
             </Button>
