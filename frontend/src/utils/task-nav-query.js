@@ -5,6 +5,9 @@ const uuidParamSchema = materialIdSchema;
 /** @type {readonly ['pending', 'completed']} */
 const TASK_STATUS_QUERY_VALUES = ['pending', 'completed'];
 
+/** @type {'none'} */
+const TASK_MATERIAL_QUERY_NONE = 'none';
+
 /**
  * @param {string | null} value
  * @returns {string | undefined}
@@ -47,9 +50,14 @@ export function parseTasksPageSearchParams(searchString) {
     result.courseId = courseId;
   }
 
-  const materialId = parseUuidQueryParam(params.get('materialId'));
-  if (materialId) {
-    result.materialId = materialId;
+  const rawMaterialId = params.get('materialId');
+  if (rawMaterialId != null && rawMaterialId.trim() === TASK_MATERIAL_QUERY_NONE) {
+    result.materialId = TASK_MATERIAL_QUERY_NONE;
+  } else {
+    const materialId = parseUuidQueryParam(rawMaterialId);
+    if (materialId) {
+      result.materialId = materialId;
+    }
   }
 
   const status = parseStatusQueryParam(params.get('status'));
@@ -65,7 +73,7 @@ export function parseTasksPageSearchParams(searchString) {
  *
  * @param {{
  *   courseFilter?: 'all' | string,
- *   materialFilter?: 'all' | string,
+ *   materialFilter?: 'all' | 'none' | string,
  *   statusFilter?: 'all' | 'pending' | 'completed',
  * }} filters
  * @returns {string} Query string without leading "?" (empty when all defaults).
@@ -108,7 +116,7 @@ export function buildTasksPageSearchParams({
  * }} input
  * @returns {{
  *   courseFilter: 'all' | string,
- *   materialFilter: 'all' | string,
+ *   materialFilter: 'all' | 'none' | string,
  *   statusFilter: 'all' | 'pending' | 'completed',
  * }}
  */
@@ -118,6 +126,10 @@ export function resolveInitialTaskFilters({ courseId, materialId, status, course
 
   if (!courseId || !courses.some((course) => course.id === courseId)) {
     return { courseFilter: 'all', materialFilter: 'all', statusFilter };
+  }
+
+  if (materialId === TASK_MATERIAL_QUERY_NONE) {
+    return { courseFilter: courseId, materialFilter: TASK_MATERIAL_QUERY_NONE, statusFilter };
   }
 
   if (!materialId || !materials.some((material) => material.id === materialId)) {
