@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import {
   ApiRequestError,
@@ -14,6 +14,10 @@ import {
   filterTasksByMaterial,
   resetMaterialFilterForCourseChange,
 } from '../../utils/task-filters.js';
+import {
+  parseTasksPageSearchParams,
+  resolveInitialTaskFilters,
+} from '../../utils/task-nav-query.js';
 import { createTaskFormSchema, updateTaskFormSchema } from '../../utils/validation.js';
 import TaskCard from './TaskCard.jsx';
 import Button from '../ui/Button.jsx';
@@ -32,7 +36,18 @@ import Textarea from '../ui/Textarea.jsx';
  */
 export default function GlobalTasksSection({ courses, handleAuthError }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { refreshStats } = useDashboardRefresh();
+  const parsedQuery = useMemo(
+    () => parseTasksPageSearchParams(searchParams.toString()),
+    [searchParams]
+  );
+  const courseQueryInitDone = useRef(false);
+  const materialQueryInitDone = useRef(false);
+  const focusReturnTo = useMemo(() => {
+    const query = searchParams.toString();
+    return query ? `/tasks?${query}` : '/tasks';
+  }, [searchParams]);
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
@@ -143,6 +158,35 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     loadTasks();
   }, [loadTasks]);
 
+  useEffect(() => {
+    if (courseQueryInitDone.current) {
+      return;
+    }
+
+    if (!parsedQuery.courseId) {
+      courseQueryInitDone.current = true;
+      return;
+    }
+
+    if (courses.length === 0) {
+      return;
+    }
+
+    courseQueryInitDone.current = true;
+
+    const { courseFilter: initialCourse } = resolveInitialTaskFilters({
+      courseId: parsedQuery.courseId,
+      materialId: undefined,
+      courses,
+      materials: [],
+    });
+
+    if (initialCourse !== 'all') {
+      setCourseFilter(initialCourse);
+      loadTasks({ courseFilter: initialCourse });
+    }
+  }, [courses, parsedQuery.courseId, loadTasks]);
+
   const showMaterialFilter =
     courseFilter !== 'all' && courses.some((c) => c.id === courseFilter);
 
@@ -179,6 +223,48 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       cancelled = true;
     };
   }, [courseFilter, showMaterialFilter, handleAuthError]);
+
+  useEffect(() => {
+    if (materialQueryInitDone.current) {
+      return;
+    }
+
+    if (!parsedQuery.materialId) {
+      materialQueryInitDone.current = true;
+      return;
+    }
+
+    if (!parsedQuery.courseId || courseFilter !== parsedQuery.courseId) {
+      if (courseQueryInitDone.current) {
+        materialQueryInitDone.current = true;
+      }
+      return;
+    }
+
+    if (loadingFilterMaterials) {
+      return;
+    }
+
+    materialQueryInitDone.current = true;
+
+    const { materialFilter: initialMaterial } = resolveInitialTaskFilters({
+      courseId: parsedQuery.courseId,
+      materialId: parsedQuery.materialId,
+      courses,
+      materials: filterMaterials,
+    });
+
+    if (initialMaterial !== 'all') {
+      setMaterialFilter(initialMaterial);
+    }
+  }, [
+    parsedQuery.courseId,
+    parsedQuery.materialId,
+    courseFilter,
+    filterMaterials,
+    loadingFilterMaterials,
+    courses,
+  ]);
 
   useEffect(() => {
     if (!showCreate || !createCourseId || !courses.some((c) => c.id === createCourseId)) {
@@ -811,7 +897,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                 editing={editingTaskId !== null}
                 completing={completingId === task.id}
                 deleting={deletingId === task.id}
-                focusReturnTo="/tasks"
+                focusReturnTo={focusReturnTo}
                 courseLabel={
                   courseTitleById.has(task.courseId)
                     ? { courseId: task.courseId, title: courseTitleById.get(task.courseId) }

@@ -6,6 +6,7 @@ import {
   selectLinkedTaskPreview,
   summarizeLinkedTaskCounts,
 } from '../../utils/task-filters.js';
+import { buildTasksPageMaterialLink } from '../../utils/task-nav-query.js';
 import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
@@ -154,6 +155,8 @@ export default function MaterialRelatedTasksSection({
 
       {!loading && !error && (
         <p className="section__actions material-related-tasks__course-link">
+          <Link to={buildTasksPageMaterialLink(courseId, materialId)}>View linked tasks</Link>
+          {' · '}
           <Link to={`/courses/${courseId}`}>View tasks on course</Link>
         </p>
       )}
