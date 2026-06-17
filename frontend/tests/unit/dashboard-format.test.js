@@ -66,6 +66,8 @@ const recommendationBaseStats = {
   dueFlashcardsCount: 0,
   totalFocusMinutes: 30,
   completedFocusSessions: 1,
+  focusMinutesLast7Days: 0,
+  completedFocusSessionsLast7Days: 0,
   trelloSyncedTasks: 0,
   courseStats: [
     {
@@ -195,7 +197,7 @@ describe('dashboard-recommendation', () => {
       });
 
       assert.equal(recommendation?.kind, 'pending-tasks');
-      assert.equal(recommendation?.primaryCta.to, '/tasks');
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
     });
 
     it('recommends pending tasks with optional most-pending course', () => {
@@ -224,9 +226,34 @@ describe('dashboard-recommendation', () => {
 
       assert.equal(recommendation?.kind, 'pending-tasks');
       assert.match(recommendation?.headline ?? '', /3 pending tasks/);
-      assert.equal(recommendation?.primaryCta.to, '/tasks');
-      assert.equal(recommendation?.secondaryCta?.to, '/courses/course-a');
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
+      assert.equal(
+        recommendation?.secondaryCta?.to,
+        '/tasks?courseId=course-a&status=pending'
+      );
       assert.match(recommendation?.context ?? '', /Most pending: Alpha/);
+    });
+
+    it('omits secondary CTA when no course has pending tasks in courseStats', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 2,
+        completedTasks: 2,
+        totalTasks: 4,
+        courseStats: [
+          {
+            courseId: 'course-a',
+            courseName: 'Alpha',
+            totalTasks: 2,
+            completedTasks: 2,
+            totalFlashcards: 0,
+          },
+        ],
+      });
+
+      assert.equal(recommendation?.kind, 'pending-tasks');
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
+      assert.equal(recommendation?.secondaryCta, undefined);
     });
 
     it('recommends generating plans when active-plan gap exists and no flashcards are due', () => {
@@ -330,6 +357,8 @@ describe('dashboard-recommendation', () => {
         dueFlashcardsCount: 0,
         totalFocusMinutes: 0,
         completedFocusSessions: 0,
+        focusMinutesLast7Days: 0,
+        completedFocusSessionsLast7Days: 0,
         trelloSyncedTasks: 0,
         courseStats: [],
       });
@@ -347,6 +376,18 @@ describe('DashboardStub due flashcards stat', () => {
     assert.match(dashboardStubSource, /buildFlashcardsPageDueNowLink/);
     assert.match(dashboardStubSource, /Review flashcards/);
     assert.match(dashboardStubSource, /stats\.dueFlashcardsCount > 0/);
+  });
+});
+
+describe('DashboardStub last-seven-days focus', () => {
+  it('shows Last 7 days focus snapshot with formatter and zero-safe defaults', () => {
+    assert.match(dashboardStubSource, /Last 7 days/);
+    assert.match(dashboardStubSource, /Focus time/);
+    assert.match(dashboardStubSource, /Completed focus sessions/);
+    assert.match(dashboardStubSource, /focusMinutesLast7Days/);
+    assert.match(dashboardStubSource, /completedFocusSessionsLast7Days/);
+    assert.match(dashboardStubSource, /formatFocusMinutes\(focusMinutesLast7Days\)/);
+    assert.match(dashboardStubSource, /\?\? 0/);
   });
 });
 

@@ -144,10 +144,8 @@ function TaskProgressBar({
 function DashboardStudyPulse({ stats }) {
   const hasGlobalTasks = stats.totalTasks > 0;
   const coursesWithTasks = stats.courseStats.filter((course) => course.totalTasks > 0);
-
-  if (!hasGlobalTasks && coursesWithTasks.length === 0) {
-    return null;
-  }
+  const focusMinutesLast7Days = stats.focusMinutesLast7Days ?? 0;
+  const completedFocusSessionsLast7Days = stats.completedFocusSessionsLast7Days ?? 0;
 
   return (
     <section
@@ -158,7 +156,25 @@ function DashboardStudyPulse({ stats }) {
         <h2 id="dashboard-study-pulse-title" className="dashboard-study-pulse__title">
           Study pulse
         </h2>
-        <p className="dashboard-study-pulse__subtitle">Pending and completed tasks from your stats</p>
+        {hasGlobalTasks && (
+          <p className="dashboard-study-pulse__subtitle">
+            Pending and completed tasks from your stats
+          </p>
+        )}
+      </div>
+
+      <div className="dashboard-study-pulse__band dashboard-study-pulse__band--last-seven">
+        <h3 className="dashboard-study-pulse__band-title">Last 7 days</h3>
+        <div
+          className="dashboard-study-pulse__metrics"
+          aria-label="Last 7 days: focus time and completed focus sessions"
+        >
+          <PulseMetric label="Focus time" value={formatFocusMinutes(focusMinutesLast7Days)} />
+          <PulseMetric
+            label="Completed focus sessions"
+            value={completedFocusSessionsLast7Days}
+          />
+        </div>
       </div>
 
       {hasGlobalTasks && (

@@ -1,4 +1,8 @@
 import { buildFlashcardsPageDueNowLink } from './flashcard-nav-query.js';
+import {
+  buildTasksPageCoursePendingLink,
+  buildTasksPagePendingLink,
+} from './task-nav-query.js';
 
 /**
  * @typedef {import('../services/dashboard.service.js').DashboardStats} DashboardStats
@@ -108,13 +112,13 @@ export function deriveDashboardRecommendation(stats) {
       kind: 'pending-tasks',
       headline: `You have ${pendingTasks} pending ${taskWord} — work through those next.`,
       context,
-      primaryCta: { label: 'View tasks', to: '/tasks' },
+      primaryCta: { label: 'View tasks', to: buildTasksPagePendingLink() },
     };
 
     if (mostPending) {
       recommendation.secondaryCta = {
         label: `Open ${mostPending.courseName}`,
-        to: `/courses/${mostPending.courseId}`,
+        to: buildTasksPageCoursePendingLink(mostPending.courseId),
       };
     }
 

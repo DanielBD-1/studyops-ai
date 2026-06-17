@@ -150,3 +150,23 @@ export function buildTasksPageMaterialLink(courseId, materialId) {
   params.set('materialId', materialId);
   return `/tasks?${params.toString()}`;
 }
+
+/**
+ * @returns {string}
+ */
+export function buildTasksPagePendingLink() {
+  const qs = buildTasksPageSearchParams({ statusFilter: 'pending' });
+  return `/tasks?${qs}`;
+}
+
+/**
+ * @param {string} courseId
+ * @returns {string}
+ */
+export function buildTasksPageCoursePendingLink(courseId) {
+  const qs = buildTasksPageSearchParams({
+    courseFilter: courseId,
+    statusFilter: 'pending',
+  });
+  return `/tasks?${qs}`;
+}

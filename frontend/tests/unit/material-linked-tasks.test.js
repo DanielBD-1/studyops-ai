@@ -6,7 +6,9 @@ import {
   summarizeLinkedTaskCounts,
 } from '../../src/utils/task-filters.js';
 import {
+  buildTasksPageCoursePendingLink,
   buildTasksPageMaterialLink,
+  buildTasksPagePendingLink,
   buildTasksPageSearchParams,
   parseTasksPageSearchParams,
   resolveInitialTaskFilters,
@@ -197,6 +199,21 @@ describe('buildTasksPageSearchParams', () => {
         statusFilter: 'pending',
       }),
       'status=pending'
+    );
+  });
+});
+
+describe('buildTasksPagePendingLink', () => {
+  it('returns pending-only tasks page link', () => {
+    assert.equal(buildTasksPagePendingLink(), '/tasks?status=pending');
+  });
+});
+
+describe('buildTasksPageCoursePendingLink', () => {
+  it('returns course-scoped pending tasks link with stable parameter order', () => {
+    assert.equal(
+      buildTasksPageCoursePendingLink(COURSE_A),
+      `/tasks?courseId=${COURSE_A}&status=pending`
     );
   });
 });
