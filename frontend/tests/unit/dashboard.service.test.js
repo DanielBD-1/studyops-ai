@@ -20,6 +20,8 @@ const MOCK_STATS = {
   dueFlashcardsCount: 3,
   totalFocusMinutes: 90,
   completedFocusSessions: 3,
+  focusMinutesLast7Days: 25,
+  completedFocusSessionsLast7Days: 1,
   trelloSyncedTasks: 2,
   courseStats: [
     {
@@ -73,6 +75,13 @@ describe('dashboard.service', () => {
     assert.equal(calls[0].init.body, undefined);
 
     assert.deepEqual(data, MOCK_STATS);
+  });
+
+  it('returns last-seven-days focus fields from the dashboard stats contract', async () => {
+    const data = await getDashboardStats();
+
+    assert.equal(data.focusMinutesLast7Days, 25);
+    assert.equal(data.completedFocusSessionsLast7Days, 1);
   });
 
   it('propagates ApiRequestError on API failure envelope', async () => {

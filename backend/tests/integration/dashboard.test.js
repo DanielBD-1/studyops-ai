@@ -9,9 +9,14 @@ import {
   seedDashboardEmptyUserData,
   OWN_COURSE_ID,
   OWN_MATERIAL_ID,
+  OWN_TASK_ID,
   TEST_USER_ID,
+  OTHER_USER_ID,
+  OTHER_USER_COURSE_ID,
   getMockFlashcards,
+  getMockFocusSessions,
 } from '../helpers/mockSupabaseDashboard.js';
+import { computeLast7DaysThresholdIso } from '../../src/modules/dashboard/dashboard.service.js';
 
 applyTestEnv();
 setSupabaseAdminClientForTests(createDashboardMockSupabaseClient());
@@ -85,6 +90,11 @@ function assertNoSensitiveFields(value, path = 'root') {
     'token',
     'trelloCardId',
     'trello_card_id',
+    'started_at',
+    'ended_at',
+    'task_id',
+    'taskId',
+    'sessionId',
   ];
 
   for (const key of forbidden) {
@@ -145,6 +155,8 @@ describe('dashboard API integration', () => {
       dueFlashcardsCount: 0,
       totalFocusMinutes: 0,
       completedFocusSessions: 0,
+      focusMinutesLast7Days: 0,
+      completedFocusSessionsLast7Days: 0,
       trelloSyncedTasks: 0,
       courseStats: [],
     });
@@ -166,6 +178,8 @@ describe('dashboard API integration', () => {
     assert.equal(data.dueFlashcardsCount, 1);
     assert.equal(data.completedFocusSessions, 2);
     assert.equal(data.totalFocusMinutes, 30);
+    assert.equal(typeof data.focusMinutesLast7Days, 'number');
+    assert.equal(typeof data.completedFocusSessionsLast7Days, 'number');
     assert.equal(data.trelloSyncedTasks, 1);
   });
 
@@ -272,5 +286,78 @@ describe('dashboard API integration', () => {
     assert.equal(typeof res.body.data.totalCourses, 'number');
     assert.equal(typeof res.body.meta.timestamp, 'string');
     assertNoSensitiveFields(res.body);
+  });
+
+  it('aggregates last-seven-days focus from completed sessions in rolling window only', async () => {
+    const now = new Date();
+    const thresholdIso = computeLast7DaysThresholdIso(now);
+    const inWindow = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const outWindow = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString();
+    const atThreshold = new Date(new Date(thresholdIso).getTime() + 1000).toISOString();
+
+    getMockFocusSessions().length = 0;
+    getMockFocusSessions().push(
+      {
+        id: 'focus-in-window-1111-4111-8111-111111111111',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        task_id: OWN_TASK_ID,
+        duration_minutes: 20,
+        completed_task: false,
+        started_at: inWindow,
+        ended_at: inWindow,
+      },
+      {
+        id: 'focus-out-window-2222-4222-8222-222222222222',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        task_id: OWN_TASK_ID,
+        duration_minutes: 40,
+        completed_task: false,
+        started_at: outWindow,
+        ended_at: outWindow,
+      },
+      {
+        id: 'focus-at-threshold-3333-4333-8333-333333333333',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        task_id: OWN_TASK_ID,
+        duration_minutes: 15,
+        completed_task: false,
+        started_at: thresholdIso,
+        ended_at: atThreshold,
+      },
+      {
+        id: 'focus-in-progress-4444-4444-8444-444444444444',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        task_id: OWN_TASK_ID,
+        duration_minutes: 25,
+        completed_task: false,
+        started_at: inWindow,
+        ended_at: null,
+      },
+      {
+        id: 'focus-other-user-5555-5555-8555-555555555555',
+        user_id: OTHER_USER_ID,
+        course_id: OTHER_USER_COURSE_ID,
+        task_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+        duration_minutes: 60,
+        completed_task: false,
+        started_at: inWindow,
+        ended_at: inWindow,
+      }
+    );
+
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.focusMinutesLast7Days, 35);
+    assert.equal(res.body.data.completedFocusSessionsLast7Days, 2);
+    assert.equal(res.body.data.totalFocusMinutes, 75);
+    assert.equal(res.body.data.completedFocusSessions, 3);
+    assertNoSensitiveFields(res.body.data);
   });
 });

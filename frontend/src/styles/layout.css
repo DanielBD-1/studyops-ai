@@ -1198,6 +1198,19 @@ a.dashboard-hero__cta.btn:hover {
   min-width: 0;
 }
 
+.dashboard-study-pulse__band-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dashboard-study-pulse__band--last-seven .dashboard-study-pulse__metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .dashboard-study-pulse__metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

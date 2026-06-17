@@ -70,6 +70,15 @@ function applyCommonFilters(state, rows) {
     }
   }
 
+  if (state.gteFilters) {
+    for (const [column, minValue] of Object.entries(state.gteFilters)) {
+      filtered = filtered.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) >= String(minValue);
+      });
+    }
+  }
+
   return filtered;
 }
 
@@ -333,6 +342,7 @@ function createFocusSessionsBuilder() {
   const state = {
     filters: {},
     notNullColumns: [],
+    gteFilters: {},
   };
 
   const builder = {
@@ -344,6 +354,10 @@ function createFocusSessionsBuilder() {
     },
     eq(column, value) {
       state.filters[column] = value;
+      return builder;
+    },
+    gte(column, value) {
+      state.gteFilters[column] = value;
       return builder;
     },
     not(column, operator, value) {

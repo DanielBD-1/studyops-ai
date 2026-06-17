@@ -1,6 +1,18 @@
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 
+const LAST_7_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Rolling last-7-days lower bound (inclusive on ended_at), not a calendar week.
+ *
+ * @param {Date} [now]
+ * @returns {string}
+ */
+export function computeLast7DaysThresholdIso(now = new Date()) {
+  return new Date(now.getTime() - LAST_7_DAYS_MS).toISOString();
+}
+
 /**
  * @param {{ duration_minutes: number }[]} sessions
  * @returns {number}
@@ -49,7 +61,9 @@ async function countExact(query) {
  */
 export async function getDashboardStats(userId) {
   const supabase = getSupabaseAdmin();
-  const nowIso = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const last7DaysThresholdIso = computeLast7DaysThresholdIso(now);
 
   const [
     totalCourses,
@@ -63,6 +77,7 @@ export async function getDashboardStats(userId) {
     completedFocusSessions,
     trelloSyncedTasks,
     focusResult,
+    last7DaysFocusResult,
     coursesResult,
     tasksResult,
     flashcardsResult,
@@ -138,12 +153,18 @@ export async function getDashboardStats(userId) {
       .select('duration_minutes')
       .eq('user_id', userId)
       .not('ended_at', 'is', null),
+    supabase
+      .from('focus_sessions')
+      .select('duration_minutes')
+      .eq('user_id', userId)
+      .not('ended_at', 'is', null)
+      .gte('ended_at', last7DaysThresholdIso),
     supabase.from('courses').select('id, title').eq('user_id', userId),
     supabase.from('study_tasks').select('course_id, status').eq('user_id', userId),
     supabase.from('flashcards').select('course_id').eq('user_id', userId),
   ]);
 
-  if (focusResult.error) {
+  if (focusResult.error || last7DaysFocusResult.error) {
     throw new ApiError('DATABASE_ERROR', 'Failed to load dashboard stats', 500);
   }
 
@@ -152,6 +173,9 @@ export async function getDashboardStats(userId) {
   }
 
   const totalFocusMinutes = sumCompletedFocusMinutes(focusResult.data ?? []);
+  const last7DaysSessions = last7DaysFocusResult.data ?? [];
+  const focusMinutesLast7Days = sumCompletedFocusMinutes(last7DaysSessions);
+  const completedFocusSessionsLast7Days = last7DaysSessions.length;
   const courseStats = aggregateCourseStats(
     coursesResult.data ?? [],
     tasksResult.data ?? [],
@@ -169,6 +193,8 @@ export async function getDashboardStats(userId) {
     dueFlashcardsCount,
     totalFocusMinutes,
     completedFocusSessions,
+    focusMinutesLast7Days,
+    completedFocusSessionsLast7Days,
     trelloSyncedTasks,
     courseStats,
   };
