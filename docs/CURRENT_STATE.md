@@ -284,19 +284,33 @@ Requires **explicit human approval** (see `AGENTS.md`, `IMPLEMENTATION_STATUS` d
 
 ---
 
+## Agent starting path
+
+For a fresh agent session — especially before proposing a new epic — read in this order:
+
+1. **`docs/IMPLEMENTATION_STATUS.md`** — what exists today (shipped routes, APIs, deferred list)
+2. **`docs/PRODUCT_STRATEGY.md`** — human-approved product sequencing (personal study engine before collaboration)
+3. **`docs/CURRENT_STATE.md`** (this file) — current phase position and gates
+4. Other documents (`docs/PRD.md`, `docs/POST_MVP.md`, `docs/AGENT_MEMORY.md`, ADRs, workflows) only as required by the task
+
+**Distinction:** **`IMPLEMENTATION_STATUS`** tells agents **what is shipped**. **`PRODUCT_STRATEGY`** tells agents **how future directions are sequenced**. **`CURRENT_STATE`** tells agents **where the project currently stands**.
+
+---
+
 ## Source-of-truth hierarchy
 
 When documents disagree, resolve in this order:
 
 1. **`docs/IMPLEMENTATION_STATUS.md`** + application code + `supabase/migrations/` — **what is shipped**
-2. **`docs/CURRENT_STATE.md`** (this file) — **where we are in phases** and what is suspended
-3. **`docs/PRD.md`** — product vision, target MVP, **future / not-yet-built** features
-4. **`docs/adrs/*`** — architecture boundaries
-5. **`SECURITY.md`** — trust boundaries and Security Review triggers
-6. **`AGENTS.md`** / **`docs/workflows/*`** — process and approvals
-7. **`docs/AGENT_MEMORY.md`** — historical journal + pitfalls (append-only; must not override 1–4)
-8. **`DESIGN.md`** + **`tokens.css`** — presentation (DESIGN = direction; tokens = live values)
-9. **Stitch / prototype / screenshots** — inspiration only
+2. **`docs/PRODUCT_STRATEGY.md`** — **product sequencing and strategic direction** (guidance only; does not approve implementation)
+3. **`docs/CURRENT_STATE.md`** (this file) — **where we are in phases** and what is suspended
+4. **`docs/PRD.md`** — product vision, target MVP, **future / not-yet-built** features
+5. **`docs/adrs/*`** — architecture boundaries
+6. **`SECURITY.md`** — trust boundaries and Security Review triggers
+7. **`AGENTS.md`** / **`docs/workflows/*`** — process and approvals
+8. **`docs/AGENT_MEMORY.md`** — historical journal + pitfalls (append-only; must not override items 1–5 above)
+9. **`DESIGN.md`** + **`tokens.css`** — presentation (DESIGN = direction; tokens = live values)
+10. **Stitch / prototype / screenshots** — inspiration only
 
 Conflict workflow: `docs/workflows/conflict-resolution-workflow.md`
 
@@ -372,6 +386,7 @@ Do **not** assume without checking **`IMPLEMENTATION_STATUS`** and this file:
 | BX-I7E3 Tier A complete = BX-I7E3 Tier B / BX-I7E4 / BX-I7F approved | **BX-I7E3 Tier A** was **`/trello` `layout.css` desktop setup panels only** — credentials + destination 2-up at **≥1280px**; **Tier B** (task-list grid, results grid, wizard/results side-by-side, scroll-height override) **not implemented**; **BX-I7E4** required separate approval (now **complete** at **`467ccd9`**); **BX-I7F** requires separate planning + explicit approval |
 | BX-I7E4 complete = BX-I7F approved | **BX-I7E4** was **`/admin` `layout.css` desktop stats deck only** — stats deck **2-column** grid at **≥1280px**; Platform overview, Trello today, Backend status full-width; Tasks|Focus and Learning|Trello stats rows side-by-side; inner stat grids unchanged; **no** JSX/API/backend/services/auth/copy changes; **BX-I7F** requires separate planning + explicit approval |
 | BX-I7A complete = BX-I7B approved | **BX-I7A** was **docs-only** audit — **BX-I7B** required separate implement approval (now **complete** at **`00d3255`**) |
+| Study Rooms, collaboration, PDF, dashboard depth, deployment, or full SRS is the automatically approved next epic | **Incorrect** — check **`docs/PRODUCT_STRATEGY.md`** for sequencing; deferred features still require an explicit phase gate per **`AGENTS.md`** |
 
 **Operating constraints:** Free Tier / minimal cost; no new paid APIs or npm packages without approval; Gemini **429** = quota, not necessarily a bug.
 
@@ -382,6 +397,7 @@ Do **not** assume without checking **`IMPLEMENTATION_STATUS`** and this file:
 | Doc | Use for |
 |-----|---------|
 | [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) | Routes, APIs, env, DB, deferred work |
+| [`PRODUCT_STRATEGY.md`](PRODUCT_STRATEGY.md) | Product sequencing — personal study engine before collaboration (guidance only) |
 | [`POST_MVP.md`](POST_MVP.md) | Post-MVP framing — initial MVP closed; future work still gated |
 | [`PRD.md`](PRD.md) | Product vision and target MVP (includes future scope) |
 | [`AGENT_MEMORY.md`](AGENT_MEMORY.md) | Phase history and pitfalls |
