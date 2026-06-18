@@ -79,6 +79,15 @@ function applyCommonFilters(state, rows) {
     }
   }
 
+  if (state.ltFilters) {
+    for (const [column, maxValue] of Object.entries(state.ltFilters)) {
+      filtered = filtered.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) < String(maxValue);
+      });
+    }
+  }
+
   return filtered;
 }
 
@@ -262,6 +271,7 @@ function createStudyTasksBuilder() {
   const state = {
     filters: {},
     notNullColumns: [],
+    ltFilters: {},
   };
 
   const builder = {
@@ -273,6 +283,10 @@ function createStudyTasksBuilder() {
     },
     eq(column, value) {
       state.filters[column] = value;
+      return builder;
+    },
+    lt(column, value) {
+      state.ltFilters[column] = value;
       return builder;
     },
     not(column, operator, value) {
@@ -419,6 +433,7 @@ export function resetDashboardMockData() {
       tags: [],
       status: 'pending',
       source: 'manual',
+      due_date: null,
       trello_card_id: null,
       created_at: '2026-01-10T00:00:00.000Z',
       updated_at: '2026-01-10T00:00:00.000Z',
@@ -436,6 +451,7 @@ export function resetDashboardMockData() {
       tags: [],
       status: 'pending',
       source: 'manual',
+      due_date: null,
       trello_card_id: 'other-user-trello-card',
       created_at: '2026-01-09T00:00:00.000Z',
       updated_at: '2026-01-09T00:00:00.000Z',
@@ -519,6 +535,7 @@ export function seedDashboardMixedData() {
       tags: [],
       status: 'completed',
       source: 'manual',
+      due_date: null,
       trello_card_id: null,
       created_at: '2026-01-08T00:00:00.000Z',
       updated_at: '2026-01-12T00:00:00.000Z',
@@ -536,6 +553,7 @@ export function seedDashboardMixedData() {
       tags: [],
       status: 'pending',
       source: 'manual',
+      due_date: null,
       trello_card_id: 'own-trello-card-id',
       created_at: '2026-01-07T00:00:00.000Z',
       updated_at: '2026-01-07T00:00:00.000Z',

@@ -58,8 +58,9 @@ async function countExact(query) {
 
 /**
  * @param {string} userId
+ * @param {string} deadlineReferenceDate YYYY-MM-DD calendar date for overdue/due-today counts
  */
-export async function getDashboardStats(userId) {
+export async function getDashboardStats(userId, deadlineReferenceDate) {
   const supabase = getSupabaseAdmin();
   const now = new Date();
   const nowIso = now.toISOString();
@@ -72,6 +73,8 @@ export async function getDashboardStats(userId) {
     totalTasks,
     pendingTasks,
     completedTasks,
+    overduePendingTasks,
+    dueTodayPendingTasks,
     totalFlashcards,
     dueFlashcardsCount,
     completedFocusSessions,
@@ -120,6 +123,23 @@ export async function getDashboardStats(userId) {
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
         .eq('status', 'completed')
+    ),
+    countExact(
+      supabase
+        .from('study_tasks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .not('due_date', 'is', null)
+        .lt('due_date', deadlineReferenceDate)
+    ),
+    countExact(
+      supabase
+        .from('study_tasks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .eq('due_date', deadlineReferenceDate)
     ),
     countExact(
       supabase
@@ -189,6 +209,9 @@ export async function getDashboardStats(userId) {
     totalTasks,
     pendingTasks,
     completedTasks,
+    overduePendingTasks,
+    dueTodayPendingTasks,
+    deadlineReferenceDate,
     totalFlashcards,
     dueFlashcardsCount,
     totalFocusMinutes,

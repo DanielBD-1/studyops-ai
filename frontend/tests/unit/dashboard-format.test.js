@@ -62,6 +62,9 @@ const recommendationBaseStats = {
   totalTasks: 4,
   pendingTasks: 0,
   completedTasks: 4,
+  overduePendingTasks: 0,
+  dueTodayPendingTasks: 0,
+  deadlineReferenceDate: '2026-06-18',
   totalFlashcards: 0,
   dueFlashcardsCount: 0,
   totalFocusMinutes: 30,
@@ -168,6 +171,87 @@ describe('dashboard-recommendation', () => {
 
       assert.equal(recommendation?.kind, 'no-courses');
       assert.equal(recommendation?.primaryCta.to, '/courses');
+    });
+
+    it('recommends overdue tasks before due today and generic pending', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 5,
+        overduePendingTasks: 2,
+        dueTodayPendingTasks: 1,
+        completedTasks: 0,
+        totalTasks: 5,
+      });
+
+      assert.equal(recommendation?.kind, 'overdue-tasks');
+      assert.match(recommendation?.headline ?? '', /2 overdue pending tasks/);
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
+      assert.equal(recommendation?.primaryCta.label, 'View pending tasks');
+      assert.equal(recommendation?.secondaryCta, undefined);
+    });
+
+    it('recommends due-today tasks when overdue is zero', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 3,
+        overduePendingTasks: 0,
+        dueTodayPendingTasks: 2,
+        completedTasks: 1,
+        totalTasks: 4,
+      });
+
+      assert.equal(recommendation?.kind, 'due-today-tasks');
+      assert.match(recommendation?.headline ?? '', /2 pending tasks due today/);
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
+      assert.equal(recommendation?.secondaryCta, undefined);
+    });
+
+    it('recommends overdue tasks over due flashcards', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 2,
+        overduePendingTasks: 1,
+        dueTodayPendingTasks: 0,
+        dueFlashcardsCount: 5,
+        totalFlashcards: 10,
+      });
+
+      assert.equal(recommendation?.kind, 'overdue-tasks');
+    });
+
+    it('recommends due-today tasks over due flashcards when overdue is zero', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 1,
+        overduePendingTasks: 0,
+        dueTodayPendingTasks: 1,
+        dueFlashcardsCount: 5,
+        totalFlashcards: 10,
+      });
+
+      assert.equal(recommendation?.kind, 'due-today-tasks');
+    });
+
+    it('uses singular overdue headline for one overdue task', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 1,
+        overduePendingTasks: 1,
+        dueTodayPendingTasks: 0,
+      });
+
+      assert.match(recommendation?.headline ?? '', /1 overdue pending task\./);
+    });
+
+    it('uses singular due-today headline for one task due today', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 1,
+        overduePendingTasks: 0,
+        dueTodayPendingTasks: 1,
+      });
+
+      assert.match(recommendation?.headline ?? '', /1 pending task due today\./);
     });
 
     it('recommends pending tasks over due flashcards when both exist', () => {
@@ -353,6 +437,8 @@ describe('dashboard-recommendation', () => {
         totalTasks: 0,
         pendingTasks: 0,
         completedTasks: 0,
+        overduePendingTasks: 0,
+        dueTodayPendingTasks: 0,
         totalFlashcards: 0,
         dueFlashcardsCount: 0,
         totalFocusMinutes: 0,
@@ -365,6 +451,19 @@ describe('dashboard-recommendation', () => {
 
       assert.equal(recommendation?.kind, 'no-courses');
     });
+  });
+});
+
+describe('DashboardStub deadline task stats', () => {
+  it('shows Overdue and Due today counts with pending-task links when counts are positive', () => {
+    assert.match(dashboardStubSource, /label="Overdue"/);
+    assert.match(dashboardStubSource, /label="Due today"/);
+    assert.match(dashboardStubSource, /stats\.overduePendingTasks/);
+    assert.match(dashboardStubSource, /stats\.dueTodayPendingTasks/);
+    assert.match(dashboardStubSource, /buildTasksPagePendingLink\(\)/);
+    assert.match(dashboardStubSource, /View pending tasks/);
+    assert.match(dashboardStubSource, /\(stats\.overduePendingTasks \?\? 0\) > 0/);
+    assert.match(dashboardStubSource, /\(stats\.dueTodayPendingTasks \?\? 0\) > 0/);
   });
 });
 

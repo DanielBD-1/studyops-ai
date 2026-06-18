@@ -1,6 +1,7 @@
 import { apiFetch } from './api.js';
 import { ApiRequestError } from './courses.service.js';
 import { getSupabaseBrowser } from '../lib/supabase.js';
+import { getLocalTodayIsoCalendarDate } from '../utils/task-due-date.js';
 
 export { ApiRequestError };
 
@@ -9,6 +10,9 @@ let apiFetchOverride = null;
 
 /** @type {string | null} */
 let accessTokenOverride = null;
+
+/** @type {(() => string) | null} */
+let referenceDateForTestsOverride = null;
 
 /**
  * @param {typeof apiFetch | null} fn
@@ -22,6 +26,13 @@ export function __setApiFetchForTests(fn) {
  */
 export function __setAccessTokenForTests(token) {
   accessTokenOverride = token;
+}
+
+/**
+ * @param {(() => string) | null} fn
+ */
+export function __setReferenceDateForTests(fn) {
+  referenceDateForTestsOverride = fn;
 }
 
 /**
@@ -78,6 +89,9 @@ async function request(path, init = {}) {
  *   totalTasks: number,
  *   pendingTasks: number,
  *   completedTasks: number,
+ *   overduePendingTasks: number,
+ *   dueTodayPendingTasks: number,
+ *   deadlineReferenceDate: string,
  *   totalFlashcards: number,
  *   dueFlashcardsCount: number,
  *   totalFocusMinutes: number,
@@ -93,6 +107,10 @@ async function request(path, init = {}) {
  * @returns {Promise<DashboardStats>}
  */
 export async function getDashboardStats() {
-  const data = await request('/api/dashboard/stats', { method: 'GET' });
+  const referenceDate = referenceDateForTestsOverride
+    ? referenceDateForTestsOverride()
+    : getLocalTodayIsoCalendarDate();
+  const params = new URLSearchParams({ referenceDate });
+  const data = await request(`/api/dashboard/stats?${params.toString()}`, { method: 'GET' });
   return /** @type {DashboardStats} */ (data);
 }

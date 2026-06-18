@@ -8,6 +8,10 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
+**DOCS-DASHBOARD-DEPTH-A2 (2026-06-18):** Phase **DOCS-DASHBOARD-DEPTH-A2** — documentation-only alignment for **DASHBOARD-DEPTH-A2** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, **`README.md`**. **No** application code, tests, migrations, packages, or CI changes. **Security Review: not required** (docs-only).
+
+**DASHBOARD-DEPTH-A2 (2026-06-18):** Phase **DASHBOARD-DEPTH-A2** — deadline-aware dashboard aggregates. **`GET /api/dashboard/stats`** optional **`referenceDate=YYYY-MM-DD`**; omitted → server UTC calendar date; frontend sends browser-local date on every request; invalid query → **400 VALIDATION_ERROR**; response **`overduePendingTasks`**, **`dueTodayPendingTasks`**, **`deadlineReferenceDate`**; recommendation **no-courses → overdue-tasks → due-today-tasks → pending-tasks → due-flashcards → …**; **At a glance** **Overdue** / **Due today**; deadline heroes → **`/tasks?status=pending`** only. Backend **541/541**; frontend **494/494**; build passed. **Supervisor Review: PASS.** **Security Review: PASS.** Manual smoke: **PASS.** **Deferred:** upcoming deadline window; overdue/due-today **`/tasks`** filters; timezone persistence; calendar; notifications; exam dates; Gemini/Trello due dates; AI scheduling. Docs: **DOCS-DASHBOARD-DEPTH-A2**.
+
 **CORE-DEPTH-RECENT-DOCS-A1 (2026-06-18):** Phase **CORE-DEPTH-RECENT-DOCS-A1** — documentation-only alignment for **DASHBOARD-DEPTH-A1** + **DASHBOARD-DEPTH-P0** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`README.md`**, **`docs/database/015-study-tasks-due-date.md`** (new), minimal **`005`** cross-ref, migration **015** comment hygiene. **No** application code, tests, or package changes. Reconciled stale **A5c**/**BX-I3** pre-A1 **`DashboardStub`** / bare **`/tasks`** hero claims (historical context preserved). **Security Review: not required** (docs-only).
 
 **DASHBOARD-DEPTH-P0 (2026-06-18):** Phase **DASHBOARD-DEPTH-P0** — optional task due dates. Migration **015** **`public.study_tasks.due_date date null`** applied and verified on Supabase; persistence smoke passed. API **`dueDate: YYYY-MM-DD | null`**; create omit/`null` → **NULL**; PATCH omit preserves; PATCH `null` clears; past dates allowed; years **0001–9999**; **`calendar-date.js`** validation (no implicit `new Date('YYYY-MM-DD')` on backend); frontend browser-local calendar presentation via **`task-due-date.js`**. UI: course/global create/edit, **`TaskCard`**, material related-task preview. Plan import does **not** populate due dates; Gemini schema unchanged; Trello due dates unchanged; dashboard recommendations unchanged; list order **`created_at DESC`**; complete preserves due date. Backend **533/533**; frontend **486/486**; build passed. **Supervisor Re-review: approved.** **Security Review: approved.** **Deferred:** dashboard overdue/due-today counts; deadline-aware hero; due-date sort/filter/URL params; reminders; exam dates; calendar integration; Gemini-generated due dates; Trello due-date sync; AI scheduling. Docs: **CORE-DEPTH-RECENT-DOCS-A1**.
@@ -74,7 +78,7 @@
 
 **Trello OAuth A2 (2026-06-03):** Phase **TRELLO-OAUTH-A2-DB** — encrypted `trello_connections` schema (migration **012**), `trello-token-crypto.js`, `trello-connection.repository.js`, unit tests, optional `TRELLO_API_KEY` / `TRELLO_TOKEN_ENCRYPTION_KEY` placeholders in `backend/.env.example`. **Supervisor + Security Review passed** for A2 implementation. Docs: ADR **006**, `docs/security/trello-oauth-foundation.md`, **TRELLO-OAUTH-A2-DOCS-ALIGNMENT**. **Pitfall (superseded):** A3 was backend-only at ship — full chain **A4–A5C** is now live; see **Current-state correction** above.
 
-**Branch / phase (2026-06-18):** post-**CORE-DEPTH-RECENT-DOCS-A1** — **DASHBOARD-DEPTH-A1** merged (**`bb499ce`** / **`c746333`**); **DASHBOARD-DEPTH-P0** implementation and verification complete (migration **015** applied on Supabase); documentation alignment gate complete; workflow next step: **Git closure**. Pre-A1 **FLASHCARD-REVIEW-A5c** / **BX-I3** docs that **`DashboardStub.jsx` unchanged** and pending hero → bare **`/tasks`** are **historical** — superseded by **A1** filtered pending links and Study pulse **Last 7 days** band. Authoritative shipped detail: **`docs/IMPLEMENTATION_STATUS.md`**; phase gates: **`docs/CURRENT_STATE.md`**.
+**Branch / phase (2026-06-18):** post-**DASHBOARD-DEPTH-A2** — deadline-aware dashboard aggregates shipped; documentation alignment gate **DOCS-DASHBOARD-DEPTH-A2** complete; workflow next step: **Git closure**. Authoritative shipped detail: **`docs/IMPLEMENTATION_STATUS.md`**; phase gates: **`docs/CURRENT_STATE.md`**.
 
 **Major caution — do not proceed without explicit approval:**
 
@@ -3264,3 +3268,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Pitfalls:** Do not mark backend **`?due=now`** or **`?mastery=`** as shipped. Do not claim full SRS, SM-2/Anki, review history table, plan JSON review persistence, material-detail URL filters, or hero recommendation changes exist. **`/flashcards`** URL-persisted filters **are** shipped (**FLASHCARD-REVIEW-A5a**) — do not regress to “URL-persisted flashcard filters deferred” in current-state docs.
 
 **Follow-up:** Auto-advance after review shipped in **FLASHCARD-REVIEW-A5b**; full SM-2; backend due/mastery query params — separate phase gates.
+
+### 2026-06-18 — Phase DOCS-DASHBOARD-DEPTH-A2 — Dashboard deadline-aware aggregates documentation (documentation only)
+
+**Workflow:** DOCS-DASHBOARD-DEPTH-A2 — record **DASHBOARD-DEPTH-A2** shipped behavior (documentation only)
+
+**Summary:** Documentation-only alignment in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. Records **`GET /api/dashboard/stats`** optional **`referenceDate`**, browser-local frontend date alignment, UTC fallback, strict invalid-query rejection, **`overduePendingTasks`** / **`dueTodayPendingTasks`** / **`deadlineReferenceDate`**, recommendation priority, **At a glance** **Overdue** / **Due today**, and deferred scope (no **`/tasks`** overdue/due-today filters, no upcoming window, no timezone persistence, etc.). **No** application code, tests, migrations, packages, or CI changes in this documentation phase.
+
+**APIs affected:** none (docs-only — describes existing **`GET /api/dashboard/stats`** query + response fields)
+
+**Tests:** none (docs-only)
+
+**Pitfalls:** Do not claim overdue-only or due-today-only **`/tasks`** filters, upcoming deadlines, stored user timezone, notifications, calendar integration, Gemini/Trello due-date assignment, or a new A2 migration exist. Migration **015** unchanged — A2 **reads** **`due_date`** for aggregate counts only.
+
+**Follow-up:** Further dashboard deadline phases (upcoming window, task-list filters, timezone persistence, etc.) require explicit approval.

@@ -15,8 +15,10 @@ import {
   OTHER_USER_COURSE_ID,
   getMockFlashcards,
   getMockFocusSessions,
+  getMockTasks,
 } from '../helpers/mockSupabaseDashboard.js';
 import { computeLast7DaysThresholdIso } from '../../src/modules/dashboard/dashboard.service.js';
+import { getUtcTodayIsoCalendarDate } from '../../src/shared/validation/calendar-date.js';
 
 applyTestEnv();
 setSupabaseAdminClientForTests(createDashboardMockSupabaseClient());
@@ -151,6 +153,9 @@ describe('dashboard API integration', () => {
       totalTasks: 0,
       pendingTasks: 0,
       completedTasks: 0,
+      overduePendingTasks: 0,
+      dueTodayPendingTasks: 0,
+      deadlineReferenceDate: getUtcTodayIsoCalendarDate(),
       totalFlashcards: 0,
       dueFlashcardsCount: 0,
       totalFocusMinutes: 0,
@@ -181,6 +186,9 @@ describe('dashboard API integration', () => {
     assert.equal(typeof data.focusMinutesLast7Days, 'number');
     assert.equal(typeof data.completedFocusSessionsLast7Days, 'number');
     assert.equal(data.trelloSyncedTasks, 1);
+    assert.equal(typeof data.overduePendingTasks, 'number');
+    assert.equal(typeof data.dueTodayPendingTasks, 'number');
+    assert.equal(data.deadlineReferenceDate, getUtcTodayIsoCalendarDate());
   });
 
   it('returns correct task counts', async () => {
@@ -359,5 +367,214 @@ describe('dashboard API integration', () => {
     assert.equal(res.body.data.totalFocusMinutes, 75);
     assert.equal(res.body.data.completedFocusSessions, 3);
     assertNoSensitiveFields(res.body.data);
+  });
+});
+
+describe('dashboard stats referenceDate query', () => {
+  /** @type {import('node:http').Server} */
+  let server;
+  /** @type {number} */
+  let port;
+
+  before(async () => {
+    server = http.createServer(app);
+    await listen(server);
+    port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+  });
+
+  after(async () => {
+    await new Promise((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve(undefined)));
+    });
+  });
+
+  beforeEach(() => {
+    seedDashboardMixedData();
+  });
+
+  it('returns 400 VALIDATION_ERROR for empty referenceDate', async () => {
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.success, false);
+    assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('returns 400 VALIDATION_ERROR for malformed referenceDate', async () => {
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-06-18T00:00:00.000Z`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('returns 400 VALIDATION_ERROR for impossible referenceDate', async () => {
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-02-30`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('accepts valid referenceDate and echoes it in deadlineReferenceDate', async () => {
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-06-18`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.deadlineReferenceDate, '2026-06-18');
+  });
+});
+
+describe('dashboard deadline task aggregates', () => {
+  /** @type {import('node:http').Server} */
+  let server;
+  /** @type {number} */
+  let port;
+
+  before(async () => {
+    server = http.createServer(app);
+    await listen(server);
+    port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+  });
+
+  after(async () => {
+    await new Promise((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve(undefined)));
+    });
+  });
+
+  beforeEach(() => {
+    seedDashboardMixedData();
+  });
+
+  it('counts overdue, due-today, and excludes other cases', async () => {
+    getMockTasks().push(
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Overdue pending task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-10',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Due today pending task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-18',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Future pending task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-25',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Completed overdue task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'completed',
+        source: 'manual',
+        due_date: '2026-06-01',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        user_id: OTHER_USER_ID,
+        course_id: OTHER_USER_COURSE_ID,
+        material_id: null,
+        title: 'Other user overdue task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-01',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      }
+    );
+
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-06-18`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.deadlineReferenceDate, '2026-06-18');
+    assert.equal(res.body.data.overduePendingTasks, 1);
+    assert.equal(res.body.data.dueTodayPendingTasks, 1);
+    assert.ok(res.body.data.overduePendingTasks <= res.body.data.pendingTasks);
+    assert.ok(res.body.data.dueTodayPendingTasks <= res.body.data.pendingTasks);
+    assertNoSensitiveFields(res.body.data);
+  });
+
+  it('returns zero deadline counts for empty user', async () => {
+    seedDashboardEmptyUserData();
+
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-06-18`,
+      { headers: { Authorization: 'Bearer empty-user-token' } }
+    );
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.overduePendingTasks, 0);
+    assert.equal(res.body.data.dueTodayPendingTasks, 0);
+    assert.equal(res.body.data.deadlineReferenceDate, '2026-06-18');
   });
 });
