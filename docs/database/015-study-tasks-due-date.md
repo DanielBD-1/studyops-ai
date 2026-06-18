@@ -11,7 +11,9 @@
 
 Phase DASHBOARD-DEPTH-P0 adds an optional **day-level** calendar due date on `public.study_tasks` so students can set deadlines on manual tasks. **NULL** means no deadline.
 
-**In this phase:** SQL migration + backend API + frontend forms/display + tests. **Not** a full deadline-planning or dashboard-intelligence system.
+**In P0:** SQL migration + backend API + frontend forms/display + tests. **Not** a full deadline-planning or dashboard-intelligence system.
+
+**Phase DASHBOARD-DEPTH-A2 (complete):** Reads **`due_date`** for authenticated-user **aggregate** overdue/due-today counts on **`GET /api/dashboard/stats`**. Migration **015** is **unchanged** — **no** new schema, indexes, due-date filters, sorting, or timezone persistence in A2.
 
 ---
 
@@ -23,7 +25,7 @@ Phase DASHBOARD-DEPTH-P0 adds an optional **day-level** calendar due date on `pu
 
 **Column comment (in migration):** *Optional user-set calendar due date (day-level). NULL means no deadline.*
 
-**Not added in migration 015:** indexes, triggers, RLS policy changes, backfill, dashboard aggregates, Trello fields.
+**Not added in migration 015:** indexes, triggers, RLS policy changes, backfill, Trello fields.
 
 ---
 
@@ -72,7 +74,24 @@ Express task responses use **camelCase** `dueDate`:
 | **Plan import** (`POST /api/study-materials/:materialId/import/tasks`) | Does **not** populate `due_date` — imported rows remain `NULL` |
 | **Gemini / document-service plan schema** | **Unchanged** — no generated due dates |
 | **Trello sync** | **Unchanged** — no Trello due-date read/write |
-| **Dashboard recommendations** | **Unchanged** — hero rules do not use task due dates |
+
+---
+
+## Dashboard use of `due_date` (DASHBOARD-DEPTH-A2)
+
+Migration **015** remains the sole schema source for **`due_date`**. **DASHBOARD-DEPTH-A2** adds **read-only aggregate** use on **`GET /api/dashboard/stats`**:
+
+| Aggregate | Rule |
+|-----------|------|
+| **`overduePendingTasks`** | Caller-owned **pending** tasks with non-null **`due_date` < `deadlineReferenceDate`** |
+| **`dueTodayPendingTasks`** | Caller-owned **pending** tasks with **`due_date` = `deadlineReferenceDate`** |
+| **`deadlineReferenceDate`** | Effective reference calendar date (optional query **`referenceDate=YYYY-MM-DD`**; omitted → server UTC calendar date; frontend sends browser-local date on each request) |
+
+**Excluded from counts:** completed tasks; null **`due_date`**; future dates; other users' tasks. Response remains **aggregate-only** — no task rows or titles.
+
+**A2 does not add:** new migration; indexes; due-date **filters** or **sorting** on task list APIs; overdue-only or due-today-only **`/tasks`** URL params; stored user timezone; calendar integration; notifications.
+
+See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** for recommendation priority, hero CTAs, and **At a glance** UI.
 
 ---
 
@@ -87,22 +106,31 @@ Express task responses use **camelCase** `dueDate`:
 
 ## Explicit non-goals (deferred — separate phase gates)
 
-- Dashboard **overdue** / **due-today** counts
-- **Deadline-aware** dashboard hero recommendations
-- Due-date **sorting**, **filtering**, or **URL query parameters**
+- **Upcoming deadline window** on dashboard
+- Due-date **sorting**, **filtering**, or **URL query parameters** on **`/tasks`** (including overdue-only or due-today-only list filters)
 - **Reminders**, **notifications**, **exam dates**, **calendar integration**
+- **Stored user timezone** persistence
 - **Gemini-generated** due dates
 - **Trello** due-date synchronization
 - **AI scheduling**
 
-Optional task due dates are **not** a complete deadline-planning system.
+Optional task due dates + A2 dashboard aggregates are **not** a complete deadline-planning system.
 
 ---
 
-## Verification (phase gate)
+## Verification (phase gates)
+
+**P0:**
 
 - Backend tests: **533/533**
 - Frontend tests: **486/486**
 - Frontend build passed
 - Migration applied and verified on Supabase; persistence smoke test passed
 - Supervisor Re-review approved; Security Review approved
+
+**A2 (dashboard aggregates — no migration change):**
+
+- Backend tests: **541/541**
+- Frontend tests: **494/494**
+- Frontend build passed
+- Supervisor Review **PASS**; Security Review **PASS**; manual smoke **PASS**

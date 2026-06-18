@@ -18,6 +18,7 @@ import {
   deriveDashboardRecommendation,
 } from '../utils/dashboard-recommendation.js';
 import { buildFlashcardsPageDueNowLink } from '../utils/flashcard-nav-query.js';
+import { buildTasksPagePendingLink } from '../utils/task-nav-query.js';
 
 /**
  * @param {{ label: string, value: number | string, detail?: string }} props
@@ -448,6 +449,40 @@ export default function DashboardStub() {
                 <StatBand title="Tasks" bandClass="dashboard-band--tasks">
                   <StatItem label="Total tasks" value={stats.totalTasks} />
                   <StatItem label="Pending" value={stats.pendingTasks} />
+                  <StatItem
+                    label="Overdue"
+                    value={stats.overduePendingTasks ?? 0}
+                    detail={
+                      (stats.overduePendingTasks ?? 0) > 0 ? (
+                        <>
+                          Pending tasks past due ·{' '}
+                          <Link
+                            to={buildTasksPagePendingLink()}
+                            className="link-btn link-btn--secondary"
+                          >
+                            View pending tasks
+                          </Link>
+                        </>
+                      ) : undefined
+                    }
+                  />
+                  <StatItem
+                    label="Due today"
+                    value={stats.dueTodayPendingTasks ?? 0}
+                    detail={
+                      (stats.dueTodayPendingTasks ?? 0) > 0 ? (
+                        <>
+                          Due today ·{' '}
+                          <Link
+                            to={buildTasksPagePendingLink()}
+                            className="link-btn link-btn--secondary"
+                          >
+                            View pending tasks
+                          </Link>
+                        </>
+                      ) : undefined
+                    }
+                  />
                   <StatItem
                     label="Completed"
                     value={stats.completedTasks}

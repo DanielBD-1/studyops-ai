@@ -68,3 +68,16 @@ export function isValidIsoCalendarDate(value) {
 
 export const ISO_CALENDAR_DATE_MESSAGE =
   'Due date must be a valid calendar date (YYYY-MM-DD)';
+
+/**
+ * UTC calendar today as strict YYYY-MM-DD (injectable for tests).
+ *
+ * @param {Date} [date]
+ * @returns {string}
+ */
+export function getUtcTodayIsoCalendarDate(date = new Date()) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

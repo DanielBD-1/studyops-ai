@@ -54,6 +54,8 @@ export function findMostPendingCourse(courseStats) {
  * @typedef {{
  *   kind:
  *     | 'no-courses'
+ *     | 'overdue-tasks'
+ *     | 'due-today-tasks'
  *     | 'pending-tasks'
  *     | 'due-flashcards'
  *     | 'plan-gap'
@@ -79,6 +81,8 @@ export function deriveDashboardRecommendation(stats) {
 
   const totalCourses = stats.totalCourses ?? 0;
   const pendingTasks = stats.pendingTasks ?? 0;
+  const overduePendingTasks = stats.overduePendingTasks ?? 0;
+  const dueTodayPendingTasks = stats.dueTodayPendingTasks ?? 0;
   const totalStudyMaterials = stats.totalStudyMaterials ?? 0;
   const totalGeneratedPlans = stats.totalGeneratedPlans ?? 0;
   const totalFlashcards = stats.totalFlashcards ?? 0;
@@ -94,6 +98,26 @@ export function deriveDashboardRecommendation(stats) {
       context:
         'Organize study materials by subject before you add tasks or generate plans. Based on your pending tasks and active study plans.',
       primaryCta: { label: 'Go to My courses', to: '/courses' },
+    };
+  }
+
+  if (overduePendingTasks > 0) {
+    const taskWord = overduePendingTasks === 1 ? 'task' : 'tasks';
+    return {
+      kind: 'overdue-tasks',
+      headline: `You have ${overduePendingTasks} overdue pending ${taskWord}. Tackle those first.`,
+      context: 'Based on your pending tasks and active study plans.',
+      primaryCta: { label: 'View pending tasks', to: buildTasksPagePendingLink() },
+    };
+  }
+
+  if (dueTodayPendingTasks > 0) {
+    const taskWord = dueTodayPendingTasks === 1 ? 'task' : 'tasks';
+    return {
+      kind: 'due-today-tasks',
+      headline: `You have ${dueTodayPendingTasks} pending ${taskWord} due today.`,
+      context: 'Based on your pending tasks and active study plans.',
+      primaryCta: { label: 'View pending tasks', to: buildTasksPagePendingLink() },
     };
   }
 

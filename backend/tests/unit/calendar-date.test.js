@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   isValidIsoCalendarDate,
   parseIsoCalendarDateComponents,
+  getUtcTodayIsoCalendarDate,
 } from '../../src/shared/validation/calendar-date.js';
 
 describe('calendar-date validation', () => {
@@ -64,5 +65,29 @@ describe('calendar-date validation', () => {
     const parts = parseIsoCalendarDateComponents('0042-03-05');
     assert.deepEqual(parts, { year: 42, month: 3, day: 5 });
     assert.equal(isValidIsoCalendarDate('0042-03-05'), true);
+  });
+});
+
+describe('getUtcTodayIsoCalendarDate', () => {
+  it('returns strict YYYY-MM-DD from UTC components', () => {
+    assert.equal(
+      getUtcTodayIsoCalendarDate(new Date('2026-06-18T23:30:00.000Z')),
+      '2026-06-18'
+    );
+    assert.equal(
+      getUtcTodayIsoCalendarDate(new Date('2026-06-19T00:30:00.000Z')),
+      '2026-06-19'
+    );
+  });
+
+  it('zero-pads month and day', () => {
+    assert.equal(
+      getUtcTodayIsoCalendarDate(new Date('2026-01-05T12:00:00.000Z')),
+      '2026-01-05'
+    );
+    assert.equal(
+      getUtcTodayIsoCalendarDate(new Date('2026-03-09T12:00:00.000Z')),
+      '2026-03-09'
+    );
   });
 });
