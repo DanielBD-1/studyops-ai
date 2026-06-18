@@ -7,7 +7,9 @@ import {
 } from '../../src/utils/task-filters.js';
 import {
   buildTasksPageCoursePendingLink,
+  buildTasksPageDueTodayLink,
   buildTasksPageMaterialLink,
+  buildTasksPageOverdueLink,
   buildTasksPagePendingLink,
   buildTasksPageSearchParams,
   parseTasksPageSearchParams,
@@ -119,6 +121,22 @@ describe('parseTasksPageSearchParams', () => {
     assert.deepEqual(parseTasksPageSearchParams('?status='), {});
   });
 
+  it('parses valid deadline=overdue', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?deadline=overdue'), { deadline: 'overdue' });
+  });
+
+  it('parses valid deadline=due_today with status', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?status=pending&deadline=due_today'), {
+      status: 'pending',
+      deadline: 'due_today',
+    });
+  });
+
+  it('ignores invalid deadline values', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?deadline=all'), {});
+    assert.deepEqual(parseTasksPageSearchParams('?deadline=due_soon'), {});
+  });
+
   it('ignores unknown query params', () => {
     assert.deepEqual(
       parseTasksPageSearchParams(`?courseId=${COURSE_A}&foo=bar&status=pending`),
@@ -135,6 +153,7 @@ describe('buildTasksPageSearchParams', () => {
         courseFilter: 'all',
         materialFilter: 'all',
         statusFilter: 'all',
+        deadlineFilter: 'all',
       }),
       ''
     );
@@ -154,6 +173,7 @@ describe('buildTasksPageSearchParams', () => {
         courseFilter: COURSE_A,
         materialFilter: MATERIAL_A,
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }),
       `courseId=${COURSE_A}&materialId=${MATERIAL_A}&status=pending`
     );
@@ -165,6 +185,7 @@ describe('buildTasksPageSearchParams', () => {
         courseFilter: COURSE_A,
         materialFilter: 'all',
         statusFilter: 'all',
+        deadlineFilter: 'all',
       }),
       `courseId=${COURSE_A}`
     );
@@ -176,6 +197,7 @@ describe('buildTasksPageSearchParams', () => {
         courseFilter: 'all',
         materialFilter: MATERIAL_A,
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }),
       'status=pending'
     );
@@ -191,15 +213,44 @@ describe('buildTasksPageSearchParams', () => {
     );
   });
 
-  it('omits materialId=none when courseFilter is all', () => {
+  it('builds overdue deadline with pending status', () => {
+    assert.equal(
+      buildTasksPageSearchParams({ deadlineFilter: 'overdue' }),
+      'status=pending&deadline=overdue'
+    );
+  });
+
+  it('builds due_today with course and material composition', () => {
     assert.equal(
       buildTasksPageSearchParams({
-        courseFilter: 'all',
-        materialFilter: 'none',
-        statusFilter: 'pending',
+        courseFilter: COURSE_A,
+        materialFilter: MATERIAL_A,
+        deadlineFilter: 'due_today',
       }),
-      'status=pending'
+      `courseId=${COURSE_A}&materialId=${MATERIAL_A}&status=pending&deadline=due_today`
     );
+  });
+
+  it('drops deadline when building completed status', () => {
+    assert.equal(
+      buildTasksPageSearchParams({
+        statusFilter: 'completed',
+        deadlineFilter: 'overdue',
+      }),
+      'status=completed'
+    );
+  });
+});
+
+describe('buildTasksPageOverdueLink', () => {
+  it('returns exact overdue filtered tasks page link', () => {
+    assert.equal(buildTasksPageOverdueLink(), '/tasks?status=pending&deadline=overdue');
+  });
+});
+
+describe('buildTasksPageDueTodayLink', () => {
+  it('returns exact due-today filtered tasks page link', () => {
+    assert.equal(buildTasksPageDueTodayLink(), '/tasks?status=pending&deadline=due_today');
   });
 });
 
@@ -224,7 +275,41 @@ describe('resolveInitialTaskFilters', () => {
       courseFilter: 'all',
       materialFilter: 'all',
       statusFilter: 'all',
+      deadlineFilter: 'all',
     });
+  });
+
+  it('deadline alone canonicalizes to pending with overdue filter', () => {
+    assert.deepEqual(
+      resolveInitialTaskFilters({
+        deadline: 'overdue',
+        courses,
+        materials,
+      }),
+      {
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'pending',
+        deadlineFilter: 'overdue',
+      }
+    );
+  });
+
+  it('completed plus deadline drops deadline filter', () => {
+    assert.deepEqual(
+      resolveInitialTaskFilters({
+        status: 'completed',
+        deadline: 'overdue',
+        courses,
+        materials,
+      }),
+      {
+        courseFilter: 'all',
+        materialFilter: 'all',
+        statusFilter: 'completed',
+        deadlineFilter: 'all',
+      }
+    );
   });
 
   it('applies valid courseId, materialId, and status', () => {
@@ -240,6 +325,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: MATERIAL_A,
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -256,6 +342,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: MATERIAL_A,
         statusFilter: 'all',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -272,6 +359,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: 'all',
         statusFilter: 'all',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -289,6 +377,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: 'all',
         materialFilter: 'all',
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -306,6 +395,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: 'all',
         materialFilter: 'all',
         statusFilter: 'completed',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -323,6 +413,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: 'all',
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -339,6 +430,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: 'all',
         statusFilter: 'all',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -355,6 +447,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: COURSE_A,
         materialFilter: 'none',
         statusFilter: 'all',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -372,6 +465,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: 'all',
         materialFilter: 'all',
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }
     );
   });
@@ -389,6 +483,7 @@ describe('resolveInitialTaskFilters', () => {
         courseFilter: 'all',
         materialFilter: 'all',
         statusFilter: 'pending',
+        deadlineFilter: 'all',
       }
     );
   });

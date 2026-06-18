@@ -125,4 +125,16 @@ describe('course and global task forms due date UX', () => {
     assert.match(courseTasksSource, /setCreateDueDate\(''\)/);
     assert.match(globalTasksSource, /setCreateDueDate\(''\)/);
   });
+
+  it('includes deadline filter segments in global and course task toolbars', () => {
+    assert.match(globalTasksSource, /All deadlines/);
+    assert.match(globalTasksSource, /handleDeadlineFilterChange/);
+    assert.match(globalTasksSource, /aria-label="Filter tasks by deadline"/);
+    assert.match(globalTasksSource, /No overdue pending tasks\./);
+    assert.match(globalTasksSource, /Nothing due today\./);
+    assert.match(courseTasksSource, /All deadlines/);
+    assert.match(courseTasksSource, /handleDeadlineFilterChange/);
+    assert.match(courseTasksSource, /No overdue pending tasks in this course\./);
+    assert.match(courseTasksSource, /Nothing due today in this course\./);
+  });
 });

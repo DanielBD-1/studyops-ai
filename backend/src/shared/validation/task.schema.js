@@ -61,21 +61,68 @@ export const taskIdParamSchema = z
   })
   .strict();
 
+const rejectArrayQueryValue = (value) => (Array.isArray(value) ? '__invalid_array__' : value);
+
+const taskListStatusQuerySchema = z.preprocess(
+  rejectArrayQueryValue,
+  z
+    .enum(['pending', 'completed'], {
+      message: 'Status must be pending or completed',
+    })
+    .optional()
+);
+
+const taskListDeadlineQuerySchema = z.preprocess(
+  rejectArrayQueryValue,
+  z
+    .enum(['overdue', 'due_today'], {
+      message: 'Deadline must be overdue or due_today',
+    })
+    .optional()
+);
+
+const taskListReferenceDateQuerySchema = z.preprocess(
+  rejectArrayQueryValue,
+  taskDueDateSchema.optional()
+);
+
+const taskListQueryCrossFieldValidation = (data, ctx) => {
+  if (data.referenceDate && !data.deadline) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'referenceDate requires deadline',
+      path: ['referenceDate'],
+    });
+  }
+  if (data.deadline && data.status === 'completed') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'deadline cannot be combined with status=completed',
+      path: ['deadline'],
+    });
+  }
+};
+
 export const listTasksQuerySchema = z
   .object({
-    courseId: z.string().uuid('Invalid course id').optional(),
-    status: z.enum(['pending', 'completed'], {
-      message: 'Status must be pending or completed',
-    }).optional(),
+    courseId: z.preprocess(
+      rejectArrayQueryValue,
+      z.string().uuid('Invalid course id').optional()
+    ),
+    status: taskListStatusQuerySchema,
+    deadline: taskListDeadlineQuerySchema,
+    referenceDate: taskListReferenceDateQuerySchema,
   })
-  .strict();
+  .strict()
+  .superRefine(taskListQueryCrossFieldValidation);
 
 export const listCourseTasksQuerySchema = z
   .object({
-    status: z.enum(['pending', 'completed'], {
-      message: 'Status must be pending or completed',
-    }).optional(),
+    status: taskListStatusQuerySchema,
+    deadline: taskListDeadlineQuerySchema,
+    referenceDate: taskListReferenceDateQuerySchema,
   })
-  .strict();
+  .strict()
+  .superRefine(taskListQueryCrossFieldValidation);
 
 export const completeTaskBodySchema = z.object({}).strict();

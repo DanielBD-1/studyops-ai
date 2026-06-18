@@ -13,7 +13,9 @@ Phase DASHBOARD-DEPTH-P0 adds an optional **day-level** calendar due date on `pu
 
 **In P0:** SQL migration + backend API + frontend forms/display + tests. **Not** a full deadline-planning or dashboard-intelligence system.
 
-**Phase DASHBOARD-DEPTH-A2 (complete):** Reads **`due_date`** for authenticated-user **aggregate** overdue/due-today counts on **`GET /api/dashboard/stats`**. Migration **015** is **unchanged** — **no** new schema, indexes, due-date filters, sorting, or timezone persistence in A2.
+**Phase DASHBOARD-DEPTH-A2 (complete):** Reads **`due_date`** for authenticated-user **aggregate** overdue/due-today counts on **`GET /api/dashboard/stats`**. Migration **015** is **unchanged** — **no** new schema, indexes, or timezone persistence in A2.
+
+**Phase TASK-DUE-FILTERS-A1 (complete):** Reads **`due_date`** for authenticated-user **backend-filtered** overdue/due-today **task list** results on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**. Migration **015** is **unchanged** — **no** new schema, indexes, due-date **sorting**, or timezone persistence in A1.
 
 ---
 
@@ -55,7 +57,39 @@ Express task responses use **camelCase** `dueDate`:
 
 **Validation:** `backend/src/shared/validation/calendar-date.js` + `taskDueDateSchema` — strict `YYYY-MM-DD`; years **0001–9999**; Gregorian leap-year rules (including century years); impossible dates rejected; **past dates allowed**; empty/malformed/non-string → validation error. **No** implicit `new Date('YYYY-MM-DD')` parsing on the backend.
 
-**Unchanged:** `status` still via **`POST /api/tasks/:taskId/complete`** only; completing a task **preserves** `due_date`; list order remains **`created_at DESC`**.
+**Unchanged:** `status` still via **`POST /api/tasks/:taskId/complete`** only; completing a task **preserves** `due_date`; list order remains **`created_at DESC`** (including when **`deadline`** filters are active — **no** due-date sorting in **TASK-DUE-FILTERS-A1**).
+
+---
+
+## Task list deadline filters (TASK-DUE-FILTERS-A1)
+
+Both list routes accept optional deadline query parameters (migration **015** unchanged):
+
+| Route | Optional query |
+|-------|----------------|
+| **`GET /api/tasks`** | **`deadline=overdue|due_today`**, **`referenceDate=YYYY-MM-DD`** |
+| **`GET /api/courses/:courseId/tasks`** | **`deadline=overdue|due_today`**, **`referenceDate=YYYY-MM-DD`** |
+
+| Rule | Behavior |
+|------|----------|
+| **`deadline` with omitted `status`** | Treated as **pending** |
+| **`deadline` with `status=completed`** | **400** validation error |
+| **`referenceDate` without `deadline`** | **400** validation error |
+| **`referenceDate` omitted on API** | Server **UTC** calendar date |
+| **Frontend fetch** | Sends **browser-local** calendar date as **`referenceDate`** when a deadline filter is active |
+
+| Filter | Semantics |
+|--------|-----------|
+| **Overdue** | **`status = pending`**, **`due_date IS NOT NULL`**, **`due_date < referenceDate`** |
+| **Due today** | **`status = pending`**, **`due_date = referenceDate`** |
+
+**Global `/tasks`:** URL-persisted **`deadline=overdue|due_today`** (implies **`status=pending`**); invalid frontend values canonicalized away; **`referenceDate` is not stored in the browser URL**.
+
+**Course `/courses/:id`:** **Overdue** / **Due today** filters are **local/in-memory** — **not** persisted in the course URL.
+
+**Dashboard:** Recommendation **overdue-tasks** / **due-today-tasks** heroes and **At a glance** **Overdue** / **Due today** statistics link to **`/tasks?status=pending&deadline=overdue`** and **`/tasks?status=pending&deadline=due_today`**.
+
+See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-DUE-FILTERS-A1** for UI composition with course/material/status filters and deadline-specific empty states.
 
 ---
 
@@ -89,32 +123,36 @@ Migration **015** remains the sole schema source for **`due_date`**. **DASHBOARD
 
 **Excluded from counts:** completed tasks; null **`due_date`**; future dates; other users' tasks. Response remains **aggregate-only** — no task rows or titles.
 
-**A2 does not add:** new migration; indexes; due-date **filters** or **sorting** on task list APIs; overdue-only or due-today-only **`/tasks`** URL params; stored user timezone; calendar integration; notifications.
+**A2 does not add:** new migration; indexes; stored user timezone; calendar integration; notifications.
 
-See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** for recommendation priority, hero CTAs, and **At a glance** UI.
+See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** for recommendation priority and hero CTAs (deadline hero URLs superseded for list navigation by **TASK-DUE-FILTERS-A1**).
 
 ---
 
-## Frontend surfaces (P0)
+## Frontend surfaces (P0 + A1)
 
-- **Course tasks** — optional due date on create/edit (`CourseTasksSection`)
-- **Global `/tasks`** — optional due date on create/edit (`GlobalTasksSection`)
+- **Course tasks** — optional due date on create/edit; **Overdue** / **Due today** deadline filters in-memory (**TASK-DUE-FILTERS-A1**)
+- **Global `/tasks`** — optional due date on create/edit; URL-persisted **`deadline=overdue|due_today`** (**TASK-DUE-FILTERS-A1**)
 - **`TaskCard`** — due-date line when set (pending future: `Due Jun 24`; today: `Due today`; overdue pending: `Overdue · Due Jun 10`; completed: neutral `Due Jun 10`; no date: no line)
 - **Material related tasks preview** — same presentation rules (`MaterialRelatedTasksSection`)
+- **Dashboard** — **Overdue** / **Due today** heroes and **At a glance** stats link to filtered **`/tasks`** URLs (**TASK-DUE-FILTERS-A1**)
 
 ---
 
 ## Explicit non-goals (deferred — separate phase gates)
 
 - **Upcoming deadline window** on dashboard
-- Due-date **sorting**, **filtering**, or **URL query parameters** on **`/tasks`** (including overdue-only or due-today-only list filters)
+- Due-date **sorting** (**TASK-DUE-SORT-A1** and later — **not started**)
+- **Upcoming/this-week** filters; **no-due-date** filter; **custom date ranges**
 - **Reminders**, **notifications**, **exam dates**, **calendar integration**
 - **Stored user timezone** persistence
 - **Gemini-generated** due dates
 - **Trello** due-date synchronization
+- **Backend material filtering** by **`materialId`** query param
+- **Collaboration/chat**
 - **AI scheduling**
 
-Optional task due dates + A2 dashboard aggregates are **not** a complete deadline-planning system.
+Optional task due dates + A2 dashboard aggregates + A1 deadline filters are **not** a complete deadline-planning system.
 
 ---
 
@@ -134,3 +172,10 @@ Optional task due dates + A2 dashboard aggregates are **not** a complete deadlin
 - Frontend tests: **494/494**
 - Frontend build passed
 - Supervisor Review **PASS**; Security Review **PASS**; manual smoke **PASS**
+
+**A1 (task list deadline filters — no migration change):**
+
+- Backend tests: **570/570**
+- Frontend tests: **512/512**
+- Frontend build passed
+- Supervisor Review **PASS**; focused Supervisor Re-review **PASS**; Security Review **PASS**; manual browser smoke **PASS**

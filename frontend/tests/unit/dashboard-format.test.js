@@ -19,6 +19,11 @@ import {
   findMostPendingCourse,
 } from '../../src/utils/dashboard-recommendation.js';
 import {
+  buildTasksPageDueTodayLink,
+  buildTasksPageOverdueLink,
+  buildTasksPagePendingLink,
+} from '../../src/utils/task-nav-query.js';
+import {
   COURSE_ACCENT_KEYS,
   DEFAULT_COURSE_ACCENT_KEY,
   getCourseAccentKey,
@@ -185,7 +190,7 @@ describe('dashboard-recommendation', () => {
 
       assert.equal(recommendation?.kind, 'overdue-tasks');
       assert.match(recommendation?.headline ?? '', /2 overdue pending tasks/);
-      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=overdue');
       assert.equal(recommendation?.primaryCta.label, 'View pending tasks');
       assert.equal(recommendation?.secondaryCta, undefined);
     });
@@ -202,7 +207,7 @@ describe('dashboard-recommendation', () => {
 
       assert.equal(recommendation?.kind, 'due-today-tasks');
       assert.match(recommendation?.headline ?? '', /2 pending tasks due today/);
-      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=due_today');
       assert.equal(recommendation?.secondaryCta, undefined);
     });
 
@@ -455,15 +460,83 @@ describe('dashboard-recommendation', () => {
 });
 
 describe('DashboardStub deadline task stats', () => {
-  it('shows Overdue and Due today counts with pending-task links when counts are positive', () => {
+  /**
+   * @param {string} label
+   * @param {string} endLabel
+   */
+  function atAGlanceStatSection(label, endLabel) {
+    const start = dashboardStubSource.indexOf(`label="${label}"`);
+    const end = dashboardStubSource.indexOf(`label="${endLabel}"`, start);
+    assert.ok(start >= 0, `expected ${label} stat in DashboardStub`);
+    assert.ok(end > start, `expected ${endLabel} stat after ${label}`);
+    return dashboardStubSource.slice(start, end);
+  }
+
+  it('At a glance Overdue detail uses the overdue-filtered URL', () => {
+    const section = atAGlanceStatSection('Overdue', 'Due today');
+    assert.match(section, /to=\{buildTasksPageOverdueLink\(\)\}/);
+    assert.doesNotMatch(section, /buildTasksPagePendingLink/);
+    assert.equal(buildTasksPageOverdueLink(), '/tasks?status=pending&deadline=overdue');
+  });
+
+  it('At a glance Due today detail uses the due-today-filtered URL', () => {
+    const section = atAGlanceStatSection('Due today', 'Completed');
+    assert.match(section, /to=\{buildTasksPageDueTodayLink\(\)\}/);
+    assert.doesNotMatch(section, /buildTasksPagePendingLink/);
+    assert.equal(buildTasksPageDueTodayLink(), '/tasks?status=pending&deadline=due_today');
+  });
+
+  it('shows Overdue and Due today counts when counts are positive', () => {
     assert.match(dashboardStubSource, /label="Overdue"/);
     assert.match(dashboardStubSource, /label="Due today"/);
     assert.match(dashboardStubSource, /stats\.overduePendingTasks/);
     assert.match(dashboardStubSource, /stats\.dueTodayPendingTasks/);
-    assert.match(dashboardStubSource, /buildTasksPagePendingLink\(\)/);
     assert.match(dashboardStubSource, /View pending tasks/);
     assert.match(dashboardStubSource, /\(stats\.overduePendingTasks \?\? 0\) > 0/);
     assert.match(dashboardStubSource, /\(stats\.dueTodayPendingTasks \?\? 0\) > 0/);
+  });
+});
+
+describe('dashboard deadline task links', () => {
+  it('overdue recommendation hero uses the overdue-filtered URL', () => {
+    const recommendation = deriveDashboardRecommendation({
+      ...recommendationBaseStats,
+      pendingTasks: 2,
+      overduePendingTasks: 2,
+      dueTodayPendingTasks: 0,
+    });
+
+    assert.equal(recommendation?.kind, 'overdue-tasks');
+    assert.equal(recommendation?.primaryCta.to, buildTasksPageOverdueLink());
+    assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=overdue');
+  });
+
+  it('due-today recommendation hero uses the due-today-filtered URL', () => {
+    const recommendation = deriveDashboardRecommendation({
+      ...recommendationBaseStats,
+      pendingTasks: 2,
+      overduePendingTasks: 0,
+      dueTodayPendingTasks: 2,
+    });
+
+    assert.equal(recommendation?.kind, 'due-today-tasks');
+    assert.equal(recommendation?.primaryCta.to, buildTasksPageDueTodayLink());
+    assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=due_today');
+  });
+
+  it('generic pending recommendation hero keeps the generic pending URL', () => {
+    const recommendation = deriveDashboardRecommendation({
+      ...recommendationBaseStats,
+      pendingTasks: 3,
+      overduePendingTasks: 0,
+      dueTodayPendingTasks: 0,
+      completedTasks: 1,
+      totalTasks: 4,
+    });
+
+    assert.equal(recommendation?.kind, 'pending-tasks');
+    assert.equal(recommendation?.primaryCta.to, buildTasksPagePendingLink());
+    assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending');
   });
 });
 

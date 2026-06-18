@@ -4,6 +4,7 @@ import {
   createTaskBodySchema,
   updateTaskBodySchema,
   listTasksQuerySchema,
+  listCourseTasksQuerySchema,
   completeTaskBodySchema,
 } from '../../src/shared/validation/task.schema.js';
 
@@ -207,8 +208,94 @@ describe('tasks.validation listTasksQuerySchema', () => {
     assert.equal(parsed.success, true);
   });
 
+  it('accepts deadline filters with optional referenceDate', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      deadline: 'overdue',
+      referenceDate: '2026-06-18',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts deadline without referenceDate', () => {
+    const parsed = listTasksQuerySchema.safeParse({ deadline: 'due_today' });
+    assert.equal(parsed.success, true);
+  });
+
   it('rejects invalid status filter', () => {
     const parsed = listTasksQuerySchema.safeParse({ status: 'in_progress' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects invalid deadline filter', () => {
+    const parsed = listTasksQuerySchema.safeParse({ deadline: 'due_soon' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects referenceDate without deadline', () => {
+    const parsed = listTasksQuerySchema.safeParse({ referenceDate: '2026-06-18' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects completed status with deadline', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      status: 'completed',
+      deadline: 'overdue',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects empty referenceDate', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      deadline: 'overdue',
+      referenceDate: '',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects malformed referenceDate', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      deadline: 'overdue',
+      referenceDate: '2026-06-18T00:00:00.000Z',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects impossible referenceDate', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      deadline: 'overdue',
+      referenceDate: '2026-02-30',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects repeated deadline query values', () => {
+    const parsed = listTasksQuerySchema.safeParse({ deadline: ['overdue', 'due_today'] });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects repeated referenceDate query values', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      deadline: 'overdue',
+      referenceDate: ['2026-06-18', '2026-06-19'],
+    });
+    assert.equal(parsed.success, false);
+  });
+});
+
+describe('tasks.validation listCourseTasksQuerySchema', () => {
+  it('accepts deadline filter on course task list', () => {
+    const parsed = listCourseTasksQuerySchema.safeParse({
+      deadline: 'due_today',
+      referenceDate: '2026-06-18',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('rejects completed status with deadline on course task list', () => {
+    const parsed = listCourseTasksQuerySchema.safeParse({
+      status: 'completed',
+      deadline: 'due_today',
+    });
     assert.equal(parsed.success, false);
   });
 });

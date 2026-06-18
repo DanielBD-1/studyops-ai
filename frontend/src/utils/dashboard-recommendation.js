@@ -1,6 +1,8 @@
 import { buildFlashcardsPageDueNowLink } from './flashcard-nav-query.js';
 import {
   buildTasksPageCoursePendingLink,
+  buildTasksPageDueTodayLink,
+  buildTasksPageOverdueLink,
   buildTasksPagePendingLink,
 } from './task-nav-query.js';
 
@@ -107,7 +109,7 @@ export function deriveDashboardRecommendation(stats) {
       kind: 'overdue-tasks',
       headline: `You have ${overduePendingTasks} overdue pending ${taskWord}. Tackle those first.`,
       context: 'Based on your pending tasks and active study plans.',
-      primaryCta: { label: 'View pending tasks', to: buildTasksPagePendingLink() },
+      primaryCta: { label: 'View pending tasks', to: buildTasksPageOverdueLink() },
     };
   }
 
@@ -117,7 +119,7 @@ export function deriveDashboardRecommendation(stats) {
       kind: 'due-today-tasks',
       headline: `You have ${dueTodayPendingTasks} pending ${taskWord} due today.`,
       context: 'Based on your pending tasks and active study plans.',
-      primaryCta: { label: 'View pending tasks', to: buildTasksPagePendingLink() },
+      primaryCta: { label: 'View pending tasks', to: buildTasksPageDueTodayLink() },
     };
   }
 

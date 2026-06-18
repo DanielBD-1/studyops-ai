@@ -53,6 +53,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   const [statusFilter, setStatusFilter] = useState(
     /** @type {'all' | 'pending' | 'completed'} */ ('all')
   );
+  const [deadlineFilter, setDeadlineFilter] = useState(
+    /** @type {'all' | 'overdue' | 'due_today'} */ ('all')
+  );
   const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
   const [filterMaterials, setFilterMaterials] = useState(
     /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
@@ -121,7 +124,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   }
 
   /**
-   * @param {{ courseFilter?: 'all' | string, statusFilter?: 'all' | 'pending' | 'completed' }} [overrides]
+   * @param {{
+   *   courseFilter?: 'all' | string,
+   *   statusFilter?: 'all' | 'pending' | 'completed',
+   *   deadlineFilter?: 'all' | 'overdue' | 'due_today',
+   * }} [overrides]
    */
   const loadTasks = useCallback(
     async (overrides = {}) => {
@@ -130,19 +137,24 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
 
       const effectiveCourseFilter = overrides.courseFilter ?? courseFilter;
       const effectiveStatusFilter = overrides.statusFilter ?? statusFilter;
+      const effectiveDeadlineFilter = overrides.deadlineFilter ?? deadlineFilter;
 
       const courseId =
         effectiveCourseFilter !== 'all' &&
         courses.some((c) => c.id === effectiveCourseFilter)
           ? effectiveCourseFilter
           : undefined;
-      const status =
-        effectiveStatusFilter === 'pending' || effectiveStatusFilter === 'completed'
+      const hasDeadline =
+        effectiveDeadlineFilter === 'overdue' || effectiveDeadlineFilter === 'due_today';
+      const status = hasDeadline
+        ? 'pending'
+        : effectiveStatusFilter === 'pending' || effectiveStatusFilter === 'completed'
           ? effectiveStatusFilter
           : undefined;
+      const deadline = hasDeadline ? effectiveDeadlineFilter : undefined;
 
       try {
-        const data = await listAllTasks({ courseId, status });
+        const data = await listAllTasks({ courseId, status, deadline });
         setTasks(data.tasks);
       } catch (err) {
         if (await handleAuthError(err)) return;
@@ -151,7 +163,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         setLoading(false);
       }
     },
-    [courseFilter, statusFilter, handleAuthError, courses]
+    [courseFilter, statusFilter, deadlineFilter, handleAuthError, courses]
   );
 
   useEffect(() => {
@@ -163,6 +175,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
    *   courseFilter: 'all' | string,
    *   materialFilter: 'all' | string,
    *   statusFilter: 'all' | 'pending' | 'completed',
+   *   deadlineFilter?: 'all' | 'overdue' | 'due_today',
    * }} filters
    * @param {{ replace?: boolean }} [options]
    */
@@ -209,6 +222,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         courseId: courseInUrl,
         materialId: undefined,
         status: parsed.status,
+        deadline: parsed.deadline,
         courses,
         materials: [],
       });
@@ -219,6 +233,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       if (partial.statusFilter !== statusFilter) {
         setStatusFilter(partial.statusFilter);
       }
+      if (partial.deadlineFilter !== deadlineFilter) {
+        setDeadlineFilter(partial.deadlineFilter);
+      }
       return;
     }
 
@@ -226,6 +243,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       courseId: parsed.courseId,
       materialId: parsed.materialId,
       status: parsed.status,
+      deadline: parsed.deadline,
       courses,
       materials: filterMaterials,
     });
@@ -239,11 +257,15 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     if (resolved.statusFilter !== statusFilter) {
       setStatusFilter(resolved.statusFilter);
     }
+    if (resolved.deadlineFilter !== deadlineFilter) {
+      setDeadlineFilter(resolved.deadlineFilter);
+    }
 
     const canonical = buildTasksPageSearchParams({
       courseFilter: resolved.courseFilter,
       materialFilter: resolved.materialFilter,
       statusFilter: resolved.statusFilter,
+      deadlineFilter: resolved.deadlineFilter,
     });
     const current = searchParams.toString();
     if (canonical !== current) {
@@ -261,6 +283,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     courseFilter,
     materialFilter,
     statusFilter,
+    deadlineFilter,
     setSearchParams,
   ]);
 
@@ -376,6 +399,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       courseFilter: course,
       materialFilter: nextMaterial,
       statusFilter,
+      deadlineFilter,
     });
   }
 
@@ -391,6 +415,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       courseFilter,
       materialFilter: material,
       statusFilter,
+      deadlineFilter,
     });
   }
 
@@ -401,11 +426,35 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     cancelCreate();
     cancelEdit();
     setActionError(null);
+    const nextDeadlineFilter =
+      filter === 'all' || filter === 'completed' ? 'all' : deadlineFilter;
     setStatusFilter(filter);
+    setDeadlineFilter(nextDeadlineFilter);
     pushFiltersToUrl({
       courseFilter,
       materialFilter,
       statusFilter: filter,
+      deadlineFilter: nextDeadlineFilter,
+    });
+  }
+
+  /**
+   * @param {'all' | 'overdue' | 'due_today'} filter
+   */
+  function handleDeadlineFilterChange(filter) {
+    cancelCreate();
+    cancelEdit();
+    setActionError(null);
+    const nextStatusFilter = filter === 'all' ? statusFilter : 'pending';
+    setDeadlineFilter(filter);
+    if (filter !== 'all') {
+      setStatusFilter('pending');
+    }
+    pushFiltersToUrl({
+      courseFilter,
+      materialFilter,
+      statusFilter: nextStatusFilter,
+      deadlineFilter: filter,
     });
   }
 
@@ -479,8 +528,13 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         courseFilter: createdCourseId,
         materialFilter,
         statusFilter: nextStatusFilter,
+        deadlineFilter,
       });
-      await loadTasks({ courseFilter: createdCourseId, statusFilter: nextStatusFilter });
+      await loadTasks({
+        courseFilter: createdCourseId,
+        statusFilter: nextStatusFilter,
+        deadlineFilter,
+      });
       refreshStats();
     } catch (err) {
       if (await handleAuthError(err)) return;
@@ -598,6 +652,13 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     { value: 'completed', label: 'Completed' },
   ];
 
+  /** @type {Array<{ value: 'all' | 'overdue' | 'due_today', label: string }>} */
+  const DEADLINE_FILTERS = [
+    { value: 'all', label: 'All deadlines' },
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'due_today', label: 'Due today' },
+  ];
+
   const materialTitleById = new Map([
     ...filterMaterials.map((m) => [m.id, m.title]),
     ...editMaterials.map((m) => [m.id, m.title]),
@@ -613,14 +674,34 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     tasks.length === 0 &&
     courseFilter === 'all' &&
     statusFilter === 'all' &&
-    materialFilter === 'all';
+    materialFilter === 'all' &&
+    deadlineFilter === 'all';
+
+  const hasMaterialFilter = materialFilter !== 'all';
+  const showDeadlineApiEmpty =
+    !loading &&
+    !error &&
+    tasks.length === 0 &&
+    !showGlobalEmpty &&
+    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
+    !hasMaterialFilter;
+
+  const showDeadlineMaterialEmpty =
+    !loading &&
+    !error &&
+    displayedTasks.length === 0 &&
+    !showGlobalEmpty &&
+    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
+    hasMaterialFilter;
 
   const showFilterEmpty =
     !loading &&
     !error &&
     displayedTasks.length === 0 &&
     !showGlobalEmpty &&
-    !(tasks.length === 0 && statusFilter === 'pending') &&
+    !showDeadlineApiEmpty &&
+    !showDeadlineMaterialEmpty &&
+    !(tasks.length === 0 && statusFilter === 'pending' && deadlineFilter === 'all') &&
     !(tasks.length === 0 && statusFilter === 'completed');
 
   const showUnlinkedFilterEmpty = showFilterEmpty && materialFilter === 'none';
@@ -696,6 +777,28 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                     className={`btn ${selected ? 'btn--primary' : 'btn--secondary'}`.trim()}
                     aria-pressed={selected}
                     onClick={() => handleStatusFilterChange(f.value)}
+                    disabled={busy}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div
+              className="filter-toolbar__segment task-workspace__deadline-segment"
+              role="group"
+              aria-label="Filter tasks by deadline"
+            >
+              {DEADLINE_FILTERS.map((f) => {
+                const selected = deadlineFilter === f.value;
+                return (
+                  <button
+                    key={f.value}
+                    type="button"
+                    className={`btn ${selected ? 'btn--primary' : 'btn--secondary'}`.trim()}
+                    aria-pressed={selected}
+                    onClick={() => handleDeadlineFilterChange(f.value)}
                     disabled={busy}
                   >
                     {f.label}
@@ -859,8 +962,30 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         </div>
       )}
 
-      {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'pending' && (
+      {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'pending' && deadlineFilter === 'all' && (
         <p className="section__meta task-workspace__filter-empty">No pending tasks.</p>
+      )}
+
+      {showDeadlineApiEmpty && deadlineFilter === 'overdue' && (
+        <p className="section__meta task-workspace__filter-empty">
+          No overdue pending tasks.
+        </p>
+      )}
+
+      {showDeadlineApiEmpty && deadlineFilter === 'due_today' && (
+        <p className="section__meta task-workspace__filter-empty">Nothing due today.</p>
+      )}
+
+      {showDeadlineMaterialEmpty && deadlineFilter === 'overdue' && (
+        <p className="section__meta task-workspace__filter-empty">
+          No overdue pending tasks match the selected filters.
+        </p>
+      )}
+
+      {showDeadlineMaterialEmpty && deadlineFilter === 'due_today' && (
+        <p className="section__meta task-workspace__filter-empty">
+          Nothing due today matches the selected filters.
+        </p>
       )}
 
       {!loading && !error && tasks.length === 0 && !showGlobalEmpty && statusFilter === 'completed' && (

@@ -1,6 +1,10 @@
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { assertCourseOwned } from '../study-materials/study-materials.service.js';
+import {
+  applyTaskDeadlineFilters,
+  resolveTaskListReferenceDate,
+} from './tasks-deadline-query.js';
 
 const TASK_COLUMNS =
   'id, course_id, material_id, title, description, priority, estimated_minutes, difficulty, tags, status, source, due_date, created_at, updated_at';
@@ -146,9 +150,34 @@ export async function getOwnedTaskOrThrow(userId, taskId) {
 }
 
 /**
+ * @param {import('@supabase/postgrest-js').PostgrestFilterBuilder<any, any, any>} builder
+ * @param {{
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today',
+ *   referenceDate?: string,
+ * }} query
+ */
+function applyTaskListStatusAndDeadlineFilters(builder, query) {
+  if (query.deadline) {
+    const referenceDate = resolveTaskListReferenceDate(query);
+    return applyTaskDeadlineFilters(builder, query.deadline, referenceDate);
+  }
+
+  if (query.status) {
+    return builder.eq('status', query.status);
+  }
+
+  return builder;
+}
+
+/**
  * @param {string} userId
  * @param {string} courseId
- * @param {{ status?: 'pending' | 'completed' }} [query]
+ * @param {{
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today',
+ *   referenceDate?: string,
+ * }} [query]
  */
 export async function listTasksByCourse(userId, courseId, query = {}) {
   await assertCourseOwned(userId, courseId);
@@ -160,9 +189,7 @@ export async function listTasksByCourse(userId, courseId, query = {}) {
     .eq('course_id', courseId)
     .order('created_at', { ascending: false });
 
-  if (query.status) {
-    builder = builder.eq('status', query.status);
-  }
+  builder = applyTaskListStatusAndDeadlineFilters(builder, query);
 
   const { data, error } = await builder;
 
@@ -175,7 +202,12 @@ export async function listTasksByCourse(userId, courseId, query = {}) {
 
 /**
  * @param {string} userId
- * @param {{ courseId?: string, status?: 'pending' | 'completed' }} [query]
+ * @param {{
+ *   courseId?: string,
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today',
+ *   referenceDate?: string,
+ * }} [query]
  */
 export async function listTasks(userId, query = {}) {
   if (query.courseId) {
@@ -192,9 +224,7 @@ export async function listTasks(userId, query = {}) {
     builder = builder.eq('course_id', query.courseId);
   }
 
-  if (query.status) {
-    builder = builder.eq('status', query.status);
-  }
+  builder = applyTaskListStatusAndDeadlineFilters(builder, query);
 
   const { data, error } = await builder;
 

@@ -83,7 +83,7 @@ describe('tasks.service', () => {
       };
     });
 
-    await listCourseTasks(COURSE_ID, 'pending');
+    await listCourseTasks(COURSE_ID, { status: 'pending' });
     assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks?status=pending`);
     assert.equal(calls[0].init.method, 'GET');
   });
@@ -98,12 +98,12 @@ describe('tasks.service', () => {
       };
     });
 
-    await listCourseTasks(COURSE_ID, 'completed');
+    await listCourseTasks(COURSE_ID, { status: 'completed' });
     assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks?status=completed`);
     assert.equal(calls[0].init.method, 'GET');
   });
 
-  it('listCourseTasks with undefined status sends no query string', async () => {
+  it('listCourseTasks with empty filters sends no query string', async () => {
     __setApiFetchForTests(async (path, init, accessToken) => {
       calls.push({ path, init, token: accessToken });
       return {
@@ -113,8 +113,58 @@ describe('tasks.service', () => {
       };
     });
 
-    await listCourseTasks(COURSE_ID, undefined);
+    await listCourseTasks(COURSE_ID, {});
     assert.equal(calls[0].path, `/api/courses/${COURSE_ID}/tasks`);
+  });
+
+  it('listCourseTasks with overdue deadline sends deadline, pending status, and referenceDate', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, { deadline: 'overdue' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('deadline'), 'overdue');
+    assert.equal(url.searchParams.get('status'), 'pending');
+    assert.match(url.searchParams.get('referenceDate') ?? '', /^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('listAllTasks with overdue deadline sends deadline, pending status, and referenceDate', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ deadline: 'due_today' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('deadline'), 'due_today');
+    assert.equal(url.searchParams.get('status'), 'pending');
+    assert.match(url.searchParams.get('referenceDate') ?? '', /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal(url.searchParams.get('courseId'), null);
+  });
+
+  it('listAllTasks without deadline does not send referenceDate', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ status: 'pending' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('referenceDate'), null);
   });
 
   it('listAllTasks calls GET /api/tasks with Bearer token', async () => {

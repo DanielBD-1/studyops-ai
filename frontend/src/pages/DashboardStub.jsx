@@ -18,7 +18,10 @@ import {
   deriveDashboardRecommendation,
 } from '../utils/dashboard-recommendation.js';
 import { buildFlashcardsPageDueNowLink } from '../utils/flashcard-nav-query.js';
-import { buildTasksPagePendingLink } from '../utils/task-nav-query.js';
+import {
+  buildTasksPageDueTodayLink,
+  buildTasksPageOverdueLink,
+} from '../utils/task-nav-query.js';
 
 /**
  * @param {{ label: string, value: number | string, detail?: string }} props
@@ -457,7 +460,7 @@ export default function DashboardStub() {
                         <>
                           Pending tasks past due ·{' '}
                           <Link
-                            to={buildTasksPagePendingLink()}
+                            to={buildTasksPageOverdueLink()}
                             className="link-btn link-btn--secondary"
                           >
                             View pending tasks
@@ -474,7 +477,7 @@ export default function DashboardStub() {
                         <>
                           Due today ·{' '}
                           <Link
-                            to={buildTasksPagePendingLink()}
+                            to={buildTasksPageDueTodayLink()}
                             className="link-btn link-btn--secondary"
                           >
                             View pending tasks

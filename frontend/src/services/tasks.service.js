@@ -1,6 +1,7 @@
 import { apiFetch } from './api.js';
 import { ApiRequestError } from './courses.service.js';
 import { getSupabaseBrowser } from '../lib/supabase.js';
+import { getLocalTodayIsoCalendarDate } from '../utils/task-due-date.js';
 
 export { ApiRequestError };
 
@@ -80,28 +81,60 @@ async function request(path, init = {}) {
  */
 
 /**
- * @param {string} courseId
- * @param {'pending' | 'completed' | undefined} [status]
+ * @param {{
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today',
+ *   referenceDate?: string,
+ * }} [filters]
+ * @returns {URLSearchParams}
  */
-export async function listCourseTasks(courseId, status) {
-  const path =
-    status === 'pending' || status === 'completed'
-      ? `/api/courses/${courseId}/tasks?status=${status}`
-      : `/api/courses/${courseId}/tasks`;
+function buildTaskListQueryParams(filters = {}) {
+  const params = new URLSearchParams();
+  const hasDeadline = filters.deadline === 'overdue' || filters.deadline === 'due_today';
+
+  if (hasDeadline) {
+    params.set('deadline', filters.deadline);
+    params.set('referenceDate', filters.referenceDate ?? getLocalTodayIsoCalendarDate());
+    params.set('status', 'pending');
+  } else if (filters.status === 'pending' || filters.status === 'completed') {
+    params.set('status', filters.status);
+  }
+
+  return params;
+}
+
+/**
+ * @param {string} courseId
+ * @param {{
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today',
+ * }} [filters]
+ */
+export async function listCourseTasks(courseId, filters = {}) {
+  const params = buildTaskListQueryParams(filters);
+  const query = params.toString();
+  const path = query
+    ? `/api/courses/${courseId}/tasks?${query}`
+    : `/api/courses/${courseId}/tasks`;
   const data = await request(path, { method: 'GET' });
   return /** @type {{ tasks: StudyTask[] }} */ (data);
 }
 
 /**
- * @param {{ courseId?: string, status?: 'pending' | 'completed' }} [filters]
+ * @param {{
+ *   courseId?: string,
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today',
+ * }} [filters]
  */
 export async function listAllTasks(filters = {}) {
   const params = new URLSearchParams();
   if (filters.courseId) {
     params.set('courseId', filters.courseId);
   }
-  if (filters.status === 'pending' || filters.status === 'completed') {
-    params.set('status', filters.status);
+  const filterParams = buildTaskListQueryParams(filters);
+  for (const [key, value] of filterParams.entries()) {
+    params.set(key, value);
   }
   const query = params.toString();
   const path = query ? `/api/tasks?${query}` : '/api/tasks';

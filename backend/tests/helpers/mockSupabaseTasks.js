@@ -136,8 +136,24 @@ function resolveTasksSelect(state) {
     if (state.filters.status && t.status !== state.filters.status) return false;
     if (state.filters.source && t.source !== state.filters.source) return false;
     if (state.filters.material_id && t.material_id !== state.filters.material_id) return false;
+    if (state.filters.due_date && t.due_date !== state.filters.due_date) return false;
     return true;
   });
+
+  if (state.notNullColumns) {
+    for (const column of state.notNullColumns) {
+      rows = rows.filter((row) => row[column] != null);
+    }
+  }
+
+  if (state.ltFilters) {
+    for (const [column, maxValue] of Object.entries(state.ltFilters)) {
+      rows = rows.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) < String(maxValue);
+      });
+    }
+  }
 
   if (state.order?.column === 'created_at' && state.order.ascending === false) {
     rows = [...rows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
@@ -242,6 +258,8 @@ function createTasksBuilder() {
   /** @type {Record<string, unknown>} */
   const state = {
     filters: {},
+    notNullColumns: [],
+    ltFilters: {},
     single: false,
   };
 
@@ -267,6 +285,16 @@ function createTasksBuilder() {
     },
     eq(column, value) {
       state.filters[column] = value;
+      return builder;
+    },
+    not(column, operator, value) {
+      if (operator === 'is' && value === null) {
+        state.notNullColumns.push(column);
+      }
+      return builder;
+    },
+    lt(column, value) {
+      state.ltFilters[column] = value;
       return builder;
     },
     order(column, options) {
