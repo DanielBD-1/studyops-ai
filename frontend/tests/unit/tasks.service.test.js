@@ -30,6 +30,7 @@ const MOCK_TASK = {
   source: 'manual',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
+  dueDate: null,
 };
 
 /** @type {Array<{ path: string, init: RequestInit, token?: string }>} */
@@ -239,6 +240,62 @@ describe('tasks.service', () => {
         description: 'Focus on definitions',
         priority: 'high',
         materialId: MATERIAL_ID,
+      })
+    );
+  });
+
+  it('createCourseTask includes dueDate when provided', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { task: { ...MOCK_TASK, dueDate: '2026-06-24' } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await createCourseTask(COURSE_ID, {
+      title: 'Read chapter 1',
+      estimatedMinutes: 30,
+      dueDate: '2026-06-24',
+    });
+    assert.equal(
+      calls[0].init.body,
+      JSON.stringify({
+        title: 'Read chapter 1',
+        estimatedMinutes: 30,
+        dueDate: '2026-06-24',
+      })
+    );
+  });
+
+  it('updateTask PATCHes dueDate null to clear', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { task: { ...MOCK_TASK, dueDate: null } },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await updateTask(TASK_ID, {
+      title: 'Updated task title name',
+      estimatedMinutes: 45,
+      description: 'Revised notes',
+      priority: 'high',
+      materialId: null,
+      dueDate: null,
+    });
+    assert.equal(
+      calls[0].init.body,
+      JSON.stringify({
+        title: 'Updated task title name',
+        estimatedMinutes: 45,
+        description: 'Revised notes',
+        priority: 'high',
+        materialId: null,
+        dueDate: null,
       })
     );
   });

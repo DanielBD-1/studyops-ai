@@ -81,6 +81,51 @@ describe('createTaskFormSchema', () => {
       assert.equal(result.data.estimatedMinutes, 45);
     }
   });
+
+  it('accepts empty dueDate on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '',
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('accepts valid dueDate on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '2026-06-24',
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('rejects impossible dueDate on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '2026-02-30',
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('rejects invalid dueDate format on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '24-06-2026',
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('accepts past dueDate on create', () => {
+    const result = createTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '1990-03-01',
+    });
+    assert.equal(result.success, true);
+  });
 });
 
 describe('updateTaskFormSchema', () => {
@@ -130,6 +175,33 @@ describe('updateTaskFormSchema', () => {
       title: 'Valid title',
       estimatedMinutes: 30,
       materialId: 'not-a-uuid',
+    });
+    assert.equal(result.success, false);
+  });
+
+  it('accepts empty dueDate on update', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '',
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('accepts valid dueDate on update', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '2026-06-24',
+    });
+    assert.equal(result.success, true);
+  });
+
+  it('rejects invalid dueDate on update', () => {
+    const result = updateTaskFormSchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '2026-13-01',
     });
     assert.equal(result.success, false);
   });

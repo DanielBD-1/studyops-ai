@@ -3,7 +3,7 @@ import { ApiError } from '../../shared/errors/ApiError.js';
 import { assertCourseOwned } from '../study-materials/study-materials.service.js';
 
 const TASK_COLUMNS =
-  'id, course_id, material_id, title, description, priority, estimated_minutes, difficulty, tags, status, source, created_at, updated_at';
+  'id, course_id, material_id, title, description, priority, estimated_minutes, difficulty, tags, status, source, due_date, created_at, updated_at';
 
 const MATERIAL_OWNERSHIP_SELECT = 'id, course_id, courses!inner(id)';
 
@@ -70,6 +70,7 @@ function handleTaskError(error) {
  *   tags: string[],
  *   status: string,
  *   source: string,
+ *   due_date: string | null,
  *   created_at: string,
  *   updated_at: string,
  * }} row
@@ -87,6 +88,7 @@ export function mapTask(row) {
     tags: row.tags ?? [],
     status: row.status,
     source: row.source,
+    dueDate: row.due_date ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -212,6 +214,7 @@ export async function listTasks(userId, query = {}) {
  *   priority?: 'low' | 'medium' | 'high',
  *   estimatedMinutes: number,
  *   materialId?: string,
+ *   dueDate?: string | null,
  * }} input
  */
 export async function createTask(userId, courseId, input) {
@@ -235,6 +238,7 @@ export async function createTask(userId, courseId, input) {
       tags: [],
       source: 'manual',
       status: 'pending',
+      due_date: input.dueDate ?? null,
     })
     .select(TASK_COLUMNS)
     .single();
@@ -255,6 +259,7 @@ export async function createTask(userId, courseId, input) {
  *   priority?: 'low' | 'medium' | 'high',
  *   estimatedMinutes?: number,
  *   materialId?: string | null,
+ *   dueDate?: string | null,
  * }} input
  */
 export async function updateTask(userId, taskId, input) {
@@ -282,6 +287,9 @@ export async function updateTask(userId, taskId, input) {
       await assertMaterialBelongsToOwnedCourse(userId, existing.courseId, input.materialId);
       patch.material_id = input.materialId;
     }
+  }
+  if (Object.hasOwn(input, 'dueDate')) {
+    patch.due_date = input.dueDate;
   }
 
   const { data, error } = await getSupabaseAdmin()

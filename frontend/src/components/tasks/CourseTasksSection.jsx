@@ -38,6 +38,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
   const [estimatedMinutes, setEstimatedMinutes] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState(/** @type {'low' | 'medium' | 'high'} */ ('medium'));
+  const [createDueDate, setCreateDueDate] = useState('');
   const [createError, setCreateError] = useState(/** @type {string | null} */ (null));
   const [creating, setCreating] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(/** @type {string | null} */ (null));
@@ -45,6 +46,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editPriority, setEditPriority] = useState(/** @type {'low' | 'medium' | 'high'} */ ('medium'));
+  const [editDueDate, setEditDueDate] = useState('');
   const [editError, setEditError] = useState(/** @type {string | null} */ (null));
   const [savingEdit, setSavingEdit] = useState(false);
   const [completingId, setCompletingId] = useState(/** @type {string | null} */ (null));
@@ -64,6 +66,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setEditEstimatedMinutes('');
     setEditDescription('');
     setEditPriority('medium');
+    setEditDueDate('');
     setEditMaterialId('');
     setEditError(null);
   }
@@ -79,6 +82,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setEditEstimatedMinutes(String(task.estimatedMinutes));
     setEditDescription(task.description ?? '');
     setEditPriority(task.priority);
+    setEditDueDate(task.dueDate ?? '');
     setEditMaterialId(task.materialId ?? '');
     setEditError(null);
     setActionError(null);
@@ -146,6 +150,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       description: description.trim() === '' ? undefined : description,
       priority,
       materialId: createMaterialId === '' ? undefined : createMaterialId,
+      dueDate: createDueDate,
     });
     if (!parsed.success) {
       setCreateError(parsed.error.issues[0]?.message ?? 'Invalid input');
@@ -157,7 +162,8 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
      *   estimatedMinutes: number,
      *   description?: string,
      *   priority?: 'low' | 'medium' | 'high',
-     *   materialId?: string
+     *   materialId?: string,
+     *   dueDate?: string
      * }} */
     const body = {
       title: parsed.data.title,
@@ -172,6 +178,9 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     if (parsed.data.materialId !== undefined) {
       body.materialId = parsed.data.materialId;
     }
+    if (parsed.data.dueDate) {
+      body.dueDate = parsed.data.dueDate;
+    }
 
     setCreating(true);
     try {
@@ -180,6 +189,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       setEstimatedMinutes('');
       setDescription('');
       setPriority('medium');
+      setCreateDueDate('');
       setCreateMaterialId('');
       setShowCreate(false);
       await loadTasks();
@@ -208,19 +218,21 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       description: editDescription,
       priority: editPriority,
       materialId: editMaterialId === '' ? null : editMaterialId,
+      dueDate: editDueDate,
     });
     if (!parsed.success) {
       setEditError(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
     }
 
-    /** @type {{ title: string, estimatedMinutes: number, description: string, priority: 'low' | 'medium' | 'high', materialId: string | null }} */
+    /** @type {{ title: string, estimatedMinutes: number, description: string, priority: 'low' | 'medium' | 'high', materialId: string | null, dueDate: string | null }} */
     const body = {
       title: parsed.data.title,
       estimatedMinutes: parsed.data.estimatedMinutes,
       description: parsed.data.description?.trim() ?? '',
       priority: parsed.data.priority ?? editPriority,
       materialId: parsed.data.materialId ?? null,
+      dueDate: parsed.data.dueDate ? parsed.data.dueDate : null,
     };
 
     setSavingEdit(true);
@@ -436,6 +448,13 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
                       <option value="high">High</option>
                     </select>
                   </label>
+                  <Input
+                    id={`task-due-date-edit-${task.id}`}
+                    label="Due date (optional)"
+                    type="date"
+                    value={editDueDate}
+                    onChange={setEditDueDate}
+                  />
                   <label htmlFor={`task-material-edit-${task.id}`} className="field">
                     Link to material (optional)
                     <select
@@ -557,6 +576,13 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
                   <option value="high">High</option>
                 </select>
               </label>
+              <Input
+                id="task-due-date-create"
+                label="Due date (optional)"
+                type="date"
+                value={createDueDate}
+                onChange={setCreateDueDate}
+              />
               <label htmlFor="task-material-create" className="field">
                 Link to material (optional)
                 <select

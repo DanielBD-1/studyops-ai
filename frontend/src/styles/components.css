@@ -897,6 +897,21 @@
   line-height: var(--line-height-body);
 }
 
+.task-card__due-date {
+  margin: 0;
+  font-size: var(--font-size-meta);
+  color: var(--color-text-muted);
+}
+
+.task-card__due-date--overdue {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.task-card__due-date--completed {
+  color: var(--color-text-muted);
+}
+
 .task-card__actions {
   gap: var(--space-2);
 }

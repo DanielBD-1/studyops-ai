@@ -2619,6 +2619,15 @@ a.dashboard-hero__cta.btn:hover {
   color: var(--color-text-muted);
 }
 
+.material-related-tasks__due-date--overdue {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.material-related-tasks__due-date--completed {
+  color: var(--color-text-muted);
+}
+
 .material-related-tasks__more {
   margin: 0 0 var(--space-4);
 }

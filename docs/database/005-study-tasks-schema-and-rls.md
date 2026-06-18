@@ -249,6 +249,16 @@ Run as an authenticated student (Supabase SQL Editor with JWT, or app after Phas
 
 ---
 
+## Later schema extensions
+
+| Migration | Column | Document |
+|-----------|--------|----------|
+| **015** (`015_study_tasks_due_date.sql`) | `due_date date null` — optional day-level due date (**DASHBOARD-DEPTH-P0**) | `docs/database/015-study-tasks-due-date.md` |
+
+The Phase 3A-a table definition above is the **005 migration baseline**. **`due_date`** was added in migration **015** and is **not** part of the original 3A-a scope.
+
+---
+
 ## Related artifacts
 
 - `supabase/migrations/002_courses.sql`, `003_study_materials.sql` — parents

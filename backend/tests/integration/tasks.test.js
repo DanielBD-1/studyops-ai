@@ -5,6 +5,7 @@ import { applyTestEnv } from '../helpers/testEnv.js';
 import { setSupabaseAdminClientForTests } from '../../src/config/supabase.js';
 import {
   createTasksMockSupabaseClient,
+  getMockTasks,
   OWN_COURSE_ID,
   OTHER_USER_COURSE_ID,
   OWN_MATERIAL_ID,
@@ -113,6 +114,7 @@ describe('tasks API integration', () => {
     const task = createRes.body.data.task;
     assert.equal(task.status, 'pending');
     assert.equal(task.difficulty, 'medium');
+    assert.equal(task.dueDate, null);
     assert.deepEqual(task.tags, []);
     assert.equal('userId' in task, false);
 
@@ -212,5 +214,140 @@ describe('tasks API integration', () => {
     });
     assert.equal(statusCode, 400);
     assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('create with due date returns dueDate', async () => {
+    const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Task with due date integration',
+        estimatedMinutes: 15,
+        dueDate: '2026-07-04',
+      },
+    });
+    assert.equal(createRes.statusCode, 201);
+    assert.equal(createRes.body.data.task.dueDate, '2026-07-04');
+  });
+
+  it('create without due date returns dueDate null', async () => {
+    const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Task without due date integration',
+        estimatedMinutes: 15,
+      },
+    });
+    assert.equal(createRes.statusCode, 201);
+    assert.equal(createRes.body.data.task.dueDate, null);
+  });
+
+  it('PATCH sets due date', async () => {
+    const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: { title: 'Task to set due date', estimatedMinutes: 20 },
+    });
+    const taskId = createRes.body.data.task.id;
+
+    const patchRes = await request(`${base()}/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { dueDate: '2026-10-01' },
+    });
+    assert.equal(patchRes.statusCode, 200);
+    assert.equal(patchRes.body.data.task.dueDate, '2026-10-01');
+  });
+
+  it('PATCH omits dueDate and preserves existing due date', async () => {
+    const originalDueDate = '2026-08-15';
+    const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Task with due date to preserve',
+        estimatedMinutes: 20,
+        dueDate: originalDueDate,
+      },
+    });
+    const taskId = createRes.body.data.task.id;
+    assert.equal(createRes.body.data.task.dueDate, originalDueDate);
+
+    const patchRes = await request(`${base()}/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { title: 'Renamed without touching due date' },
+    });
+    assert.equal(patchRes.statusCode, 200);
+    assert.equal(patchRes.body.data.task.title, 'Renamed without touching due date');
+    assert.equal(patchRes.body.data.task.dueDate, originalDueDate);
+
+    const stored = getMockTasks().find((t) => t.id === taskId);
+    assert.ok(stored);
+    assert.equal(stored.due_date, originalDueDate);
+  });
+
+  it('PATCH clears due date with null', async () => {
+    const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Task to clear due date',
+        estimatedMinutes: 20,
+        dueDate: '2026-10-01',
+      },
+    });
+    const taskId = createRes.body.data.task.id;
+
+    const patchRes = await request(`${base()}/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: auth,
+      body: { dueDate: null },
+    });
+    assert.equal(patchRes.statusCode, 200);
+    assert.equal(patchRes.body.data.task.dueDate, null);
+  });
+
+  it('rejects invalid due date with 400', async () => {
+    const { statusCode, body } = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Invalid due date task',
+        estimatedMinutes: 20,
+        dueDate: '2026-02-30',
+      },
+    });
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('rejects empty string due date with 400', async () => {
+    const { statusCode, body } = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Empty due date task',
+        estimatedMinutes: 20,
+        dueDate: '',
+      },
+    });
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('accepts past due date on create', async () => {
+    const createRes = await request(`${base()}/api/courses/${OWN_COURSE_ID}/tasks`, {
+      method: 'POST',
+      headers: auth,
+      body: {
+        title: 'Past due date task',
+        estimatedMinutes: 20,
+        dueDate: '1999-05-05',
+      },
+    });
+    assert.equal(createRes.statusCode, 201);
+    assert.equal(createRes.body.data.task.dueDate, '1999-05-05');
   });
 });

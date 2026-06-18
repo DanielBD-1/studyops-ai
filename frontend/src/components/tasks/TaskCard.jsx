@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Button from '../ui/Button.jsx';
+import { getTaskDueDatePresentation } from '../../utils/task-due-date.js';
 
 /**
  * @param {{
@@ -32,6 +33,7 @@ export default function TaskCard({
   className,
 }) {
   const isCompleted = task.status === 'completed';
+  const dueDatePresentation = getTaskDueDatePresentation(task);
 
   const cardClass = [
     'source-card',
@@ -99,6 +101,19 @@ export default function TaskCard({
             >
               {materialLabel ?? 'View study material'}
             </Link>
+          </p>
+        ) : null}
+        {dueDatePresentation ? (
+          <p
+            className={[
+              'task-card__due-date',
+              dueDatePresentation.variant === 'overdue' && 'task-card__due-date--overdue',
+              dueDatePresentation.variant === 'completed' && 'task-card__due-date--completed',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <time dateTime={dueDatePresentation.dateTime}>{dueDatePresentation.label}</time>
           </p>
         ) : null}
       </div>
