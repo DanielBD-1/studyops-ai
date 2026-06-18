@@ -73,6 +73,7 @@ async function request(path, init = {}) {
  *   tags: string[],
  *   status: 'pending' | 'completed',
  *   source: string,
+ *   dueDate: string | null,
  *   createdAt: string,
  *   updatedAt: string,
  * }} StudyTask
@@ -115,7 +116,8 @@ export async function listAllTasks(filters = {}) {
  *   estimatedMinutes: number,
  *   description?: string,
  *   priority?: 'low' | 'medium' | 'high',
- *   materialId?: string | null
+ *   materialId?: string | null,
+ *   dueDate?: string | null
  * }} body
  */
 export async function createCourseTask(courseId, body) {
@@ -133,7 +135,8 @@ export async function createCourseTask(courseId, body) {
  *   estimatedMinutes: number,
  *   description?: string,
  *   priority?: 'low' | 'medium' | 'high',
- *   materialId?: string | null
+ *   materialId?: string | null,
+ *   dueDate?: string | null
  * }} body
  */
 export async function updateTask(taskId, body) {

@@ -60,6 +60,7 @@ describe('tasks.validation createTaskBodySchema', () => {
       'tags',
       'status',
       'trelloCardId',
+      'due_date',
     ]) {
       const parsed = createTaskBodySchema.safeParse({
         title: 'Valid title',
@@ -68,6 +69,95 @@ describe('tasks.validation createTaskBodySchema', () => {
       });
       assert.equal(parsed.success, false, `expected reject for ${field}`);
     }
+  });
+
+  it('accepts valid dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '2026-06-24',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts omitted dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts dueDate null on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: null,
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts past dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '1990-01-15',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('rejects impossible dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '2026-02-30',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects invalid dueDate format on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '06/24/2026',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects empty string dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects non-string dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: 20260624,
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects year 0000 dueDate on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '0000-06-01',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('accepts years 0001–0099 on create', () => {
+    const parsed = createTaskBodySchema.safeParse({
+      title: 'Valid title',
+      estimatedMinutes: 30,
+      dueDate: '0042-03-05',
+    });
+    assert.equal(parsed.success, true);
   });
 });
 
@@ -84,6 +174,26 @@ describe('tasks.validation updateTaskBodySchema', () => {
 
   it('rejects status on PATCH', () => {
     const parsed = updateTaskBodySchema.safeParse({ status: 'completed' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('accepts valid dueDate on update', () => {
+    const parsed = updateTaskBodySchema.safeParse({ dueDate: '2026-12-01' });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts dueDate null on update', () => {
+    const parsed = updateTaskBodySchema.safeParse({ dueDate: null });
+    assert.equal(parsed.success, true);
+  });
+
+  it('rejects invalid dueDate on update', () => {
+    const parsed = updateTaskBodySchema.safeParse({ dueDate: '2026-13-40' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects unknown fields on update', () => {
+    const parsed = updateTaskBodySchema.safeParse({ due_date: '2026-06-01' });
     assert.equal(parsed.success, false);
   });
 });

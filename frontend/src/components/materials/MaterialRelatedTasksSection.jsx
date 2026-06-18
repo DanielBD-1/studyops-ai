@@ -7,6 +7,7 @@ import {
   summarizeLinkedTaskCounts,
 } from '../../utils/task-filters.js';
 import { buildTasksPageMaterialLink } from '../../utils/task-nav-query.js';
+import { getTaskDueDatePresentation } from '../../utils/task-due-date.js';
 import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
@@ -124,6 +125,7 @@ export default function MaterialRelatedTasksSection({
           <ul className="material-related-tasks__list" aria-label="Linked study tasks preview">
             {previewTasks.map((task) => {
               const isCompleted = task.status === 'completed';
+              const dueDatePresentation = getTaskDueDatePresentation(task);
               return (
                 <li key={task.id} className="material-related-tasks__item">
                   <span
@@ -138,6 +140,26 @@ export default function MaterialRelatedTasksSection({
                   <span className="material-related-tasks__title">{task.title}</span>
                   <span className="material-related-tasks__meta">
                     {task.priority} priority · {task.estimatedMinutes} min
+                    {dueDatePresentation ? (
+                      <>
+                        {' · '}
+                        <span
+                          className={[
+                            'material-related-tasks__due-date',
+                            dueDatePresentation.variant === 'overdue' &&
+                              'material-related-tasks__due-date--overdue',
+                            dueDatePresentation.variant === 'completed' &&
+                              'material-related-tasks__due-date--completed',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        >
+                          <time dateTime={dueDatePresentation.dateTime}>
+                            {dueDatePresentation.label}
+                          </time>
+                        </span>
+                      </>
+                    ) : null}
                   </span>
                 </li>
               );

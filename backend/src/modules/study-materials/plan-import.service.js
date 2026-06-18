@@ -4,7 +4,7 @@ import { taskCheckValidationMessageFromError } from '../tasks/tasks.service.js';
 import { getOwnedMaterialOrThrow } from './study-materials.service.js';
 
 const PLAN_TASK_COLUMNS =
-  'id, course_id, material_id, title, description, priority, estimated_minutes, difficulty, tags, status, source, created_at, updated_at';
+  'id, course_id, material_id, title, description, priority, estimated_minutes, difficulty, tags, status, source, due_date, created_at, updated_at';
 
 const PLAN_FLASHCARD_COLUMNS =
   'id, course_id, material_id, question, answer, tags, source, created_at, updated_at';

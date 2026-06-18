@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidIsoCalendarDate, TASK_DUE_DATE_MESSAGE } from './task-due-date.js';
 
 const emailSchema = z
   .string()
@@ -112,6 +113,12 @@ export const taskEstimatedMinutesSchema = z.coerce
 
 export const materialIdSchema = z.string().uuid('Invalid material id');
 
+export const taskDueDateFormFieldSchema = z
+  .string()
+  .refine((value) => value === '' || isValidIsoCalendarDate(value), {
+    message: TASK_DUE_DATE_MESSAGE,
+  });
+
 export const createTaskFormSchema = z
   .object({
     title: taskTitleSchema,
@@ -119,6 +126,7 @@ export const createTaskFormSchema = z
     description: taskDescriptionSchema.optional(),
     priority: taskPrioritySchema.optional(),
     materialId: materialIdSchema.optional(),
+    dueDate: taskDueDateFormFieldSchema.optional(),
   })
   .strict();
 
@@ -129,6 +137,7 @@ export const updateTaskFormSchema = z
     description: taskDescriptionSchema.optional(),
     priority: taskPrioritySchema.optional(),
     materialId: materialIdSchema.nullable().optional(),
+    dueDate: taskDueDateFormFieldSchema.optional(),
   })
   .strict();
 

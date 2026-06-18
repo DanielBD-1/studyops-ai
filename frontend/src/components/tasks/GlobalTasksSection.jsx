@@ -63,6 +63,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editPriority, setEditPriority] = useState(/** @type {'low' | 'medium' | 'high'} */ ('medium'));
+  const [editDueDate, setEditDueDate] = useState('');
   const [editMaterialId, setEditMaterialId] = useState('');
   const [editMaterials, setEditMaterials] = useState(
     /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
@@ -81,6 +82,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   const [createPriority, setCreatePriority] = useState(
     /** @type {'low' | 'medium' | 'high'} */ ('medium')
   );
+  const [createDueDate, setCreateDueDate] = useState('');
   const [createMaterialId, setCreateMaterialId] = useState('');
   const [createMaterials, setCreateMaterials] = useState(
     /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
@@ -98,6 +100,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     setCreateEstimatedMinutes('');
     setCreateDescription('');
     setCreatePriority('medium');
+    setCreateDueDate('');
     setCreateMaterialId('');
     setCreateMaterials([]);
     setCreateError(null);
@@ -110,6 +113,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     setEditEstimatedMinutes('');
     setEditDescription('');
     setEditPriority('medium');
+    setEditDueDate('');
     setEditMaterialId('');
     setEditMaterials([]);
     setEditError(null);
@@ -343,6 +347,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     setEditEstimatedMinutes(String(task.estimatedMinutes));
     setEditDescription(task.description ?? '');
     setEditPriority(task.priority);
+    setEditDueDate(task.dueDate ?? '');
     setEditMaterialId(task.materialId ?? '');
     setLoadingEditMaterials(true);
 
@@ -427,6 +432,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       description: createDescription.trim() === '' ? undefined : createDescription,
       priority: createPriority,
       materialId: createMaterialId === '' ? undefined : createMaterialId,
+      dueDate: createDueDate,
     });
     if (!parsed.success) {
       setCreateError(parsed.error.issues[0]?.message ?? 'Invalid input');
@@ -438,7 +444,8 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
      *   estimatedMinutes: number,
      *   description?: string,
      *   priority?: 'low' | 'medium' | 'high',
-     *   materialId?: string
+     *   materialId?: string,
+     *   dueDate?: string
      * }} */
     const body = {
       title: parsed.data.title,
@@ -452,6 +459,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     }
     if (parsed.data.materialId !== undefined) {
       body.materialId = parsed.data.materialId;
+    }
+    if (parsed.data.dueDate) {
+      body.dueDate = parsed.data.dueDate;
     }
 
     const createdCourseId = createCourseId;
@@ -496,19 +506,21 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       description: editDescription,
       priority: editPriority,
       materialId: editMaterialId === '' ? null : editMaterialId,
+      dueDate: editDueDate,
     });
     if (!parsed.success) {
       setEditError(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
     }
 
-    /** @type {{ title: string, estimatedMinutes: number, description: string, priority: 'low' | 'medium' | 'high', materialId: string | null }} */
+    /** @type {{ title: string, estimatedMinutes: number, description: string, priority: 'low' | 'medium' | 'high', materialId: string | null, dueDate: string | null }} */
     const body = {
       title: parsed.data.title,
       estimatedMinutes: parsed.data.estimatedMinutes,
       description: parsed.data.description?.trim() ?? '',
       priority: parsed.data.priority ?? editPriority,
       materialId: parsed.data.materialId ?? null,
+      dueDate: parsed.data.dueDate ? parsed.data.dueDate : null,
     };
 
     setSavingEdit(true);
@@ -758,6 +770,13 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                   <option value="high">High</option>
                 </select>
               </label>
+              <Input
+                id="global-task-due-date-create"
+                label="Due date (optional)"
+                type="date"
+                value={createDueDate}
+                onChange={setCreateDueDate}
+              />
               <label htmlFor="global-task-material-create" className="field">
                 Link to material (optional)
                 <select
@@ -901,6 +920,13 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                         <option value="high">High</option>
                       </select>
                     </label>
+                    <Input
+                      id={`global-task-due-date-edit-${task.id}`}
+                      label="Due date (optional)"
+                      type="date"
+                      value={editDueDate}
+                      onChange={setEditDueDate}
+                    />
                     <label htmlFor={`global-task-material-edit-${task.id}`} className="field">
                       Link to material (optional)
                       <select

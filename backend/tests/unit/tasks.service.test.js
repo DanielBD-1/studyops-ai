@@ -50,13 +50,36 @@ describe('tasks.service', () => {
       tags: [],
       status: 'pending',
       source: 'manual',
+      due_date: null,
       created_at: '2026-01-01T00:00:00.000Z',
       updated_at: '2026-01-01T00:00:00.000Z',
     });
     assert.equal('userId' in mapped, false);
     assert.equal('user_id' in mapped, false);
     assert.equal('trelloCardId' in mapped, false);
+    assert.equal(mapped.dueDate, null);
     assert.equal(mapped.courseId, OWN_COURSE_ID);
+  });
+
+  it('mapTask maps due_date to dueDate', () => {
+    const mapped = mapTask({
+      id: OWN_TASK_ID,
+      user_id: TEST_USER_ID,
+      course_id: OWN_COURSE_ID,
+      material_id: null,
+      title: 'T',
+      description: '',
+      priority: 'medium',
+      estimated_minutes: 30,
+      difficulty: 'medium',
+      tags: [],
+      status: 'pending',
+      source: 'manual',
+      due_date: '2026-06-24',
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    });
+    assert.equal(mapped.dueDate, '2026-06-24');
   });
 
   it('maps study_tasks_title_length constraint message', () => {
@@ -76,11 +99,78 @@ describe('tasks.service', () => {
     assert.deepEqual(task.tags, []);
     assert.equal(task.source, 'manual');
     assert.equal(task.status, 'pending');
+    assert.equal(task.dueDate, null);
     const select = getLastStudyTasksSelectColumns();
     assert.ok(select);
+    assert.equal(select.includes('due_date'), true);
     assert.equal(select.includes('user_id'), false);
     assert.equal(select.includes('content'), false);
     assert.equal(select.includes('plan'), false);
+  });
+
+  it('createTask persists a valid dueDate', async () => {
+    const task = await createTask(TEST_USER_ID, OWN_COURSE_ID, {
+      title: 'Task with due date',
+      estimatedMinutes: 25,
+      dueDate: '2026-08-01',
+    });
+    assert.equal(task.dueDate, '2026-08-01');
+  });
+
+  it('createTask without dueDate stores null', async () => {
+    const task = await createTask(TEST_USER_ID, OWN_COURSE_ID, {
+      title: 'Task without due date',
+      estimatedMinutes: 25,
+      dueDate: null,
+    });
+    assert.equal(task.dueDate, null);
+  });
+
+  it('updateTask sets dueDate', async () => {
+    const task = await updateTask(TEST_USER_ID, OWN_TASK_ID, { dueDate: '2026-09-15' });
+    assert.equal(task.dueDate, '2026-09-15');
+  });
+
+  it('updateTask clears dueDate with null', async () => {
+    await updateTask(TEST_USER_ID, OWN_TASK_ID, { dueDate: '2026-09-15' });
+    const task = await updateTask(TEST_USER_ID, OWN_TASK_ID, { dueDate: null });
+    assert.equal(task.dueDate, null);
+  });
+
+  it('updateTask omitting dueDate preserves existing value', async () => {
+    await updateTask(TEST_USER_ID, OWN_TASK_ID, { dueDate: '2026-09-15' });
+    const task = await updateTask(TEST_USER_ID, OWN_TASK_ID, { title: 'Renamed task title' });
+    assert.equal(task.dueDate, '2026-09-15');
+    assert.equal(task.title, 'Renamed task title');
+  });
+
+  it('completeTask preserves dueDate', async () => {
+    await updateTask(TEST_USER_ID, OWN_TASK_ID, { dueDate: '2026-09-15' });
+    const completed = await completeTask(TEST_USER_ID, OWN_TASK_ID);
+    assert.equal(completed.status, 'completed');
+    assert.equal(completed.dueDate, '2026-09-15');
+  });
+
+  it('plan-import style row maps dueDate null', () => {
+    const mapped = mapTask({
+      id: OWN_TASK_ID,
+      user_id: TEST_USER_ID,
+      course_id: OWN_COURSE_ID,
+      material_id: OWN_MATERIAL_ID,
+      title: 'Imported plan task',
+      description: '',
+      priority: 'medium',
+      estimated_minutes: 30,
+      difficulty: 'medium',
+      tags: [],
+      status: 'pending',
+      source: 'plan',
+      due_date: null,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    });
+    assert.equal(mapped.source, 'plan');
+    assert.equal(mapped.dueDate, null);
   });
 
   it('assertMaterialBelongsToOwnedCourse selects minimal material columns', async () => {

@@ -56,6 +56,7 @@ export function resetTasksMockTelemetry() {
  *   tags: string[],
  *   status: string,
  *   source: string,
+ *   due_date: string | null,
  *   created_at: string,
  *   updated_at: string,
  * }>} */
@@ -73,6 +74,7 @@ const tasks = [
     tags: [],
     status: 'pending',
     source: 'manual',
+    due_date: null,
     created_at: '2026-01-10T00:00:00.000Z',
     updated_at: '2026-01-10T00:00:00.000Z',
   },
@@ -89,6 +91,7 @@ const tasks = [
     tags: [],
     status: 'pending',
     source: 'manual',
+    due_date: null,
     created_at: '2026-01-09T00:00:00.000Z',
     updated_at: '2026-01-09T00:00:00.000Z',
   },
@@ -197,6 +200,7 @@ function resolveTasksInsert(state) {
     tags: state.insert.tags ?? [],
     status: state.insert.status ?? 'pending',
     source: state.insert.source ?? 'manual',
+    due_date: state.insert.due_date ?? null,
     created_at: '2026-01-11T00:00:00.000Z',
     updated_at: '2026-01-11T00:00:00.000Z',
   };

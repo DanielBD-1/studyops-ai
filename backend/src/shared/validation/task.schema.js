@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import { ISO_CALENDAR_DATE_MESSAGE, isValidIsoCalendarDate } from './calendar-date.js';
+
+export const taskDueDateSchema = z
+  .string()
+  .refine((value) => isValidIsoCalendarDate(value), {
+    message: ISO_CALENDAR_DATE_MESSAGE,
+  });
 
 export const taskTitleSchema = z
   .string()
@@ -30,6 +37,7 @@ export const createTaskBodySchema = z
     priority: taskPrioritySchema.optional(),
     estimatedMinutes: estimatedMinutesSchema,
     materialId: materialIdSchema.optional(),
+    dueDate: taskDueDateSchema.nullable().optional(),
   })
   .strict();
 
@@ -40,6 +48,7 @@ export const updateTaskBodySchema = z
     priority: taskPrioritySchema.optional(),
     estimatedMinutes: estimatedMinutesSchema.optional(),
     materialId: materialIdSchema.nullable().optional(),
+    dueDate: taskDueDateSchema.nullable().optional(),
   })
   .strict()
   .refine((data) => Object.keys(data).length > 0, {
