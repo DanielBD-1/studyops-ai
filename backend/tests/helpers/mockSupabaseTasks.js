@@ -126,6 +126,64 @@ export function getMockTasks() {
 }
 
 /**
+ * @param {Record<string, unknown>} row
+ * @param {Record<string, unknown>} other
+ * @param {string} column
+ * @param {boolean} ascending
+ * @param {boolean | undefined} nullsFirst
+ * @returns {number}
+ */
+function compareTaskOrderColumn(row, other, column, ascending, nullsFirst) {
+  const left = row[column];
+  const right = other[column];
+
+  if (left == null && right == null) {
+    return 0;
+  }
+
+  if (left == null) {
+    return nullsFirst ? -1 : 1;
+  }
+
+  if (right == null) {
+    return nullsFirst ? 1 : -1;
+  }
+
+  const leftValue = String(left);
+  const rightValue = String(right);
+  let cmp = 0;
+  if (leftValue < rightValue) {
+    cmp = -1;
+  } else if (leftValue > rightValue) {
+    cmp = 1;
+  }
+
+  return ascending ? cmp : -cmp;
+}
+
+/**
+ * @param {typeof tasks} rows
+ * @param {Array<{ column: string, ascending: boolean, nullsFirst?: boolean }>} orders
+ */
+function applyTaskOrders(rows, orders) {
+  return [...rows].sort((left, right) => {
+    for (const order of orders) {
+      const cmp = compareTaskOrderColumn(
+        left,
+        right,
+        order.column,
+        order.ascending,
+        order.nullsFirst
+      );
+      if (cmp !== 0) {
+        return cmp;
+      }
+    }
+    return 0;
+  });
+}
+
+/**
  * @param {Record<string, unknown>} state
  */
 function resolveTasksSelect(state) {
@@ -155,8 +213,8 @@ function resolveTasksSelect(state) {
     }
   }
 
-  if (state.order?.column === 'created_at' && state.order.ascending === false) {
-    rows = [...rows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  if (state.orders?.length) {
+    rows = applyTaskOrders(rows, state.orders);
   }
 
   if (state.single) {
@@ -298,7 +356,14 @@ function createTasksBuilder() {
       return builder;
     },
     order(column, options) {
-      state.order = { column, ascending: options?.ascending ?? true };
+      if (!state.orders) {
+        state.orders = [];
+      }
+      state.orders.push({
+        column,
+        ascending: options?.ascending ?? true,
+        nullsFirst: options?.nullsFirst,
+      });
       return builder;
     },
     single() {

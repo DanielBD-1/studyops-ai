@@ -8,6 +8,10 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
+**DOCS-TASK-DUE-SORT-A1 (2026-06-19):** Phase **DOCS-TASK-DUE-SORT-A1** — documentation-only alignment for **TASK-DUE-SORT-A1** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. **No** application code, tests, migrations, packages, or CI changes. **Security Review: not required** (docs-only).
+
+**TASK-DUE-SORT-A1 (2026-06-19):** Phase **TASK-DUE-SORT-A1** — backend-owned deadline-aware task list ordering. **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`** share one contract: **Pending** / **`status=pending`** / **`deadline=overdue|due_today`** → **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`**; **Completed** / omitted **status**+**deadline** (**All**) → **`created_at DESC` → `id ASC`**; closes loop with **TASK-DUE-FILTERS-A1** (membership) + dashboard deadline counts; frontend renders API order — **no** client **`.sort()`**, **no** sort query param, **no** sort selector UI; material filter client-side preserves relative API order; **priority** not in sort; **no** migration/index; **no** frontend implementation files changed. Backend **589/589**; frontend **512/512**; build passed. **Supervisor Review: PASS.** **Security Review: APPROVED.** Manual smoke: **PASS.** **`git diff --check`**: clean. **Deferred:** upcoming/this-week; no-due-date filter; custom date ranges; priority sorting; user-selectable sort modes; drag-and-drop; stored timezone; calendar/reminders/notifications; plan-import due dates; Trello due-date sync; material preview ordering; DB index until measured; collaboration/chat. Docs: **DOCS-TASK-DUE-SORT-A1**.
+
 **DOCS-TASK-DUE-FILTERS-A1 (2026-06-18):** Phase **DOCS-TASK-DUE-FILTERS-A1** — documentation-only alignment for **TASK-DUE-FILTERS-A1** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. **No** application code, tests, migrations, packages, or CI changes. **Security Review: not required** (docs-only).
 
 **TASK-DUE-FILTERS-A1 (2026-06-18):** Phase **TASK-DUE-FILTERS-A1** — backend-filtered **Overdue** / **Due today** task lists. **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`** optional **`deadline=overdue|due_today`**, **`referenceDate=YYYY-MM-DD`**; **`deadline`** with omitted **`status`** → pending; **`deadline`** + **`status=completed`** → validation error; **`referenceDate`** without **`deadline`** → validation error; frontend browser-local date; omitted API **`referenceDate`** → server UTC; overdue = pending + non-null **`due_date` < referenceDate**; due today = pending + **`due_date` = referenceDate**; global **`/tasks`** URL **`deadline`** (implies **`status=pending`**; invalid values canonicalized; **`referenceDate`** not in URL); course deadline filters in-memory only; dashboard heroes + **At a glance** → **`/tasks?status=pending&deadline=overdue`** and **`/tasks?status=pending&deadline=due_today`**; order **`created_at DESC`**; **no** due-date sorting; **no** migration. Backend **570/570**; frontend **512/512**; build passed. **Supervisor Review: PASS.** Focused Supervisor Re-review: **PASS.** **Security Review: PASS.** Manual smoke: **PASS.** **Deferred:** due-date sorting; upcoming/this-week; no-due-date filter; custom date ranges; stored timezone; calendar/reminders/notifications; plan-import due dates; Trello due-date sync; backend material filtering; collaboration/chat. Docs: **DOCS-TASK-DUE-FILTERS-A1**.
@@ -82,7 +86,7 @@
 
 **Trello OAuth A2 (2026-06-03):** Phase **TRELLO-OAUTH-A2-DB** — encrypted `trello_connections` schema (migration **012**), `trello-token-crypto.js`, `trello-connection.repository.js`, unit tests, optional `TRELLO_API_KEY` / `TRELLO_TOKEN_ENCRYPTION_KEY` placeholders in `backend/.env.example`. **Supervisor + Security Review passed** for A2 implementation. Docs: ADR **006**, `docs/security/trello-oauth-foundation.md`, **TRELLO-OAUTH-A2-DOCS-ALIGNMENT**. **Pitfall (superseded):** A3 was backend-only at ship — full chain **A4–A5C** is now live; see **Current-state correction** above.
 
-**Branch / phase (2026-06-18):** post-**TASK-DUE-FILTERS-A1** — backend-filtered overdue/due-today task lists shipped; documentation alignment gate **DOCS-TASK-DUE-FILTERS-A1** complete; workflow next step: **Git closure**. Authoritative shipped detail: **`docs/IMPLEMENTATION_STATUS.md`**; phase gates: **`docs/CURRENT_STATE.md`**.
+**Branch / phase (2026-06-19):** post-**TASK-DUE-SORT-A1** — backend deadline-aware task list ordering shipped; documentation alignment gate **DOCS-TASK-DUE-SORT-A1** complete; workflow next step: **Git closure** (manual commit/push → CI green). Authoritative shipped detail: **`docs/IMPLEMENTATION_STATUS.md`**; phase gates: **`docs/CURRENT_STATE.md`**.
 
 **Major caution — do not proceed without explicit approval:**
 
@@ -3300,3 +3304,17 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Pitfalls:** Do not claim due-date **sorting** exists. Do not claim course deadline filters are URL-persisted. Do not claim **`referenceDate`** is stored in the browser URL. Do not claim all task-roadmap work is complete. Migration **015** unchanged — A1 **reads** **`due_date`** for list filtering only.
 
 **Follow-up:** **TASK-DUE-SORT-A1** and later deadline phases require explicit approval.
+
+### 2026-06-19 — Phase DOCS-TASK-DUE-SORT-A1 — Task list ordering documentation (documentation only)
+
+**Workflow:** DOCS-TASK-DUE-SORT-A1 — record **TASK-DUE-SORT-A1** shipped behavior (documentation only)
+
+**Summary:** Documentation-only alignment in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. Records backend-owned ordering on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**: **Pending**/deadline mode **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`**; **Completed**/All mode **`created_at DESC` → `id ASC`**; closed loop with **TASK-DUE-FILTERS-A1**; frontend renders API order; deferred priority/user sort/upcoming filters/etc. **No** application code, tests, migrations, packages, or CI changes in this documentation phase.
+
+**APIs affected:** none (docs-only — describes existing list ordering)
+
+**Tests:** none (docs-only)
+
+**Pitfalls:** Do not claim **all** task lists use due-date order — **Completed** and **All** remain **`created_at DESC`**. Do not claim a sort selector or public sort query param exists. Do not claim a database index was added. Do not claim the phase is committed/merged/CI-green. Do not claim material preview uses due-date ordering. Migration **015** unchanged.
+
+**Follow-up:** Git closure (manual commit/push → CI green); further task phases require explicit approval.

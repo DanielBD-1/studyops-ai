@@ -5,6 +5,7 @@ import {
   applyTaskDeadlineFilters,
   resolveTaskListReferenceDate,
 } from './tasks-deadline-query.js';
+import { applyTaskListOrdering } from './tasks-list-order.js';
 
 const TASK_COLUMNS =
   'id, course_id, material_id, title, description, priority, estimated_minutes, difficulty, tags, status, source, due_date, created_at, updated_at';
@@ -186,10 +187,10 @@ export async function listTasksByCourse(userId, courseId, query = {}) {
     .from('study_tasks')
     .select(TASK_COLUMNS)
     .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .order('created_at', { ascending: false });
+    .eq('course_id', courseId);
 
   builder = applyTaskListStatusAndDeadlineFilters(builder, query);
+  builder = applyTaskListOrdering(builder, query);
 
   const { data, error } = await builder;
 
@@ -217,14 +218,14 @@ export async function listTasks(userId, query = {}) {
   let builder = getSupabaseAdmin()
     .from('study_tasks')
     .select(TASK_COLUMNS)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .eq('user_id', userId);
 
   if (query.courseId) {
     builder = builder.eq('course_id', query.courseId);
   }
 
   builder = applyTaskListStatusAndDeadlineFilters(builder, query);
+  builder = applyTaskListOrdering(builder, query);
 
   const { data, error } = await builder;
 

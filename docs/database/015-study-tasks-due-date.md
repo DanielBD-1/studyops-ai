@@ -15,7 +15,9 @@ Phase DASHBOARD-DEPTH-P0 adds an optional **day-level** calendar due date on `pu
 
 **Phase DASHBOARD-DEPTH-A2 (complete):** Reads **`due_date`** for authenticated-user **aggregate** overdue/due-today counts on **`GET /api/dashboard/stats`**. Migration **015** is **unchanged** — **no** new schema, indexes, or timezone persistence in A2.
 
-**Phase TASK-DUE-FILTERS-A1 (complete):** Reads **`due_date`** for authenticated-user **backend-filtered** overdue/due-today **task list** results on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**. Migration **015** is **unchanged** — **no** new schema, indexes, due-date **sorting**, or timezone persistence in A1.
+**Phase TASK-DUE-FILTERS-A1 (complete):** Reads **`due_date`** for authenticated-user **backend-filtered** overdue/due-today **task list** results on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**. Migration **015** is **unchanged** — **no** new schema, indexes, or timezone persistence in A1.
+
+**Phase TASK-DUE-SORT-A1 (complete):** Reads **`due_date`** and **`created_at`** for authenticated-user **backend-owned list ordering** on the same list routes. Migration **015** is **unchanged** — **no** new schema, indexes, or timezone persistence in **TASK-DUE-SORT-A1**.
 
 ---
 
@@ -57,7 +59,16 @@ Express task responses use **camelCase** `dueDate`:
 
 **Validation:** `backend/src/shared/validation/calendar-date.js` + `taskDueDateSchema` — strict `YYYY-MM-DD`; years **0001–9999**; Gregorian leap-year rules (including century years); impossible dates rejected; **past dates allowed**; empty/malformed/non-string → validation error. **No** implicit `new Date('YYYY-MM-DD')` parsing on the backend.
 
-**Unchanged:** `status` still via **`POST /api/tasks/:taskId/complete`** only; completing a task **preserves** `due_date`; list order remains **`created_at DESC`** (including when **`deadline`** filters are active — **no** due-date sorting in **TASK-DUE-FILTERS-A1**).
+**Unchanged:** `status` still via **`POST /api/tasks/:taskId/complete`** only; completing a task **preserves** `due_date`.
+
+**List ordering (TASK-DUE-SORT-A1):** Both **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`** use the same backend contract (frontend renders API order — **no** client-side **`.sort()`**, **no** sort query param):
+
+| Mode | When | Order |
+|------|------|-------|
+| **Pending / deadline** | **`status=pending`**, or **`deadline=overdue`**, or **`deadline=due_today`** | **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`** |
+| **Completed / All** | **`status=completed`**, or both **`status`** and **`deadline`** omitted | **`created_at DESC` → `id ASC`** |
+
+Do **not** describe **Completed** or **All** lists as due-date sorted. **Priority** is **not** part of sorting.
 
 ---
 
@@ -89,7 +100,7 @@ Both list routes accept optional deadline query parameters (migration **015** un
 
 **Dashboard:** Recommendation **overdue-tasks** / **due-today-tasks** heroes and **At a glance** **Overdue** / **Due today** statistics link to **`/tasks?status=pending&deadline=overdue`** and **`/tasks?status=pending&deadline=due_today`**.
 
-See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-DUE-FILTERS-A1** for UI composition with course/material/status filters and deadline-specific empty states.
+See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-DUE-FILTERS-A1** for UI composition with course/material/status filters and deadline-specific empty states; § **TASK-DUE-SORT-A1** for ordering semantics and user-visible behavior.
 
 ---
 
@@ -142,7 +153,7 @@ See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** for recommenda
 ## Explicit non-goals (deferred — separate phase gates)
 
 - **Upcoming deadline window** on dashboard
-- Due-date **sorting** (**TASK-DUE-SORT-A1** and later — **not started**)
+- **Priority sorting**, user-selectable sort modes, drag-and-drop / manual ranking (deadline-aware list ordering shipped in **TASK-DUE-SORT-A1** — see **List ordering** above)
 - **Upcoming/this-week** filters; **no-due-date** filter; **custom date ranges**
 - **Reminders**, **notifications**, **exam dates**, **calendar integration**
 - **Stored user timezone** persistence
@@ -179,3 +190,11 @@ Optional task due dates + A2 dashboard aggregates + A1 deadline filters are **no
 - Frontend tests: **512/512**
 - Frontend build passed
 - Supervisor Review **PASS**; focused Supervisor Re-review **PASS**; Security Review **PASS**; manual browser smoke **PASS**
+
+**TASK-DUE-SORT-A1 (task list ordering — no migration change):**
+
+- Backend tests: **589/589**
+- Frontend tests: **512/512**
+- Frontend build passed
+- Supervisor Review **PASS**; Security Review **APPROVED**; manual browser smoke **PASS**
+- **`git diff --check`**: clean
