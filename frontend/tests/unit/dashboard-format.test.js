@@ -20,6 +20,7 @@ import {
 } from '../../src/utils/dashboard-recommendation.js';
 import {
   buildTasksPageDueTodayLink,
+  buildTasksPageNext7DaysLink,
   buildTasksPageOverdueLink,
   buildTasksPagePendingLink,
 } from '../../src/utils/task-nav-query.js';
@@ -69,6 +70,7 @@ const recommendationBaseStats = {
   completedTasks: 4,
   overduePendingTasks: 0,
   dueTodayPendingTasks: 0,
+  dueNext7DaysPendingTasks: 0,
   deadlineReferenceDate: '2026-06-18',
   totalFlashcards: 0,
   dueFlashcardsCount: 0,
@@ -201,6 +203,7 @@ describe('dashboard-recommendation', () => {
         pendingTasks: 3,
         overduePendingTasks: 0,
         dueTodayPendingTasks: 2,
+        dueNext7DaysPendingTasks: 1,
         completedTasks: 1,
         totalTasks: 4,
       });
@@ -209,6 +212,38 @@ describe('dashboard-recommendation', () => {
       assert.match(recommendation?.headline ?? '', /2 pending tasks due today/);
       assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=due_today');
       assert.equal(recommendation?.secondaryCta, undefined);
+    });
+
+    it('recommends due-next-7-days tasks when overdue and due today are zero', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 3,
+        overduePendingTasks: 0,
+        dueTodayPendingTasks: 0,
+        dueNext7DaysPendingTasks: 2,
+        completedTasks: 1,
+        totalTasks: 4,
+      });
+
+      assert.equal(recommendation?.kind, 'due-next-7-days-tasks');
+      assert.match(recommendation?.headline ?? '', /2 pending tasks due in the next 7 days/);
+      assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=next_7_days');
+      assert.equal(recommendation?.secondaryCta, undefined);
+    });
+
+    it('recommends due-next-7-days tasks before generic pending tasks', () => {
+      const recommendation = deriveDashboardRecommendation({
+        ...recommendationBaseStats,
+        pendingTasks: 5,
+        overduePendingTasks: 0,
+        dueTodayPendingTasks: 0,
+        dueNext7DaysPendingTasks: 1,
+        completedTasks: 0,
+        totalTasks: 5,
+      });
+
+      assert.equal(recommendation?.kind, 'due-next-7-days-tasks');
+      assert.notEqual(recommendation?.kind, 'pending-tasks');
     });
 
     it('recommends overdue tasks over due flashcards', () => {
@@ -480,20 +515,30 @@ describe('DashboardStub deadline task stats', () => {
   });
 
   it('At a glance Due today detail uses the due-today-filtered URL', () => {
-    const section = atAGlanceStatSection('Due today', 'Completed');
+    const section = atAGlanceStatSection('Due today', 'Due next 7 days');
     assert.match(section, /to=\{buildTasksPageDueTodayLink\(\)\}/);
     assert.doesNotMatch(section, /buildTasksPagePendingLink/);
     assert.equal(buildTasksPageDueTodayLink(), '/tasks?status=pending&deadline=due_today');
   });
 
-  it('shows Overdue and Due today counts when counts are positive', () => {
+  it('At a glance Due next 7 days detail uses the next_7_days filtered URL', () => {
+    const section = atAGlanceStatSection('Due next 7 days', 'Completed');
+    assert.match(section, /to=\{buildTasksPageNext7DaysLink\(\)\}/);
+    assert.doesNotMatch(section, /buildTasksPagePendingLink/);
+    assert.equal(buildTasksPageNext7DaysLink(), '/tasks?status=pending&deadline=next_7_days');
+  });
+
+  it('shows Overdue, Due today, and Due next 7 days counts when counts are positive', () => {
     assert.match(dashboardStubSource, /label="Overdue"/);
     assert.match(dashboardStubSource, /label="Due today"/);
+    assert.match(dashboardStubSource, /label="Due next 7 days"/);
     assert.match(dashboardStubSource, /stats\.overduePendingTasks/);
     assert.match(dashboardStubSource, /stats\.dueTodayPendingTasks/);
+    assert.match(dashboardStubSource, /stats\.dueNext7DaysPendingTasks/);
     assert.match(dashboardStubSource, /View pending tasks/);
     assert.match(dashboardStubSource, /\(stats\.overduePendingTasks \?\? 0\) > 0/);
     assert.match(dashboardStubSource, /\(stats\.dueTodayPendingTasks \?\? 0\) > 0/);
+    assert.match(dashboardStubSource, /\(stats\.dueNext7DaysPendingTasks \?\? 0\) > 0/);
   });
 });
 
@@ -524,12 +569,27 @@ describe('dashboard deadline task links', () => {
     assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=due_today');
   });
 
+  it('due-next-7-days recommendation hero uses the next_7_days filtered URL', () => {
+    const recommendation = deriveDashboardRecommendation({
+      ...recommendationBaseStats,
+      pendingTasks: 2,
+      overduePendingTasks: 0,
+      dueTodayPendingTasks: 0,
+      dueNext7DaysPendingTasks: 2,
+    });
+
+    assert.equal(recommendation?.kind, 'due-next-7-days-tasks');
+    assert.equal(recommendation?.primaryCta.to, buildTasksPageNext7DaysLink());
+    assert.equal(recommendation?.primaryCta.to, '/tasks?status=pending&deadline=next_7_days');
+  });
+
   it('generic pending recommendation hero keeps the generic pending URL', () => {
     const recommendation = deriveDashboardRecommendation({
       ...recommendationBaseStats,
       pendingTasks: 3,
       overduePendingTasks: 0,
       dueTodayPendingTasks: 0,
+      dueNext7DaysPendingTasks: 0,
       completedTasks: 1,
       totalTasks: 4,
     });

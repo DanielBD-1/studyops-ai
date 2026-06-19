@@ -9,6 +9,7 @@ import {
   buildTasksPageCoursePendingLink,
   buildTasksPageDueTodayLink,
   buildTasksPageMaterialLink,
+  buildTasksPageNext7DaysLink,
   buildTasksPageOverdueLink,
   buildTasksPagePendingLink,
   buildTasksPageSearchParams,
@@ -132,6 +133,13 @@ describe('parseTasksPageSearchParams', () => {
     });
   });
 
+  it('parses valid deadline=next_7_days with status', () => {
+    assert.deepEqual(parseTasksPageSearchParams('?status=pending&deadline=next_7_days'), {
+      status: 'pending',
+      deadline: 'next_7_days',
+    });
+  });
+
   it('ignores invalid deadline values', () => {
     assert.deepEqual(parseTasksPageSearchParams('?deadline=all'), {});
     assert.deepEqual(parseTasksPageSearchParams('?deadline=due_soon'), {});
@@ -220,6 +228,13 @@ describe('buildTasksPageSearchParams', () => {
     );
   });
 
+  it('builds next_7_days with pending status', () => {
+    assert.equal(
+      buildTasksPageSearchParams({ deadlineFilter: 'next_7_days' }),
+      'status=pending&deadline=next_7_days'
+    );
+  });
+
   it('builds due_today with course and material composition', () => {
     assert.equal(
       buildTasksPageSearchParams({
@@ -251,6 +266,12 @@ describe('buildTasksPageOverdueLink', () => {
 describe('buildTasksPageDueTodayLink', () => {
   it('returns exact due-today filtered tasks page link', () => {
     assert.equal(buildTasksPageDueTodayLink(), '/tasks?status=pending&deadline=due_today');
+  });
+});
+
+describe('buildTasksPageNext7DaysLink', () => {
+  it('returns exact next_7_days filtered tasks page link', () => {
+    assert.equal(buildTasksPageNext7DaysLink(), '/tasks?status=pending&deadline=next_7_days');
   });
 });
 

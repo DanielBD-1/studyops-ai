@@ -91,6 +91,7 @@ async function request(path, init = {}) {
  *   completedTasks: number,
  *   overduePendingTasks: number,
  *   dueTodayPendingTasks: number,
+ *   dueNext7DaysPendingTasks: number,
  *   deadlineReferenceDate: string,
  *   totalFlashcards: number,
  *   dueFlashcardsCount: number,

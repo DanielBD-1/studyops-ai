@@ -4,6 +4,7 @@ import {
   isValidIsoCalendarDate,
   parseIsoCalendarDateComponents,
   getUtcTodayIsoCalendarDate,
+  addCalendarDaysToIsoDate,
 } from '../../src/shared/validation/calendar-date.js';
 
 describe('calendar-date validation', () => {
@@ -89,5 +90,31 @@ describe('getUtcTodayIsoCalendarDate', () => {
       getUtcTodayIsoCalendarDate(new Date('2026-03-09T12:00:00.000Z')),
       '2026-03-09'
     );
+  });
+});
+
+describe('addCalendarDaysToIsoDate', () => {
+  it('adds seven ordinary calendar days', () => {
+    assert.equal(addCalendarDaysToIsoDate('2026-06-19', 7), '2026-06-26');
+  });
+
+  it('crosses month boundaries', () => {
+    assert.equal(addCalendarDaysToIsoDate('2026-06-28', 5), '2026-07-03');
+  });
+
+  it('crosses year boundaries', () => {
+    assert.equal(addCalendarDaysToIsoDate('2025-12-30', 3), '2026-01-02');
+  });
+
+  it('handles leap-year February', () => {
+    assert.equal(addCalendarDaysToIsoDate('2024-02-26', 4), '2024-03-01');
+  });
+
+  it('handles non-leap-year February', () => {
+    assert.equal(addCalendarDaysToIsoDate('2023-02-26', 3), '2023-03-01');
+  });
+
+  it('returns strict YYYY-MM-DD output for zero days', () => {
+    assert.equal(addCalendarDaysToIsoDate('2026-06-19', 0), '2026-06-19');
   });
 });

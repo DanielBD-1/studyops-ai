@@ -8,9 +8,13 @@
 2. **`docs/IMPLEMENTATION_STATUS.md`** — authoritative **shipped** behavior (routes, APIs, DB, deferred list).
 3. **This file (`AGENT_MEMORY.md`)** — **historical journal + pitfalls** only. Append-only; entries below are not a substitute for (1) or (2).
 
+**DOCS-TASK-UPCOMING-FILTERS-A1 (2026-06-19):** Phase **DOCS-TASK-UPCOMING-FILTERS-A1** — documentation-only alignment for **TASK-UPCOMING-FILTERS-A1** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. **No** application code, tests, migrations, packages, or CI changes. **Security Review: not required** (docs-only).
+
+**TASK-UPCOMING-FILTERS-A1 (2026-06-19):** Phase **TASK-UPCOMING-FILTERS-A1** — bounded **Next 7 days** future-deadline discovery. **`deadline=next_7_days`** on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**; membership for **`referenceDate = R`**: pending + **`due_date > R`** + **`due_date <= R + 7` calendar days**; upper boundary in backend without timezone/DST millisecond arithmetic; global URL **`/tasks?status=pending&deadline=next_7_days`**; course filter in-memory; dashboard **`dueNext7DaysPendingTasks`** + recommendation **`due-next-7-days-tasks`** (after overdue/due-today, before pending) + **At a glance** **Due next 7 days** → same deep link; closed loop with **TASK-DUE-SORT-A1** ordering; **no** unbounded Upcoming / Due soon / This week filters; **no** migration/index/package. Backend **615/615**; frontend **521/521**; build passed. **Supervisor Review: PASS.** **Security Review: APPROVED.** Manual smoke: **PASS.** **`git diff --check`**: clean. **Deferred:** unbounded Upcoming; Due soon; This week; custom date ranges; date picker; no-due-date filter; stored timezone; priority sorting; user-selectable sort modes; calendar/reminders/notifications; plan-import due dates; Trello due-date sync; backend material filtering; course URL persistence; migrations/indexes until measured; collaboration/chat. Docs: **DOCS-TASK-UPCOMING-FILTERS-A1**.
+
 **DOCS-TASK-DUE-SORT-A1 (2026-06-19):** Phase **DOCS-TASK-DUE-SORT-A1** — documentation-only alignment for **TASK-DUE-SORT-A1** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. **No** application code, tests, migrations, packages, or CI changes. **Security Review: not required** (docs-only).
 
-**TASK-DUE-SORT-A1 (2026-06-19):** Phase **TASK-DUE-SORT-A1** — backend-owned deadline-aware task list ordering. **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`** share one contract: **Pending** / **`status=pending`** / **`deadline=overdue|due_today`** → **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`**; **Completed** / omitted **status**+**deadline** (**All**) → **`created_at DESC` → `id ASC`**; closes loop with **TASK-DUE-FILTERS-A1** (membership) + dashboard deadline counts; frontend renders API order — **no** client **`.sort()`**, **no** sort query param, **no** sort selector UI; material filter client-side preserves relative API order; **priority** not in sort; **no** migration/index; **no** frontend implementation files changed. Backend **589/589**; frontend **512/512**; build passed. **Supervisor Review: PASS.** **Security Review: APPROVED.** Manual smoke: **PASS.** **`git diff --check`**: clean. **Deferred:** upcoming/this-week; no-due-date filter; custom date ranges; priority sorting; user-selectable sort modes; drag-and-drop; stored timezone; calendar/reminders/notifications; plan-import due dates; Trello due-date sync; material preview ordering; DB index until measured; collaboration/chat. Docs: **DOCS-TASK-DUE-SORT-A1**.
+**TASK-DUE-SORT-A1 (2026-06-19):** Phase **TASK-DUE-SORT-A1** — backend-owned deadline-aware task list ordering. **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`** share one contract: **Pending** / **`status=pending`** / **`deadline=overdue|due_today|next_7_days`** → **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`**; **Completed** / omitted **status**+**deadline** (**All**) → **`created_at DESC` → `id ASC`**; closes loop with **TASK-DUE-FILTERS-A1** + **TASK-UPCOMING-FILTERS-A1** (membership) + dashboard deadline counts; frontend renders API order — **no** client **`.sort()`**, **no** sort query param, **no** sort selector UI; material filter client-side preserves relative API order; **priority** not in sort; **no** migration/index. Backend **589/589**; frontend **512/512**; build passed. **Supervisor Review: PASS.** **Security Review: APPROVED.** Manual smoke: **PASS.** **`git diff --check`**: clean. **Deferred:** unbounded Upcoming; Due soon; This week; no-due-date filter; custom date ranges; priority sorting; user-selectable sort modes; drag-and-drop; stored timezone; calendar/reminders/notifications; plan-import due dates; Trello due-date sync; material preview ordering; DB index until measured; collaboration/chat. Docs: **DOCS-TASK-DUE-SORT-A1**.
 
 **DOCS-TASK-DUE-FILTERS-A1 (2026-06-18):** Phase **DOCS-TASK-DUE-FILTERS-A1** — documentation-only alignment for **TASK-DUE-FILTERS-A1** in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. **No** application code, tests, migrations, packages, or CI changes. **Security Review: not required** (docs-only).
 
@@ -3287,7 +3291,7 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 
 **Tests:** none (docs-only)
 
-**Pitfalls (historical — at A2 doc ship):** Do not claim overdue-only or due-today-only **`/tasks`** filters existed **in A2** — those shipped in **TASK-DUE-FILTERS-A1**. Do not claim upcoming deadlines, stored user timezone, notifications, calendar integration, Gemini/Trello due-date assignment, or a new A2 migration exist. Migration **015** unchanged — A2 **reads** **`due_date`** for aggregate counts only.
+**Pitfalls (historical — at A2 doc ship):** Do not claim overdue-only or due-today-only **`/tasks`** filters existed **in A2** — those shipped in **TASK-DUE-FILTERS-A1**. Do not claim **unbounded** upcoming deadlines, **Due soon**, or **This week** filters exist — bounded **Next 7 days** shipped in **TASK-UPCOMING-FILTERS-A1**. Do not claim stored user timezone, notifications, calendar integration, Gemini/Trello due-date assignment, or a new A2 migration exist. Migration **015** unchanged — A2 **reads** **`due_date`** for aggregate counts only.
 
 **Follow-up:** Further dashboard/task deadline phases (upcoming window, due-date sorting, timezone persistence, etc.) require explicit approval.
 
@@ -3316,5 +3320,33 @@ Phase 3A-a **`public.study_tasks`** **complete** (Supervisor + Security Review a
 **Tests:** none (docs-only)
 
 **Pitfalls:** Do not claim **all** task lists use due-date order — **Completed** and **All** remain **`created_at DESC`**. Do not claim a sort selector or public sort query param exists. Do not claim a database index was added. Do not claim the phase is committed/merged/CI-green. Do not claim material preview uses due-date ordering. Migration **015** unchanged.
+
+**Follow-up:** Git closure (manual commit/push → CI green); further task phases require explicit approval.
+
+### 2026-06-19 — Phase DOCS-TASK-UPCOMING-FILTERS-A1 — Next 7 days deadline filter documentation (documentation only)
+
+**Workflow:** DOCS-TASK-UPCOMING-FILTERS-A1 — record **TASK-UPCOMING-FILTERS-A1** shipped behavior (documentation only)
+
+**Summary:** Documentation-only alignment in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. Records bounded **`deadline=next_7_days`** on task list APIs, dashboard **`dueNext7DaysPendingTasks`**, recommendation **`due-next-7-days-tasks`**, **At a glance** **Due next 7 days**, exact membership contract (**`due_date > R`** and **`due_date <= R + 7` calendar days**), backend calendar-day arithmetic, global/course parity, closed product loop with **TASK-DUE-SORT-A1**, and deferred unbounded Upcoming/Due soon/This week scope. **No** application code, tests, migrations, packages, or CI changes in this documentation phase.
+
+**APIs affected:** none (docs-only — describes existing task list + dashboard stats fields)
+
+**Tests:** none (docs-only)
+
+**Pitfalls:** Do not claim unbounded **Upcoming**, **Due soon**, or **This week** filters exist. Do not claim a database index was added. Do not claim frontend sorting exists. Do not claim the phase is committed/merged/CI-green. Do not claim all deadline roadmap work is complete. Migration **015** unchanged.
+
+**Follow-up:** Git closure (manual commit/push → CI green); further task phases require explicit approval.
+
+### 2026-06-19 — Phase DOCS-TASK-UPCOMING-FILTERS-A1 — Next 7 days deadline filter documentation (documentation only)
+
+**Workflow:** DOCS-TASK-UPCOMING-FILTERS-A1 — record **TASK-UPCOMING-FILTERS-A1** shipped behavior (documentation only)
+
+**Summary:** Documentation-only alignment in **`IMPLEMENTATION_STATUS.md`**, **`CURRENT_STATE.md`**, **`AGENT_MEMORY.md`**, **`docs/database/015-study-tasks-due-date.md`**, and **`README.md`**. Records bounded **`deadline=next_7_days`** on task list APIs, dashboard **`dueNext7DaysPendingTasks`**, recommendation **`due-next-7-days-tasks`**, **At a glance** **Due next 7 days**, exact membership contract (**`due_date > R`** and **`due_date <= R + 7` calendar days**), backend calendar-day arithmetic, global/course parity, closed product loop with **TASK-DUE-SORT-A1**, and deferred unbounded Upcoming/Due soon/This week scope. **No** application code, tests, migrations, packages, or CI changes in this documentation phase.
+
+**APIs affected:** none (docs-only — describes existing task list + dashboard stats fields)
+
+**Tests:** none (docs-only)
+
+**Pitfalls:** Do not claim unbounded **Upcoming**, **Due soon**, or **This week** filters exist. Do not claim a database index was added. Do not claim frontend sorting exists. Do not claim the phase is committed/merged/CI-green. Do not claim all deadline roadmap work is complete. Migration **015** unchanged.
 
 **Follow-up:** Git closure (manual commit/push → CI green); further task phases require explicit approval.

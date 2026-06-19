@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '../../config/supabase.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
+import { computeNext7DaysWindowEnd } from '../tasks/tasks-deadline-query.js';
 
 const LAST_7_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -65,6 +66,7 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
   const now = new Date();
   const nowIso = now.toISOString();
   const last7DaysThresholdIso = computeLast7DaysThresholdIso(now);
+  const dueNext7DaysWindowEnd = computeNext7DaysWindowEnd(deadlineReferenceDate);
 
   const [
     totalCourses,
@@ -75,6 +77,7 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
     completedTasks,
     overduePendingTasks,
     dueTodayPendingTasks,
+    dueNext7DaysPendingTasks,
     totalFlashcards,
     dueFlashcardsCount,
     completedFocusSessions,
@@ -140,6 +143,15 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
         .eq('user_id', userId)
         .eq('status', 'pending')
         .eq('due_date', deadlineReferenceDate)
+    ),
+    countExact(
+      supabase
+        .from('study_tasks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .gt('due_date', deadlineReferenceDate)
+        .lte('due_date', dueNext7DaysWindowEnd)
     ),
     countExact(
       supabase
@@ -211,6 +223,7 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
     completedTasks,
     overduePendingTasks,
     dueTodayPendingTasks,
+    dueNext7DaysPendingTasks,
     deadlineReferenceDate,
     totalFlashcards,
     dueFlashcardsCount,

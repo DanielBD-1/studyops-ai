@@ -213,6 +213,24 @@ function resolveTasksSelect(state) {
     }
   }
 
+  if (state.gtFilters) {
+    for (const [column, minValue] of Object.entries(state.gtFilters)) {
+      rows = rows.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) > String(minValue);
+      });
+    }
+  }
+
+  if (state.lteFilters) {
+    for (const [column, maxValue] of Object.entries(state.lteFilters)) {
+      rows = rows.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) <= String(maxValue);
+      });
+    }
+  }
+
   if (state.orders?.length) {
     rows = applyTaskOrders(rows, state.orders);
   }
@@ -318,6 +336,8 @@ function createTasksBuilder() {
     filters: {},
     notNullColumns: [],
     ltFilters: {},
+    gtFilters: {},
+    lteFilters: {},
     single: false,
   };
 
@@ -353,6 +373,14 @@ function createTasksBuilder() {
     },
     lt(column, value) {
       state.ltFilters[column] = value;
+      return builder;
+    },
+    gt(column, value) {
+      state.gtFilters[column] = value;
+      return builder;
+    },
+    lte(column, value) {
+      state.lteFilters[column] = value;
       return builder;
     },
     order(column, options) {

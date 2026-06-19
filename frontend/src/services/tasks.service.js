@@ -83,14 +83,17 @@ async function request(path, init = {}) {
 /**
  * @param {{
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  *   referenceDate?: string,
  * }} [filters]
  * @returns {URLSearchParams}
  */
 function buildTaskListQueryParams(filters = {}) {
   const params = new URLSearchParams();
-  const hasDeadline = filters.deadline === 'overdue' || filters.deadline === 'due_today';
+  const hasDeadline =
+    filters.deadline === 'overdue' ||
+    filters.deadline === 'due_today' ||
+    filters.deadline === 'next_7_days';
 
   if (hasDeadline) {
     params.set('deadline', filters.deadline);
@@ -107,7 +110,7 @@ function buildTaskListQueryParams(filters = {}) {
  * @param {string} courseId
  * @param {{
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  * }} [filters]
  */
 export async function listCourseTasks(courseId, filters = {}) {
@@ -124,7 +127,7 @@ export async function listCourseTasks(courseId, filters = {}) {
  * @param {{
  *   courseId?: string,
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  * }} [filters]
  */
 export async function listAllTasks(filters = {}) {

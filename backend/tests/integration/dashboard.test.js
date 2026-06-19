@@ -155,6 +155,7 @@ describe('dashboard API integration', () => {
       completedTasks: 0,
       overduePendingTasks: 0,
       dueTodayPendingTasks: 0,
+      dueNext7DaysPendingTasks: 0,
       deadlineReferenceDate: getUtcTodayIsoCalendarDate(),
       totalFlashcards: 0,
       dueFlashcardsCount: 0,
@@ -188,6 +189,7 @@ describe('dashboard API integration', () => {
     assert.equal(data.trelloSyncedTasks, 1);
     assert.equal(typeof data.overduePendingTasks, 'number');
     assert.equal(typeof data.dueTodayPendingTasks, 'number');
+    assert.equal(typeof data.dueNext7DaysPendingTasks, 'number');
     assert.equal(data.deadlineReferenceDate, getUtcTodayIsoCalendarDate());
   });
 
@@ -559,6 +561,7 @@ describe('dashboard deadline task aggregates', () => {
     assert.equal(res.body.data.deadlineReferenceDate, '2026-06-18');
     assert.equal(res.body.data.overduePendingTasks, 1);
     assert.equal(res.body.data.dueTodayPendingTasks, 1);
+    assert.equal(res.body.data.dueNext7DaysPendingTasks, 1);
     assert.ok(res.body.data.overduePendingTasks <= res.body.data.pendingTasks);
     assert.ok(res.body.data.dueTodayPendingTasks <= res.body.data.pendingTasks);
     assertNoSensitiveFields(res.body.data);
@@ -575,6 +578,149 @@ describe('dashboard deadline task aggregates', () => {
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.data.overduePendingTasks, 0);
     assert.equal(res.body.data.dueTodayPendingTasks, 0);
+    assert.equal(res.body.data.dueNext7DaysPendingTasks, 0);
     assert.equal(res.body.data.deadlineReferenceDate, '2026-06-18');
+  });
+
+  it('counts due next 7 days with exact window boundaries', async () => {
+    getMockTasks().length = 0;
+    getMockTasks().push(
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Due today excluded',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-19',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Tomorrow included',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-20',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Day seven included',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-26',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Day eight excluded',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-27',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Overdue excluded',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-18',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '66666666-6666-4666-8666-666666666666',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Completed in window excluded',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'completed',
+        source: 'manual',
+        due_date: '2026-06-22',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '77777777-7777-4777-8777-777777777771',
+        user_id: OTHER_USER_ID,
+        course_id: OTHER_USER_COURSE_ID,
+        material_id: null,
+        title: 'Other user excluded',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-21',
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      }
+    );
+
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-06-19`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.dueNext7DaysPendingTasks, 2);
+    assert.equal(res.body.data.overduePendingTasks, 1);
+    assert.equal(res.body.data.dueTodayPendingTasks, 1);
   });
 });

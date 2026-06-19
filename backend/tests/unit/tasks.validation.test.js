@@ -221,6 +221,19 @@ describe('tasks.validation listTasksQuerySchema', () => {
     assert.equal(parsed.success, true);
   });
 
+  it('accepts next_7_days deadline with optional referenceDate', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      deadline: 'next_7_days',
+      referenceDate: '2026-06-19',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts next_7_days with omitted status', () => {
+    const parsed = listTasksQuerySchema.safeParse({ deadline: 'next_7_days' });
+    assert.equal(parsed.success, true);
+  });
+
   it('rejects invalid status filter', () => {
     const parsed = listTasksQuerySchema.safeParse({ status: 'in_progress' });
     assert.equal(parsed.success, false);
@@ -240,6 +253,14 @@ describe('tasks.validation listTasksQuerySchema', () => {
     const parsed = listTasksQuerySchema.safeParse({
       status: 'completed',
       deadline: 'overdue',
+    });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects completed status with next_7_days deadline', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      status: 'completed',
+      deadline: 'next_7_days',
     });
     assert.equal(parsed.success, false);
   });

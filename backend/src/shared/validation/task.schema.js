@@ -75,8 +75,8 @@ const taskListStatusQuerySchema = z.preprocess(
 const taskListDeadlineQuerySchema = z.preprocess(
   rejectArrayQueryValue,
   z
-    .enum(['overdue', 'due_today'], {
-      message: 'Deadline must be overdue or due_today',
+    .enum(['overdue', 'due_today', 'next_7_days'], {
+      message: 'Deadline must be overdue, due_today, or next_7_days',
     })
     .optional()
 );

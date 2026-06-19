@@ -1,7 +1,7 @@
 /**
  * @param {{
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  * }} query
  * @returns {boolean}
  */
@@ -10,14 +10,18 @@ export function usesDeadlineAwarePendingOrder(query) {
     return true;
   }
 
-  return query.deadline === 'overdue' || query.deadline === 'due_today';
+  return (
+    query.deadline === 'overdue' ||
+    query.deadline === 'due_today' ||
+    query.deadline === 'next_7_days'
+  );
 }
 
 /**
  * @param {import('@supabase/postgrest-js').PostgrestFilterBuilder<any, any, any>} builder
  * @param {{
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  * }} query
  */
 export function applyTaskListOrdering(builder, query) {

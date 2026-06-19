@@ -152,6 +152,40 @@ describe('tasks.service', () => {
     assert.equal(url.searchParams.get('courseId'), null);
   });
 
+  it('listCourseTasks with next_7_days sends deadline, pending status, and referenceDate', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, { deadline: 'next_7_days' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('deadline'), 'next_7_days');
+    assert.equal(url.searchParams.get('status'), 'pending');
+    assert.match(url.searchParams.get('referenceDate') ?? '', /^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('listAllTasks with next_7_days sends deadline, pending status, and referenceDate', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ deadline: 'next_7_days' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('deadline'), 'next_7_days');
+    assert.equal(url.searchParams.get('status'), 'pending');
+    assert.match(url.searchParams.get('referenceDate') ?? '', /^\d{4}-\d{2}-\d{2}$/);
+  });
+
   it('listAllTasks without deadline does not send referenceDate', async () => {
     __setApiFetchForTests(async (path, init, accessToken) => {
       calls.push({ path, init, token: accessToken });

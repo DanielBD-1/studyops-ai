@@ -2,6 +2,7 @@ import { buildFlashcardsPageDueNowLink } from './flashcard-nav-query.js';
 import {
   buildTasksPageCoursePendingLink,
   buildTasksPageDueTodayLink,
+  buildTasksPageNext7DaysLink,
   buildTasksPageOverdueLink,
   buildTasksPagePendingLink,
 } from './task-nav-query.js';
@@ -58,6 +59,7 @@ export function findMostPendingCourse(courseStats) {
  *     | 'no-courses'
  *     | 'overdue-tasks'
  *     | 'due-today-tasks'
+ *     | 'due-next-7-days-tasks'
  *     | 'pending-tasks'
  *     | 'due-flashcards'
  *     | 'plan-gap'
@@ -85,6 +87,7 @@ export function deriveDashboardRecommendation(stats) {
   const pendingTasks = stats.pendingTasks ?? 0;
   const overduePendingTasks = stats.overduePendingTasks ?? 0;
   const dueTodayPendingTasks = stats.dueTodayPendingTasks ?? 0;
+  const dueNext7DaysPendingTasks = stats.dueNext7DaysPendingTasks ?? 0;
   const totalStudyMaterials = stats.totalStudyMaterials ?? 0;
   const totalGeneratedPlans = stats.totalGeneratedPlans ?? 0;
   const totalFlashcards = stats.totalFlashcards ?? 0;
@@ -120,6 +123,16 @@ export function deriveDashboardRecommendation(stats) {
       headline: `You have ${dueTodayPendingTasks} pending ${taskWord} due today.`,
       context: 'Based on your pending tasks and active study plans.',
       primaryCta: { label: 'View pending tasks', to: buildTasksPageDueTodayLink() },
+    };
+  }
+
+  if (dueNext7DaysPendingTasks > 0) {
+    const taskWord = dueNext7DaysPendingTasks === 1 ? 'task' : 'tasks';
+    return {
+      kind: 'due-next-7-days-tasks',
+      headline: `You have ${dueNext7DaysPendingTasks} pending ${taskWord} due in the next 7 days.`,
+      context: 'Based on your pending tasks and active study plans.',
+      primaryCta: { label: 'View pending tasks', to: buildTasksPageNext7DaysLink() },
     };
   }
 

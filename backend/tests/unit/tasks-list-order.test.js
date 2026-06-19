@@ -32,6 +32,10 @@ describe('tasks-list-order', () => {
     assert.equal(usesDeadlineAwarePendingOrder({ deadline: 'due_today' }), true);
   });
 
+  it('deadline=next_7_days with omitted status selects Mode 1', () => {
+    assert.equal(usesDeadlineAwarePendingOrder({ deadline: 'next_7_days' }), true);
+  });
+
   it('status=completed selects Mode 2', () => {
     assert.equal(usesDeadlineAwarePendingOrder({ status: 'completed' }), false);
   });
@@ -40,10 +44,23 @@ describe('tasks-list-order', () => {
     assert.equal(usesDeadlineAwarePendingOrder({}), false);
   });
 
-  it('Mode 1 applies due_date, created_at, and id order in sequence', () => {
+  it('Mode 1 applies due_date, created_at, and id order in sequence for pending', () => {
     const { builder, calls } = createOrderSpyBuilder();
 
     const result = applyTaskListOrdering(builder, { status: 'pending' });
+
+    assert.equal(result, builder);
+    assert.deepEqual(calls, [
+      { column: 'due_date', options: { ascending: true, nullsFirst: false } },
+      { column: 'created_at', options: { ascending: false } },
+      { column: 'id', options: { ascending: true } },
+    ]);
+  });
+
+  it('Mode 1 applies due_date, created_at, and id order in sequence for next_7_days', () => {
+    const { builder, calls } = createOrderSpyBuilder();
+
+    const result = applyTaskListOrdering(builder, { deadline: 'next_7_days' });
 
     assert.equal(result, builder);
     assert.deepEqual(calls, [

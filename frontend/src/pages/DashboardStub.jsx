@@ -20,6 +20,7 @@ import {
 import { buildFlashcardsPageDueNowLink } from '../utils/flashcard-nav-query.js';
 import {
   buildTasksPageDueTodayLink,
+  buildTasksPageNext7DaysLink,
   buildTasksPageOverdueLink,
 } from '../utils/task-nav-query.js';
 
@@ -478,6 +479,23 @@ export default function DashboardStub() {
                           Due today ·{' '}
                           <Link
                             to={buildTasksPageDueTodayLink()}
+                            className="link-btn link-btn--secondary"
+                          >
+                            View pending tasks
+                          </Link>
+                        </>
+                      ) : undefined
+                    }
+                  />
+                  <StatItem
+                    label="Due next 7 days"
+                    value={stats.dueNext7DaysPendingTasks ?? 0}
+                    detail={
+                      (stats.dueNext7DaysPendingTasks ?? 0) > 0 ? (
+                        <>
+                          Due in the next 7 days ·{' '}
+                          <Link
+                            to={buildTasksPageNext7DaysLink()}
                             className="link-btn link-btn--secondary"
                           >
                             View pending tasks

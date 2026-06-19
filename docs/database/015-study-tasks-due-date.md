@@ -19,6 +19,8 @@ Phase DASHBOARD-DEPTH-P0 adds an optional **day-level** calendar due date on `pu
 
 **Phase TASK-DUE-SORT-A1 (complete):** Reads **`due_date`** and **`created_at`** for authenticated-user **backend-owned list ordering** on the same list routes. Migration **015** is **unchanged** — **no** new schema, indexes, or timezone persistence in **TASK-DUE-SORT-A1**.
 
+**Phase TASK-UPCOMING-FILTERS-A1 (complete):** Reads **`due_date`** for authenticated-user **backend-filtered** bounded **Next 7 days** task list results on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**, plus **`dueNext7DaysPendingTasks`** aggregate on **`GET /api/dashboard/stats`**. Migration **015** is **unchanged** — **no** new schema, indexes, timezone persistence, or package dependency in **TASK-UPCOMING-FILTERS-A1**.
+
 ---
 
 ## Column
@@ -65,21 +67,21 @@ Express task responses use **camelCase** `dueDate`:
 
 | Mode | When | Order |
 |------|------|-------|
-| **Pending / deadline** | **`status=pending`**, or **`deadline=overdue`**, or **`deadline=due_today`** | **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`** |
+| **Pending / deadline** | **`status=pending`**, or **`deadline=overdue`**, or **`deadline=due_today`**, or **`deadline=next_7_days`** | **`due_date ASC NULLS LAST` → `created_at DESC` → `id ASC`** |
 | **Completed / All** | **`status=completed`**, or both **`status`** and **`deadline`** omitted | **`created_at DESC` → `id ASC`** |
 
 Do **not** describe **Completed** or **All** lists as due-date sorted. **Priority** is **not** part of sorting.
 
 ---
 
-## Task list deadline filters (TASK-DUE-FILTERS-A1)
+## Task list deadline filters (TASK-DUE-FILTERS-A1 + TASK-UPCOMING-FILTERS-A1)
 
 Both list routes accept optional deadline query parameters (migration **015** unchanged):
 
 | Route | Optional query |
 |-------|----------------|
-| **`GET /api/tasks`** | **`deadline=overdue|due_today`**, **`referenceDate=YYYY-MM-DD`** |
-| **`GET /api/courses/:courseId/tasks`** | **`deadline=overdue|due_today`**, **`referenceDate=YYYY-MM-DD`** |
+| **`GET /api/tasks`** | **`deadline=overdue|due_today|next_7_days`**, **`referenceDate=YYYY-MM-DD`** |
+| **`GET /api/courses/:courseId/tasks`** | **`deadline=overdue|due_today|next_7_days`**, **`referenceDate=YYYY-MM-DD`** |
 
 | Rule | Behavior |
 |------|----------|
@@ -93,14 +95,17 @@ Both list routes accept optional deadline query parameters (migration **015** un
 |--------|-----------|
 | **Overdue** | **`status = pending`**, **`due_date IS NOT NULL`**, **`due_date < referenceDate`** |
 | **Due today** | **`status = pending`**, **`due_date = referenceDate`** |
+| **Next 7 days** (**TASK-UPCOMING-FILTERS-A1**) | **`status = pending`**, **`due_date > referenceDate`**, **`due_date <= referenceDate + 7` calendar days** — e.g. **`referenceDate = 2026-06-19`** includes **2026-06-20** through **2026-06-26**; excludes today, overdue, day 8+, null dates, completed tasks |
 
-**Global `/tasks`:** URL-persisted **`deadline=overdue|due_today`** (implies **`status=pending`**); invalid frontend values canonicalized away; **`referenceDate` is not stored in the browser URL**.
+**Date arithmetic (Next 7 days):** Upper boundary calculated in the backend; seven calendar days added without timezone/DST-dependent millisecond arithmetic; month/year/leap-year boundaries supported; **no** stored user timezone.
 
-**Course `/courses/:id`:** **Overdue** / **Due today** filters are **local/in-memory** — **not** persisted in the course URL.
+**Global `/tasks`:** URL-persisted **`deadline=overdue|due_today|next_7_days`** (implies **`status=pending`**); invalid frontend values canonicalized away; **`referenceDate` is not stored in the browser URL**. Example: **`/tasks?status=pending&deadline=next_7_days`**.
 
-**Dashboard:** Recommendation **overdue-tasks** / **due-today-tasks** heroes and **At a glance** **Overdue** / **Due today** statistics link to **`/tasks?status=pending&deadline=overdue`** and **`/tasks?status=pending&deadline=due_today`**.
+**Course `/courses/:id`:** **Overdue** / **Due today** / **Next 7 days** filters are **local/in-memory** — **not** persisted in the course URL.
 
-See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-DUE-FILTERS-A1** for UI composition with course/material/status filters and deadline-specific empty states; § **TASK-DUE-SORT-A1** for ordering semantics and user-visible behavior.
+**Dashboard:** Recommendation **overdue-tasks** / **due-today-tasks** / **due-next-7-days-tasks** heroes and **At a glance** **Overdue** / **Due today** / **Due next 7 days** statistics link to **`/tasks?status=pending&deadline=overdue`**, **`/tasks?status=pending&deadline=due_today`**, and **`/tasks?status=pending&deadline=next_7_days`**.
+
+See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-DUE-FILTERS-A1** and § **TASK-UPCOMING-FILTERS-A1** for UI composition; § **TASK-DUE-SORT-A1** for ordering semantics and user-visible behavior.
 
 ---
 
@@ -130,31 +135,32 @@ Migration **015** remains the sole schema source for **`due_date`**. **DASHBOARD
 |-----------|------|
 | **`overduePendingTasks`** | Caller-owned **pending** tasks with non-null **`due_date` < `deadlineReferenceDate`** |
 | **`dueTodayPendingTasks`** | Caller-owned **pending** tasks with **`due_date` = `deadlineReferenceDate`** |
+| **`dueNext7DaysPendingTasks`** | Caller-owned **pending** tasks with **`due_date > deadlineReferenceDate`** and **`due_date <= deadlineReferenceDate + 7` calendar days** — same boundaries as **`deadline=next_7_days`** list filter (**TASK-UPCOMING-FILTERS-A1**) |
 | **`deadlineReferenceDate`** | Effective reference calendar date (optional query **`referenceDate=YYYY-MM-DD`**; omitted → server UTC calendar date; frontend sends browser-local date on each request) |
 
-**Excluded from counts:** completed tasks; null **`due_date`**; future dates; other users' tasks. Response remains **aggregate-only** — no task rows or titles.
+**Excluded from counts:** completed tasks; null **`due_date`**; other users' tasks. Response remains **aggregate-only** — no task rows or titles.
 
-**A2 does not add:** new migration; indexes; stored user timezone; calendar integration; notifications.
+**A2 does not add:** new migration; indexes; stored user timezone; calendar integration; notifications. **Bounded next-7-days aggregate** added in **TASK-UPCOMING-FILTERS-A1** (migration **015** unchanged).
 
-See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** for recommendation priority and hero CTAs (deadline hero URLs superseded for list navigation by **TASK-DUE-FILTERS-A1**).
+See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** and § **TASK-UPCOMING-FILTERS-A1** for recommendation priority and hero CTAs.
 
 ---
 
 ## Frontend surfaces (P0 + A1)
 
-- **Course tasks** — optional due date on create/edit; **Overdue** / **Due today** deadline filters in-memory (**TASK-DUE-FILTERS-A1**)
-- **Global `/tasks`** — optional due date on create/edit; URL-persisted **`deadline=overdue|due_today`** (**TASK-DUE-FILTERS-A1**)
+- **Course tasks** — optional due date on create/edit; **Overdue** / **Due today** / **Next 7 days** deadline filters in-memory (**TASK-DUE-FILTERS-A1** + **TASK-UPCOMING-FILTERS-A1**)
+- **Global `/tasks`** — optional due date on create/edit; URL-persisted **`deadline=overdue|due_today|next_7_days`** (**TASK-DUE-FILTERS-A1** + **TASK-UPCOMING-FILTERS-A1**)
 - **`TaskCard`** — due-date line when set (pending future: `Due Jun 24`; today: `Due today`; overdue pending: `Overdue · Due Jun 10`; completed: neutral `Due Jun 10`; no date: no line)
 - **Material related tasks preview** — same presentation rules (`MaterialRelatedTasksSection`)
-- **Dashboard** — **Overdue** / **Due today** heroes and **At a glance** stats link to filtered **`/tasks`** URLs (**TASK-DUE-FILTERS-A1**)
+- **Dashboard** — **Overdue** / **Due today** / **Due next 7 days** heroes and **At a glance** stats link to filtered **`/tasks`** URLs (**TASK-DUE-FILTERS-A1** + **TASK-UPCOMING-FILTERS-A1**)
 
 ---
 
 ## Explicit non-goals (deferred — separate phase gates)
 
-- **Upcoming deadline window** on dashboard
+- **Unbounded Upcoming**, **Due soon**, and **This week** filters (bounded **Next 7 days** shipped in **TASK-UPCOMING-FILTERS-A1** — see **Task list deadline filters** above)
 - **Priority sorting**, user-selectable sort modes, drag-and-drop / manual ranking (deadline-aware list ordering shipped in **TASK-DUE-SORT-A1** — see **List ordering** above)
-- **Upcoming/this-week** filters; **no-due-date** filter; **custom date ranges**
+- **No-due-date** filter; **custom date ranges**; date picker
 - **Reminders**, **notifications**, **exam dates**, **calendar integration**
 - **Stored user timezone** persistence
 - **Gemini-generated** due dates
@@ -163,7 +169,7 @@ See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** for recommenda
 - **Collaboration/chat**
 - **AI scheduling**
 
-Optional task due dates + A2 dashboard aggregates + A1 deadline filters are **not** a complete deadline-planning system.
+Optional task due dates + A2 dashboard aggregates + A1 deadline filters + bounded next-7-days filter are **not** a complete deadline-planning system.
 
 ---
 
@@ -195,6 +201,14 @@ Optional task due dates + A2 dashboard aggregates + A1 deadline filters are **no
 
 - Backend tests: **589/589**
 - Frontend tests: **512/512**
+- Frontend build passed
+- Supervisor Review **PASS**; Security Review **APPROVED**; manual browser smoke **PASS**
+- **`git diff --check`**: clean
+
+**TASK-UPCOMING-FILTERS-A1 (bounded next-7-days filter + dashboard aggregate — no migration change):**
+
+- Backend tests: **615/615**
+- Frontend tests: **521/521**
 - Frontend build passed
 - Supervisor Review **PASS**; Security Review **APPROVED**; manual browser smoke **PASS**
 - **`git diff --check`**: clean

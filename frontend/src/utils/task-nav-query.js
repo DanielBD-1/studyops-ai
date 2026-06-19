@@ -5,8 +5,8 @@ const uuidParamSchema = materialIdSchema;
 /** @type {readonly ['pending', 'completed']} */
 const TASK_STATUS_QUERY_VALUES = ['pending', 'completed'];
 
-/** @type {readonly ['overdue', 'due_today']} */
-const TASK_DEADLINE_QUERY_VALUES = ['overdue', 'due_today'];
+/** @type {readonly ['overdue', 'due_today', 'next_7_days']} */
+const TASK_DEADLINE_QUERY_VALUES = ['overdue', 'due_today', 'next_7_days'];
 
 /** @type {'none'} */
 const TASK_MATERIAL_QUERY_NONE = 'none';
@@ -39,7 +39,7 @@ function parseStatusQueryParam(value) {
 
 /**
  * @param {string | null} value
- * @returns {'overdue' | 'due_today' | undefined}
+ * @returns {'overdue' | 'due_today' | 'next_7_days' | undefined}
  */
 function parseDeadlineQueryParam(value) {
   if (value == null || value.trim() === '') {
@@ -51,12 +51,24 @@ function parseDeadlineQueryParam(value) {
 }
 
 /**
+ * @param {'all' | 'overdue' | 'due_today' | 'next_7_days'} deadlineFilter
+ * @returns {boolean}
+ */
+function isActiveDeadlineFilter(deadlineFilter) {
+  return (
+    deadlineFilter === 'overdue' ||
+    deadlineFilter === 'due_today' ||
+    deadlineFilter === 'next_7_days'
+  );
+}
+
+/**
  * @param {string} searchString
  * @returns {{
  *   courseId?: string,
  *   materialId?: string,
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  * }}
  */
 export function parseTasksPageSearchParams(searchString) {
@@ -67,7 +79,7 @@ export function parseTasksPageSearchParams(searchString) {
    *   courseId?: string,
    *   materialId?: string,
    *   status?: 'pending' | 'completed',
-   *   deadline?: 'overdue' | 'due_today',
+   *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
    * }} */
   const result = {};
 
@@ -106,7 +118,7 @@ export function parseTasksPageSearchParams(searchString) {
  *   courseFilter?: 'all' | string,
  *   materialFilter?: 'all' | 'none' | string,
  *   statusFilter?: 'all' | 'pending' | 'completed',
- *   deadlineFilter?: 'all' | 'overdue' | 'due_today',
+ *   deadlineFilter?: 'all' | 'overdue' | 'due_today' | 'next_7_days',
  * }} filters
  * @returns {string} Query string without leading "?" (empty when all defaults).
  */
@@ -119,9 +131,7 @@ export function buildTasksPageSearchParams({
   const params = new URLSearchParams();
   const courseId = courseFilter !== 'all' ? courseFilter : undefined;
   const materialId = materialFilter !== 'all' ? materialFilter : undefined;
-  const hasDeadline =
-    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
-    statusFilter !== 'completed';
+  const hasDeadline = isActiveDeadlineFilter(deadlineFilter) && statusFilter !== 'completed';
   const status = hasDeadline
     ? 'pending'
     : statusFilter === 'pending' || statusFilter === 'completed'
@@ -154,7 +164,7 @@ export function buildTasksPageSearchParams({
  *   courseId?: string,
  *   materialId?: string,
  *   status?: 'pending' | 'completed',
- *   deadline?: 'overdue' | 'due_today',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  *   courses: { id: string }[],
  *   materials: { id: string }[],
  * }} input
@@ -162,7 +172,7 @@ export function buildTasksPageSearchParams({
  *   courseFilter: 'all' | string,
  *   materialFilter: 'all' | 'none' | string,
  *   statusFilter: 'all' | 'pending' | 'completed',
- *   deadlineFilter: 'all' | 'overdue' | 'due_today',
+ *   deadlineFilter: 'all' | 'overdue' | 'due_today' | 'next_7_days',
  * }}
  */
 export function resolveInitialTaskFilters({
@@ -174,7 +184,9 @@ export function resolveInitialTaskFilters({
   materials,
 }) {
   const deadlineFilter =
-    deadline === 'overdue' || deadline === 'due_today' ? deadline : 'all';
+    deadline === 'overdue' || deadline === 'due_today' || deadline === 'next_7_days'
+      ? deadline
+      : 'all';
 
   let statusFilter = status === 'pending' || status === 'completed' ? status : 'all';
   let resolvedDeadlineFilter = deadlineFilter;
@@ -252,6 +264,13 @@ export function buildTasksPageOverdueLink() {
  */
 export function buildTasksPageDueTodayLink() {
   return '/tasks?status=pending&deadline=due_today';
+}
+
+/**
+ * @returns {string}
+ */
+export function buildTasksPageNext7DaysLink() {
+  return '/tasks?status=pending&deadline=next_7_days';
 }
 
 /**

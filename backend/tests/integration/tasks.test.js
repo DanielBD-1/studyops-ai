@@ -671,6 +671,285 @@ describe('tasks API deadline filters', () => {
   });
 });
 
+describe('tasks API next_7_days deadline filter', () => {
+  /** @type {import('node:http').Server} */
+  let server;
+  /** @type {number} */
+  let port;
+
+  const REFERENCE_DATE = '2026-06-19';
+
+  const ID_TODAY = '11111111-1111-4111-8111-111111111111';
+  const ID_OVERDUE = '22222222-2222-4222-8222-222222222222';
+  const ID_TOMORROW = '33333333-3333-4333-8333-333333333333';
+  const ID_DAY_7 = '44444444-4444-4444-8444-444444444444';
+  const ID_DAY_8 = '55555555-5555-4555-8555-555555555555';
+  const ID_NULL_DUE = '66666666-6666-4666-8666-666666666666';
+  const ID_COMPLETED_IN_WINDOW = '77777777-7777-4777-8777-777777777771';
+  const ID_LATER_IN_WINDOW = '88888888-8888-4888-8888-888888888881';
+  const ID_OTHER_USER = OTHER_USER_TASK_ID;
+
+  before(async () => {
+    server = http.createServer(app);
+    await listen(server);
+    port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+  });
+
+  after(() => new Promise((resolve) => server.close(resolve)));
+
+  const base = () => `http://127.0.0.1:${port}`;
+  const auth = { Authorization: 'Bearer valid-token' };
+
+  function seedNext7DaysTasks() {
+    const existing = getMockTasks();
+    existing.length = 0;
+    existing.push(
+      {
+        id: ID_TODAY,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Due today task',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: REFERENCE_DATE,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: ID_OVERDUE,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Overdue task',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-18',
+        created_at: '2026-01-02T00:00:00.000Z',
+        updated_at: '2026-01-02T00:00:00.000Z',
+      },
+      {
+        id: ID_TOMORROW,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Tomorrow task',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-20',
+        created_at: '2026-01-03T00:00:00.000Z',
+        updated_at: '2026-01-03T00:00:00.000Z',
+      },
+      {
+        id: ID_DAY_7,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Day seven task',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-26',
+        created_at: '2026-01-04T00:00:00.000Z',
+        updated_at: '2026-01-04T00:00:00.000Z',
+      },
+      {
+        id: ID_DAY_8,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Day eight task',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-27',
+        created_at: '2026-01-05T00:00:00.000Z',
+        updated_at: '2026-01-05T00:00:00.000Z',
+      },
+      {
+        id: ID_NULL_DUE,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Null due task',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        created_at: '2026-01-06T00:00:00.000Z',
+        updated_at: '2026-01-06T00:00:00.000Z',
+      },
+      {
+        id: ID_COMPLETED_IN_WINDOW,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Completed in window',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'completed',
+        source: 'manual',
+        due_date: '2026-06-22',
+        created_at: '2026-01-07T00:00:00.000Z',
+        updated_at: '2026-01-07T00:00:00.000Z',
+      },
+      {
+        id: ID_LATER_IN_WINDOW,
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Later in window',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-25',
+        created_at: '2026-01-08T00:00:00.000Z',
+        updated_at: '2026-01-08T00:00:00.000Z',
+      },
+      {
+        id: ID_OTHER_USER,
+        user_id: '99999999-9999-9999-9999-999999999999',
+        course_id: OTHER_USER_COURSE_ID,
+        material_id: null,
+        title: 'Other user in window',
+        description: '',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: '2026-06-21',
+        created_at: '2026-01-09T00:00:00.000Z',
+        updated_at: '2026-01-09T00:00:00.000Z',
+      }
+    );
+  }
+
+  beforeEach(() => {
+    seedNext7DaysTasks();
+  });
+
+  it('returns pending tasks due after reference date through day seven', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/tasks?deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.equal(statusCode, 200);
+    assert.deepEqual(
+      body.data.tasks.map((task) => task.id),
+      [ID_TOMORROW, ID_LATER_IN_WINDOW, ID_DAY_7]
+    );
+    assertNoContentOrPlan(body.data);
+  });
+
+  it('excludes today, overdue, day eight, null, and completed tasks', async () => {
+    const { body } = await request(
+      `${base()}/api/tasks?deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    const ids = body.data.tasks.map((task) => task.id);
+    assert.equal(ids.includes(ID_TODAY), false);
+    assert.equal(ids.includes(ID_OVERDUE), false);
+    assert.equal(ids.includes(ID_DAY_8), false);
+    assert.equal(ids.includes(ID_NULL_DUE), false);
+    assert.equal(ids.includes(ID_COMPLETED_IN_WINDOW), false);
+    assert.equal(ids.includes(ID_OTHER_USER), false);
+  });
+
+  it('accepts omitted status as pending-only results', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/tasks?deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.equal(statusCode, 200);
+    assert.ok(body.data.tasks.every((task) => task.status === 'pending'));
+  });
+
+  it('filters course route tasks by next_7_days', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/courses/${OWN_COURSE_ID}/tasks?deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.equal(statusCode, 200);
+    assert.deepEqual(
+      body.data.tasks.map((task) => task.id),
+      [ID_TOMORROW, ID_LATER_IN_WINDOW, ID_DAY_7]
+    );
+  });
+
+  it('returns 404 for wrong-owner course with next_7_days filter', async () => {
+    const { statusCode } = await request(
+      `${base()}/api/courses/${OTHER_USER_COURSE_ID}/tasks?deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.equal(statusCode, 404);
+  });
+
+  it('returns 400 for completed status with next_7_days', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/tasks?status=completed&deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('returns 400 for invalid next_7_days typo deadline', async () => {
+    const { statusCode, body } = await request(
+      `${base()}/api/tasks?deadline=next7days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.equal(statusCode, 400);
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+  });
+
+  it('orders next_7_days filter with nearest due date first', async () => {
+    const { body } = await request(
+      `${base()}/api/tasks?deadline=next_7_days&referenceDate=${REFERENCE_DATE}`,
+      { headers: auth }
+    );
+    assert.deepEqual(
+      body.data.tasks.map((task) => task.dueDate),
+      ['2026-06-20', '2026-06-25', '2026-06-26']
+    );
+  });
+});
+
 describe('tasks API list ordering', () => {
   /** @type {import('node:http').Server} */
   let server;

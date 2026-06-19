@@ -130,11 +130,15 @@ describe('course and global task forms due date UX', () => {
     assert.match(globalTasksSource, /All deadlines/);
     assert.match(globalTasksSource, /handleDeadlineFilterChange/);
     assert.match(globalTasksSource, /aria-label="Filter tasks by deadline"/);
+    assert.match(globalTasksSource, /Next 7 days/);
     assert.match(globalTasksSource, /No overdue pending tasks\./);
     assert.match(globalTasksSource, /Nothing due today\./);
+    assert.match(globalTasksSource, /No pending tasks due in the next 7 days\./);
     assert.match(courseTasksSource, /All deadlines/);
     assert.match(courseTasksSource, /handleDeadlineFilterChange/);
+    assert.match(courseTasksSource, /Next 7 days/);
     assert.match(courseTasksSource, /No overdue pending tasks in this course\./);
     assert.match(courseTasksSource, /Nothing due today in this course\./);
+    assert.match(courseTasksSource, /No pending tasks due in the next 7 days in this course\./);
   });
 });

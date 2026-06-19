@@ -54,7 +54,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     /** @type {'all' | 'pending' | 'completed'} */ ('all')
   );
   const [deadlineFilter, setDeadlineFilter] = useState(
-    /** @type {'all' | 'overdue' | 'due_today'} */ ('all')
+    /** @type {'all' | 'overdue' | 'due_today' | 'next_7_days'} */ ('all')
   );
   const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
   const [filterMaterials, setFilterMaterials] = useState(
@@ -127,7 +127,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
    * @param {{
    *   courseFilter?: 'all' | string,
    *   statusFilter?: 'all' | 'pending' | 'completed',
-   *   deadlineFilter?: 'all' | 'overdue' | 'due_today',
+   *   deadlineFilter?: 'all' | 'overdue' | 'due_today' | 'next_7_days',
    * }} [overrides]
    */
   const loadTasks = useCallback(
@@ -145,7 +145,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
           ? effectiveCourseFilter
           : undefined;
       const hasDeadline =
-        effectiveDeadlineFilter === 'overdue' || effectiveDeadlineFilter === 'due_today';
+        effectiveDeadlineFilter === 'overdue' ||
+        effectiveDeadlineFilter === 'due_today' ||
+        effectiveDeadlineFilter === 'next_7_days';
       const status = hasDeadline
         ? 'pending'
         : effectiveStatusFilter === 'pending' || effectiveStatusFilter === 'completed'
@@ -175,7 +177,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
    *   courseFilter: 'all' | string,
    *   materialFilter: 'all' | string,
    *   statusFilter: 'all' | 'pending' | 'completed',
-   *   deadlineFilter?: 'all' | 'overdue' | 'due_today',
+   *   deadlineFilter?: 'all' | 'overdue' | 'due_today' | 'next_7_days',
    * }} filters
    * @param {{ replace?: boolean }} [options]
    */
@@ -439,7 +441,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   }
 
   /**
-   * @param {'all' | 'overdue' | 'due_today'} filter
+   * @param {'all' | 'overdue' | 'due_today' | 'next_7_days'} filter
    */
   function handleDeadlineFilterChange(filter) {
     cancelCreate();
@@ -652,11 +654,12 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     { value: 'completed', label: 'Completed' },
   ];
 
-  /** @type {Array<{ value: 'all' | 'overdue' | 'due_today', label: string }>} */
+  /** @type {Array<{ value: 'all' | 'overdue' | 'due_today' | 'next_7_days', label: string }>} */
   const DEADLINE_FILTERS = [
     { value: 'all', label: 'All deadlines' },
     { value: 'overdue', label: 'Overdue' },
     { value: 'due_today', label: 'Due today' },
+    { value: 'next_7_days', label: 'Next 7 days' },
   ];
 
   const materialTitleById = new Map([
@@ -683,7 +686,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     !error &&
     tasks.length === 0 &&
     !showGlobalEmpty &&
-    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
+    (deadlineFilter === 'overdue' ||
+      deadlineFilter === 'due_today' ||
+      deadlineFilter === 'next_7_days') &&
     !hasMaterialFilter;
 
   const showDeadlineMaterialEmpty =
@@ -691,7 +696,9 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     !error &&
     displayedTasks.length === 0 &&
     !showGlobalEmpty &&
-    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
+    (deadlineFilter === 'overdue' ||
+      deadlineFilter === 'due_today' ||
+      deadlineFilter === 'next_7_days') &&
     hasMaterialFilter;
 
   const showFilterEmpty =
@@ -992,6 +999,16 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         <p className="section__meta task-workspace__filter-empty">No completed tasks.</p>
       )}
 
+      {showDeadlineApiEmpty && deadlineFilter === 'next_7_days' && (
+        <p className="section__empty" role="status">
+          No pending tasks due in the next 7 days.
+        </p>
+      )}
+      {showDeadlineMaterialEmpty && deadlineFilter === 'next_7_days' && (
+        <p className="section__empty" role="status">
+          No pending tasks due in the next 7 days match the selected filters.
+        </p>
+      )}
       {showUnlinkedFilterEmpty && (
         <p className="section__meta task-workspace__filter-empty">
           No tasks without a study material link in this course.

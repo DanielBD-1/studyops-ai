@@ -19,6 +19,7 @@ const MOCK_STATS = {
   completedTasks: 6,
   overduePendingTasks: 1,
   dueTodayPendingTasks: 2,
+  dueNext7DaysPendingTasks: 3,
   deadlineReferenceDate: '2026-06-18',
   totalFlashcards: 8,
   dueFlashcardsCount: 3,
@@ -90,6 +91,7 @@ describe('dashboard.service', () => {
 
     assert.equal(data.overduePendingTasks, 1);
     assert.equal(data.dueTodayPendingTasks, 2);
+    assert.equal(data.dueNext7DaysPendingTasks, 3);
     assert.equal(data.deadlineReferenceDate, '2026-06-18');
   });
 

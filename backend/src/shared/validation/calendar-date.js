@@ -81,3 +81,34 @@ export function getUtcTodayIsoCalendarDate(date = new Date()) {
   const day = String(date.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Add calendar days to a validated YYYY-MM-DD date without timezone/DST behavior.
+ *
+ * @param {string} isoDate
+ * @param {number} days Non-negative whole calendar days to add.
+ * @returns {string}
+ */
+export function addCalendarDaysToIsoDate(isoDate, days) {
+  const parts = parseIsoCalendarDateComponents(isoDate);
+  if (!parts || !Number.isInteger(days) || days < 0) {
+    throw new RangeError('addCalendarDaysToIsoDate requires a valid ISO date and non-negative days');
+  }
+
+  let { year, month, day } = parts;
+
+  for (let offset = 0; offset < days; offset += 1) {
+    day += 1;
+    const maxDay = daysInMonth(year, month);
+    if (day > maxDay) {
+      day = 1;
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+  }
+
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}

@@ -56,7 +56,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     /** @type {'all' | 'pending' | 'completed'} */ ('all')
   );
   const [deadlineFilter, setDeadlineFilter] = useState(
-    /** @type {'all' | 'overdue' | 'due_today'} */ ('all')
+    /** @type {'all' | 'overdue' | 'due_today' | 'next_7_days'} */ ('all')
   );
   const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
 
@@ -98,7 +98,10 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setError(null);
 
     try {
-      const hasDeadline = deadlineFilter === 'overdue' || deadlineFilter === 'due_today';
+      const hasDeadline =
+        deadlineFilter === 'overdue' ||
+        deadlineFilter === 'due_today' ||
+        deadlineFilter === 'next_7_days';
       const status = hasDeadline
         ? 'pending'
         : statusFilter === 'all'
@@ -135,7 +138,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
   }
 
   /**
-   * @param {'all' | 'overdue' | 'due_today'} filter
+   * @param {'all' | 'overdue' | 'due_today' | 'next_7_days'} filter
    */
   function handleDeadlineFilterChange(filter) {
     cancelEdit();
@@ -327,11 +330,12 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     { value: 'completed', label: 'Completed' },
   ];
 
-  /** @type {Array<{ value: 'all' | 'overdue' | 'due_today', label: string }>} */
+  /** @type {Array<{ value: 'all' | 'overdue' | 'due_today' | 'next_7_days', label: string }>} */
   const DEADLINE_FILTERS = [
     { value: 'all', label: 'All deadlines' },
     { value: 'overdue', label: 'Overdue' },
     { value: 'due_today', label: 'Due today' },
+    { value: 'next_7_days', label: 'Next 7 days' },
   ];
 
   const materialTitleById = new Map(
@@ -355,7 +359,9 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     !error &&
     tasks.length === 0 &&
     !showCourseEmpty &&
-    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
+    (deadlineFilter === 'overdue' ||
+      deadlineFilter === 'due_today' ||
+      deadlineFilter === 'next_7_days') &&
     !hasMaterialFilter;
 
   const showDeadlineMaterialEmpty =
@@ -363,7 +369,9 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     !error &&
     displayedTasks.length === 0 &&
     !showCourseEmpty &&
-    (deadlineFilter === 'overdue' || deadlineFilter === 'due_today') &&
+    (deadlineFilter === 'overdue' ||
+      deadlineFilter === 'due_today' ||
+      deadlineFilter === 'next_7_days') &&
     hasMaterialFilter;
 
   const showFilterEmpty =
@@ -488,6 +496,18 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       {showDeadlineMaterialEmpty && deadlineFilter === 'due_today' && (
         <p className="section__meta course-workspace__tasks-filter-empty">
           Nothing due today matches the selected filters in this course.
+        </p>
+      )}
+
+      {showDeadlineApiEmpty && deadlineFilter === 'next_7_days' && (
+        <p className="section__meta course-workspace__tasks-filter-empty">
+          No pending tasks due in the next 7 days in this course.
+        </p>
+      )}
+
+      {showDeadlineMaterialEmpty && deadlineFilter === 'next_7_days' && (
+        <p className="section__meta course-workspace__tasks-filter-empty">
+          No pending tasks due in the next 7 days match the selected filters in this course.
         </p>
       )}
 

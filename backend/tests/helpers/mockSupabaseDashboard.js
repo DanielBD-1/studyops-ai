@@ -88,6 +88,24 @@ function applyCommonFilters(state, rows) {
     }
   }
 
+  if (state.gtFilters) {
+    for (const [column, minValue] of Object.entries(state.gtFilters)) {
+      filtered = filtered.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) > String(minValue);
+      });
+    }
+  }
+
+  if (state.lteFilters) {
+    for (const [column, maxValue] of Object.entries(state.lteFilters)) {
+      filtered = filtered.filter((row) => {
+        const cell = row[column];
+        return cell != null && String(cell) <= String(maxValue);
+      });
+    }
+  }
+
   return filtered;
 }
 
@@ -272,6 +290,8 @@ function createStudyTasksBuilder() {
     filters: {},
     notNullColumns: [],
     ltFilters: {},
+    gtFilters: {},
+    lteFilters: {},
   };
 
   const builder = {
@@ -287,6 +307,14 @@ function createStudyTasksBuilder() {
     },
     lt(column, value) {
       state.ltFilters[column] = value;
+      return builder;
+    },
+    gt(column, value) {
+      state.gtFilters[column] = value;
+      return builder;
+    },
+    lte(column, value) {
+      state.lteFilters[column] = value;
       return builder;
     },
     not(column, operator, value) {
