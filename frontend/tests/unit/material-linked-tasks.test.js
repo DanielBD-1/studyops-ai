@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  getMaterialLinkedTasks,
   selectLinkedTaskPreview,
   summarizeLinkedTaskCounts,
 } from '../../src/utils/task-filters.js';
@@ -19,7 +18,6 @@ import {
 
 const COURSE_A = '11111111-1111-4111-8111-111111111111';
 const MATERIAL_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const MATERIAL_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const UNKNOWN_COURSE = '22222222-2222-4222-8222-222222222222';
 const UNKNOWN_MATERIAL = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 
@@ -32,18 +30,6 @@ const linkedTasks = [
   { id: '2', materialId: MATERIAL_A, status: 'pending', title: 'Open task' },
   { id: '3', materialId: MATERIAL_A, status: 'pending', title: 'Another open' },
 ];
-
-describe('getMaterialLinkedTasks', () => {
-  it('returns only tasks linked to the material', () => {
-    const courseTasks = [
-      ...linkedTasks,
-      { id: '4', materialId: MATERIAL_B, status: 'pending' },
-      { id: '5', materialId: null, status: 'pending' },
-    ];
-
-    assert.deepEqual(getMaterialLinkedTasks(courseTasks, MATERIAL_A, materials), linkedTasks);
-  });
-});
 
 describe('summarizeLinkedTaskCounts', () => {
   it('counts pending, completed, and total', () => {

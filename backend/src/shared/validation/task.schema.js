@@ -86,6 +86,11 @@ const taskListReferenceDateQuerySchema = z.preprocess(
   taskDueDateSchema.optional()
 );
 
+const taskListMaterialIdQuerySchema = z.preprocess(
+  rejectArrayQueryValue,
+  z.union([materialIdSchema, z.literal('none')]).optional()
+);
+
 const taskListQueryCrossFieldValidation = (data, ctx) => {
   if (data.referenceDate && !data.deadline) {
     ctx.addIssue({
@@ -109,6 +114,7 @@ export const listTasksQuerySchema = z
       rejectArrayQueryValue,
       z.string().uuid('Invalid course id').optional()
     ),
+    materialId: taskListMaterialIdQuerySchema,
     status: taskListStatusQuerySchema,
     deadline: taskListDeadlineQuerySchema,
     referenceDate: taskListReferenceDateQuerySchema,
@@ -118,6 +124,7 @@ export const listTasksQuerySchema = z
 
 export const listCourseTasksQuerySchema = z
   .object({
+    materialId: taskListMaterialIdQuerySchema,
     status: taskListStatusQuerySchema,
     deadline: taskListDeadlineQuerySchema,
     referenceDate: taskListReferenceDateQuerySchema,

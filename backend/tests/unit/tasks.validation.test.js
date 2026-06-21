@@ -301,6 +301,38 @@ describe('tasks.validation listTasksQuerySchema', () => {
     });
     assert.equal(parsed.success, false);
   });
+
+  it('accepts valid materialId UUID', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      materialId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it('accepts literal materialId none', () => {
+    const parsed = listTasksQuerySchema.safeParse({ materialId: 'none' });
+    assert.equal(parsed.success, true);
+    if (parsed.success) {
+      assert.equal(parsed.data.materialId, 'none');
+    }
+  });
+
+  it('rejects malformed materialId', () => {
+    const parsed = listTasksQuerySchema.safeParse({ materialId: 'not-a-uuid' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects unsupported materialId string', () => {
+    const parsed = listTasksQuerySchema.safeParse({ materialId: 'all' });
+    assert.equal(parsed.success, false);
+  });
+
+  it('rejects repeated materialId query values', () => {
+    const parsed = listTasksQuerySchema.safeParse({
+      materialId: ['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'none'],
+    });
+    assert.equal(parsed.success, false);
+  });
 });
 
 describe('tasks.validation listCourseTasksQuerySchema', () => {
@@ -318,6 +350,11 @@ describe('tasks.validation listCourseTasksQuerySchema', () => {
       deadline: 'due_today',
     });
     assert.equal(parsed.success, false);
+  });
+
+  it('accepts materialId none on course task list', () => {
+    const parsed = listCourseTasksQuerySchema.safeParse({ materialId: 'none' });
+    assert.equal(parsed.success, true);
   });
 });
 

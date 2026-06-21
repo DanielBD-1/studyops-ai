@@ -11,7 +11,6 @@ import {
 } from '../../services/tasks.service.js';
 import { listMaterials } from '../../services/study-materials.service.js';
 import {
-  filterTasksByMaterial,
   resetMaterialFilterForCourseChange,
 } from '../../utils/task-filters.js';
 import {
@@ -126,6 +125,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
   /**
    * @param {{
    *   courseFilter?: 'all' | string,
+   *   materialFilter?: 'all' | 'none' | string,
    *   statusFilter?: 'all' | 'pending' | 'completed',
    *   deadlineFilter?: 'all' | 'overdue' | 'due_today' | 'next_7_days',
    * }} [overrides]
@@ -138,6 +138,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       const effectiveCourseFilter = overrides.courseFilter ?? courseFilter;
       const effectiveStatusFilter = overrides.statusFilter ?? statusFilter;
       const effectiveDeadlineFilter = overrides.deadlineFilter ?? deadlineFilter;
+      const effectiveMaterialFilter = overrides.materialFilter ?? materialFilter;
 
       const courseId =
         effectiveCourseFilter !== 'all' &&
@@ -154,9 +155,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
           ? effectiveStatusFilter
           : undefined;
       const deadline = hasDeadline ? effectiveDeadlineFilter : undefined;
+      const materialId =
+        effectiveMaterialFilter === 'all' ? undefined : effectiveMaterialFilter;
 
       try {
-        const data = await listAllTasks({ courseId, status, deadline });
+        const data = await listAllTasks({ courseId, status, deadline, materialId });
         setTasks(data.tasks);
       } catch (err) {
         if (await handleAuthError(err)) return;
@@ -165,7 +168,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         setLoading(false);
       }
     },
-    [courseFilter, statusFilter, deadlineFilter, handleAuthError, courses]
+    [courseFilter, materialFilter, statusFilter, deadlineFilter, handleAuthError, courses]
   );
 
   useEffect(() => {
@@ -667,7 +670,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     ...editMaterials.map((m) => [m.id, m.title]),
   ]);
 
-  const displayedTasks = filterTasksByMaterial(tasks, materialFilter, filterMaterials);
+  const displayedTasks = tasks;
 
   const editingTask = tasks.find((t) => t.id === editingTaskId);
 

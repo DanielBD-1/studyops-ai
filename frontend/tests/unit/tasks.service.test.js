@@ -529,4 +529,145 @@ describe('tasks.service', () => {
       }
     );
   });
+
+  it('listAllTasks sends materialId UUID', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ materialId: MATERIAL_ID });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), MATERIAL_ID);
+  });
+
+  it('listAllTasks sends literal materialId none', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ materialId: 'none' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), 'none');
+  });
+
+  it('listAllTasks omits materialId for all-material filter', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({});
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), null);
+  });
+
+  it('listAllTasks sends courseId and materialId together', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ courseId: COURSE_ID, materialId: MATERIAL_ID });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('courseId'), COURSE_ID);
+    assert.equal(url.searchParams.get('materialId'), MATERIAL_ID);
+  });
+
+  it('listAllTasks sends courseId and materialId none together', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ courseId: COURSE_ID, materialId: 'none' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('courseId'), COURSE_ID);
+    assert.equal(url.searchParams.get('materialId'), 'none');
+  });
+
+  it('listCourseTasks sends materialId UUID', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, { materialId: MATERIAL_ID });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), MATERIAL_ID);
+  });
+
+  it('listCourseTasks sends materialId none', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, { materialId: 'none' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), 'none');
+  });
+
+  it('listAllTasks composes materialId with overdue deadline and referenceDate', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listAllTasks({ materialId: MATERIAL_ID, deadline: 'overdue' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), MATERIAL_ID);
+    assert.equal(url.searchParams.get('deadline'), 'overdue');
+    assert.equal(url.searchParams.get('status'), 'pending');
+    assert.match(url.searchParams.get('referenceDate') ?? '', /^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('listCourseTasks composes materialId with status=pending', async () => {
+    __setApiFetchForTests(async (path, init, accessToken) => {
+      calls.push({ path, init, token: accessToken });
+      return {
+        success: true,
+        data: { tasks: [] },
+        meta: { timestamp: new Date().toISOString() },
+      };
+    });
+
+    await listCourseTasks(COURSE_ID, { materialId: 'none', status: 'pending' });
+    const url = new URL(`http://local${calls[0].path}`);
+    assert.equal(url.searchParams.get('materialId'), 'none');
+    assert.equal(url.searchParams.get('status'), 'pending');
+  });
 });

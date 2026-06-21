@@ -113,6 +113,47 @@ export function resetTasksMockOverrides() {
   taskMockOverrides = {};
 }
 
+export function resetMockTasksData() {
+  tasks.length = 0;
+  nextTaskNumericId = 1;
+  tasks.push(
+    {
+      id: OWN_TASK_ID,
+      user_id: TEST_USER_ID,
+      course_id: OWN_COURSE_ID,
+      material_id: OWN_MATERIAL_ID,
+      title: 'Existing own task',
+      description: '',
+      priority: 'medium',
+      estimated_minutes: 30,
+      difficulty: 'medium',
+      tags: [],
+      status: 'pending',
+      source: 'manual',
+      due_date: null,
+      created_at: '2026-01-10T00:00:00.000Z',
+      updated_at: '2026-01-10T00:00:00.000Z',
+    },
+    {
+      id: OTHER_USER_TASK_ID,
+      user_id: '99999999-9999-9999-9999-999999999999',
+      course_id: OTHER_USER_COURSE_ID,
+      material_id: null,
+      title: 'Other user task',
+      description: '',
+      priority: 'low',
+      estimated_minutes: 15,
+      difficulty: 'medium',
+      tags: [],
+      status: 'pending',
+      source: 'manual',
+      due_date: null,
+      created_at: '2026-01-09T00:00:00.000Z',
+      updated_at: '2026-01-09T00:00:00.000Z',
+    }
+  );
+}
+
 /** Matches DB index: lower(trim(title)) */
 function normalizePlanImportTaskTitle(title) {
   return String(title).trim().toLowerCase();
@@ -193,10 +234,18 @@ function resolveTasksSelect(state) {
     if (state.filters.course_id && t.course_id !== state.filters.course_id) return false;
     if (state.filters.status && t.status !== state.filters.status) return false;
     if (state.filters.source && t.source !== state.filters.source) return false;
-    if (state.filters.material_id && t.material_id !== state.filters.material_id) return false;
+    if (state.filters.material_id !== undefined && t.material_id !== state.filters.material_id) {
+      return false;
+    }
     if (state.filters.due_date && t.due_date !== state.filters.due_date) return false;
     return true;
   });
+
+  if (state.isNullColumns) {
+    for (const column of state.isNullColumns) {
+      rows = rows.filter((row) => row[column] == null);
+    }
+  }
 
   if (state.notNullColumns) {
     for (const column of state.notNullColumns) {
@@ -334,6 +383,7 @@ function createTasksBuilder() {
   /** @type {Record<string, unknown>} */
   const state = {
     filters: {},
+    isNullColumns: [],
     notNullColumns: [],
     ltFilters: {},
     gtFilters: {},
@@ -363,6 +413,12 @@ function createTasksBuilder() {
     },
     eq(column, value) {
       state.filters[column] = value;
+      return builder;
+    },
+    is(column, value) {
+      if (value === null) {
+        state.isNullColumns.push(column);
+      }
       return builder;
     },
     not(column, operator, value) {

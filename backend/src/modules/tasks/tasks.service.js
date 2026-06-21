@@ -101,6 +101,30 @@ export function mapTask(row) {
 
 /**
  * @param {string} userId
+ * @param {string} materialId
+ */
+async function assertMaterialOwnedForTasks(userId, materialId) {
+  const { data, error } = await getSupabaseAdmin()
+    .from('study_materials')
+    .select(MATERIAL_OWNERSHIP_SELECT)
+    .eq('id', materialId)
+    .eq('courses.user_id', userId)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new ApiError('NOT_FOUND', 'Study material not found', 404);
+    }
+    throw new ApiError('DATABASE_ERROR', 'Failed to access study material', 500);
+  }
+
+  if (!data) {
+    throw new ApiError('NOT_FOUND', 'Study material not found', 404);
+  }
+}
+
+/**
+ * @param {string} userId
  * @param {string} courseId
  * @param {string} materialId
  */
@@ -125,6 +149,40 @@ export async function assertMaterialBelongsToOwnedCourse(userId, courseId, mater
   if (!data) {
     throw new ApiError('NOT_FOUND', 'Study material not found', 404);
   }
+}
+
+/**
+ * @param {string} userId
+ * @param {{ materialId?: string, courseId?: string }} query
+ * @param {string} [routeCourseId]
+ */
+async function verifyTaskListMaterialAccess(userId, query, routeCourseId) {
+  if (!query.materialId || query.materialId === 'none') {
+    return;
+  }
+
+  const courseId = routeCourseId ?? query.courseId;
+  if (courseId) {
+    await assertMaterialBelongsToOwnedCourse(userId, courseId, query.materialId);
+  } else {
+    await assertMaterialOwnedForTasks(userId, query.materialId);
+  }
+}
+
+/**
+ * @param {import('@supabase/postgrest-js').PostgrestFilterBuilder<any, any, any>} builder
+ * @param {{ materialId?: string }} query
+ */
+function applyTaskListMaterialMembership(builder, query) {
+  if (!query.materialId) {
+    return builder;
+  }
+
+  if (query.materialId === 'none') {
+    return builder.is('material_id', null);
+  }
+
+  return builder.eq('material_id', query.materialId);
 }
 
 /**
@@ -175,6 +233,7 @@ function applyTaskListStatusAndDeadlineFilters(builder, query) {
  * @param {string} userId
  * @param {string} courseId
  * @param {{
+ *   materialId?: string,
  *   status?: 'pending' | 'completed',
  *   deadline?: 'overdue' | 'due_today',
  *   referenceDate?: string,
@@ -189,6 +248,8 @@ export async function listTasksByCourse(userId, courseId, query = {}) {
     .eq('user_id', userId)
     .eq('course_id', courseId);
 
+  await verifyTaskListMaterialAccess(userId, query, courseId);
+  builder = applyTaskListMaterialMembership(builder, query);
   builder = applyTaskListStatusAndDeadlineFilters(builder, query);
   builder = applyTaskListOrdering(builder, query);
 
@@ -205,6 +266,7 @@ export async function listTasksByCourse(userId, courseId, query = {}) {
  * @param {string} userId
  * @param {{
  *   courseId?: string,
+ *   materialId?: string,
  *   status?: 'pending' | 'completed',
  *   deadline?: 'overdue' | 'due_today',
  *   referenceDate?: string,
@@ -224,6 +286,8 @@ export async function listTasks(userId, query = {}) {
     builder = builder.eq('course_id', query.courseId);
   }
 
+  await verifyTaskListMaterialAccess(userId, query);
+  builder = applyTaskListMaterialMembership(builder, query);
   builder = applyTaskListStatusAndDeadlineFilters(builder, query);
   builder = applyTaskListOrdering(builder, query);
 

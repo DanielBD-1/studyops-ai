@@ -85,6 +85,7 @@ async function request(path, init = {}) {
  *   status?: 'pending' | 'completed',
  *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  *   referenceDate?: string,
+ *   materialId?: string,
  * }} [filters]
  * @returns {URLSearchParams}
  */
@@ -94,6 +95,12 @@ function buildTaskListQueryParams(filters = {}) {
     filters.deadline === 'overdue' ||
     filters.deadline === 'due_today' ||
     filters.deadline === 'next_7_days';
+
+  if (filters.materialId === 'none') {
+    params.set('materialId', 'none');
+  } else if (filters.materialId) {
+    params.set('materialId', filters.materialId);
+  }
 
   if (hasDeadline) {
     params.set('deadline', filters.deadline);
@@ -111,6 +118,7 @@ function buildTaskListQueryParams(filters = {}) {
  * @param {{
  *   status?: 'pending' | 'completed',
  *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
+ *   materialId?: string,
  * }} [filters]
  */
 export async function listCourseTasks(courseId, filters = {}) {
@@ -126,6 +134,7 @@ export async function listCourseTasks(courseId, filters = {}) {
 /**
  * @param {{
  *   courseId?: string,
+ *   materialId?: string,
  *   status?: 'pending' | 'completed',
  *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
  * }} [filters]

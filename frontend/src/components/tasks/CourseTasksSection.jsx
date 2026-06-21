@@ -8,7 +8,6 @@ import {
   completeTask,
   deleteTask,
 } from '../../services/tasks.service.js';
-import { filterTasksByMaterial } from '../../utils/task-filters.js';
 import { createTaskFormSchema, updateTaskFormSchema } from '../../utils/validation.js';
 import TaskCard from './TaskCard.jsx';
 import Button from '../ui/Button.jsx';
@@ -108,7 +107,8 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
           ? undefined
           : statusFilter;
       const deadline = hasDeadline ? deadlineFilter : undefined;
-      const data = await listCourseTasks(courseId, { status, deadline });
+      const materialId = materialFilter === 'all' ? undefined : materialFilter;
+      const data = await listCourseTasks(courseId, { status, deadline, materialId });
       setTasks(data.tasks);
     } catch (err) {
       if (await handleAuthError(err)) return;
@@ -120,7 +120,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     } finally {
       setLoading(false);
     }
-  }, [courseId, handleAuthError, statusFilter, deadlineFilter]);
+  }, [courseId, handleAuthError, statusFilter, deadlineFilter, materialFilter]);
 
   /**
    * @param {'all' | 'pending' | 'completed'} filter
@@ -342,7 +342,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     (materials ?? []).map((m) => [m.id, m.title])
   );
 
-  const displayedTasks = filterTasksByMaterial(tasks, materialFilter, materials ?? []);
+  const displayedTasks = tasks;
 
   const showCourseEmpty =
     !loading &&

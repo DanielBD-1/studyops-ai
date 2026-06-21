@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiRequestError, listCourseTasks } from '../../services/tasks.service.js';
 import {
-  getMaterialLinkedTasks,
   selectLinkedTaskPreview,
   summarizeLinkedTaskCounts,
 } from '../../utils/task-filters.js';
@@ -30,16 +29,11 @@ export default function MaterialRelatedTasksSection({
   handleAuthError,
   refreshKey = 0,
 }) {
-  const [courseTasks, setCourseTasks] = useState(
+  const [linkedTasks, setLinkedTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(/** @type {string | null} */ (null));
-
-  const materials = useMemo(
-    () => [{ id: materialId, title: materialTitle }],
-    [materialId, materialTitle]
-  );
 
   const loadTasks = useCallback(async () => {
     if (!courseId) return;
@@ -48,8 +42,8 @@ export default function MaterialRelatedTasksSection({
     setError(null);
 
     try {
-      const data = await listCourseTasks(courseId);
-      setCourseTasks(data.tasks);
+      const data = await listCourseTasks(courseId, { materialId });
+      setLinkedTasks(data.tasks);
     } catch (err) {
       if (await handleAuthError(err)) return;
       if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
@@ -60,16 +54,11 @@ export default function MaterialRelatedTasksSection({
     } finally {
       setLoading(false);
     }
-  }, [courseId, handleAuthError]);
+  }, [courseId, materialId, handleAuthError]);
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks, refreshKey]);
-
-  const linkedTasks = useMemo(
-    () => getMaterialLinkedTasks(courseTasks, materialId, materials),
-    [courseTasks, materialId, materials]
-  );
 
   const counts = useMemo(() => summarizeLinkedTaskCounts(linkedTasks), [linkedTasks]);
   const previewTasks = useMemo(

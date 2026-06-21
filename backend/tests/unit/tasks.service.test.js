@@ -9,6 +9,7 @@ import {
   resetTasksMockTelemetry,
   setTasksMockOverrides,
   resetTasksMockOverrides,
+  resetMockTasksData,
   TEST_USER_ID,
   OWN_COURSE_ID,
   OWN_MATERIAL_ID,
@@ -25,6 +26,8 @@ import {
   updateTask,
   completeTask,
   getOwnedTaskOrThrow,
+  listTasks,
+  listTasksByCourse,
 } from '../../src/modules/tasks/tasks.service.js';
 
 applyTestEnv();
@@ -34,6 +37,7 @@ describe('tasks.service', () => {
   beforeEach(() => {
     resetTasksMockTelemetry();
     resetTasksMockOverrides();
+    resetMockTasksData();
   });
 
   it('mapTask omits userId and trelloCardId', () => {
@@ -240,6 +244,56 @@ describe('tasks.service', () => {
         assert.ok(err instanceof ApiError);
         assert.equal(err.status, 400);
         assert.equal(err.code, 'VALIDATION_ERROR');
+        return true;
+      }
+    );
+  });
+
+  it('listTasks with owned materialId filters by material_id', async () => {
+    const tasks = await listTasks(TEST_USER_ID, { materialId: OWN_MATERIAL_ID });
+    assert.ok(tasks.length >= 1);
+    assert.ok(tasks.every((task) => task.materialId === OWN_MATERIAL_ID));
+  });
+
+  it('listTasks with materialId none returns unlinked tasks only', async () => {
+    await updateTask(TEST_USER_ID, OWN_TASK_ID, { materialId: null });
+    const tasks = await listTasks(TEST_USER_ID, { materialId: 'none' });
+    assert.deepEqual(
+      tasks.map((task) => task.id),
+      [OWN_TASK_ID]
+    );
+    assert.ok(tasks.every((task) => task.materialId == null));
+  });
+
+  it('listTasks with wrong-owner materialId returns 404', async () => {
+    await assert.rejects(
+      () => listTasks(TEST_USER_ID, { materialId: OTHER_USER_MATERIAL_ID }),
+      (err) => {
+        assert.ok(err instanceof ApiError);
+        assert.equal(err.status, 404);
+        assert.equal(err.message, 'Study material not found');
+        return true;
+      }
+    );
+  });
+
+  it('listTasksByCourse with materialId none returns course unlinked tasks', async () => {
+    await updateTask(TEST_USER_ID, OWN_TASK_ID, { materialId: null });
+    const tasks = await listTasksByCourse(TEST_USER_ID, OWN_COURSE_ID, { materialId: 'none' });
+    assert.deepEqual(tasks.map((task) => task.id), [OWN_TASK_ID]);
+    assert.ok(tasks.every((task) => task.courseId === OWN_COURSE_ID));
+    assert.ok(tasks.every((task) => task.materialId == null));
+  });
+
+  it('listTasksByCourse with course/material mismatch returns 404', async () => {
+    await assert.rejects(
+      () =>
+        listTasksByCourse(TEST_USER_ID, OWN_COURSE_ID, {
+          materialId: OTHER_USER_MATERIAL_ID,
+        }),
+      (err) => {
+        assert.ok(err instanceof ApiError);
+        assert.equal(err.status, 404);
         return true;
       }
     );

@@ -21,6 +21,8 @@ Phase DASHBOARD-DEPTH-P0 adds an optional **day-level** calendar due date on `pu
 
 **Phase TASK-UPCOMING-FILTERS-A1 (complete):** Reads **`due_date`** for authenticated-user **backend-filtered** bounded **Next 7 days** task list results on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`**, plus **`dueNext7DaysPendingTasks`** aggregate on **`GET /api/dashboard/stats`**. Migration **015** is **unchanged** — **no** new schema, indexes, timezone persistence, or package dependency in **TASK-UPCOMING-FILTERS-A1**.
 
+**Phase TASK-MATERIAL-BACKEND-A1 (complete):** Reads existing **`material_id`** for authenticated-user **backend-filtered** task list **material membership** on **`GET /api/tasks`** and **`GET /api/courses/:courseId/tasks`** (optional **`materialId`** omitted / UUID / **`none`**). Migration **015** is **unchanged** — **no** new schema, indexes, or package dependency in **TASK-MATERIAL-BACKEND-A1**.
+
 ---
 
 ## Column
@@ -109,6 +111,35 @@ See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-DUE-FILTERS-A1** and § **TASK
 
 ---
 
+## Task list material membership (TASK-MATERIAL-BACKEND-A1)
+
+Both list routes accept optional **`materialId`** query parameter (reads existing **`material_id`** column — migration **015** unchanged):
+
+| Route | Optional query |
+|-------|----------------|
+| **`GET /api/tasks`** | **`materialId=<uuid>`** or **`materialId=none`** |
+| **`GET /api/courses/:courseId/tasks`** | **`materialId=<uuid>`** or **`materialId=none`** |
+
+| Value | Behavior |
+|-------|----------|
+| **Omitted** | No material predicate (still scoped by authenticated **`user_id`**) |
+| **UUID** | Verify owned material; filter **`material_id = UUID`** (course route: material must belong to route course) |
+| **`none`** | Filter **`material_id IS NULL`** — **no** material ownership lookup |
+
+| Security / validation | Detail |
+|-----------------------|--------|
+| **Material failures** | Missing, wrong-owner, or course/material mismatch → **`404`** neutral **“Study material not found”** |
+| **Empty material** | Valid owned material with zero linked tasks → **`200`** **`[]`** |
+| **Invalid query** | **`materialId=all`**, malformed UUID, repeated **`materialId`** → **`400`** **`VALIDATION_ERROR`** |
+| **Composition** | Composes with **`courseId`**, **`status`**, **`deadline`**, **`referenceDate`** |
+| **Ordering** | Unchanged (**TASK-DUE-SORT-A1**) |
+
+**Frontend:** **`GlobalTasksSection`** and **`CourseTasksSection`** map filter UI → omitted / UUID / **`none`** on list fetch; render API results directly. Global **`/tasks`** URL **`materialId`** persistence unchanged (**TASK-MATERIAL-FILTERS-E1** + **TASK-MATERIAL-UNLINKED-A1**); **`/courses/:id`** material filter remains in-memory only.
+
+See **`docs/IMPLEMENTATION_STATUS.md`** § **TASK-MATERIAL-BACKEND-A1** for full shipped behavior and supersession notes on historical frontend-only **TASK-MATERIAL-*** phases.
+
+---
+
 ## Date semantics
 
 - **Date-only** calendar value — **not** a timestamp; no timezone stored in the column.
@@ -165,7 +196,6 @@ See **`docs/IMPLEMENTATION_STATUS.md`** § **DASHBOARD-DEPTH-A2** and § **TASK-
 - **Stored user timezone** persistence
 - **Gemini-generated** due dates
 - **Trello** due-date synchronization
-- **Backend material filtering** by **`materialId`** query param
 - **Collaboration/chat**
 - **AI scheduling**
 
@@ -211,4 +241,13 @@ Optional task due dates + A2 dashboard aggregates + A1 deadline filters + bounde
 - Frontend tests: **521/521**
 - Frontend build passed
 - Supervisor Review **PASS**; Security Review **APPROVED**; manual browser smoke **PASS**
+- **`git diff --check`**: clean
+
+**TASK-MATERIAL-BACKEND-A1 (task list material membership — no migration change):**
+
+- Backend tests: **658/658**
+- Frontend tests: **520/520**
+- Frontend build passed
+- Lint passed
+- Supervisor Review **APPROVE WITH NOTES**; focused Supervisor Re-review **PASS**; Security Review **PASS / SECURITY APPROVED**; manual browser smoke **PASS WITH NOTES**
 - **`git diff --check`**: clean
