@@ -284,3 +284,180 @@ export function buildTasksPageCoursePendingLink(courseId) {
   });
   return `/tasks?${qs}`;
 }
+
+/**
+ * @param {string} searchString
+ * @returns {{
+ *   materialId?: string,
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
+ * }}
+ */
+export function parseCoursePageSearchParams(searchString) {
+  const parsed = parseTasksPageSearchParams(searchString);
+  /** @type {{
+   *   materialId?: string,
+   *   status?: 'pending' | 'completed',
+   *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
+   * }} */
+  const result = {};
+
+  if (parsed.materialId !== undefined) {
+    result.materialId = parsed.materialId;
+  }
+  if (parsed.status !== undefined) {
+    result.status = parsed.status;
+  }
+  if (parsed.deadline !== undefined) {
+    result.deadline = parsed.deadline;
+  }
+
+  return result;
+}
+
+/**
+ * Build canonical /courses/:courseId query string from filter state. Omits default/all values.
+ *
+ * @param {{
+ *   materialFilter?: 'all' | 'none' | string,
+ *   statusFilter?: 'all' | 'pending' | 'completed',
+ *   deadlineFilter?: 'all' | 'overdue' | 'due_today' | 'next_7_days',
+ * }} filters
+ * @returns {string} Query string without leading "?" (empty when all defaults).
+ */
+export function buildCoursePageSearchParams({
+  materialFilter = 'all',
+  statusFilter = 'all',
+  deadlineFilter = 'all',
+} = {}) {
+  const params = new URLSearchParams();
+  const materialId = materialFilter !== 'all' ? materialFilter : undefined;
+  const hasDeadline = isActiveDeadlineFilter(deadlineFilter) && statusFilter !== 'completed';
+  const status = hasDeadline
+    ? 'pending'
+    : statusFilter === 'pending' || statusFilter === 'completed'
+      ? statusFilter
+      : undefined;
+
+  if (materialId) {
+    params.set('materialId', materialId);
+  }
+
+  if (status) {
+    params.set('status', status);
+  }
+
+  if (hasDeadline) {
+    params.set('deadline', deadlineFilter);
+  }
+
+  return params.toString();
+}
+
+/**
+ * Read initial /courses/:courseId filter state from URL on first render (before materials hydrate).
+ * Preserves provisional material UUIDs; does not validate against loaded materials.
+ *
+ * @param {string} searchString
+ * @returns {{
+ *   materialFilter: 'all' | 'none' | string,
+ *   statusFilter: 'all' | 'pending' | 'completed',
+ *   deadlineFilter: 'all' | 'overdue' | 'due_today' | 'next_7_days',
+ * }}
+ */
+export function readCoursePageInitialTaskFilters(searchString) {
+  const parsed = parseCoursePageSearchParams(searchString);
+
+  const deadlineFilter =
+    parsed.deadline === 'overdue' ||
+    parsed.deadline === 'due_today' ||
+    parsed.deadline === 'next_7_days'
+      ? parsed.deadline
+      : 'all';
+
+  let statusFilter = parsed.status === 'pending' || parsed.status === 'completed' ? parsed.status : 'all';
+  let resolvedDeadlineFilter = deadlineFilter;
+
+  if (resolvedDeadlineFilter !== 'all' && statusFilter === 'completed') {
+    resolvedDeadlineFilter = 'all';
+  } else if (resolvedDeadlineFilter !== 'all') {
+    statusFilter = 'pending';
+  }
+
+  let materialFilter = 'all';
+  if (parsed.materialId === TASK_MATERIAL_QUERY_NONE) {
+    materialFilter = TASK_MATERIAL_QUERY_NONE;
+  } else if (parsed.materialId) {
+    materialFilter = parsed.materialId;
+  }
+
+  return {
+    materialFilter,
+    statusFilter,
+    deadlineFilter: resolvedDeadlineFilter,
+  };
+}
+
+/**
+ * Resolve /courses/:courseId filter state from URL query params and loaded course materials.
+ *
+ * @param {{
+ *   materialId?: string,
+ *   status?: 'pending' | 'completed',
+ *   deadline?: 'overdue' | 'due_today' | 'next_7_days',
+ *   materials: { id: string }[],
+ * }} input
+ * @returns {{
+ *   materialFilter: 'all' | 'none' | string,
+ *   statusFilter: 'all' | 'pending' | 'completed',
+ *   deadlineFilter: 'all' | 'overdue' | 'due_today' | 'next_7_days',
+ * }}
+ */
+export function resolveCoursePageTaskFilters({ materialId, status, deadline, materials }) {
+  const deadlineFilter =
+    deadline === 'overdue' || deadline === 'due_today' || deadline === 'next_7_days'
+      ? deadline
+      : 'all';
+
+  let statusFilter = status === 'pending' || status === 'completed' ? status : 'all';
+  let resolvedDeadlineFilter = deadlineFilter;
+
+  if (resolvedDeadlineFilter !== 'all' && statusFilter === 'completed') {
+    resolvedDeadlineFilter = 'all';
+  } else if (resolvedDeadlineFilter !== 'all') {
+    statusFilter = 'pending';
+  }
+
+  if (materialId === TASK_MATERIAL_QUERY_NONE) {
+    return {
+      materialFilter: TASK_MATERIAL_QUERY_NONE,
+      statusFilter,
+      deadlineFilter: resolvedDeadlineFilter,
+    };
+  }
+
+  if (!materialId || !materials.some((material) => material.id === materialId)) {
+    return {
+      materialFilter: 'all',
+      statusFilter,
+      deadlineFilter: resolvedDeadlineFilter,
+    };
+  }
+
+  return {
+    materialFilter: materialId,
+    statusFilter,
+    deadlineFilter: resolvedDeadlineFilter,
+  };
+}
+
+/**
+ * @param {string} courseId
+ * @param {string} materialId
+ * @returns {string}
+ */
+export function buildCoursePageMaterialLink(courseId, materialId) {
+  const params = new URLSearchParams();
+  params.set('materialId', materialId);
+  return `/courses/${courseId}?${params.toString()}`;
+}

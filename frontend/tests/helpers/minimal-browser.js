@@ -316,9 +316,30 @@ function queryOne(root, selector) {
  * @param {string} selector
  */
 function queryAll(root, selector) {
-  const tag = selector.toUpperCase();
   /** @type {HTMLElement[]} */
   const matches = [];
+
+  if (selector.startsWith('#')) {
+    const id = selector.slice(1);
+    walk(root, (node) => {
+      if (node.id === id || node.attributes?.id === id) {
+        matches.push(node);
+      }
+    });
+    return matches;
+  }
+
+  if (selector.startsWith('.')) {
+    const className = selector.slice(1);
+    walk(root, (node) => {
+      if (hasClassName(node, className)) {
+        matches.push(node);
+      }
+    });
+    return matches;
+  }
+
+  const tag = selector.toUpperCase();
   walk(root, (node) => {
     if (node.tagName === tag) {
       matches.push(node);
@@ -616,6 +637,34 @@ export function changeSelectValue(select, value) {
  */
 export function findButtonByText(root, text) {
   return findFirst(root, (node) => node.tagName === 'BUTTON' && node.textContent === text);
+}
+
+/**
+ * @param {HTMLElement} element
+ * @returns {Record<string, unknown> | null}
+ */
+export function getReactElementProps(element) {
+  if (!element || typeof element !== 'object') {
+    return null;
+  }
+
+  const fiberKey = Object.keys(element).find(
+    (key) => key.startsWith('__reactFiber$') || key.startsWith('__reactInternalInstance$')
+  );
+  if (!fiberKey) {
+    return null;
+  }
+
+  /** @type {{ memoizedProps?: Record<string, unknown>, return?: unknown } | undefined} */
+  let fiber = element[fiberKey];
+  while (fiber) {
+    if (fiber.memoizedProps && ('to' in fiber.memoizedProps || 'state' in fiber.memoizedProps)) {
+      return fiber.memoizedProps;
+    }
+    fiber = fiber.return;
+  }
+
+  return null;
 }
 
 /**

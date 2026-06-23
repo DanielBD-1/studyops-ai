@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
+import {
+  buildCoursePageSearchParams,
+  parseCoursePageSearchParams,
+  readCoursePageInitialTaskFilters,
+  resolveCoursePageTaskFilters,
+} from '../../utils/task-nav-query.js';
 import {
   ApiRequestError,
   listCourseTasks,
@@ -26,7 +33,24 @@ import Textarea from '../ui/Textarea.jsx';
  * }} props
  */
 export default function CourseTasksSection({ courseId, materials, handleAuthError }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const { refreshStats } = useDashboardRefresh();
+  const skipUrlSyncRef = useRef(false);
+  const initialMaterialsRef = useRef(materials);
+  const materialsHydratedRef = useRef(false);
+  const loadSeqRef = useRef(0);
+  const currentCourseIdRef = useRef(courseId);
+
+  const initialFilters = useMemo(
+    () => readCoursePageInitialTaskFilters(location.search),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- first-render URL snapshot only
+    []
+  );
+  const focusReturnTo = useMemo(() => {
+    const query = location.search.startsWith('?') ? location.search.slice(1) : location.search;
+    return query ? `/courses/${courseId}?${query}` : `/courses/${courseId}`;
+  }, [location.search, courseId]);
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
@@ -52,12 +76,14 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
   const [deletingId, setDeletingId] = useState(/** @type {string | null} */ (null));
   const [actionError, setActionError] = useState(/** @type {string | null} */ (null));
   const [statusFilter, setStatusFilter] = useState(
-    /** @type {'all' | 'pending' | 'completed'} */ ('all')
+    /** @type {'all' | 'pending' | 'completed'} */ (initialFilters.statusFilter)
   );
   const [deadlineFilter, setDeadlineFilter] = useState(
-    /** @type {'all' | 'overdue' | 'due_today' | 'next_7_days'} */ ('all')
+    /** @type {'all' | 'overdue' | 'due_today' | 'next_7_days'} */ (initialFilters.deadlineFilter)
   );
-  const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
+  const [materialFilter, setMaterialFilter] = useState(
+    /** @type {'all' | string} */ (initialFilters.materialFilter)
+  );
 
   const [createMaterialId, setCreateMaterialId] = useState('');
   const [editMaterialId, setEditMaterialId] = useState('');
@@ -90,37 +116,159 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setActionError(null);
   }
 
-  const loadTasks = useCallback(async () => {
-    if (!courseId) return;
+  /**
+   * @param {{
+   *   materialFilter?: 'all' | 'none' | string,
+   *   statusFilter?: 'all' | 'pending' | 'completed',
+   *   deadlineFilter?: 'all' | 'overdue' | 'due_today' | 'next_7_days',
+   * }} [overrides]
+   */
+  const loadTasks = useCallback(
+    async (overrides = {}) => {
+      if (!courseId) return;
 
-    setLoading(true);
-    setError(null);
+      const requestSeq = ++loadSeqRef.current;
+      const requestCourseId = courseId;
 
-    try {
-      const hasDeadline =
-        deadlineFilter === 'overdue' ||
-        deadlineFilter === 'due_today' ||
-        deadlineFilter === 'next_7_days';
-      const status = hasDeadline
-        ? 'pending'
-        : statusFilter === 'all'
-          ? undefined
-          : statusFilter;
-      const deadline = hasDeadline ? deadlineFilter : undefined;
-      const materialId = materialFilter === 'all' ? undefined : materialFilter;
-      const data = await listCourseTasks(courseId, { status, deadline, materialId });
-      setTasks(data.tasks);
-    } catch (err) {
-      if (await handleAuthError(err)) return;
-      if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
-        setError('Course not found');
+      /** @returns {boolean} */
+      const isStale = () =>
+        requestSeq !== loadSeqRef.current || requestCourseId !== currentCourseIdRef.current;
+
+      setLoading(true);
+      setError(null);
+
+      const effectiveStatusFilter = overrides.statusFilter ?? statusFilter;
+      const effectiveDeadlineFilter = overrides.deadlineFilter ?? deadlineFilter;
+      const effectiveMaterialFilter = overrides.materialFilter ?? materialFilter;
+
+      try {
+        const hasDeadline =
+          effectiveDeadlineFilter === 'overdue' ||
+          effectiveDeadlineFilter === 'due_today' ||
+          effectiveDeadlineFilter === 'next_7_days';
+        const status = hasDeadline
+          ? 'pending'
+          : effectiveStatusFilter === 'all'
+            ? undefined
+            : effectiveStatusFilter;
+        const deadline = hasDeadline ? effectiveDeadlineFilter : undefined;
+        const materialId =
+          effectiveMaterialFilter === 'all' ? undefined : effectiveMaterialFilter;
+        const data = await listCourseTasks(courseId, { status, deadline, materialId });
+        if (isStale()) return;
+        setTasks(data.tasks);
+      } catch (err) {
+        if (isStale()) return;
+        if (await handleAuthError(err)) return;
+        if (err instanceof ApiRequestError && err.code === 'NOT_FOUND') {
+          setError('Course not found');
+          return;
+        }
+        setError(err instanceof Error ? err.message : 'Failed to load study tasks');
+      } finally {
+        if (!isStale()) {
+          setLoading(false);
+        }
+      }
+    },
+    [courseId, handleAuthError, statusFilter, deadlineFilter, materialFilter]
+  );
+
+  /**
+   * @param {{
+   *   materialFilter: 'all' | 'none' | string,
+   *   statusFilter: 'all' | 'pending' | 'completed',
+   *   deadlineFilter: 'all' | 'overdue' | 'due_today' | 'next_7_days',
+   * }} filters
+   * @param {{ replace?: boolean }} [options]
+   */
+  const pushFiltersToUrl = useCallback(
+    (filters, options = {}) => {
+      const { replace = false } = options;
+      const canonical = buildCoursePageSearchParams(filters);
+      const current = location.search.startsWith('?') ? location.search.slice(1) : location.search;
+      if (canonical === current) {
         return;
       }
-      setError(err instanceof Error ? err.message : 'Failed to load study tasks');
-    } finally {
-      setLoading(false);
+      skipUrlSyncRef.current = true;
+      setSearchParams(
+        canonical ? new URLSearchParams(canonical) : new URLSearchParams(),
+        { replace }
+      );
+    },
+    [location.search, setSearchParams]
+  );
+
+  useLayoutEffect(() => {
+    if (currentCourseIdRef.current !== courseId) {
+      loadSeqRef.current += 1;
+      currentCourseIdRef.current = courseId;
+      materialsHydratedRef.current = false;
+      initialMaterialsRef.current = materials;
+      const nextFilters = readCoursePageInitialTaskFilters(location.search);
+      setMaterialFilter(nextFilters.materialFilter);
+      setStatusFilter(nextFilters.statusFilter);
+      setDeadlineFilter(nextFilters.deadlineFilter);
     }
-  }, [courseId, handleAuthError, statusFilter, deadlineFilter, materialFilter]);
+  }, [courseId, location.search, materials]);
+
+  useLayoutEffect(() => {
+    if (skipUrlSyncRef.current) {
+      skipUrlSyncRef.current = false;
+      return;
+    }
+
+    if (materials !== initialMaterialsRef.current) {
+      materialsHydratedRef.current = true;
+    }
+
+    const parsed = parseCoursePageSearchParams(location.search);
+    const materialInUrl = parsed.materialId;
+
+    const awaitingMaterials =
+      materialInUrl &&
+      materialInUrl !== 'none' &&
+      !materials.some((material) => material.id === materialInUrl) &&
+      !materialsHydratedRef.current;
+
+    if (awaitingMaterials) {
+      const partial = resolveCoursePageTaskFilters({
+        materialId: undefined,
+        status: parsed.status,
+        deadline: parsed.deadline,
+        materials: [],
+      });
+      setMaterialFilter(materialInUrl);
+      setStatusFilter(partial.statusFilter);
+      setDeadlineFilter(partial.deadlineFilter);
+      return;
+    }
+
+    const resolved = resolveCoursePageTaskFilters({
+      materialId: parsed.materialId,
+      status: parsed.status,
+      deadline: parsed.deadline,
+      materials,
+    });
+
+    setMaterialFilter(resolved.materialFilter);
+    setStatusFilter(resolved.statusFilter);
+    setDeadlineFilter(resolved.deadlineFilter);
+
+    const canonical = buildCoursePageSearchParams({
+      materialFilter: resolved.materialFilter,
+      statusFilter: resolved.statusFilter,
+      deadlineFilter: resolved.deadlineFilter,
+    });
+    const current = location.search.startsWith('?') ? location.search.slice(1) : location.search;
+    if (canonical !== current) {
+      skipUrlSyncRef.current = true;
+      setSearchParams(
+        canonical ? new URLSearchParams(canonical) : new URLSearchParams(),
+        { replace: true }
+      );
+    }
+  }, [location.search, materials, setSearchParams]);
 
   /**
    * @param {'all' | 'pending' | 'completed'} filter
@@ -135,6 +283,11 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
       filter === 'all' || filter === 'completed' ? 'all' : deadlineFilter;
     setStatusFilter(filter);
     setDeadlineFilter(nextDeadlineFilter);
+    pushFiltersToUrl({
+      materialFilter,
+      statusFilter: filter,
+      deadlineFilter: nextDeadlineFilter,
+    });
   }
 
   /**
@@ -146,10 +299,16 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setCreateError(null);
     setCreateMaterialId('');
     setActionError(null);
+    const nextStatusFilter = filter === 'all' ? statusFilter : 'pending';
     setDeadlineFilter(filter);
     if (filter !== 'all') {
       setStatusFilter('pending');
     }
+    pushFiltersToUrl({
+      materialFilter,
+      statusFilter: nextStatusFilter,
+      deadlineFilter: filter,
+    });
   }
 
   /**
@@ -162,6 +321,11 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
     setCreateMaterialId('');
     setActionError(null);
     setMaterialFilter(material);
+    pushFiltersToUrl({
+      materialFilter: material,
+      statusFilter,
+      deadlineFilter,
+    });
   }
 
   useEffect(() => {
@@ -630,7 +794,7 @@ export default function CourseTasksSection({ courseId, materials, handleAuthErro
                     ? materialTitleById.get(task.materialId) ?? null
                     : null
                 }
-                focusReturnTo={`/courses/${courseId}`}
+                focusReturnTo={focusReturnTo}
                 disabled={busy}
                 className="source-card--course-context"
               />

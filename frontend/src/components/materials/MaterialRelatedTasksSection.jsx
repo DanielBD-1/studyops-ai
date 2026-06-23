@@ -5,7 +5,7 @@ import {
   selectLinkedTaskPreview,
   summarizeLinkedTaskCounts,
 } from '../../utils/task-filters.js';
-import { buildTasksPageMaterialLink } from '../../utils/task-nav-query.js';
+import { buildCoursePageMaterialLink, buildTasksPageMaterialLink } from '../../utils/task-nav-query.js';
 import { getTaskDueDatePresentation } from '../../utils/task-due-date.js';
 import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ui/ErrorMessage.jsx';
@@ -168,7 +168,7 @@ export default function MaterialRelatedTasksSection({
         <p className="section__actions material-related-tasks__course-link">
           <Link to={buildTasksPageMaterialLink(courseId, materialId)}>View linked tasks</Link>
           {' · '}
-          <Link to={`/courses/${courseId}`}>View tasks on course</Link>
+          <Link to={buildCoursePageMaterialLink(courseId, materialId)}>View tasks on course</Link>
         </p>
       )}
     </section>
