@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   aggregateCourseStats,
+  aggregateMaterialPendingTasks,
   computeLast7DaysThresholdIso,
   sumCompletedFocusMinutes,
 } from '../../src/modules/dashboard/dashboard.service.js';
@@ -99,6 +100,176 @@ describe('dashboard.service aggregateCourseStats', () => {
         completedTasks: 1,
         totalFlashcards: 1,
       },
+    ]);
+  });
+});
+
+describe('dashboard.service aggregateMaterialPendingTasks', () => {
+  const courseId = '33333333-3333-4333-8333-333333333333';
+  const materialA = {
+    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    title: 'Alpha Material',
+    course_id: courseId,
+  };
+  const materialB = {
+    id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    title: 'Beta Material',
+    course_id: courseId,
+  };
+  const materialC = {
+    id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    title: 'Gamma Material',
+    course_id: courseId,
+  };
+
+  it('returns zero and empty list for empty rows', () => {
+    assert.deepEqual(aggregateMaterialPendingTasks([], []), {
+      materialsWithPendingTasks: 0,
+      topMaterialsByPendingTasks: [],
+    });
+  });
+
+  it('groups multiple task rows for one material', () => {
+    const result = aggregateMaterialPendingTasks(
+      [
+        { material_id: materialA.id, course_id: courseId },
+        { material_id: materialA.id, course_id: courseId },
+        { material_id: materialA.id, course_id: courseId },
+      ],
+      [materialA]
+    );
+
+    assert.equal(result.materialsWithPendingTasks, 1);
+    assert.deepEqual(result.topMaterialsByPendingTasks, [
+      {
+        materialId: materialA.id,
+        courseId,
+        materialTitle: 'Alpha Material',
+        pendingTasks: 3,
+      },
+    ]);
+  });
+
+  it('orders materials by pending count descending', () => {
+    const result = aggregateMaterialPendingTasks(
+      [
+        { material_id: materialA.id, course_id: courseId },
+        { material_id: materialA.id, course_id: courseId },
+        { material_id: materialB.id, course_id: courseId },
+        { material_id: materialB.id, course_id: courseId },
+        { material_id: materialB.id, course_id: courseId },
+        { material_id: materialB.id, course_id: courseId },
+        { material_id: materialB.id, course_id: courseId },
+      ],
+      [materialA, materialB]
+    );
+
+    assert.equal(result.materialsWithPendingTasks, 2);
+    assert.equal(result.topMaterialsByPendingTasks[0].materialId, materialB.id);
+    assert.equal(result.topMaterialsByPendingTasks[0].pendingTasks, 5);
+    assert.equal(result.topMaterialsByPendingTasks[1].materialId, materialA.id);
+    assert.equal(result.topMaterialsByPendingTasks[1].pendingTasks, 2);
+  });
+
+  it('caps the top list at five materials', () => {
+    const materials = Array.from({ length: 6 }, (_, index) => ({
+      id: `11111111-1111-4111-8111-11111111111${index}`,
+      title: `Material ${index}`,
+      course_id: courseId,
+    }));
+    const tasks = materials.map((material) => ({
+      material_id: material.id,
+      course_id: courseId,
+    }));
+
+    const result = aggregateMaterialPendingTasks(tasks, materials);
+
+    assert.equal(result.materialsWithPendingTasks, 6);
+    assert.equal(result.topMaterialsByPendingTasks.length, 5);
+  });
+
+  it('breaks equal counts by title ascending', () => {
+    const result = aggregateMaterialPendingTasks(
+      [
+        { material_id: materialB.id, course_id: courseId },
+        { material_id: materialA.id, course_id: courseId },
+      ],
+      [materialA, materialB]
+    );
+
+    assert.equal(result.topMaterialsByPendingTasks[0].materialTitle, 'Alpha Material');
+    assert.equal(result.topMaterialsByPendingTasks[1].materialTitle, 'Beta Material');
+  });
+
+  it('breaks equal counts and titles by material ID ascending', () => {
+    const sharedTitle = 'Shared Title';
+    const materialLower = {
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      title: sharedTitle,
+      course_id: courseId,
+    };
+    const materialHigher = {
+      id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      title: sharedTitle,
+      course_id: courseId,
+    };
+
+    const result = aggregateMaterialPendingTasks(
+      [
+        { material_id: materialHigher.id, course_id: courseId },
+        { material_id: materialLower.id, course_id: courseId },
+      ],
+      [materialLower, materialHigher]
+    );
+
+    assert.equal(result.topMaterialsByPendingTasks[0].materialId, materialLower.id);
+    assert.equal(result.topMaterialsByPendingTasks[1].materialId, materialHigher.id);
+  });
+
+  it('excludes unknown material IDs', () => {
+    const result = aggregateMaterialPendingTasks(
+      [{ material_id: '99999999-9999-4999-8999-999999999999', course_id: courseId }],
+      [materialA]
+    );
+
+    assert.deepEqual(result, {
+      materialsWithPendingTasks: 0,
+      topMaterialsByPendingTasks: [],
+    });
+  });
+
+  it('excludes task/material course mismatches', () => {
+    const otherCourseId = '22222222-2222-4222-8222-222222222222';
+    const result = aggregateMaterialPendingTasks(
+      [{ material_id: materialA.id, course_id: otherCourseId }],
+      [materialA]
+    );
+
+    assert.deepEqual(result, {
+      materialsWithPendingTasks: 0,
+      topMaterialsByPendingTasks: [],
+    });
+  });
+
+  it('returns only approved response fields on each item', () => {
+    const result = aggregateMaterialPendingTasks(
+      [{ material_id: materialC.id, course_id: courseId }],
+      [materialC]
+    );
+
+    assert.deepEqual(result.topMaterialsByPendingTasks, [
+      {
+        materialId: materialC.id,
+        courseId,
+        materialTitle: 'Gamma Material',
+        pendingTasks: 1,
+      },
+    ]);
+    assert.deepEqual(Object.keys(result.topMaterialsByPendingTasks[0]).sort(), [
+      'courseId',
+      'materialId',
+      'materialTitle',
+      'pendingTasks',
     ]);
   });
 });

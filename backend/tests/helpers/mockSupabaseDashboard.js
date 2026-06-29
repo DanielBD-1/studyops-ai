@@ -236,6 +236,9 @@ function createStudyMaterialsBuilder() {
       return builder;
     },
     then(onFulfilled, onRejected) {
+      if (isOwnedMaterialAggregateQuery(state)) {
+        aggregateQueryCounts.ownedMaterialAggregateQueries += 1;
+      }
       const rows = getMockMaterialsRows();
       const result = resolveCountOrRows(state, rows);
       return Promise.resolve(result).then(onFulfilled, onRejected);
@@ -324,6 +327,9 @@ function createStudyTasksBuilder() {
       return builder;
     },
     then(onFulfilled, onRejected) {
+      if (isPendingLinkedTaskAggregateQuery(state)) {
+        aggregateQueryCounts.pendingLinkedTaskAggregateQueries += 1;
+      }
       const rows = getMockTasks().map((task) => ({ ...task }));
       const result = resolveCountOrRows(state, rows);
       return Promise.resolve(result).then(onFulfilled, onRejected);
@@ -424,11 +430,57 @@ const courses = [
   { id: OTHER_USER_COURSE_ID, user_id: OTHER_USER_ID, title: 'Other User Course' },
 ];
 
-/** @type {Array<{ id: string, course_id: string }>} */
-const materials = [
-  { id: OWN_MATERIAL_ID, course_id: OWN_COURSE_ID },
-  { id: OTHER_USER_MATERIAL_ID, course_id: OTHER_USER_COURSE_ID },
+/** @type {Array<{ id: string, course_id: string, title: string }>} */
+const INITIAL_MATERIALS = [
+  { id: OWN_MATERIAL_ID, course_id: OWN_COURSE_ID, title: 'Own Material' },
+  { id: OTHER_USER_MATERIAL_ID, course_id: OTHER_USER_COURSE_ID, title: 'Other User Material' },
 ];
+
+/** @type {Array<{ id: string, course_id: string, title: string }>} */
+const materials = INITIAL_MATERIALS.map((material) => ({ ...material }));
+
+/** @type {{ pendingLinkedTaskAggregateQueries: number, ownedMaterialAggregateQueries: number }} */
+let aggregateQueryCounts = {
+  pendingLinkedTaskAggregateQueries: 0,
+  ownedMaterialAggregateQueries: 0,
+};
+
+export function getDashboardAggregateQueryCounts() {
+  return { ...aggregateQueryCounts };
+}
+
+export function resetDashboardAggregateQueryCounts() {
+  aggregateQueryCounts = {
+    pendingLinkedTaskAggregateQueries: 0,
+    ownedMaterialAggregateQueries: 0,
+  };
+}
+
+/**
+ * @param {Record<string, unknown>} state
+ * @returns {boolean}
+ */
+function isPendingLinkedTaskAggregateQuery(state) {
+  return (
+    state.selectColumns === 'material_id, course_id' &&
+    state.filters.user_id !== undefined &&
+    state.filters.status === 'pending' &&
+    state.notNullColumns.includes('material_id')
+  );
+}
+
+/**
+ * @param {Record<string, unknown>} state
+ * @returns {boolean}
+ */
+function isOwnedMaterialAggregateQuery(state) {
+  return (
+    typeof state.selectColumns === 'string' &&
+    state.selectColumns.includes('id, title, course_id') &&
+    state.selectColumns.includes('courses!inner') &&
+    state.coursesUserIdFilter !== undefined
+  );
+}
 
 function getMockCoursesRows() {
   return courses.map((course) => ({ ...course }));
@@ -438,9 +490,16 @@ function getMockMaterialsRows() {
   return materials.map((material) => ({ ...material }));
 }
 
+export function getMockMaterialsRowsForTests() {
+  return materials;
+}
+
 export function resetDashboardMockData() {
   resetStudyMaterialsMockOverrides();
   resetMockFocusSessions();
+  resetDashboardAggregateQueryCounts();
+  materials.length = 0;
+  materials.push(...INITIAL_MATERIALS.map((material) => ({ ...material })));
 
   getMockGeneratedPlans().length = 0;
   getMockFocusSessions().length = 0;

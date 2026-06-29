@@ -9,6 +9,10 @@ const dashboardStubSource = readFileSync(
   join(__dirname, '../../src/pages/DashboardStub.jsx'),
   'utf8'
 );
+const authContextSource = readFileSync(
+  join(__dirname, '../../src/context/AuthContext.jsx'),
+  'utf8'
+);
 import {
   formatFocusMinutes,
   formatTaskCompletionPercent,
@@ -728,5 +732,31 @@ describe('course-accent', () => {
       assert.equal(stableHash('same-seed'), stableHash('same-seed'));
       assert.notEqual(stableHash('seed-a'), stableHash('seed-b'));
     });
+  });
+});
+
+describe('DashboardStub material pending section placement', () => {
+  it('places Materials with pending tasks after Study pulse and before Course workload', () => {
+    const studyPulseIndex = dashboardStubSource.indexOf('<DashboardStudyPulse stats={stats} />');
+    const materialsIndex = dashboardStubSource.indexOf('<DashboardMaterialsPending stats={stats} />');
+    const courseWorkloadIndex = dashboardStubSource.indexOf('Course workload');
+
+    assert.ok(studyPulseIndex >= 0);
+    assert.ok(materialsIndex > studyPulseIndex);
+    assert.ok(courseWorkloadIndex > materialsIndex);
+  });
+
+  it('uses material link helpers without hardcoded query strings', () => {
+    assert.match(dashboardStubSource, /buildTasksPageMaterialLink/);
+    assert.match(dashboardStubSource, /buildCoursePageMaterialLink/);
+    assert.doesNotMatch(dashboardStubSource, /\/tasks\?courseId=/);
+    assert.match(dashboardStubSource, /deriveDashboardRecommendation/);
+  });
+});
+
+describe('AuthContext production auth seam regression', () => {
+  it('does not export or contain module-level auth test overrides', () => {
+    assert.doesNotMatch(authContextSource, /__setAuthContextValueForTests/);
+    assert.doesNotMatch(authContextSource, /authContextValueForTests/);
   });
 });

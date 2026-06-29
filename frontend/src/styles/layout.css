@@ -1413,6 +1413,64 @@ a.dashboard-hero__cta.btn:hover {
   border-top: 1px solid var(--color-glass-border);
 }
 
+.dashboard-materials-pending {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-glass-border);
+}
+
+.dashboard-materials-pending__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.dashboard-materials-pending__row {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.dashboard-materials-pending__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-bottom: var(--space-2);
+}
+
+.dashboard-materials-pending__title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.dashboard-materials-pending__count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+  white-space: nowrap;
+}
+
+.dashboard-materials-pending__actions {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.dashboard-materials-pending__empty,
+.dashboard-materials-pending__more {
+  margin: 0;
+}
+
 .dashboard-courses--deck .section__subtitle {
   max-width: 42rem;
 }

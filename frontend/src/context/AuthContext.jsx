@@ -4,7 +4,7 @@ import * as authService from '../services/auth.service.js';
 
 /** @typedef {{ id: string, email: string, role: string } | null} AppUser */
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(/** @type {AppUser} */ (null));

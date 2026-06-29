@@ -355,6 +355,57 @@ export function buildCoursePageSearchParams({
 }
 
 /**
+ * Read initial /tasks filter state from URL on first render (before courses/materials hydrate).
+ * Preserves provisional course and material UUIDs; does not validate against loaded lists.
+ *
+ * @param {string} searchString
+ * @returns {{
+ *   courseFilter: 'all' | string,
+ *   materialFilter: 'all' | 'none' | string,
+ *   statusFilter: 'all' | 'pending' | 'completed',
+ *   deadlineFilter: 'all' | 'overdue' | 'due_today' | 'next_7_days',
+ * }}
+ */
+export function readTasksPageInitialTaskFilters(searchString) {
+  const parsed = parseTasksPageSearchParams(searchString);
+
+  const deadlineFilter =
+    parsed.deadline === 'overdue' ||
+    parsed.deadline === 'due_today' ||
+    parsed.deadline === 'next_7_days'
+      ? parsed.deadline
+      : 'all';
+
+  let statusFilter = parsed.status === 'pending' || parsed.status === 'completed' ? parsed.status : 'all';
+  let resolvedDeadlineFilter = deadlineFilter;
+
+  if (resolvedDeadlineFilter !== 'all' && statusFilter === 'completed') {
+    resolvedDeadlineFilter = 'all';
+  } else if (resolvedDeadlineFilter !== 'all') {
+    statusFilter = 'pending';
+  }
+
+  let courseFilter = 'all';
+  if (parsed.courseId) {
+    courseFilter = parsed.courseId;
+  }
+
+  let materialFilter = 'all';
+  if (parsed.materialId === TASK_MATERIAL_QUERY_NONE) {
+    materialFilter = TASK_MATERIAL_QUERY_NONE;
+  } else if (parsed.materialId) {
+    materialFilter = parsed.materialId;
+  }
+
+  return {
+    courseFilter,
+    materialFilter,
+    statusFilter,
+    deadlineFilter: resolvedDeadlineFilter,
+  };
+}
+
+/**
  * Read initial /courses/:courseId filter state from URL on first render (before materials hydrate).
  * Preserves provisional material UUIDs; does not validate against loaded materials.
  *

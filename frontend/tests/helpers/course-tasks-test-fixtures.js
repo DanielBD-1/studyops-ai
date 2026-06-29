@@ -8,11 +8,38 @@ export const TASK_B = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 
 export const TEST_TOKEN = 'test-access-token';
 
+/** @type {import('../../src/services/courses.service.js').Course[]} */
+export const coursesFixture = [
+  {
+    id: COURSE_A,
+    title: 'Biology 101',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: COURSE_B,
+    title: 'Chemistry 201',
+    createdAt: '2026-01-02T00:00:00.000Z',
+    updatedAt: '2026-01-02T00:00:00.000Z',
+  },
+];
+
 /** @type {import('../../src/services/study-materials.service.js').MaterialSummary[]} */
 export const materialsCourseAFixture = [
   { id: MATERIAL_A, title: 'Chapter 1', courseId: COURSE_A },
   { id: MATERIAL_B, title: 'Chapter 2', courseId: COURSE_A },
 ];
+
+/** @type {import('../../src/services/study-materials.service.js').MaterialSummary[]} */
+export const materialsCourseBFixture = [
+  {
+    id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+    title: 'Lab notes',
+    courseId: COURSE_B,
+  },
+];
+
+export const MATERIAL_B_COURSE_B = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
 
 /**
  * @param {Partial<import('../../src/services/tasks.service.js').StudyTask>} overrides

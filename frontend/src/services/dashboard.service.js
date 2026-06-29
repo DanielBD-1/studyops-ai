@@ -83,6 +83,15 @@ async function request(path, init = {}) {
 
 /**
  * @typedef {{
+ *   materialId: string,
+ *   courseId: string,
+ *   materialTitle: string,
+ *   pendingTasks: number,
+ * }} DashboardMaterialPendingStat
+ */
+
+/**
+ * @typedef {{
  *   totalCourses: number,
  *   totalStudyMaterials: number,
  *   totalGeneratedPlans: number,
@@ -101,8 +110,79 @@ async function request(path, init = {}) {
  *   completedFocusSessionsLast7Days: number,
  *   trelloSyncedTasks: number,
  *   courseStats: DashboardCourseStat[],
+ *   materialsWithPendingTasks: number,
+ *   topMaterialsByPendingTasks: DashboardMaterialPendingStat[],
  * }} DashboardStats
  */
+
+/**
+ * @param {unknown} value
+ * @returns {number}
+ */
+function normalizeMaterialsWithPendingTasks(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return 0;
+  }
+  return parsed;
+}
+
+/**
+ * @param {unknown} value
+ * @returns {DashboardMaterialPendingStat[]}
+ */
+function normalizeTopMaterialsByPendingTasks(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  /** @type {DashboardMaterialPendingStat[]} */
+  const normalized = [];
+
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+
+    const record = /** @type {Record<string, unknown>} */ (entry);
+    const materialId = typeof record.materialId === 'string' ? record.materialId.trim() : '';
+    const courseId = typeof record.courseId === 'string' ? record.courseId.trim() : '';
+    const materialTitle =
+      typeof record.materialTitle === 'string' ? record.materialTitle.trim() : '';
+    const pendingTasks = Number(record.pendingTasks);
+
+    if (!materialId || !courseId || !materialTitle) {
+      continue;
+    }
+
+    if (!Number.isFinite(pendingTasks) || pendingTasks < 1) {
+      continue;
+    }
+
+    normalized.push({
+      materialId,
+      courseId,
+      materialTitle,
+      pendingTasks,
+    });
+  }
+
+  return normalized;
+}
+
+/**
+ * @param {Record<string, unknown>} data
+ * @returns {DashboardStats}
+ */
+export function normalizeDashboardStats(data) {
+  return {
+    .../** @type {DashboardStats} */ (data),
+    materialsWithPendingTasks: normalizeMaterialsWithPendingTasks(data.materialsWithPendingTasks),
+    topMaterialsByPendingTasks: normalizeTopMaterialsByPendingTasks(
+      data.topMaterialsByPendingTasks
+    ),
+  };
+}
 
 /**
  * @returns {Promise<DashboardStats>}
@@ -113,5 +193,5 @@ export async function getDashboardStats() {
     : getLocalTodayIsoCalendarDate();
   const params = new URLSearchParams({ referenceDate });
   const data = await request(`/api/dashboard/stats?${params.toString()}`, { method: 'GET' });
-  return /** @type {DashboardStats} */ (data);
+  return normalizeDashboardStats(/** @type {Record<string, unknown>} */ (data));
 }

@@ -22,6 +22,8 @@ import {
   buildTasksPageDueTodayLink,
   buildTasksPageNext7DaysLink,
   buildTasksPageOverdueLink,
+  buildCoursePageMaterialLink,
+  buildTasksPageMaterialLink,
 } from '../utils/task-nav-query.js';
 
 /**
@@ -223,6 +225,84 @@ function DashboardStudyPulse({ stats }) {
   );
 }
 
+/**
+ * @param {number} count
+ */
+function formatMaterialsWithPendingSummary(count) {
+  if (count === 1) {
+    return '1 material with pending linked tasks';
+  }
+  return `${count} materials with pending linked tasks`;
+}
+
+/**
+ * @param {{ stats: import('../services/dashboard.service.js').DashboardStats }} props
+ */
+export function DashboardMaterialsPending({ stats }) {
+  const materialsWithPendingTasks = stats.materialsWithPendingTasks ?? 0;
+  const topMaterials = stats.topMaterialsByPendingTasks ?? [];
+  const renderedCount = topMaterials.length;
+
+  return (
+    <section
+      className="section section--compact dashboard-materials-pending"
+      aria-labelledby="dashboard-materials-pending-title"
+    >
+      <div className="section__header-row dashboard-materials-pending__header">
+        <h2
+          id="dashboard-materials-pending-title"
+          className="section__title section__title--sm dashboard-materials-pending__title"
+        >
+          Materials with pending tasks
+        </h2>
+        <p className="section__subtitle dashboard-materials-pending__subtitle">
+          {formatMaterialsWithPendingSummary(materialsWithPendingTasks)}
+        </p>
+      </div>
+
+      {topMaterials.length === 0 ? (
+        <p className="section__meta dashboard-materials-pending__empty" role="status">
+          No study materials have pending linked tasks right now.
+        </p>
+      ) : (
+        <>
+          <ul className="dashboard-materials-pending__list" aria-label="Materials with pending linked tasks">
+            {topMaterials.map((material) => (
+              <li key={material.materialId} className="dashboard-materials-pending__row">
+                <div className="dashboard-materials-pending__summary">
+                  <span className="dashboard-materials-pending__title">{material.materialTitle}</span>
+                  <span className="dashboard-materials-pending__count">
+                    {material.pendingTasks} pending
+                  </span>
+                </div>
+                <p className="dashboard-materials-pending__actions">
+                  <Link
+                    to={buildTasksPageMaterialLink(material.courseId, material.materialId)}
+                    className="link-btn link-btn--secondary"
+                  >
+                    View linked tasks
+                  </Link>
+                  <Link
+                    to={buildCoursePageMaterialLink(material.courseId, material.materialId)}
+                    className="link-btn link-btn--secondary"
+                  >
+                    View tasks on course
+                  </Link>
+                </p>
+              </li>
+            ))}
+          </ul>
+          {materialsWithPendingTasks > renderedCount && (
+            <p className="section__meta dashboard-materials-pending__more" role="status">
+              Showing top {renderedCount} materials by pending linked tasks.
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function DashboardStub() {
   const { user, logout } = useAuth();
   const { subscribeToRefresh } = useDashboardRefresh();
@@ -365,6 +445,8 @@ export default function DashboardStub() {
           <DashboardDecisionHero recommendation={recommendation} />
 
           <DashboardStudyPulse stats={stats} />
+
+          <DashboardMaterialsPending stats={stats} />
 
           <section className="section section--compact dashboard-courses dashboard-courses--deck">
             <div className="section__header-row dashboard-courses__header">

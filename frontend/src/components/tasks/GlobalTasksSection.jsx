@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useDashboardRefresh } from '../../context/DashboardContext.jsx';
 import {
   ApiRequestError,
@@ -16,6 +16,7 @@ import {
 import {
   buildTasksPageSearchParams,
   parseTasksPageSearchParams,
+  readTasksPageInitialTaskFilters,
   resolveInitialTaskFilters,
 } from '../../utils/task-nav-query.js';
 import { createTaskFormSchema, updateTaskFormSchema } from '../../utils/validation.js';
@@ -36,30 +37,50 @@ import Textarea from '../ui/Textarea.jsx';
  */
 export default function GlobalTasksSection({ courses, handleAuthError }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { refreshStats } = useDashboardRefresh();
   const skipUrlSyncRef = useRef(false);
+  const loadSeqRef = useRef(0);
+  const lastUrlCourseRef = useRef(/** @type {string | undefined} */ (undefined));
+  const lastLocationSearchRef = useRef(/** @type {string | null} */ (null));
+
+  const initialFilters = useMemo(
+    () => readTasksPageInitialTaskFilters(location.search),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- first-render URL snapshot only
+    []
+  );
+
   const focusReturnTo = useMemo(() => {
-    const query = searchParams.toString();
+    const query = location.search.startsWith('?') ? location.search.slice(1) : location.search;
     return query ? `/tasks?${query}` : '/tasks';
-  }, [searchParams]);
+  }, [location.search]);
+
   const [tasks, setTasks] = useState(
     /** @type {import('../../services/tasks.service.js').StudyTask[]} */ ([])
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(/** @type {string | null} */ (null));
-  const [courseFilter, setCourseFilter] = useState(/** @type {'all' | string} */ ('all'));
+  const [courseFilter, setCourseFilter] = useState(
+    /** @type {'all' | string} */ (initialFilters.courseFilter)
+  );
   const [statusFilter, setStatusFilter] = useState(
-    /** @type {'all' | 'pending' | 'completed'} */ ('all')
+    /** @type {'all' | 'pending' | 'completed'} */ (initialFilters.statusFilter)
   );
   const [deadlineFilter, setDeadlineFilter] = useState(
-    /** @type {'all' | 'overdue' | 'due_today' | 'next_7_days'} */ ('all')
+    /** @type {'all' | 'overdue' | 'due_today' | 'next_7_days'} */ (initialFilters.deadlineFilter)
   );
-  const [materialFilter, setMaterialFilter] = useState(/** @type {'all' | string} */ ('all'));
+  const [materialFilter, setMaterialFilter] = useState(
+    /** @type {'all' | 'none' | string} */ (initialFilters.materialFilter)
+  );
   const [filterMaterials, setFilterMaterials] = useState(
     /** @type {import('../../services/study-materials.service.js').MaterialSummary[]} */ ([])
   );
   const [loadingFilterMaterials, setLoadingFilterMaterials] = useState(false);
+  const [materialsHydration, setMaterialsHydration] = useState(
+    /** @type {{ courseId: string | null, status: 'idle' | 'loading' | 'success' | 'error' }} */
+    ({ courseId: null, status: 'idle' })
+  );
   const [editingTaskId, setEditingTaskId] = useState(/** @type {string | null} */ (null));
   const [editTitle, setEditTitle] = useState('');
   const [editEstimatedMinutes, setEditEstimatedMinutes] = useState('');
@@ -132,6 +153,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
    */
   const loadTasks = useCallback(
     async (overrides = {}) => {
+      const requestSeq = ++loadSeqRef.current;
+
+      /** @returns {boolean} */
+      const isStale = () => requestSeq !== loadSeqRef.current;
+
       setLoading(true);
       setError(null);
 
@@ -160,12 +186,16 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
 
       try {
         const data = await listAllTasks({ courseId, status, deadline, materialId });
+        if (isStale()) return;
         setTasks(data.tasks);
       } catch (err) {
+        if (isStale()) return;
         if (await handleAuthError(err)) return;
         setError(err instanceof Error ? err.message : 'Failed to load study tasks');
       } finally {
-        setLoading(false);
+        if (!isStale()) {
+          setLoading(false);
+        }
       }
     },
     [courseFilter, materialFilter, statusFilter, deadlineFilter, handleAuthError, courses]
@@ -201,7 +231,34 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     [searchParams, setSearchParams]
   );
 
-  useEffect(() => {
+  const searchKey = location.search.startsWith('?') ? location.search.slice(1) : location.search;
+
+  useLayoutEffect(() => {
+    if (searchKey === lastLocationSearchRef.current) {
+      return;
+    }
+
+    const previousCourseId = lastLocationSearchRef.current
+      ? parseTasksPageSearchParams(`?${lastLocationSearchRef.current}`).courseId
+      : undefined;
+    const parsed = parseTasksPageSearchParams(location.search);
+    const urlCourseId = parsed.courseId;
+
+    if (urlCourseId !== previousCourseId) {
+      loadSeqRef.current += 1;
+      lastUrlCourseRef.current = urlCourseId;
+    }
+
+    lastLocationSearchRef.current = searchKey;
+
+    const nextFilters = readTasksPageInitialTaskFilters(location.search);
+    setCourseFilter(nextFilters.courseFilter);
+    setMaterialFilter(nextFilters.materialFilter);
+    setStatusFilter(nextFilters.statusFilter);
+    setDeadlineFilter(nextFilters.deadlineFilter);
+  }, [location.search, searchKey]);
+
+  useLayoutEffect(() => {
     if (skipUrlSyncRef.current) {
       skipUrlSyncRef.current = false;
       return;
@@ -211,20 +268,24 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       return;
     }
 
-    const parsed = parseTasksPageSearchParams(searchParams.toString());
+    const parsed = parseTasksPageSearchParams(location.search);
     const courseInUrl = parsed.courseId;
     const materialInUrl = parsed.materialId;
-    const courseKnown = Boolean(courseInUrl && courses.some((c) => c.id === courseInUrl));
 
-    const awaitingMaterials =
-      courseKnown &&
+    const hydrationForCourse =
+      courseInUrl && materialsHydration.courseId === courseInUrl
+        ? materialsHydration.status
+        : 'idle';
+
+    const awaitingMaterialMembership =
+      courseInUrl &&
       materialInUrl &&
       materialInUrl !== 'none' &&
-      (courseFilter !== courseInUrl || loadingFilterMaterials);
+      hydrationForCourse !== 'success';
 
-    if (awaitingMaterials) {
-      const partial = resolveInitialTaskFilters({
-        courseId: courseInUrl,
+    if (awaitingMaterialMembership || (hydrationForCourse === 'error' && materialInUrl && materialInUrl !== 'none')) {
+      const courseResolved = resolveInitialTaskFilters({
+        courseId: parsed.courseId,
         materialId: undefined,
         status: parsed.status,
         deadline: parsed.deadline,
@@ -232,15 +293,10 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
         materials: [],
       });
 
-      if (partial.courseFilter !== courseFilter) {
-        setCourseFilter(partial.courseFilter);
-      }
-      if (partial.statusFilter !== statusFilter) {
-        setStatusFilter(partial.statusFilter);
-      }
-      if (partial.deadlineFilter !== deadlineFilter) {
-        setDeadlineFilter(partial.deadlineFilter);
-      }
+      setCourseFilter(courseResolved.courseFilter);
+      setMaterialFilter(materialInUrl);
+      setStatusFilter(courseResolved.statusFilter);
+      setDeadlineFilter(courseResolved.deadlineFilter);
       return;
     }
 
@@ -253,17 +309,19 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       materials: filterMaterials,
     });
 
-    if (resolved.courseFilter !== courseFilter) {
-      setCourseFilter(resolved.courseFilter);
-    }
-    if (resolved.materialFilter !== materialFilter) {
-      setMaterialFilter(resolved.materialFilter);
-    }
-    if (resolved.statusFilter !== statusFilter) {
-      setStatusFilter(resolved.statusFilter);
-    }
-    if (resolved.deadlineFilter !== deadlineFilter) {
-      setDeadlineFilter(resolved.deadlineFilter);
+    setCourseFilter(resolved.courseFilter);
+    setMaterialFilter(resolved.materialFilter);
+    setStatusFilter(resolved.statusFilter);
+    setDeadlineFilter(resolved.deadlineFilter);
+
+    const canCanonicalize =
+      !materialInUrl ||
+      materialInUrl === 'none' ||
+      hydrationForCourse === 'success' ||
+      resolved.materialFilter === 'all';
+
+    if (!canCanonicalize) {
+      return;
     }
 
     const canonical = buildTasksPageSearchParams({
@@ -272,7 +330,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       statusFilter: resolved.statusFilter,
       deadlineFilter: resolved.deadlineFilter,
     });
-    const current = searchParams.toString();
+    const current = searchKey;
     if (canonical !== current) {
       skipUrlSyncRef.current = true;
       setSearchParams(
@@ -281,14 +339,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
       );
     }
   }, [
-    searchParams,
+    location.search,
+    searchKey,
     courses,
     filterMaterials,
-    loadingFilterMaterials,
-    courseFilter,
-    materialFilter,
-    statusFilter,
-    deadlineFilter,
+    materialsHydration,
     setSearchParams,
   ]);
 
@@ -299,22 +354,31 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     if (!showMaterialFilter) {
       setFilterMaterials([]);
       setLoadingFilterMaterials(false);
+      setMaterialsHydration({ courseId: null, status: 'idle' });
       return undefined;
     }
 
+    const targetCourseId = courseFilter;
     let cancelled = false;
 
+    setFilterMaterials([]);
+    setMaterialsHydration({ courseId: targetCourseId, status: 'loading' });
+    setLoadingFilterMaterials(true);
+
     async function loadCourseMaterials() {
-      setLoadingFilterMaterials(true);
       try {
-        const data = await listMaterials(courseFilter);
+        const data = await listMaterials(targetCourseId);
         if (!cancelled) {
           setFilterMaterials(data.materials);
+          setMaterialsHydration({ courseId: targetCourseId, status: 'success' });
         }
       } catch (err) {
         if (cancelled) return;
         if (await handleAuthError(err)) return;
-        setFilterMaterials([]);
+        if (!cancelled) {
+          setFilterMaterials([]);
+          setMaterialsHydration({ courseId: targetCourseId, status: 'error' });
+        }
       } finally {
         if (!cancelled) {
           setLoadingFilterMaterials(false);
@@ -327,7 +391,7 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
     return () => {
       cancelled = true;
     };
-  }, [courseFilter, showMaterialFilter, handleAuthError]);
+  }, [courseFilter, showMaterialFilter, handleAuthError, location.search]);
 
   useEffect(() => {
     if (!showCreate || !createCourseId || !courses.some((c) => c.id === createCourseId)) {
@@ -768,6 +832,11 @@ export default function GlobalTasksSection({ courses, handleAuthError }) {
                 >
                   <option value="all">All materials in course</option>
                   <option value="none">Tasks without material</option>
+                  {materialFilter !== 'all' &&
+                  materialFilter !== 'none' &&
+                  !filterMaterials.some((material) => material.id === materialFilter) ? (
+                    <option value={materialFilter}>Linked material loading…</option>
+                  ) : null}
                   {filterMaterials.map((material) => (
                     <option key={material.id} value={material.id}>
                       {material.title}

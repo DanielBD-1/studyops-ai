@@ -16,6 +16,9 @@ import {
   getMockFlashcards,
   getMockFocusSessions,
   getMockTasks,
+  getDashboardAggregateQueryCounts,
+  OTHER_USER_MATERIAL_ID,
+  getMockMaterialsRowsForTests,
 } from '../helpers/mockSupabaseDashboard.js';
 import { computeLast7DaysThresholdIso } from '../../src/modules/dashboard/dashboard.service.js';
 import { getUtcTodayIsoCalendarDate } from '../../src/shared/validation/calendar-date.js';
@@ -165,6 +168,8 @@ describe('dashboard API integration', () => {
       completedFocusSessionsLast7Days: 0,
       trelloSyncedTasks: 0,
       courseStats: [],
+      materialsWithPendingTasks: 0,
+      topMaterialsByPendingTasks: [],
     });
   });
 
@@ -722,5 +727,245 @@ describe('dashboard deadline task aggregates', () => {
     assert.equal(res.body.data.dueNext7DaysPendingTasks, 2);
     assert.equal(res.body.data.overduePendingTasks, 1);
     assert.equal(res.body.data.dueTodayPendingTasks, 1);
+  });
+});
+
+describe('dashboard material pending aggregates', () => {
+  /** @type {import('node:http').Server} */
+  let server;
+  /** @type {number} */
+  let port;
+
+  before(async () => {
+    server = http.createServer(app);
+    await listen(server);
+    port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+  });
+
+  after(async () => {
+    await new Promise((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve(undefined)));
+    });
+  });
+
+  beforeEach(() => {
+    seedDashboardMixedData();
+  });
+
+  it('returns material pending fields for mixed account with one linked pending task', async () => {
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.materialsWithPendingTasks, 1);
+    assert.deepEqual(res.body.data.topMaterialsByPendingTasks, [
+      {
+        materialId: OWN_MATERIAL_ID,
+        courseId: OWN_COURSE_ID,
+        materialTitle: 'Own Material',
+        pendingTasks: 1,
+      },
+    ]);
+    assert.equal(res.body.data.totalTasks, 3);
+    assert.equal(res.body.data.pendingTasks, 2);
+    assertNoSensitiveFields(res.body.data);
+  });
+
+  it('excludes unlinked pending tasks and completed linked tasks', async () => {
+    getMockTasks().push(
+      {
+        id: '11111111-1111-4111-8111-111111111112',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: null,
+        title: 'Unlinked pending task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222223',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: OWN_MATERIAL_ID,
+        title: 'Completed linked task',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'completed',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      }
+    );
+
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.body.data.materialsWithPendingTasks, 1);
+    assert.equal(res.body.data.topMaterialsByPendingTasks[0].pendingTasks, 1);
+  });
+
+  it('excludes wrong-user tasks and materials and course mismatches', async () => {
+    getMockTasks().push(
+      {
+        id: '33333333-3333-4333-8333-333333333334',
+        user_id: OTHER_USER_ID,
+        course_id: OTHER_USER_COURSE_ID,
+        material_id: OTHER_USER_MATERIAL_ID,
+        title: 'Other user linked pending',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '44444444-4444-4444-8444-444444444445',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: OTHER_USER_MATERIAL_ID,
+        title: 'Wrong-owner material reference',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555556',
+        user_id: TEST_USER_ID,
+        course_id: OTHER_USER_COURSE_ID,
+        material_id: OWN_MATERIAL_ID,
+        title: 'Course mismatch linked pending',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      }
+    );
+
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.body.data.materialsWithPendingTasks, 1);
+    assert.equal(res.body.data.topMaterialsByPendingTasks.length, 1);
+    assert.equal(res.body.data.topMaterialsByPendingTasks[0].materialId, OWN_MATERIAL_ID);
+  });
+
+  it('orders top materials by pending count then title', async () => {
+    const secondMaterialId = 'dddddddd-dddd-4ddd-8ddd-ddddddddddde';
+
+    getMockMaterialsRowsForTests().push({
+      id: secondMaterialId,
+      course_id: OWN_COURSE_ID,
+      title: 'Beta Material',
+    });
+
+    getMockTasks().push(
+      {
+        id: '66666666-6666-4666-8666-666666666667',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: secondMaterialId,
+        title: 'Beta pending 1',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: '77777777-7777-4777-8777-777777777778',
+        user_id: TEST_USER_ID,
+        course_id: OWN_COURSE_ID,
+        material_id: secondMaterialId,
+        title: 'Beta pending 2',
+        description: 'Sensitive',
+        priority: 'medium',
+        estimated_minutes: 20,
+        difficulty: 'medium',
+        tags: [],
+        status: 'pending',
+        source: 'manual',
+        due_date: null,
+        trello_card_id: null,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      }
+    );
+
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.body.data.materialsWithPendingTasks, 2);
+    assert.equal(res.body.data.topMaterialsByPendingTasks[0].materialId, secondMaterialId);
+    assert.equal(res.body.data.topMaterialsByPendingTasks[0].pendingTasks, 2);
+    assert.equal(res.body.data.topMaterialsByPendingTasks[1].materialId, OWN_MATERIAL_ID);
+    assert.equal(res.body.data.topMaterialsByPendingTasks[1].pendingTasks, 1);
+  });
+
+  it('uses one aggregate task query and one owned-material query', async () => {
+    const res = await request(`http://127.0.0.1:${port}/api/dashboard/stats`, {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+
+    assert.equal(res.statusCode, 200);
+    const counts = getDashboardAggregateQueryCounts();
+    assert.equal(counts.pendingLinkedTaskAggregateQueries, 1);
+    assert.equal(counts.ownedMaterialAggregateQueries, 1);
+  });
+
+  it('preserves referenceDate behavior for existing and new fields', async () => {
+    const res = await request(
+      `http://127.0.0.1:${port}/api/dashboard/stats?referenceDate=2026-06-18`,
+      { headers: { Authorization: 'Bearer valid-token' } }
+    );
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.deadlineReferenceDate, '2026-06-18');
+    assert.equal(typeof res.body.data.materialsWithPendingTasks, 'number');
+    assert.ok(Array.isArray(res.body.data.topMaterialsByPendingTasks));
   });
 });

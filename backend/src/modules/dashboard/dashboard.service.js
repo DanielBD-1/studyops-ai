@@ -43,6 +43,85 @@ export function aggregateCourseStats(courses, tasks, flashcards) {
   });
 }
 
+const MATERIAL_TITLE_LOCALE_COMPARE = { sensitivity: 'base' };
+
+/**
+ * @param {{ material_id: string, course_id: string }[]} pendingLinkedTaskRows
+ * @param {{ id: string, title: string, course_id: string }[]} ownedMaterialRows
+ * @returns {{
+ *   materialsWithPendingTasks: number,
+ *   topMaterialsByPendingTasks: Array<{
+ *     materialId: string,
+ *     courseId: string,
+ *     materialTitle: string,
+ *     pendingTasks: number,
+ *   }>,
+ * }}
+ */
+export function aggregateMaterialPendingTasks(pendingLinkedTaskRows, ownedMaterialRows) {
+  /** @type {Map<string, { title: string, course_id: string }>} */
+  const ownedMaterialById = new Map();
+
+  for (const material of ownedMaterialRows) {
+    ownedMaterialById.set(material.id, {
+      title: material.title,
+      course_id: material.course_id,
+    });
+  }
+
+  /** @type {Map<string, { materialId: string, courseId: string, materialTitle: string, pendingTasks: number }>} */
+  const pendingByMaterialId = new Map();
+
+  for (const task of pendingLinkedTaskRows) {
+    const ownedMaterial = ownedMaterialById.get(task.material_id);
+    if (!ownedMaterial) {
+      continue;
+    }
+
+    if (ownedMaterial.course_id !== task.course_id) {
+      continue;
+    }
+
+    const existing = pendingByMaterialId.get(task.material_id);
+    if (existing) {
+      existing.pendingTasks += 1;
+      continue;
+    }
+
+    pendingByMaterialId.set(task.material_id, {
+      materialId: task.material_id,
+      courseId: ownedMaterial.course_id,
+      materialTitle: ownedMaterial.title,
+      pendingTasks: 1,
+    });
+  }
+
+  const materialsWithPendingTasks = pendingByMaterialId.size;
+  const topMaterialsByPendingTasks = Array.from(pendingByMaterialId.values())
+    .sort((a, b) => {
+      if (b.pendingTasks !== a.pendingTasks) {
+        return b.pendingTasks - a.pendingTasks;
+      }
+
+      const titleCompare = a.materialTitle.localeCompare(
+        b.materialTitle,
+        undefined,
+        MATERIAL_TITLE_LOCALE_COMPARE
+      );
+      if (titleCompare !== 0) {
+        return titleCompare;
+      }
+
+      return a.materialId.localeCompare(b.materialId, undefined, MATERIAL_TITLE_LOCALE_COMPARE);
+    })
+    .slice(0, 5);
+
+  return {
+    materialsWithPendingTasks,
+    topMaterialsByPendingTasks,
+  };
+}
+
 /**
  * @param {Promise<{ count: number | null, error: { message?: string } | null }>} query
  * @returns {Promise<number>}
@@ -87,6 +166,8 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
     coursesResult,
     tasksResult,
     flashcardsResult,
+    pendingLinkedTasksResult,
+    ownedMaterialsResult,
   ] = await Promise.all([
     countExact(
       supabase
@@ -194,6 +275,16 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
     supabase.from('courses').select('id, title').eq('user_id', userId),
     supabase.from('study_tasks').select('course_id, status').eq('user_id', userId),
     supabase.from('flashcards').select('course_id').eq('user_id', userId),
+    supabase
+      .from('study_tasks')
+      .select('material_id, course_id')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .not('material_id', 'is', null),
+    supabase
+      .from('study_materials')
+      .select('id, title, course_id, courses!inner(user_id)')
+      .eq('courses.user_id', userId),
   ]);
 
   if (focusResult.error || last7DaysFocusResult.error) {
@@ -201,6 +292,10 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
   }
 
   if (coursesResult.error || tasksResult.error || flashcardsResult.error) {
+    throw new ApiError('DATABASE_ERROR', 'Failed to load dashboard stats', 500);
+  }
+
+  if (pendingLinkedTasksResult.error || ownedMaterialsResult.error) {
     throw new ApiError('DATABASE_ERROR', 'Failed to load dashboard stats', 500);
   }
 
@@ -212,6 +307,10 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
     coursesResult.data ?? [],
     tasksResult.data ?? [],
     flashcardsResult.data ?? []
+  );
+  const { materialsWithPendingTasks, topMaterialsByPendingTasks } = aggregateMaterialPendingTasks(
+    pendingLinkedTasksResult.data ?? [],
+    ownedMaterialsResult.data ?? []
   );
 
   return {
@@ -233,5 +332,7 @@ export async function getDashboardStats(userId, deadlineReferenceDate) {
     completedFocusSessionsLast7Days,
     trelloSyncedTasks,
     courseStats,
+    materialsWithPendingTasks,
+    topMaterialsByPendingTasks,
   };
 }
